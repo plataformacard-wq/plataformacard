@@ -105,7 +105,7 @@ export default function ProductCatalogClient({
       pageType: "catalog",
       metadata: {
         slug,
-        path: `/${slug}/catalogo`,
+        path: `/p/${slug}/catalogo`,
       },
     });
   }, [profileId, catalogId, slug]);
@@ -193,7 +193,7 @@ export default function ProductCatalogClient({
       pageType: "product",
       metadata: {
         slug,
-        path: `/${slug}/catalogo`,
+        path: `/p/${slug}/catalogo`,
         productName: product.name,
       },
     });
@@ -210,7 +210,7 @@ export default function ProductCatalogClient({
       pageType: "product",
       metadata: {
         slug,
-        path: `/${slug}/catalogo`,
+        path: `/p/${slug}/catalogo`,
         productName: selectedProduct.name,
       },
     });

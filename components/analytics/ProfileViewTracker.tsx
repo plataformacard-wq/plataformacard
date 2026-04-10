@@ -27,7 +27,7 @@ export default function ProfileViewTracker({
       pageType: "profile",
       metadata: {
         slug,
-        path: `/${slug}`,
+        path: `/p/${slug}`,
       },
     });
   }, [profileId, slug]);

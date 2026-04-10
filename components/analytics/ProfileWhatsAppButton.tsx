@@ -27,7 +27,7 @@ export default function ProfileWhatsAppButton({
           pageType: "profile",
           metadata: {
             slug,
-            path: `/${slug}`,
+            path: `/p/${slug}`,
           },
         });
       }}

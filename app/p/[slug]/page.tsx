@@ -77,12 +77,12 @@ const safeProfile = profile!;
               />
             )}
 
-            <Link
-              href={`/${slug}/catalogo`}
-              className="rounded-xl bg-neutral-900 py-3 font-semibold text-white hover:bg-neutral-800"
-            >
-              Ver catálogo
-            </Link>
+        <Link
+  href={`/p/${slug}/catalogo`}
+  className="rounded-xl bg-neutral-900 py-3 font-semibold text-white hover:bg-neutral-800"
+>
+  Ver catálogo
+</Link>
           </div>
         </div>
       </div>
