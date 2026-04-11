@@ -4,11 +4,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/entrar",
+        source: "/login",
         destination: "/entrar",
-        permanent: false,
+        permanent: true,
       },
-    ].filter(Boolean) as any[];
+    ];
   },
 };
 
