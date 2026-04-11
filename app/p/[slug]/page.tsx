@@ -29,12 +29,14 @@ export default async function Page(props: PageProps) {
   notFound();
 }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
     .eq("slug", slug)
     .maybeSingle();
-  
+
+  console.log("[p/[slug]] profiles query", { slug, profile, error });
+
     if (!profile) {
   notFound();
 }
