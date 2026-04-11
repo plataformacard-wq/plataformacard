@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 
 type PageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 type Profile = {
@@ -42,10 +42,10 @@ type Product = {
 
 
 
-export default async function Page({ params }: PageProps) {
+export default async function Page(props: PageProps) {
   const supabase = await createClient();
 
-  const { slug } = params;
+  const { slug } = await props.params;
 
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
