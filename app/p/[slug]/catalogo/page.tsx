@@ -61,14 +61,25 @@ if (profileError || !profileData) {
 
   const { data: profileCatalogData } = await supabase
     .from("profile_catalogs")
-    .select("catalog_id")
+    .select("organization_catalog_id")
     .eq("profile_id", profile.id)
-    .eq("is_enabled", true)
+    .eq("is_selected", true)
     .limit(1)
     .maybeSingle();
 
-    let catalogId = profileCatalogData?.catalog_id ?? null;
-    let fallbackOrgCatalog: { catalog_id: string } | null = null;
+  let catalogId: string | null = null;
+
+  if (profileCatalogData?.organization_catalog_id) {
+    const { data: orgCatalogFromProfile } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("id", profileCatalogData.organization_catalog_id)
+      .maybeSingle();
+
+    catalogId = orgCatalogFromProfile?.catalog_id ?? null;
+  }
+
+  let fallbackOrgCatalog: { catalog_id: string } | null = null;
 
 if (!catalogId) {
   const { data } = await supabase
