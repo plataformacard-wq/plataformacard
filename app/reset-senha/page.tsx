@@ -69,7 +69,7 @@ export default function ResetSenhaPage() {
     );
 
     setTimeout(() => {
-      router.push("/login");
+      router.push("/entrar");
       router.refresh();
     }, 1500);
   }
@@ -186,7 +186,7 @@ export default function ResetSenhaPage() {
 
               <div className="mt-6 text-center">
                 <Link
-                  href="/login"
+                  href="/entrar"
                   className="text-sm font-medium text-neutral-700 transition hover:text-black"
                 >
                   Voltar para login

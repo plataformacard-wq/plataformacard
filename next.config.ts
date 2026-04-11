@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/login",
-        destination: "/login",
+        source: "/entrar",
+        destination: "/entrar",
         permanent: false,
       },
     ].filter(Boolean) as any[];

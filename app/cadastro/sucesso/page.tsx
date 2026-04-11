@@ -26,7 +26,7 @@ export default function CadastroSucessoPage() {
         <div className="mt-8 flex flex-col gap-3">
 
           <Link
-            href="/login"
+            href="/entrar"
             className="w-full rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:opacity-90"
           >
             Ir para o login

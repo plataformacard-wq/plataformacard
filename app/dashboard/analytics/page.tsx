@@ -20,7 +20,7 @@ export default async function AnalyticsPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect("/entrar");
   }
 
 const { data: profile, error: profileError } = await supabase
@@ -30,7 +30,7 @@ const { data: profile, error: profileError } = await supabase
   .maybeSingle();
 
   if (profileError || !profile) {
-    redirect("/login");
+    redirect("/entrar");
   }
 
   const [summary, topProducts, productConversion] = await Promise.all([

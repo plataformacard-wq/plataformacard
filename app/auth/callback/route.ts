@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login`);
+    return NextResponse.redirect(`${origin}/entrar`);
   }
 
   const supabase = await createClient();
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("Erro ao trocar code por sessão:", error.message);
-    return NextResponse.redirect(`${origin}/login`);
+    return NextResponse.redirect(`${origin}/entrar`);
   }
 
   return NextResponse.redirect(`${origin}/dashboard`);

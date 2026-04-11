@@ -99,7 +99,7 @@ export default function RecuperarSenhaPage() {
 
           <div className="mt-6 text-center">
             <Link
-              href="/login"
+              href="/entrar"
               className="text-sm font-medium text-neutral-700 transition hover:text-black"
             >
               Voltar para login

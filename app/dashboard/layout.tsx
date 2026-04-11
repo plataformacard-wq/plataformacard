@@ -66,7 +66,7 @@ async function handleLogout() {
   if (!confirmLogout) return;
 
   await supabase.auth.signOut();
-  router.push("/login");
+  router.push("/entrar");
 }
 
   return (
