@@ -9,6 +9,5 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/admin/:path*",
-    "/p/:path*",
   ],
 };
