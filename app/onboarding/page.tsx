@@ -147,16 +147,35 @@ export default function OnboardingPage() {
       const trimmedWhatsapp = whatsapp.trim();
       const trimmedBio = bio.trim();
 
-      const { error } = await supabase.from("profiles").upsert(
-        {
-          user_id: user.id,
-          full_name: trimmedName || null,
-          slug: trimmedSlug,
-          whatsapp: trimmedWhatsapp,
-          bio: trimmedBio || null,
-        },
-        { onConflict: "user_id" }
-      );
+      const { data: existing, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        setFormError(
+          fetchError.message || "Não foi possível salvar. Tente novamente."
+        );
+        return;
+      }
+
+      const payload = {
+        full_name: trimmedName || null,
+        slug: trimmedSlug,
+        whatsapp: trimmedWhatsapp,
+        bio: trimmedBio || null,
+      };
+
+      const { error } = existing
+        ? await supabase
+            .from("profiles")
+            .update(payload)
+            .eq("user_id", user.id)
+        : await supabase.from("profiles").insert({
+            user_id: user.id,
+            ...payload,
+          });
 
       if (error) {
         if (
