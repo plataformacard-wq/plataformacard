@@ -173,6 +173,7 @@ export default function OnboardingPage() {
             .update(payload)
             .eq("user_id", user.id)
         : await supabase.from("profiles").insert({
+            id: crypto.randomUUID(),
             user_id: user.id,
             ...payload,
           });
