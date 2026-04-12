@@ -179,14 +179,17 @@ export default function OnboardingPage() {
           });
 
       if (error) {
-        if (
-          error.code === "23505" ||
-          error.message.toLowerCase().includes("unique")
-        ) {
-          setSlugError("Este slug já está em uso. Escolha outro.");
-        } else {
-          setFormError(error.message || "Não foi possível salvar. Tente novamente.");
+        if (error.code === "23505") {
+          if (error.message.includes("slug")) {
+            setSlugError("Este slug já está em uso. Escolha outro.");
+          } else {
+            setFormError(`Erro de constraint: ${error.message}`);
+          }
+          return;
         }
+        setFormError(
+          error.message || "Não foi possível salvar. Tente novamente."
+        );
         return;
       }
 
