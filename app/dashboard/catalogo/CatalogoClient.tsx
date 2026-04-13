@@ -80,6 +80,8 @@ export default function CatalogoPage() {
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [specs, setSpecs] = useState<Spec[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [specChaveDraft, setSpecChaveDraft] = useState("");
   const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -218,6 +220,8 @@ export default function CatalogoPage() {
     setProductName("");
     setProductDescription("");
     setSpecs([]);
+    setDragIndex(null);
+    setDragOverIndex(null);
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
@@ -240,6 +244,8 @@ export default function CatalogoPage() {
     setProductName(product.name.toUpperCase());
     setProductDescription(product.description ?? "");
     setSpecs(product.specs ?? []);
+    setDragIndex(null);
+    setDragOverIndex(null);
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice(formatPriceForInput(product.price));
@@ -262,6 +268,8 @@ export default function CatalogoPage() {
     setProductName("");
     setProductDescription("");
     setSpecs([]);
+    setDragIndex(null);
+    setDragOverIndex(null);
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
@@ -343,6 +351,11 @@ export default function CatalogoPage() {
 
   function removeSpec(index: number) {
     setSpecs((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleSpecDragEnd() {
+    setDragIndex(null);
+    setDragOverIndex(null);
   }
 
   async function uploadProductImage(
@@ -614,9 +627,13 @@ export default function CatalogoPage() {
 
                     {product.specs && product.specs.length > 0 && (
                       <p className="mt-2 text-sm text-neutral-600">
-                        {product.specs
-                          .map((s) => `${s.chave}: ${s.valor}`)
-                          .join(" · ")}
+                        {product.specs.map((spec, i) => (
+                          <span key={i}>
+                            {i > 0 ? " · " : null}
+                            <span>{spec.chave}:</span>{" "}
+                            <span className="font-semibold">{spec.valor}</span>
+                          </span>
+                        ))}
                       </p>
                     )}
                   </div>
@@ -754,11 +771,57 @@ export default function CatalogoPage() {
                     {specs.map((s, index) => (
                       <li
                         key={`${s.chave}-${index}`}
-                        className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800"
+                        draggable
+                        onDragStart={(e) => {
+                          setDragIndex(index);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", String(index));
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          setDragOverIndex(index);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const raw = e.dataTransfer.getData("text/plain");
+                          const from =
+                            raw === "" ? NaN : Number.parseInt(raw, 10);
+                          if (Number.isNaN(from) || from === index) {
+                            return;
+                          }
+                          setSpecs((prev) => {
+                            if (from < 0 || from >= prev.length) {
+                              return prev;
+                            }
+                            const next = [...prev];
+                            const [moved] = next.splice(from, 1);
+                            next.splice(index, 0, moved);
+                            return next;
+                          });
+                          setDragIndex(null);
+                          setDragOverIndex(null);
+                        }}
+                        onDragEnd={handleSpecDragEnd}
+                        className={`flex items-center justify-between gap-2 rounded-lg border-2 bg-neutral-50 px-3 py-2 text-sm text-neutral-800 ${
+                          dragIndex === index ? "opacity-50" : ""
+                        } ${
+                          dragOverIndex === index && dragIndex !== index
+                            ? "border-blue-400"
+                            : "border-neutral-200"
+                        }`}
                       >
-                        <span>
-                          {s.chave}: {s.valor}
-                        </span>
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                          <span
+                            className="shrink-0 cursor-grab select-none font-mono text-base leading-none text-neutral-400 active:cursor-grabbing"
+                            aria-hidden
+                          >
+                            {"\u283F"}
+                          </span>
+                          <span className="truncate">
+                            {s.chave}: {s.valor}
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeSpec(index)}
