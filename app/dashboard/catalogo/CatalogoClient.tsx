@@ -10,10 +10,13 @@ type Category = {
   name: string;
 };
 
+type Spec = { chave: string; valor: string };
+
 type ProductRow = {
   id: string;
   name: string;
   description: string | null;
+  specs: Spec[] | null;
   price: number | null;
   image_url: string | null;
   created_at: string;
@@ -45,6 +48,9 @@ export default function CatalogoPage() {
 
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
+  const [specs, setSpecs] = useState<Spec[]>([]);
+  const [specChaveDraft, setSpecChaveDraft] = useState("");
+  const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [productImageUrl, setProductImageUrl] = useState("");
 
@@ -122,6 +128,7 @@ export default function CatalogoPage() {
       id,
       name,
       description,
+      specs,
       price,
       image_url,
       created_at,
@@ -178,9 +185,28 @@ const { error } = await supabase
     setSelectedCategoryId("");
     setProductName("");
     setProductDescription("");
+    setSpecs([]);
+    setSpecChaveDraft("");
+    setSpecValorDraft("");
     setProductPrice("");
     setProductImageUrl("");
     setSaving(false);
+  }
+
+  function addSpec() {
+    const chave = specChaveDraft.trim();
+    const valor = specValorDraft.trim();
+    if (!chave || !valor) {
+      alert("Preencha característica e valor.");
+      return;
+    }
+    setSpecs((prev) => [...prev, { chave, valor }]);
+    setSpecChaveDraft("");
+    setSpecValorDraft("");
+  }
+
+  function removeSpec(index: number) {
+    setSpecs((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmitProduct(e: React.FormEvent<HTMLFormElement>) {
@@ -247,6 +273,7 @@ const { error } = await supabase.from("products").insert({
   category_id: selectedCategoryId,
   name: productName.trim(),
   description: productDescription.trim(),
+  specs,
   price: parsedPrice,
   image_url: productImageUrl.trim() || null,
   is_extra: false,
@@ -347,6 +374,15 @@ const { error } = await supabase.from("products").insert({
                     <p className="mt-2 text-sm text-neutral-700">
                       {product.description || "Sem descrição"}
                     </p>
+
+                    {product.specs &&
+                      product.specs.length > 0 && (
+                        <p className="mt-2 text-sm text-neutral-600">
+                          {product.specs
+                            .map((s) => `${s.chave}: ${s.valor}`)
+                            .join(" · ")}
+                        </p>
+                      )}
                   </div>
                    <div className="text-right flex flex-col items-end gap-2">
                    <p className="text-sm font-medium text-neutral-900">
@@ -444,6 +480,68 @@ const { error } = await supabase.from("products").insert({
                   className="min-h-[100px] w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
                   required
                 />
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-medium text-neutral-700">
+                  Especificações técnicas (opcional)
+                </p>
+
+                {specs.length > 0 && (
+                  <ul className="mb-3 space-y-2">
+                    {specs.map((s, index) => (
+                      <li
+                        key={`${s.chave}-${index}`}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800"
+                      >
+                        <span>
+                          {s.chave}: {s.valor}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeSpec(index)}
+                          className="shrink-0 text-xs font-medium text-red-600 hover:text-red-800"
+                        >
+                          Remover
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <div className="min-w-0 flex-1">
+                    <label className="mb-1 block text-xs font-medium text-neutral-600">
+                      Característica
+                    </label>
+                    <input
+                      type="text"
+                      value={specChaveDraft}
+                      onChange={(e) => setSpecChaveDraft(e.target.value)}
+                      placeholder="Ex: Peso"
+                      className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <label className="mb-1 block text-xs font-medium text-neutral-600">
+                      Valor
+                    </label>
+                    <input
+                      type="text"
+                      value={specValorDraft}
+                      onChange={(e) => setSpecValorDraft(e.target.value)}
+                      placeholder="Ex: 500g"
+                      className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addSpec}
+                    className="shrink-0 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
+                  >
+                    Adicionar
+                  </button>
+                </div>
               </div>
 
               <div>
