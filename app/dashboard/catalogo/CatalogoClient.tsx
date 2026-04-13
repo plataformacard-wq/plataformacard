@@ -2,8 +2,8 @@
 
 export const dynamic = "force-dynamic";
 
+import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
-let createClient: any;
 
 type Category = {
   id: string;
@@ -13,6 +13,8 @@ type Category = {
 type Spec = { chave: string; valor: string };
 
 const PRICE_INPUT_REGEX = /^[0-9]*[.,]?[0-9]*$/;
+
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 type ProductRow = {
   id: string;
@@ -34,12 +36,39 @@ type ProductRow = {
     | null;
 };
 
-export default function CatalogoPage() {
+function getProductCategoryId(product: ProductRow): string {
+  const c = product.categories;
+  if (Array.isArray(c)) return c[0]?.id ?? "";
+  return c?.id ?? "";
+}
 
+function formatPriceForInput(value: number | null): string {
+  if (value === null || Number.isNaN(value)) return "";
+  const s = value.toFixed(2);
+  return s.replace(".", ",");
+}
+
+function sanitizePriceTyping(raw: string): string {
+  return raw.replace(/[^0-9.,]/g, "");
+}
+
+function sanitizeStorageFilename(name: string): string {
+  const base = name.replace(/^.*[/\\]/, "").replace(/[^\w.-]/g, "_");
+  return base.slice(0, 180) || `image-${Date.now()}`;
+}
+
+function revokePreviewIfBlob(url: string | null) {
+  if (url?.startsWith("blob:")) {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export default function CatalogoPage() {
   const [canCreateProduct, setCanCreateProduct] = useState<boolean | null>(null);
   const [loadingLimit, setLoadingLimit] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -54,31 +83,25 @@ export default function CatalogoPage() {
   const [specChaveDraft, setSpecChaveDraft] = useState("");
   const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
-  const [productImageUrl, setProductImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
   const [nameError, setNameError] = useState("");
   const [categoryError, setCategoryError] = useState("");
   const [priceError, setPriceError] = useState("");
-  const [imageUrlError, setImageUrlError] = useState("");
+  const [imageFileError, setImageFileError] = useState("");
   const [specDraftError, setSpecDraftError] = useState("");
   const [productFormError, setProductFormError] = useState("");
   const [createProductError, setCreateProductError] = useState("");
   const [productListError, setProductListError] = useState("");
 
   useEffect(() => {
-  async function initialize() {
-    const mod = await import("@/lib/supabase/client");
-    createClient = mod.createClient;
+    async function initialize() {
+      await Promise.all([refreshLimit(), fetchCategories(), fetchProducts()]);
+    }
 
-    await Promise.all([
-      refreshLimit(),
-      fetchCategories(),
-      fetchProducts(),
-    ]);
-  }
-
-  initialize();
-}, []);
+    initialize();
+  }, []);
 
   async function refreshLimit() {
     const supabase = createClient();
@@ -104,38 +127,35 @@ export default function CatalogoPage() {
   }
 
   async function fetchProducts() {
-  const supabase = createClient();
+    const supabase = createClient();
     setLoadingProducts(true);
 
-  // 1. pegar usuário logado
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    console.error("Usuário não autenticado");
-    setLoadingProducts(false);
-    return;
-  }
+    if (!user) {
+      console.error("Usuário não autenticado");
+      setLoadingProducts(false);
+      return;
+    }
 
-  // 2. buscar organização do usuário
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .single();
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
 
-  if (profileError || !profile?.organization_id) {
-    console.error("Erro ao buscar organização:", profileError);
-    setLoadingProducts(false);
-    return;
-  }
+    if (profileError || !profile?.organization_id) {
+      console.error("Erro ao buscar organização:", profileError);
+      setLoadingProducts(false);
+      return;
+    }
 
-  // 3. buscar produtos filtrados
-  const { data, error } = await supabase
-    .from("products")
-    .select(
-      `
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        `
       id,
       name,
       description,
@@ -148,40 +168,42 @@ export default function CatalogoPage() {
         name
       )
     `
-    )
-    .eq("organization_id", profile.organization_id)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+      )
+      .eq("organization_id", profile.organization_id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Erro ao buscar produtos:", error);
-  } else if (data) {
-    setProducts((data ?? []) as unknown as ProductRow[]);
+    if (error) {
+      console.error("Erro ao buscar produtos:", error);
+    } else if (data) {
+      setProducts((data ?? []) as unknown as ProductRow[]);
+    }
+
+    setLoadingProducts(false);
   }
 
-  setLoadingProducts(false);
-}
-async function handleDelete(productId: string) {
-  const supabase = createClient();
-  const confirmDelete = confirm("Tem certeza que deseja excluir este produto?");
+  async function handleDelete(productId: string) {
+    const supabase = createClient();
+    const confirmDelete = confirm("Tem certeza que deseja excluir este produto?");
 
-  if (!confirmDelete) return;
-const { error } = await supabase
-    .from("products")
-    .update({
-      deleted_at: new Date().toISOString(),
-    })
-    .eq("id", productId);
+    if (!confirmDelete) return;
+    const { error } = await supabase
+      .from("products")
+      .update({
+        deleted_at: new Date().toISOString(),
+      })
+      .eq("id", productId);
 
-  if (error) {
-    console.error("Erro ao excluir:", error);
-    setProductListError("Erro ao excluir produto.");
-    return;
+    if (error) {
+      console.error("Erro ao excluir:", error);
+      setProductListError("Erro ao excluir produto.");
+      return;
+    }
+
+    setProductListError("");
+    await fetchProducts();
   }
 
-  setProductListError("");
-  await fetchProducts();
-}
   function handleOpenCreateProduct() {
     if (!canCreateProduct) {
       setCreateProductError(
@@ -191,17 +213,7 @@ const { error } = await supabase
     }
 
     setCreateProductError("");
-    setNameError("");
-    setCategoryError("");
-    setPriceError("");
-    setImageUrlError("");
-    setSpecDraftError("");
-    setProductFormError("");
-    setShowModal(true);
-  }
-
-  function handleCloseModal() {
-    setShowModal(false);
+    setEditingProduct(null);
     setSelectedCategoryId("");
     setProductName("");
     setProductDescription("");
@@ -209,14 +221,79 @@ const { error } = await supabase
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
-    setProductImageUrl("");
+    setNameError("");
+    setCategoryError("");
+    setPriceError("");
+    setImageFileError("");
+    setSpecDraftError("");
+    setProductFormError("");
+    setImageFile(null);
+    revokePreviewIfBlob(imagePreviewUrl);
+    setImagePreviewUrl(null);
+    setShowModal(true);
+  }
+
+  function handleOpenEdit(product: ProductRow) {
+    setCreateProductError("");
+    setEditingProduct(product);
+    setSelectedCategoryId(getProductCategoryId(product));
+    setProductName(product.name.toUpperCase());
+    setProductDescription(product.description ?? "");
+    setSpecs(product.specs ?? []);
+    setSpecChaveDraft("");
+    setSpecValorDraft("");
+    setProductPrice(formatPriceForInput(product.price));
+    setImageFile(null);
+    revokePreviewIfBlob(imagePreviewUrl);
+    setImagePreviewUrl(product.image_url);
+    setNameError("");
+    setCategoryError("");
+    setPriceError("");
+    setImageFileError("");
+    setSpecDraftError("");
+    setProductFormError("");
+    setShowModal(true);
+  }
+
+  function handleCloseModal() {
+    setShowModal(false);
+    setEditingProduct(null);
+    setSelectedCategoryId("");
+    setProductName("");
+    setProductDescription("");
+    setSpecs([]);
+    setSpecChaveDraft("");
+    setSpecValorDraft("");
+    setProductPrice("");
+    setImageFile(null);
+    revokePreviewIfBlob(imagePreviewUrl);
+    setImagePreviewUrl(null);
     setSaving(false);
     setNameError("");
     setCategoryError("");
     setPriceError("");
-    setImageUrlError("");
+    setImageFileError("");
     setSpecDraftError("");
     setProductFormError("");
+  }
+
+  function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    e.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageFileError("A imagem deve ter no máximo 2MB");
+      return;
+    }
+
+    setImageFileError("");
+    setImageFile(file);
+    revokePreviewIfBlob(imagePreviewUrl);
+    setImagePreviewUrl(URL.createObjectURL(file));
   }
 
   function addSpec() {
@@ -261,19 +338,6 @@ const { error } = await supabase
       setPriceError("");
     }
 
-    const urlTrim = productImageUrl.trim();
-    if (
-      urlTrim &&
-      !/^https?:\/\//i.test(urlTrim)
-    ) {
-      setImageUrlError(
-        "A URL deve começar com http:// ou https://"
-      );
-      valid = false;
-    } else {
-      setImageUrlError("");
-    }
-
     return valid;
   }
 
@@ -281,12 +345,33 @@ const { error } = await supabase
     setSpecs((prev) => prev.filter((_, i) => i !== index));
   }
 
+  async function uploadProductImage(
+    organizationId: string,
+    productId: string,
+    file: File
+  ): Promise<string | null> {
+    const supabase = createClient();
+    const filename = sanitizeStorageFilename(file.name);
+    const path = `${organizationId}/${productId}/${filename}`;
+    const { error } = await supabase.storage
+      .from("products")
+      .upload(path, file, { upsert: true });
+
+    if (error) {
+      console.error("Erro no upload da imagem:", error);
+      return null;
+    }
+
+    const { data } = supabase.storage.from("products").getPublicUrl(path);
+    return data.publicUrl;
+  }
+
   async function handleSubmitProduct(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setProductFormError("");
 
-    if (!canCreateProduct) {
+    if (!editingProduct && !canCreateProduct) {
       setProductFormError(
         "Você atingiu o limite do seu plano. Faça upgrade para continuar."
       );
@@ -299,10 +384,9 @@ const { error } = await supabase
 
     setSaving(true);
 
+    const normalizedPrice = productPrice.replace(",", ".");
     const parsedPrice =
-      productPrice.trim() === ""
-        ? null
-        : Number(productPrice.replace(",", "."));
+      productPrice.trim() === "" ? null : Number(normalizedPrice);
 
     if (parsedPrice !== null && Number.isNaN(parsedPrice)) {
       setPriceError("Use apenas números. Ex: 199,90");
@@ -310,57 +394,124 @@ const { error } = await supabase
       return;
     }
 
-// 1. pegar usuário logado
-const supabase = createClient();
+    const supabase = createClient();
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-if (!user) {
-  setProductFormError("Usuário não autenticado.");
-  setSaving(false);
-  return;
-}
+    if (!user) {
+      setProductFormError("Usuário não autenticado.");
+      setSaving(false);
+      return;
+    }
 
-// 2. buscar organização do usuário
-const { data: profile, error: profileError } = await supabase
-  .from("profiles")
-  .select("organization_id")
-  .eq("id", user.id)
-  .single();
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
 
-if (profileError) {
-  console.error("Erro ao buscar perfil:", profileError);
-  setProductFormError("Erro ao identificar a organização do usuário.");
-  setSaving(false);
-  return;
-}
+    if (profileError) {
+      console.error("Erro ao buscar perfil:", profileError);
+      setProductFormError("Erro ao identificar a organização do usuário.");
+      setSaving(false);
+      return;
+    }
 
-if (!profile?.organization_id) {
-  setProductFormError("Usuário sem organização.");
-  setSaving(false);
-  return;
-}
+    if (!profile?.organization_id) {
+      setProductFormError("Usuário sem organização.");
+      setSaving(false);
+      return;
+    }
 
-// 3. salvar produto com organization_id
-const { error } = await supabase.from("products").insert({
-  category_id: selectedCategoryId,
-  name: productName.trim(),
-  description: productDescription.trim(),
-  specs,
-  price: parsedPrice,
-  image_url: productImageUrl.trim() || null,
-  is_extra: false,
-  sort_order: 0,
-  organization_id: profile.organization_id,
-});
+    const orgId = profile.organization_id;
+    const basePayload = {
+      category_id: selectedCategoryId,
+      name: productName.trim(),
+      description: productDescription.trim(),
+      specs,
+      price: parsedPrice,
+    };
 
-    if (error) {
-      console.error("Erro ao salvar produto:", error);
+    if (editingProduct) {
+      let imageUrl = editingProduct.image_url;
+
+      if (imageFile) {
+        const uploaded = await uploadProductImage(orgId, editingProduct.id, imageFile);
+        if (!uploaded) {
+          setProductFormError("Erro ao enviar a imagem. Tente novamente.");
+          setSaving(false);
+          return;
+        }
+        imageUrl = uploaded;
+      }
+
+      const { error } = await supabase
+        .from("products")
+        .update({
+          ...basePayload,
+          image_url: imageUrl,
+        })
+        .eq("id", editingProduct.id);
+
+      if (error) {
+        console.error("Erro ao atualizar produto:", error);
+        setProductFormError("Erro ao salvar produto.");
+        setSaving(false);
+        return;
+      }
+
+      handleCloseModal();
+      await refreshLimit();
+      await fetchProducts();
+      return;
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("products")
+      .insert({
+        ...basePayload,
+        image_url: null,
+        is_extra: false,
+        sort_order: 0,
+        organization_id: orgId,
+      })
+      .select("id")
+      .single();
+
+    if (insertError || !inserted?.id) {
+      console.error("Erro ao salvar produto:", insertError);
       setProductFormError("Erro ao salvar produto.");
       setSaving(false);
       return;
+    }
+
+    if (imageFile) {
+      const uploaded = await uploadProductImage(orgId, inserted.id, imageFile);
+      if (!uploaded) {
+        setProductFormError("Produto criado, mas houve erro ao enviar a imagem.");
+        setSaving(false);
+        handleCloseModal();
+        await refreshLimit();
+        await fetchProducts();
+        return;
+      }
+
+      const { error: updateImgError } = await supabase
+        .from("products")
+        .update({ image_url: uploaded })
+        .eq("id", inserted.id);
+
+      if (updateImgError) {
+        console.error("Erro ao associar imagem:", updateImgError);
+        setProductFormError("Produto criado, mas não foi possível salvar a URL da imagem.");
+        setSaving(false);
+        handleCloseModal();
+        await refreshLimit();
+        await fetchProducts();
+        return;
+      }
     }
 
     handleCloseModal();
@@ -375,6 +526,8 @@ const { error } = await supabase.from("products").insert({
       currency: "BRL",
     });
   }
+
+  const isEditMode = editingProduct !== null;
 
   return (
     <div>
@@ -449,32 +602,45 @@ const { error } = await supabase.from("products").insert({
                     </h3>
 
                     <p className="mt-1 text-sm text-neutral-500">
-                      Categoria: {Array.isArray(product.categories) ? product.categories[0]?.name ?? "Sem categoria" : product.categories?.name ?? "Sem categoria"}
+                      Categoria:{" "}
+                      {Array.isArray(product.categories)
+                        ? (product.categories[0]?.name ?? "Sem categoria")
+                        : (product.categories?.name ?? "Sem categoria")}
                     </p>
 
                     <p className="mt-2 text-sm text-neutral-700">
                       {product.description || "Sem descrição"}
                     </p>
 
-                    {product.specs &&
-                      product.specs.length > 0 && (
-                        <p className="mt-2 text-sm text-neutral-600">
-                          {product.specs
-                            .map((s) => `${s.chave}: ${s.valor}`)
-                            .join(" · ")}
-                        </p>
-                      )}
+                    {product.specs && product.specs.length > 0 && (
+                      <p className="mt-2 text-sm text-neutral-600">
+                        {product.specs
+                          .map((s) => `${s.chave}: ${s.valor}`)
+                          .join(" · ")}
+                      </p>
+                    )}
                   </div>
-                   <div className="text-right flex flex-col items-end gap-2">
-                   <p className="text-sm font-medium text-neutral-900">
-                    {formatPrice(product.price)}
+                  <div className="flex flex-col items-end gap-2 text-right">
+                    <p className="text-sm font-medium text-neutral-900">
+                      {formatPrice(product.price)}
                     </p>
 
-                    <button
-                    onClick={() => handleDelete(product.id)}
-                     className="text-xs text-red-600 hover:text-red-800">
-                     Excluir
-                     </button>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(product)}
+                        className="rounded-lg border border-neutral-300 px-3 py-1 text-sm text-neutral-700 hover:bg-neutral-50"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(product.id)}
+                        className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -495,7 +661,7 @@ const { error } = await supabase.from("products").insert({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-neutral-900">
-                  Novo produto
+                  {isEditMode ? "Editar produto" : "Novo produto"}
                 </h2>
                 <p className="mt-1 text-sm text-neutral-600">
                   Preencha os dados básicos do produto.
@@ -503,6 +669,7 @@ const { error } = await supabase.from("products").insert({
               </div>
 
               <button
+                type="button"
                 onClick={handleCloseModal}
                 className="rounded-lg px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100"
               >
@@ -656,7 +823,7 @@ const { error } = await supabase.from("products").insert({
                   type="text"
                   value={productPrice}
                   onChange={(e) => {
-                    setProductPrice(e.target.value);
+                    setProductPrice(sanitizePriceTyping(e.target.value));
                     setPriceError("");
                   }}
                   placeholder="Ex: 199,90"
@@ -669,20 +836,28 @@ const { error } = await supabase.from("products").insert({
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-neutral-700">
-                  URL da imagem
+                  Imagem (JPEG, PNG ou WebP, máx. 2MB)
                 </label>
                 <input
-                  type="text"
-                  value={productImageUrl}
-                  onChange={(e) => {
-                    setProductImageUrl(e.target.value);
-                    setImageUrlError("");
-                  }}
-                  placeholder="https://..."
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageFileChange}
+                  className="w-full text-sm text-neutral-700 file:mr-3 file:rounded-lg file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-neutral-800 hover:file:bg-neutral-50"
                 />
-                {imageUrlError ? (
-                  <p className="mt-1 text-xs text-red-500">{imageUrlError}</p>
+                {imageFileError ? (
+                  <p className="mt-1 text-xs text-red-500">{imageFileError}</p>
+                ) : null}
+                {imagePreviewUrl ? (
+                  <div className="mt-3">
+                    <p className="mb-1 text-xs font-medium text-neutral-600">
+                      Pré-visualização
+                    </p>
+                    <img
+                      src={imagePreviewUrl}
+                      alt="Pré-visualização do produto"
+                      className="max-h-48 w-auto max-w-full rounded-lg border border-neutral-200 object-contain"
+                    />
+                  </div>
                 ) : null}
               </div>
 
