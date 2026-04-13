@@ -12,6 +12,8 @@ type Category = {
 
 type Spec = { chave: string; valor: string };
 
+const PRICE_INPUT_REGEX = /^[0-9]*[.,]?[0-9]*$/;
+
 type ProductRow = {
   id: string;
   name: string;
@@ -53,6 +55,15 @@ export default function CatalogoPage() {
   const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [productImageUrl, setProductImageUrl] = useState("");
+
+  const [nameError, setNameError] = useState("");
+  const [categoryError, setCategoryError] = useState("");
+  const [priceError, setPriceError] = useState("");
+  const [imageUrlError, setImageUrlError] = useState("");
+  const [specDraftError, setSpecDraftError] = useState("");
+  const [productFormError, setProductFormError] = useState("");
+  const [createProductError, setCreateProductError] = useState("");
+  const [productListError, setProductListError] = useState("");
 
   useEffect(() => {
   async function initialize() {
@@ -164,19 +175,28 @@ const { error } = await supabase
 
   if (error) {
     console.error("Erro ao excluir:", error);
-    alert("Erro ao excluir produto");
+    setProductListError("Erro ao excluir produto.");
     return;
   }
 
+  setProductListError("");
   await fetchProducts();
 }
   function handleOpenCreateProduct() {
-    const supabase = createClient();
     if (!canCreateProduct) {
-      alert("Você atingiu o limite do seu plano. Faça upgrade para continuar.");
+      setCreateProductError(
+        "Você atingiu o limite do seu plano. Faça upgrade para continuar."
+      );
       return;
     }
 
+    setCreateProductError("");
+    setNameError("");
+    setCategoryError("");
+    setPriceError("");
+    setImageUrlError("");
+    setSpecDraftError("");
+    setProductFormError("");
     setShowModal(true);
   }
 
@@ -191,18 +211,70 @@ const { error } = await supabase
     setProductPrice("");
     setProductImageUrl("");
     setSaving(false);
+    setNameError("");
+    setCategoryError("");
+    setPriceError("");
+    setImageUrlError("");
+    setSpecDraftError("");
+    setProductFormError("");
   }
 
   function addSpec() {
     const chave = specChaveDraft.trim();
     const valor = specValorDraft.trim();
     if (!chave || !valor) {
-      alert("Preencha característica e valor.");
+      setSpecDraftError("Preencha característica e valor.");
       return;
     }
+    setSpecDraftError("");
     setSpecs((prev) => [...prev, { chave, valor }]);
     setSpecChaveDraft("");
     setSpecValorDraft("");
+  }
+
+  function validateProductForm(): boolean {
+    let valid = true;
+
+    const trimmedName = productName.trim();
+    if (!trimmedName) {
+      setNameError("O nome é obrigatório.");
+      valid = false;
+    } else if (trimmedName.length < 3) {
+      setNameError("O nome deve ter no mínimo 3 caracteres.");
+      valid = false;
+    } else {
+      setNameError("");
+    }
+
+    if (!selectedCategoryId) {
+      setCategoryError("Selecione uma categoria.");
+      valid = false;
+    } else {
+      setCategoryError("");
+    }
+
+    const priceTrim = productPrice.trim();
+    if (priceTrim && !PRICE_INPUT_REGEX.test(priceTrim)) {
+      setPriceError("Use apenas números. Ex: 199,90");
+      valid = false;
+    } else {
+      setPriceError("");
+    }
+
+    const urlTrim = productImageUrl.trim();
+    if (
+      urlTrim &&
+      !/^https?:\/\//i.test(urlTrim)
+    ) {
+      setImageUrlError(
+        "A URL deve começar com http:// ou https://"
+      );
+      valid = false;
+    } else {
+      setImageUrlError("");
+    }
+
+    return valid;
   }
 
   function removeSpec(index: number) {
@@ -212,13 +284,16 @@ const { error } = await supabase
   async function handleSubmitProduct(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    setProductFormError("");
+
     if (!canCreateProduct) {
-      alert("Você atingiu o limite do seu plano. Faça upgrade para continuar.");
+      setProductFormError(
+        "Você atingiu o limite do seu plano. Faça upgrade para continuar."
+      );
       return;
     }
 
-    if (!selectedCategoryId) {
-      alert("Selecione uma categoria.");
+    if (!validateProductForm()) {
       return;
     }
 
@@ -230,7 +305,7 @@ const { error } = await supabase
         : Number(productPrice.replace(",", "."));
 
     if (parsedPrice !== null && Number.isNaN(parsedPrice)) {
-      alert("Preço inválido. Use apenas números, por exemplo: 199,90");
+      setPriceError("Use apenas números. Ex: 199,90");
       setSaving(false);
       return;
     }
@@ -243,7 +318,7 @@ const {
 } = await supabase.auth.getUser();
 
 if (!user) {
-  alert("Usuário não autenticado.");
+  setProductFormError("Usuário não autenticado.");
   setSaving(false);
   return;
 }
@@ -257,13 +332,13 @@ const { data: profile, error: profileError } = await supabase
 
 if (profileError) {
   console.error("Erro ao buscar perfil:", profileError);
-  alert("Erro ao identificar a organização do usuário.");
+  setProductFormError("Erro ao identificar a organização do usuário.");
   setSaving(false);
   return;
 }
 
 if (!profile?.organization_id) {
-  alert("Usuário sem organização.");
+  setProductFormError("Usuário sem organização.");
   setSaving(false);
   return;
 }
@@ -283,12 +358,11 @@ const { error } = await supabase.from("products").insert({
 
     if (error) {
       console.error("Erro ao salvar produto:", error);
-      alert("Erro ao salvar produto.");
+      setProductFormError("Erro ao salvar produto.");
       setSaving(false);
       return;
     }
 
-    alert("Produto salvo com sucesso.");
     handleCloseModal();
     await refreshLimit();
     await fetchProducts();
@@ -335,6 +409,9 @@ const { error } = await supabase.from("products").insert({
         >
           Novo produto
         </button>
+        {createProductError ? (
+          <p className="mt-1 text-xs text-red-500">{createProductError}</p>
+        ) : null}
       </div>
 
       <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
@@ -347,6 +424,10 @@ const { error } = await supabase.from("products").insert({
             {products.length} produto(s)
           </span>
         </div>
+
+        {productListError ? (
+          <p className="mt-4 text-xs text-red-500">{productListError}</p>
+        ) : null}
 
         {loadingProducts ? (
           <p className="mt-4 text-sm text-neutral-600">Carregando produtos...</p>
@@ -430,6 +511,10 @@ const { error } = await supabase.from("products").insert({
             </div>
 
             <form onSubmit={handleSubmitProduct} className="mt-6 space-y-4">
+              {productFormError ? (
+                <p className="text-xs text-red-500">{productFormError}</p>
+              ) : null}
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-neutral-700">
                   Categoria
@@ -437,9 +522,11 @@ const { error } = await supabase.from("products").insert({
 
                 <select
                   value={selectedCategoryId}
-                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCategoryId(e.target.value);
+                    setCategoryError("");
+                  }}
                   className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
-                  required
                 >
                   <option value="">
                     {loadingCategories
@@ -453,6 +540,9 @@ const { error } = await supabase.from("products").insert({
                     </option>
                   ))}
                 </select>
+                {categoryError ? (
+                  <p className="mt-1 text-xs text-red-500">{categoryError}</p>
+                ) : null}
               </div>
 
               <div>
@@ -462,11 +552,16 @@ const { error } = await supabase.from("products").insert({
                 <input
                   type="text"
                   value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
+                  onChange={(e) => {
+                    setProductName(e.target.value.toUpperCase());
+                    setNameError("");
+                  }}
                   placeholder="Ex: Kit Amostras Premium"
                   className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
-                  required
                 />
+                {nameError ? (
+                  <p className="mt-1 text-xs text-red-500">{nameError}</p>
+                ) : null}
               </div>
 
               <div>
@@ -517,7 +612,10 @@ const { error } = await supabase.from("products").insert({
                     <input
                       type="text"
                       value={specChaveDraft}
-                      onChange={(e) => setSpecChaveDraft(e.target.value)}
+                      onChange={(e) => {
+                        setSpecChaveDraft(e.target.value);
+                        setSpecDraftError("");
+                      }}
                       placeholder="Ex: Peso"
                       className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
                     />
@@ -529,7 +627,10 @@ const { error } = await supabase.from("products").insert({
                     <input
                       type="text"
                       value={specValorDraft}
-                      onChange={(e) => setSpecValorDraft(e.target.value)}
+                      onChange={(e) => {
+                        setSpecValorDraft(e.target.value);
+                        setSpecDraftError("");
+                      }}
                       placeholder="Ex: 500g"
                       className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
                     />
@@ -542,6 +643,9 @@ const { error } = await supabase.from("products").insert({
                     Adicionar
                   </button>
                 </div>
+                {specDraftError ? (
+                  <p className="mt-1 text-xs text-red-500">{specDraftError}</p>
+                ) : null}
               </div>
 
               <div>
@@ -551,10 +655,16 @@ const { error } = await supabase.from("products").insert({
                 <input
                   type="text"
                   value={productPrice}
-                  onChange={(e) => setProductPrice(e.target.value)}
+                  onChange={(e) => {
+                    setProductPrice(e.target.value);
+                    setPriceError("");
+                  }}
                   placeholder="Ex: 199,90"
                   className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
                 />
+                {priceError ? (
+                  <p className="mt-1 text-xs text-red-500">{priceError}</p>
+                ) : null}
               </div>
 
               <div>
@@ -564,10 +674,16 @@ const { error } = await supabase.from("products").insert({
                 <input
                   type="text"
                   value={productImageUrl}
-                  onChange={(e) => setProductImageUrl(e.target.value)}
+                  onChange={(e) => {
+                    setProductImageUrl(e.target.value);
+                    setImageUrlError("");
+                  }}
                   placeholder="https://..."
                   className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
                 />
+                {imageUrlError ? (
+                  <p className="mt-1 text-xs text-red-500">{imageUrlError}</p>
+                ) : null}
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
