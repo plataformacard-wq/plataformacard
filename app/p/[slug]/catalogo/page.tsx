@@ -85,20 +85,30 @@ if (profileError || !profileData) {
     catalogId = orgCatalogFromProfile?.catalog_id ?? null;
   }
 
-  let fallbackOrgCatalog: { catalog_id: string } | null = null;
+  // Tenta primeiro catálogo habilitado
+  if (!catalogId) {
+    const { data: enabledCatalog } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", profile.organization_id)
+      .eq("is_enabled", true)
+      .limit(1)
+      .maybeSingle();
 
-if (!catalogId) {
-  const { data } = await supabase
-    .from("organization_catalogs")
-    .select("catalog_id")
-    .eq("organization_id", profile.organization_id)
-    .eq("is_enabled", true)
-    .limit(1)
-    .maybeSingle();
+    catalogId = enabledCatalog?.catalog_id ?? null;
+  }
 
-  fallbackOrgCatalog = data;
-  catalogId = fallbackOrgCatalog?.catalog_id ?? null;
-}
+  // Fallback B2B: pega qualquer catálogo da organização
+  if (!catalogId) {
+    const { data: anyCatalog } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", profile.organization_id)
+      .limit(1)
+      .maybeSingle();
+
+    catalogId = anyCatalog?.catalog_id ?? null;
+  }
 
 if (!catalogId) {
   return notFound();

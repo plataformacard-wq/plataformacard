@@ -57,7 +57,8 @@ async function resolveCatalogId(
   }
 
   if (!catalogId) {
-    const { data } = await supabase
+    // Tenta primeiro catálogo habilitado
+    const { data: enabledCatalog } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", profile.organization_id)
@@ -65,7 +66,19 @@ async function resolveCatalogId(
       .limit(1)
       .maybeSingle();
 
-    catalogId = data?.catalog_id ?? null;
+    catalogId = enabledCatalog?.catalog_id ?? null;
+
+    // Fallback B2B: se não há catálogo habilitado, pega qualquer catálogo da organização
+    if (!catalogId) {
+      const { data: anyCatalog } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("organization_id", profile.organization_id)
+        .limit(1)
+        .maybeSingle();
+
+      catalogId = anyCatalog?.catalog_id ?? null;
+    }
   }
 
   return catalogId;
