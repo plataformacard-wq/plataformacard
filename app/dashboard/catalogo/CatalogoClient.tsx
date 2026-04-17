@@ -700,7 +700,7 @@ export default function CatalogoPage() {
               ) : null}
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
                   Categoria
                 </label>
 
@@ -730,7 +730,7 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
                   Nome do produto
                 </label>
                 <input
@@ -749,7 +749,7 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
                   Descrição
                 </label>
                 <textarea
@@ -836,7 +836,7 @@ export default function CatalogoPage() {
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-medium text-neutral-600">
+                    <label className="mb-1 block text-xs font-medium font-semibold text-neutral-600">
                       Característica
                     </label>
                     <input
@@ -851,7 +851,7 @@ export default function CatalogoPage() {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-medium text-neutral-600">
+                    <label className="mb-1 block text-xs font-medium font-semibold text-neutral-600">
                       Valor
                     </label>
                     <input
@@ -879,7 +879,7 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
                   Preço
                 </label>
                 <input
@@ -898,7 +898,7 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
                   Imagem (JPEG, PNG ou WebP, máx. 2MB)
                 </label>
                 <input

@@ -9,11 +9,17 @@ type Category = {
   sort_order: number | null;
 };
 
+type Spec = {
+  chave: string;
+  valor: string;
+};
+
 type Product = {
   id: string;
   category_id: string;
   name: string;
   description: string | null;
+  specs: Spec[] | null;
   price: number | null;
   image_url: string | null;
   sort_order: number | null;
@@ -454,6 +460,25 @@ export default function ProductCatalogClient({
                     {selectedProduct.description || "Sem descrição disponível."}
                   </div>
                 </div>
+
+                {selectedProduct.specs && selectedProduct.specs.length > 0 ? (
+                  <div className="mt-6">
+                    <p className="text-sm font-medium uppercase tracking-wide text-neutral-400">
+                      Especificações
+                    </p>
+                    <ul className="mt-3 space-y-2">
+                      {selectedProduct.specs.map((spec, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between gap-4 rounded-lg border border-neutral-100 bg-neutral-50 px-3 py-2 text-sm"
+                        >
+                          <span className="text-neutral-500">{spec.chave}</span>
+                          <span className="font-semibold text-neutral-900">{spec.valor}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
 
                 {whatsappUrl ? (
                   <a

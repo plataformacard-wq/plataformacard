@@ -29,11 +29,17 @@ type Category = {
   sort_order: number | null;
 };
 
+type Spec = {
+  chave: string;
+  valor: string;
+};
+
 type Product = {
   id: string;
   category_id: string;
   name: string;
   description: string | null;
+  specs: Spec[] | null;
   price: number | null;
   image_url: string | null;
   is_extra: boolean | null;
@@ -129,7 +135,7 @@ if (!catalogId) {
     const { data: productsData, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, price, image_url, is_extra, sort_order"
+        "id, category_id, name, description, specs, price, image_url, is_extra, sort_order"
       )
       .in("category_id", categoryIds)
       .order("sort_order", { ascending: true });

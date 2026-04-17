@@ -41,7 +41,6 @@ export default function PerfilPage() {
 
       if (profile) {
         const safeName = profile.full_name || "Cliente";
-
         setNome(safeName);
         setNomeInput(safeName);
         setAvatar(profile.avatar_url || null);
@@ -52,18 +51,17 @@ export default function PerfilPage() {
 
     loadProfile();
   }, [supabase]);
-  
+
   useEffect(() => {
-  if (!saveMessage) return;
+    if (!saveMessage) return;
+    const timer = setTimeout(() => setSaveMessage(""), 2500);
+    return () => clearTimeout(timer);
+  }, [saveMessage]);
 
-  const timer = setTimeout(() => {
-    setSaveMessage("");
-  }, 2500);
+  // Preview da imagem selecionada antes de salvar
+  const avatarPreview = avatarFile ? URL.createObjectURL(avatarFile) : avatar;
 
-  return () => clearTimeout(timer);
-}, [saveMessage]);
-  
-async function handleSaveName() {
+  async function handleSave() {
     setSaving(true);
     setSaveMessage("");
 
@@ -85,75 +83,101 @@ async function handleSaveName() {
       return;
     }
 
+    let newAvatarUrl = avatar;
+
+    // Faz o upload da foto se o usuário selecionou uma nova
+    if (avatarFile) {
+      const fileExt = avatarFile.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, avatarFile, { upsert: true });
+
+      if (uploadError) {
+        setSaveMessage("Erro ao fazer upload da foto. Tente novamente.");
+        setSaving(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      newAvatarUrl = urlData.publicUrl;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: trimmedName })
+      .update({ full_name: trimmedName, avatar_url: newAvatarUrl })
       .eq("user_id", user.id);
 
     if (error) {
-      setSaveMessage("Não foi possível salvar o nome.");
+      setSaveMessage("Não foi possível salvar. Tente novamente.");
       setSaving(false);
       return;
     }
 
     setNome(trimmedName);
-    setSaveMessage("Nome atualizado com sucesso.");
+    setAvatar(newAvatarUrl);
+    setAvatarFile(null);
+    setSaveMessage("Perfil atualizado com sucesso!");
     setSaving(false);
   }
-  
+
   return (
     <div className="relative space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-neutral-900">Perfil</h1>
         <p className="mt-2 text-sm text-neutral-600">
-          Aqui você poderá visualizar e editar seus dados cadastrais.
+          Visualize e edite seus dados cadastrais.
         </p>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-medium text-neutral-900">
-          Dados do usuário
-        </h2>
+        <h2 className="text-lg font-medium text-neutral-900">Dados do usuário</h2>
 
         {loading ? (
           <p className="mt-4 text-sm text-neutral-600">Carregando dados...</p>
         ) : (
-          <div className="mt-4 flex items-center gap-4">
-           <div className="flex flex-col items-center gap-2">
-  {avatar ? (
-    <img
-      src={avatar}
-      alt={nome}
-      className="h-16 w-16 rounded-full border border-neutral-200 object-cover"
-    />
-  ) : (
-    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black text-lg font-medium text-white">
-      {nome.charAt(0).toUpperCase()}
-    </div>
-  )}
+          <div className="mt-6 flex items-start gap-6">
+            {/* Coluna da foto */}
+            <div className="flex flex-col items-center gap-3">
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt={nome}
+                  className="h-20 w-20 rounded-full border border-neutral-200 object-cover"
+                />
+              ) : (
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-black text-xl font-medium text-white">
+                  {nome.charAt(0).toUpperCase()}
+                </div>
+              )}
 
-<label
-  htmlFor="avatar-upload"
-  className="cursor-pointer rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
->
-  Alterar foto
-</label>
+              <label
+                htmlFor="avatar-upload"
+                className="cursor-pointer rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              >
+                {avatarFile ? "✓ Selecionada" : "Alterar foto"}
+              </label>
 
-<input
-  id="avatar-upload"
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-    const file = e.target.files?.[0] || null;
-    setAvatarFile(file);
-  }}
-  className="hidden"
-/>
-</div> 
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+            </div>
 
-            <div className="space-y-1">
+            {/* Coluna dos campos */}
+            <div className="flex-1 space-y-4">
               <div>
-                <label className="text-sm text-neutral-500" htmlFor="nome">
+                <label
+                  className="text-sm font-medium text-neutral-700"
+                  htmlFor="nome"
+                >
                   Nome
                 </label>
                 <input
@@ -166,29 +190,31 @@ async function handleSaveName() {
               </div>
 
               <div>
-                <p className="pt-2 text-sm text-neutral-500">Email</p>
-                <p className="text-base text-neutral-900">
+                <p className="text-sm font-medium text-neutral-700">Email</p>
+                <p className="mt-1 text-base text-neutral-500">
                   {email || "Email não disponível"}
                 </p>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
-                type="button"
-                onClick={handleSaveName}
-                disabled={saving}
-                className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
-                {saving ? "Salvando..." : "Salvar"}
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
+                >
+                  {saving ? "Salvando..." : "Salvar alterações"}
                 </button>
               </div>
             </div>
           </div>
         )}
-      {saveMessage && (
-  <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 shadow-lg">
-    {saveMessage}
-  </div>
-)}
+
+        {saveMessage && (
+          <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 shadow-lg">
+            {saveMessage}
+          </div>
+        )}
       </div>
     </div>
   );
