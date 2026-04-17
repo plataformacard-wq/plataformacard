@@ -161,44 +161,170 @@ export default async function Page(props: PageProps) {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#141414] px-4 py-12">
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(37,211,102,0.10) 0%, #0a0a0a 65%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 16px",
+      }}
+    >
       <ProfileViewTracker profileId={safeProfile.id} slug={slug} />
 
-      <div className="w-full max-w-[400px] overflow-hidden rounded-[24px] bg-[#0f0f0f] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-        <header className="flex items-center justify-between px-7 py-7">
-          <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-white/45">
-            anotameucontato.com.br
-          </span>
-          <span
-            className="h-2 w-2 shrink-0 rounded-full bg-[#25D366]"
-            aria-hidden
-          />
-        </header>
+      {/* Card */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 400,
+          background: "rgba(255,255,255,0.035)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 32,
+          boxShadow:
+            "0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Barra verde de destaque no topo */}
+        <div
+          style={{
+            height: 3,
+            background:
+              "linear-gradient(90deg, transparent 0%, #25D366 40%, #128C7E 60%, transparent 100%)",
+          }}
+        />
 
-        <div className="px-7 pb-8 text-center">
-          <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-[18px] bg-[#1e1e1e] text-lg font-semibold tracking-tight text-white/80">
-            {safeProfile.avatar_url ? (
-              <img
-                src={safeProfile.avatar_url}
-                alt={safeProfile.full_name ?? "Foto do perfil"}
-                className="h-full w-full object-cover"
+        <div style={{ padding: "36px 28px 32px" }}>
+          {/* Avatar com anel brilhante */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ position: "relative", width: 92, height: 92 }}>
+              {/* Anel externo brilhante */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: -3,
+                  borderRadius: "50%",
+                  background:
+                    "conic-gradient(from 0deg, #25D366 0%, #128C7E 40%, rgba(37,211,102,0.1) 60%, #25D366 100%)",
+                  opacity: 0.75,
+                }}
               />
-            ) : (
-              initialsFromName(safeProfile.full_name)
-            )}
+              {/* Avatar */}
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  background: "#1c1c1c",
+                  border: "3px solid #0a0a0a",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 30,
+                  fontWeight: 700,
+                  color: "rgba(255,255,255,0.65)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {safeProfile.avatar_url ? (
+                  <img
+                    src={safeProfile.avatar_url}
+                    alt={safeProfile.full_name ?? "Foto do perfil"}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  initialsFromName(safeProfile.full_name)
+                )}
+              </div>
+            </div>
+
+            {/* Badge DISPONÍVEL */}
+            <div
+              style={{
+                marginTop: -10,
+                zIndex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                background: "rgba(0,0,0,0.75)",
+                border: "1px solid rgba(37,211,102,0.25)",
+                borderRadius: 999,
+                padding: "3px 10px",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#25D366",
+                  display: "block",
+                  boxShadow: "0 0 6px #25D366",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.5)",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Disponível
+              </span>
+            </div>
           </div>
 
-          <h1 className="mt-5 text-[26px] font-medium leading-tight text-white">
-            {safeProfile.full_name}
-          </h1>
+          {/* Nome e bio */}
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <h1
+              style={{
+                fontSize: 30,
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.025em",
+                lineHeight: 1.1,
+                margin: 0,
+              }}
+            >
+              {safeProfile.full_name}
+            </h1>
 
-          {bioLine ? (
-            <p className="mt-2 px-1 text-[14px] leading-snug text-[#ffffff66]">
-              {bioLine}
-            </p>
-          ) : null}
+            {bioLine ? (
+              <p
+                style={{
+                  marginTop: 10,
+                  fontSize: 14,
+                  color: "rgba(255,255,255,0.42)",
+                  lineHeight: 1.55,
+                }}
+              >
+                {bioLine}
+              </p>
+            ) : null}
+          </div>
 
-          <div className="mt-8 flex flex-col gap-3">
+          {/* Botões CTA */}
+          <div
+            style={{
+              marginTop: 28,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
             {safeProfile.whatsapp ? (
               <ProfileWhatsAppButton
                 profileId={safeProfile.id}
@@ -209,10 +335,24 @@ export default async function Page(props: PageProps) {
 
             <Link
               href={`/p/${slug}/catalogo`}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-[12px] border border-[#ffffff22] bg-transparent px-4 py-3.5 text-[15px] font-medium text-white transition hover:bg-white/[0.04]"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderRadius: 14,
+                padding: "14px 20px",
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 15,
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
             >
               <svg
-                className="h-5 w-5 shrink-0 text-white/90"
+                width={17}
+                height={17}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -220,6 +360,7 @@ export default async function Page(props: PageProps) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden
+                style={{ opacity: 0.6 }}
               >
                 <path d="M8 6h13" />
                 <path d="M8 12h13" />
@@ -232,40 +373,88 @@ export default async function Page(props: PageProps) {
             </Link>
           </div>
 
-          <div className="my-8 h-px w-full bg-[#ffffff11]" />
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="text-center">
-              <p className="text-[20px] font-medium tabular-nums text-white">
-                {catalogStats.productCount}
-              </p>
-              <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[#ffffff44]">
-                Produtos
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-[20px] font-medium tabular-nums text-white">
-                {catalogStats.categoryCount}
-              </p>
-              <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[#ffffff44]">
-                Categorias
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-[20px] font-medium tabular-nums text-white">
-                {visitCount}
-              </p>
-              <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[#ffffff44]">
-                Visitas
-              </p>
-            </div>
+          {/* Stats */}
+          <div
+            style={{
+              marginTop: 28,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: 18,
+              overflow: "hidden",
+            }}
+          >
+            {[
+              { value: catalogStats.productCount, label: "Produtos" },
+              { value: catalogStats.categoryCount, label: "Categorias" },
+              { value: visitCount, label: "Visitas" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "18px 8px",
+                  textAlign: "center",
+                  borderRight:
+                    i < 2 ? "1px solid rgba(255,255,255,0.06)" : undefined,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: "#fff",
+                    letterSpacing: "-0.03em",
+                    margin: 0,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {stat.value}
+                </p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: "rgba(255,255,255,0.28)",
+                    margin: "5px 0 0",
+                  }}
+                >
+                  {stat.label}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <footer className="mt-10 flex items-center justify-center gap-2.5">
-        <span className="h-2 w-2 shrink-0 rounded-full bg-black ring-1 ring-white/10" />
-        <span className="text-[13px] text-white/40">
+      {/* Rodapé */}
+      <footer
+        style={{
+          marginTop: 36,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#25D366",
+            opacity: 0.45,
+            display: "block",
+          }}
+        />
+        <span
+          style={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.22)",
+            letterSpacing: "0.05em",
+          }}
+        >
           anotameucontato.com.br
         </span>
       </footer>
