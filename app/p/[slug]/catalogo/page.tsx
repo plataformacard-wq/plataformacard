@@ -164,6 +164,8 @@ if (!catalogId) {
       profileId={profile.id}
       catalogId={catalog.id}
       slug={profile.slug}
+      fullName={profile.full_name}
+      avatarUrl={profile.avatar_url}
       categories={categories}
       products={products}
       productImages={productImages}

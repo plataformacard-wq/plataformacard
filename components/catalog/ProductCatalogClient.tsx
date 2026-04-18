@@ -36,6 +36,8 @@ type ProductCatalogClientProps = {
   profileId: string;
   catalogId: string | null;
   slug: string;
+  fullName?: string | null;
+  avatarUrl?: string | null;
   categories: Category[];
   products: Product[];
   productImages: ProductImage[];
@@ -55,6 +57,8 @@ export default function ProductCatalogClient({
   profileId,
   catalogId,
   slug,
+  fullName,
+  avatarUrl,
   categories,
   products,
   productImages = [],
@@ -222,301 +226,317 @@ export default function ProductCatalogClient({
     });
   }
 
+  const initials = fullName
+    ? fullName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
+
   return (
     <>
-      <div className="space-y-6">
-        {categories.map((category) => {
-          const categoryProducts = products.filter(
-            (product) => product.category_id === category.id
-          );
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(37,211,102,0.08) 0%, #0a0a0a 65%)",
+          padding: "0 0 60px",
+        }}
+      >
+        {/* Header de volta */}
+        <header
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 30,
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            background: "rgba(10,10,10,0.85)",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            padding: "14px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <a
+            href={`/p/${slug}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              color: "rgba(255,255,255,0.55)",
+              fontSize: 13,
+              fontWeight: 500,
+              textDecoration: "none",
+              transition: "color 0.15s",
+            }}
+          >
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Voltar
+          </a>
 
-          return (
-            <section
-              key={category.id}
-              className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm"
-            >
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-neutral-900">
-                  {category.name}
-                </h3>
-                <p className="mt-1 text-sm text-neutral-500">
-                  Produtos disponíveis nesta categoria.
-                </p>
-              </div>
+          <div style={{ flex: 1 }} />
 
-              {categoryProducts.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {categoryProducts.map((product) => {
-                    const productGallery = productImages
-                      .filter((image) => image.product_id === product.id)
-                      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                      .map((image) => image.image_url)
-                      .filter(Boolean)
-                      .slice(0, 10);
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={fullName ?? ""}
+              style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)" }}
+            />
+          ) : (
+            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#222", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              {initials}
+            </div>
+          )}
 
-                    const coverImageUrl = productGallery[0] ?? product.image_url ?? null;
+          {fullName && (
+            <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.65)" }}>
+              {fullName}
+            </span>
+          )}
+        </header>
 
-                    return (
-                      <button
-                        key={product.id}
-                        type="button"
-                        onClick={() => handleOpenProduct(product)}
-                        className="group overflow-hidden rounded-[28px] border border-neutral-200/80 bg-white text-left shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-neutral-300 hover:shadow-[0_18px_40px_rgba(0,0,0,0.10)]"
-                      >
-                        <div className="relative overflow-hidden bg-neutral-100">
-                          <div className="absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-black/10 to-transparent" />
+        {/* Título */}
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "36px 20px 8px" }}>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>
+            Catálogo
+          </h1>
+          <p style={{ marginTop: 6, fontSize: 14, color: "rgba(255,255,255,0.35)" }}>
+            {products.length} produto{products.length !== 1 ? "s" : ""} disponíve{products.length !== 1 ? "is" : "l"}
+          </p>
+        </div>
 
-                          <div className="aspect-[4/3] w-full overflow-hidden">
-                            {coverImageUrl ? (
-                              <img
-                                src={coverImageUrl}
-                                alt={product.name}
-                                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-                                Sem imagem
+        {/* Categorias e produtos */}
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "16px 20px 0" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+            {categories.map((category) => {
+              const categoryProducts = products.filter((p) => p.category_id === category.id);
+              return (
+                <section key={category.id}>
+                  {/* Título da categoria */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                    <div style={{ width: 3, height: 20, borderRadius: 2, background: "linear-gradient(180deg, #25D366, #128C7E)" }} />
+                    <h2 style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.85)", letterSpacing: "0.01em", margin: 0 }}>
+                      {category.name}
+                    </h2>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 500 }}>
+                      {categoryProducts.length}
+                    </span>
+                  </div>
+
+                  {categoryProducts.length > 0 ? (
+                    <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+                      {categoryProducts.map((product) => {
+                        const gallery = productImages
+                          .filter((img) => img.product_id === product.id)
+                          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                          .map((img) => img.image_url)
+                          .filter(Boolean)
+                          .slice(0, 10);
+                        const cover = gallery[0] ?? product.image_url ?? null;
+
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => handleOpenProduct(product)}
+                            style={{
+                              textAlign: "left",
+                              background: "rgba(255,255,255,0.04)",
+                              border: "1px solid rgba(255,255,255,0.08)",
+                              borderRadius: 20,
+                              overflow: "hidden",
+                              cursor: "pointer",
+                              transition: "all 0.25s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)";
+                              (e.currentTarget as HTMLElement).style.borderColor = "rgba(37,211,102,0.25)";
+                              (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
+                              (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,0,0,0.4)";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
+                              (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+                              (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                              (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                            }}
+                          >
+                            {/* Imagem */}
+                            <div style={{ aspectRatio: "4/3", background: "#111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                              {cover ? (
+                                <img src={cover} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                              ) : (
+                                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>Sem imagem</span>
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div style={{ padding: "14px 16px 16px" }}>
+                              <p style={{ fontSize: 14, fontWeight: 600, color: "#fff", lineHeight: 1.35, letterSpacing: "-0.01em", margin: 0 }}>
+                                {product.name}
+                              </p>
+                              {product.description && (
+                                <p style={{ marginTop: 6, fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                                  {product.description}
+                                </p>
+                              )}
+                              <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                <p style={{ fontSize: 16, fontWeight: 700, color: "#25D366", margin: 0 }}>
+                                  {formatPrice(product.price) ?? <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>Sob consulta</span>}
+                                </p>
+                                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em" }}>
+                                  VER →
+                                </span>
                               </div>
-                            )}
-                          </div>
-
-                          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/10 to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                        </div>
-
-                        <div className="space-y-5 p-5">
-                          <div className="space-y-2">
-                            <h4 className="line-clamp-2 text-[1.35rem] font-bold leading-7 tracking-[-0.02em] text-neutral-950">
-                              {product.name}
-                            </h4>
-
-                            {product.description ? (
-                              <p className="line-clamp-3 text-sm leading-6 text-neutral-600">
-                                {product.description}
-                              </p>
-                            ) : (
-                              <p className="text-sm text-neutral-400">
-                                Sem descrição disponível.
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex items-end justify-between gap-4">
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
-                                Preço
-                              </p>
-                              <p className="mt-1 text-3xl font-bold leading-none tracking-[-0.03em] text-neutral-950">
-                                {formatPrice(product.price) ?? "Sob consulta"}
-                              </p>
                             </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>Nenhum produto nesta categoria.</p>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        </div>
 
-                            <div className="inline-flex shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 group-hover:border-neutral-950 group-hover:bg-neutral-900 group-hover:shadow-lg">
-                              Ver produto
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-neutral-500">
-                  Nenhum produto nesta categoria.
-                </p>
-              )}
-            </section>
-          );
-        })}
+        {/* Footer */}
+        <footer style={{ marginTop: 56, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#25D366", opacity: 0.4, display: "block" }} />
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>
+            anotameucontato.com.br
+          </span>
+        </footer>
       </div>
 
+      {/* Modal produto */}
       {selectedProduct ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6 animate-[fadeIn_180ms_ease-out]"
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", animation: "fadeIn 180ms ease-out" }}
           onClick={() => setSelectedProductId(null)}
         >
           <div
-            className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl bg-white shadow-2xl animate-[modalIn_220ms_ease-out]"
-            onClick={(event) => event.stopPropagation()}
+            style={{ position: "relative", width: "100%", maxWidth: 860, maxHeight: "90vh", overflowY: "auto", borderRadius: 24, background: "#111", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 40px 80px rgba(0,0,0,0.8)", animation: "modalIn 220ms ease-out" }}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setSelectedProductId(null)}
-              className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-neutral-700 shadow hover:bg-white"
-              aria-label="Fechar popup"
+              style={{ position: "absolute", right: 14, top: 14, zIndex: 10, width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 18, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+              aria-label="Fechar"
             >
               ×
             </button>
 
-            <div className="grid md:grid-cols-2">
-              <div className="bg-neutral-200 p-5 md:p-6">
-                <div className="relative">
-                  <div
-                    className="overflow-hidden rounded-2xl bg-white"
-                    onMouseMove={handleImageZoomMove}
-                    onMouseEnter={() => setIsZoomed(true)}
-                    onMouseLeave={() => {
-                      setIsZoomed(false);
-                      setZoomOrigin("center center");
-                    }}
-                  >
-                    <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-                      {selectedImageUrl ? (
-                        <img
-                          key={imageKey}
-                          src={selectedImageUrl}
-                          alt={selectedProduct.name}
-                          className="h-full w-full animate-[fadeIn_220ms_ease-out] object-cover transition-transform duration-300 ease-out"
-                          style={{
-                            transform: isZoomed ? "scale(1.8)" : "scale(1)",
-                            transformOrigin: zoomOrigin,
-                            cursor: isZoomed ? "zoom-out" : "zoom-in",
-                          }}
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-                          Sem imagem
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {hasMultipleImages ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={goToPreviousImage}
-                        className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl font-bold text-neutral-700 shadow-md transition hover:bg-white hover:text-black"
-                        aria-label="Imagem anterior"
-                      >
-                        ←
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={goToNextImage}
-                        className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl font-bold text-neutral-700 shadow-md transition hover:bg-white hover:text-black"
-                        aria-label="Próxima imagem"
-                      >
-                        →
-                      </button>
-                    </>
-                  ) : null}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }} className="modal-grid">
+              {/* Galeria */}
+              <div style={{ background: "#0d0d0d", padding: 20, borderRadius: "24px 0 0 24px" }}>
+                <div
+                  style={{ borderRadius: 16, overflow: "hidden", background: "#0a0a0a", position: "relative", aspectRatio: "4/3", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  onMouseMove={handleImageZoomMove}
+                  onMouseEnter={() => setIsZoomed(true)}
+                  onMouseLeave={() => { setIsZoomed(false); setZoomOrigin("center center"); }}
+                >
+                  {selectedImageUrl ? (
+                    <img
+                      key={imageKey}
+                      src={selectedImageUrl}
+                      alt={selectedProduct.name}
+                      style={{ width: "100%", height: "100%", objectFit: "contain", transform: isZoomed ? "scale(1.8)" : "scale(1)", transformOrigin: zoomOrigin, cursor: isZoomed ? "zoom-out" : "zoom-in", transition: "transform 0.3s ease", animation: "fadeIn 220ms ease-out" }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>Sem imagem</span>
+                  )}
                 </div>
 
-                {selectedProductGallery.length > 1 ? (
-                  <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-5">
-                    {selectedProductGallery.map((imageUrl, index) => {
-                      const isActive = index === selectedImageIndex;
+                {hasMultipleImages && (
+                  <>
+                    <button type="button" onClick={goToPreviousImage} style={{ position: "absolute", left: 28, top: "40%", width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} aria-label="Anterior">←</button>
+                    <button type="button" onClick={goToNextImage} style={{ position: "absolute", right: "52%", top: "40%", width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} aria-label="Próxima">→</button>
+                  </>
+                )}
 
-                      return (
-                        <button
-                          key={`${imageUrl}-${index}`}
-                          type="button"
-                          onClick={() => setSelectedImageIndex(index)}
-                          className={`overflow-hidden rounded-xl border bg-white transition-all duration-300 ${
-                            isActive
-                              ? "scale-[1.02] border-neutral-900 ring-2 ring-neutral-900/10"
-                              : "border-neutral-200 hover:scale-[1.02] hover:border-neutral-400"
-                          }`}
-                          aria-label={`Selecionar imagem ${index + 1}`}
-                        >
-                          <div className="aspect-square w-full overflow-hidden bg-neutral-100">
-                            <img
-                              src={imageUrl}
-                              alt={`${selectedProduct.name} - imagem ${index + 1}`}
-                              className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-[1.04]"
-                            />
-                          </div>
-                        </button>
-                      );
-                    })}
+                {selectedProductGallery.length > 1 && (
+                  <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
+                    {selectedProductGallery.map((url, i) => (
+                      <button
+                        key={`${url}-${i}`}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(i)}
+                        style={{ aspectRatio: "1", borderRadius: 10, overflow: "hidden", border: i === selectedImageIndex ? "2px solid #25D366" : "2px solid rgba(255,255,255,0.08)", cursor: "pointer", background: "#0a0a0a" }}
+                        aria-label={`Imagem ${i + 1}`}
+                      >
+                        <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      </button>
+                    ))}
                   </div>
-                ) : null}
+                )}
               </div>
 
-              <div className="p-6 md:p-8">
-                <p className="text-sm font-semibold uppercase tracking-wide text-neutral-400">
-                  Produto
-                </p>
-
-                <h3 className="mt-2 text-2xl font-bold text-neutral-900">
+              {/* Info */}
+              <div style={{ padding: "28px 24px" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: 0 }}>Produto</p>
+                <h3 style={{ marginTop: 8, fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
                   {selectedProduct.name}
                 </h3>
 
-                <div className="mt-5">
-                  <p className="text-sm font-medium uppercase tracking-wide text-neutral-400">
-                    Preço
-                  </p>
-                  <p className="mt-1 text-2xl font-bold text-neutral-900">
-                    {formatPrice(selectedProduct.price) ?? "Sob consulta"}
+                <div style={{ marginTop: 20 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: 0 }}>Preço</p>
+                  <p style={{ marginTop: 6, fontSize: 26, fontWeight: 700, color: "#25D366", margin: "6px 0 0" }}>
+                    {formatPrice(selectedProduct.price) ?? <span style={{ fontSize: 16, color: "rgba(255,255,255,0.3)" }}>Sob consulta</span>}
                   </p>
                 </div>
 
-                <div className="mt-6">
-                  <p className="text-sm font-medium uppercase tracking-wide text-neutral-400">
-                    Descrição
-                  </p>
-                  <div className="mt-2 text-sm leading-6 text-neutral-600">
-                    {selectedProduct.description || "Sem descrição disponível."}
-                  </div>
-                </div>
-
-                {selectedProduct.specs && selectedProduct.specs.length > 0 ? (
-                  <div className="mt-6">
-                    <p className="text-sm font-medium uppercase tracking-wide text-neutral-400">
-                      Especificações
+                {selectedProduct.description && (
+                  <div style={{ marginTop: 20 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: 0 }}>Descrição</p>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+                      {selectedProduct.description}
                     </p>
-                    <ul className="mt-3 space-y-2">
+                  </div>
+                )}
+
+                {selectedProduct.specs && selectedProduct.specs.length > 0 && (
+                  <div style={{ marginTop: 20 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 10px" }}>Especificações</p>
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                       {selectedProduct.specs.map((spec, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center justify-between gap-4 rounded-lg border border-neutral-100 bg-neutral-50 px-3 py-2 text-sm"
-                        >
-                          <span className="text-neutral-500">{spec.chave}</span>
-                          <span className="font-semibold text-neutral-900">{spec.valor}</span>
+                        <li key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", fontSize: 13 }}>
+                          <span style={{ color: "rgba(255,255,255,0.4)" }}>{spec.chave}</span>
+                          <span style={{ fontWeight: 600, color: "#fff" }}>{spec.valor}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                ) : null}
+                )}
 
-                {whatsappUrl ? (
+                {whatsappUrl && (
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
                     onClick={handleWhatsAppProductClick}
-                    className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-green-700 hover:shadow-lg"
+                    style={{ marginTop: 24, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "14px 20px", borderRadius: 14, background: "#25D366", color: "#000", fontSize: 14, fontWeight: 700, textDecoration: "none", letterSpacing: "-0.01em", boxSizing: "border-box" }}
                   >
-                    Falar sobre este produto no WhatsApp
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.553 4.117 1.52 5.845L.057 23.857a.5.5 0 0 0 .61.61l6.012-1.463A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.854 0-3.6-.5-5.1-1.376l-.365-.217-3.785.921.94-3.785-.237-.38A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+                    </svg>
+                    Falar sobre este produto
                   </a>
-                ) : null}
+                )}
               </div>
             </div>
           </div>
         </div>
       ) : null}
 
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes modalIn {
-          from {
-            opacity: 0;
-            transform: translateY(8px) scale(0.985);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(0.985) } to { opacity: 1; transform: translateY(0) scale(1) } }
+        @media (max-width: 640px) { .modal-grid { grid-template-columns: 1fr !important; } }
       `}</style>
     </>
   );

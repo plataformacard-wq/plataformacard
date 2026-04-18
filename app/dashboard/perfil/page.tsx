@@ -81,7 +81,6 @@ export default function PerfilPage() {
     return () => clearTimeout(timer);
   }, [saveMessage]);
 
-  // Verifica se o slug já está em uso por outro perfil
   async function checkSlugAvailability(slug: string): Promise<boolean> {
     if (!slug || slug === slugOriginal) return true;
 
@@ -93,7 +92,7 @@ export default function PerfilPage() {
       .maybeSingle();
 
     setSlugChecking(false);
-    return !data; // disponível se não encontrou nenhum registro
+    return !data;
   }
 
   function handleSlugChange(value: string) {
@@ -134,7 +133,6 @@ export default function PerfilPage() {
       return;
     }
 
-    // Verifica disponibilidade do slug
     if (trimmedSlug && trimmedSlug !== slugOriginal) {
       const available = await checkSlugAvailability(trimmedSlug);
       if (!available) {
@@ -197,22 +195,29 @@ export default function PerfilPage() {
   return (
     <div className="relative space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">Perfil</h1>
-        <p className="mt-2 text-sm text-neutral-600">
+        <h1 className="text-2xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+          Perfil
+        </h1>
+        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
           Edite suas informações públicas e o link do seu cartão.
         </p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-neutral-600">Carregando dados...</p>
+        <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+          Carregando dados...
+        </p>
       ) : (
         <>
           {/* Card 1 — Identidade */}
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-neutral-900">
+          <div
+            className="rounded-2xl border p-6 shadow-sm transition-colors"
+            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+          >
+            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
               Identidade
             </h2>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
               Foto, nome e bio que aparecem no seu cartão público.
             </p>
 
@@ -223,17 +228,26 @@ export default function PerfilPage() {
                   <img
                     src={avatarPreview}
                     alt={nome}
-                    className="h-20 w-20 rounded-full border border-neutral-200 object-cover"
+                    className="h-20 w-20 rounded-full object-cover border"
+                    style={{ borderColor: "var(--dash-border)" }}
                   />
                 ) : (
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-black text-xl font-medium text-white">
+                  <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full text-xl font-medium text-white"
+                    style={{ background: "var(--dash-text-primary)" }}
+                  >
                     {nome.charAt(0).toUpperCase()}
                   </div>
                 )}
 
                 <label
                   htmlFor="avatar-upload"
-                  className="cursor-pointer rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+                  className="cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:opacity-70"
+                  style={{
+                    borderColor: "var(--dash-border)",
+                    color: "var(--dash-text-primary)",
+                    background: "var(--dash-surface)",
+                  }}
                 >
                   {avatarFile ? "✓ Selecionada" : "Alterar foto"}
                 </label>
@@ -252,7 +266,8 @@ export default function PerfilPage() {
                 <div>
                   <label
                     htmlFor="nome"
-                    className="text-sm font-medium text-neutral-700"
+                    className="text-sm font-medium"
+                    style={{ color: "var(--dash-text-primary)" }}
                   >
                     Nome completo
                   </label>
@@ -262,17 +277,23 @@ export default function PerfilPage() {
                     value={nomeInput}
                     onChange={(e) => setNomeInput(e.target.value)}
                     placeholder="Seu nome"
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-500"
+                    className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                    style={{
+                      background: "var(--dash-input-bg)",
+                      borderColor: "var(--dash-input-border)",
+                      color: "var(--dash-text-primary)",
+                    }}
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="bio"
-                    className="text-sm font-medium text-neutral-700"
+                    className="text-sm font-medium"
+                    style={{ color: "var(--dash-text-primary)" }}
                   >
                     Bio{" "}
-                    <span className="font-normal text-neutral-400">
+                    <span className="font-normal" style={{ color: "var(--dash-text-muted)" }}>
                       (opcional)
                     </span>
                   </label>
@@ -283,9 +304,14 @@ export default function PerfilPage() {
                     placeholder="Ex: Representante comercial · Região ES/RJ"
                     rows={2}
                     maxLength={120}
-                    className="mt-1 w-full resize-none rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-500"
+                    className="mt-1 w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                    style={{
+                      background: "var(--dash-input-bg)",
+                      borderColor: "var(--dash-input-border)",
+                      color: "var(--dash-text-primary)",
+                    }}
                   />
-                  <p className="mt-1 text-right text-xs text-neutral-400">
+                  <p className="mt-1 text-right text-xs" style={{ color: "var(--dash-text-muted)" }}>
                     {bioInput.length}/120
                   </p>
                 </div>
@@ -294,11 +320,14 @@ export default function PerfilPage() {
           </div>
 
           {/* Card 2 — Contato e Link */}
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-neutral-900">
+          <div
+            className="rounded-2xl border p-6 shadow-sm transition-colors"
+            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+          >
+            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
               Contato e link do cartão
             </h2>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
               Como seus clientes entram em contato e acessam seu cartão.
             </p>
 
@@ -307,27 +336,34 @@ export default function PerfilPage() {
               <div>
                 <label
                   htmlFor="whatsapp"
-                  className="text-sm font-medium text-neutral-700"
+                  className="text-sm font-medium"
+                  style={{ color: "var(--dash-text-primary)" }}
                 >
                   WhatsApp
                 </label>
                 <div className="relative mt-1">
-                  <span className="absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
+                  <span
+                    className="absolute inset-y-0 left-3 flex items-center text-sm"
+                    style={{ color: "var(--dash-text-muted)" }}
+                  >
                     +55
                   </span>
                   <input
                     id="whatsapp"
                     type="tel"
                     value={whatsappInput}
-                    onChange={(e) =>
-                      setWhatsappInput(e.target.value.replace(/\D/g, ""))
-                    }
+                    onChange={(e) => setWhatsappInput(e.target.value.replace(/\D/g, ""))}
                     placeholder="27999999999"
                     maxLength={13}
-                    className="w-full rounded-lg border border-neutral-300 py-2 pl-10 pr-3 text-sm text-neutral-900 outline-none focus:border-neutral-500"
+                    className="w-full rounded-lg border py-2 pl-10 pr-3 text-sm outline-none transition-colors"
+                    style={{
+                      background: "var(--dash-input-bg)",
+                      borderColor: "var(--dash-input-border)",
+                      color: "var(--dash-text-primary)",
+                    }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-neutral-400">
+                <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                   Apenas números, com DDD. Ex: 27999887766
                 </p>
               </div>
@@ -336,12 +372,16 @@ export default function PerfilPage() {
               <div>
                 <label
                   htmlFor="slug"
-                  className="text-sm font-medium text-neutral-700"
+                  className="text-sm font-medium"
+                  style={{ color: "var(--dash-text-primary)" }}
                 >
                   Link personalizado do cartão
                 </label>
                 <div className="relative mt-1">
-                  <span className="absolute inset-y-0 left-3 flex items-center text-xs text-neutral-400">
+                  <span
+                    className="absolute inset-y-0 left-3 flex items-center text-xs"
+                    style={{ color: "var(--dash-text-muted)" }}
+                  >
                     /p/
                   </span>
                   <input
@@ -351,14 +391,18 @@ export default function PerfilPage() {
                     onChange={(e) => handleSlugChange(e.target.value)}
                     placeholder="seu-nome"
                     maxLength={40}
-                    className={`w-full rounded-lg border py-2 pl-9 pr-3 text-sm text-neutral-900 outline-none focus:border-neutral-500 ${
-                      slugError
-                        ? "border-red-400 focus:border-red-400"
-                        : "border-neutral-300"
-                    }`}
+                    className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors"
+                    style={{
+                      background: "var(--dash-input-bg)",
+                      borderColor: slugError ? "#ef4444" : "var(--dash-input-border)",
+                      color: "var(--dash-text-primary)",
+                    }}
                   />
                   {slugChecking && (
-                    <span className="absolute inset-y-0 right-3 flex items-center text-xs text-neutral-400">
+                    <span
+                      className="absolute inset-y-0 right-3 flex items-center text-xs"
+                      style={{ color: "var(--dash-text-muted)" }}
+                    >
                       verificando...
                     </span>
                   )}
@@ -367,14 +411,14 @@ export default function PerfilPage() {
                 {slugError ? (
                   <p className="mt-1 text-xs text-red-500">{slugError}</p>
                 ) : slugPreview ? (
-                  <p className="mt-1 text-xs text-neutral-400">
+                  <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                     Seu link:{" "}
-                    <span className="font-medium text-neutral-700">
+                    <span className="font-medium" style={{ color: "var(--dash-text-primary)" }}>
                       {slugPreview}
                     </span>
                   </p>
                 ) : (
-                  <p className="mt-1 text-xs text-neutral-400">
+                  <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                     Use letras minúsculas, números e hífens. Ex: joao-silva
                   </p>
                 )}
@@ -382,11 +426,13 @@ export default function PerfilPage() {
 
               {/* Email (leitura) */}
               <div>
-                <p className="text-sm font-medium text-neutral-700">Email</p>
-                <p className="mt-1 text-sm text-neutral-500">
+                <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                  Email
+                </p>
+                <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
                   {email || "Email não disponível"}
                 </p>
-                <p className="mt-0.5 text-xs text-neutral-400">
+                <p className="mt-0.5 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                   O email não pode ser alterado aqui.
                 </p>
               </div>
@@ -399,22 +445,28 @@ export default function PerfilPage() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-xl bg-black px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
+              className="rounded-xl px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
+              style={{ background: "var(--dash-text-primary)" }}
             >
               {saving ? "Salvando..." : "Salvar todas as alterações"}
             </button>
 
             {saveSuccess && (
-              <span className="text-sm text-green-600 font-medium">
-                ✓ Salvo com sucesso
-              </span>
+              <span className="text-sm text-green-500 font-medium">✓ Salvo com sucesso</span>
             )}
           </div>
         </>
       )}
 
       {saveMessage && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 shadow-lg">
+        <div
+          className="fixed bottom-6 right-6 z-50 rounded-xl border px-4 py-3 text-sm shadow-lg transition-colors"
+          style={{
+            background: "var(--dash-surface)",
+            borderColor: "var(--dash-border)",
+            color: "var(--dash-text-primary)",
+          }}
+        >
           {saveMessage}
         </div>
       )}

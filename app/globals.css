@@ -3,6 +3,33 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Dashboard theme tokens */
+  --dash-bg: #f5f5f5;
+  --dash-surface: #ffffff;
+  --dash-border: #e5e5e5;
+  --dash-text-primary: #171717;
+  --dash-text-secondary: #737373;
+  --dash-text-muted: #a3a3a3;
+  --dash-input-bg: #ffffff;
+  --dash-input-border: #d4d4d4;
+  --dash-header-bg: #ffffff;
+  --dash-header-border: #e5e5e5;
+  --dash-hover-bg: #f5f5f5;
+}
+
+[data-theme="dark"] {
+  --dash-bg: #0a0a0a;
+  --dash-surface: #141414;
+  --dash-border: #262626;
+  --dash-text-primary: #fafafa;
+  --dash-text-secondary: #a3a3a3;
+  --dash-text-muted: #525252;
+  --dash-input-bg: #1a1a1a;
+  --dash-input-border: #333333;
+  --dash-header-bg: #111111;
+  --dash-header-border: #222222;
+  --dash-hover-bg: #1f1f1f;
 }
 
 @theme inline {
@@ -40,7 +67,20 @@ select {
   color: #404040;
 }
 
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  color: #e5e5e5;
+  background-color: var(--dash-input-bg);
+  border-color: var(--dash-input-border);
+}
+
 input::placeholder,
 textarea::placeholder {
   color: #9ca3af;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #525252;
 }

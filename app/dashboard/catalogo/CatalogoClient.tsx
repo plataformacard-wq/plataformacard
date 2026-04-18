@@ -76,6 +76,9 @@ export default function CatalogoPage() {
 
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [dragProductIndex, setDragProductIndex] = useState<number | null>(null);
+  const [dragOverProductIndex, setDragOverProductIndex] = useState<number | null>(null);
 
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
@@ -204,6 +207,25 @@ export default function CatalogoPage() {
 
     setProductListError("");
     await fetchProducts();
+  }
+
+  async function handleProductDrop(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return;
+    const reordered = [...products];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setProducts(reordered);
+    setDragProductIndex(null);
+    setDragOverProductIndex(null);
+
+    setSavingOrder(true);
+    const supabase = createClient();
+    await Promise.all(
+      reordered.map((p, i) =>
+        supabase.from("products").update({ sort_order: i }).eq("id", p.id)
+      )
+    );
+    setSavingOrder(false);
   }
 
   function handleOpenCreateProduct() {
@@ -544,25 +566,25 @@ export default function CatalogoPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-neutral-900">Catálogo</h1>
+      <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Catálogo</h1>
 
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
         Gestão dos produtos exibidos no catálogo.
       </p>
 
-      <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-neutral-900">
+      <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
           Limite do plano
         </h2>
 
         {loadingLimit ? (
-          <p className="mt-2 text-sm text-neutral-600">Verificando limite...</p>
+          <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>Verificando limite...</p>
         ) : canCreateProduct ? (
-          <p className="mt-2 text-sm text-green-700">
+          <p className="mt-2 text-sm text-green-600">
             Seu plano permite criar novos produtos.
           </p>
         ) : (
-          <p className="mt-2 text-sm text-red-600">
+          <p className="mt-2 text-sm text-red-500">
             Você atingiu o limite de produtos do seu plano.
           </p>
         )}
@@ -571,7 +593,8 @@ export default function CatalogoPage() {
       <div className="mt-6">
         <button
           onClick={handleOpenCreateProduct}
-          className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white"
+          className="rounded-xl px-4 py-2 text-sm font-medium"
+          style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
         >
           Novo produto
         </button>
@@ -580,91 +603,150 @@ export default function CatalogoPage() {
         ) : null}
       </div>
 
-      <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="mt-8 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
             Produtos cadastrados
           </h2>
 
-          <span className="text-sm text-neutral-500">
-            {products.length} produto(s)
-          </span>
+          <div className="flex items-center gap-3">
+            {savingOrder && (
+              <span className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Salvando ordem...</span>
+            )}
+            <span className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+              {products.length} produto(s)
+            </span>
+          </div>
         </div>
+
+        {products.length > 1 && (
+          <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+            ⠿ Arraste os produtos para reordenar a exibição no catálogo.
+          </p>
+        )}
 
         {productListError ? (
           <p className="mt-4 text-xs text-red-500">{productListError}</p>
         ) : null}
 
         {loadingProducts ? (
-          <p className="mt-4 text-sm text-neutral-600">Carregando produtos...</p>
+          <p className="mt-4 text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando produtos...</p>
         ) : products.length === 0 ? (
-          <p className="mt-4 text-sm text-neutral-600">
+          <p className="mt-4 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
             Nenhum produto cadastrado ainda.
           </p>
         ) : (
-          <div className="mt-4 space-y-4">
-            {products.map((product) => (
+          <div className="mt-4 space-y-3">
+            {products.map((product, index) => (
               <div
                 key={product.id}
-                className="rounded-2xl border border-neutral-200 p-4"
+                draggable
+                onDragStart={(e) => {
+                  setDragProductIndex(index);
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", String(index));
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  setDragOverProductIndex(index);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const raw = e.dataTransfer.getData("text/plain");
+                  const from = raw === "" ? NaN : Number.parseInt(raw, 10);
+                  if (!Number.isNaN(from)) void handleProductDrop(from, index);
+                }}
+                onDragEnd={() => {
+                  setDragProductIndex(null);
+                  setDragOverProductIndex(null);
+                }}
+                className={`rounded-2xl border p-4 transition-all ${
+                  dragProductIndex === index
+                    ? "opacity-40"
+                    : dragOverProductIndex === index && dragProductIndex !== index
+                    ? "shadow-md"
+                    : ""
+                }`}
+                style={{
+                  background: dragOverProductIndex === index && dragProductIndex !== index ? "var(--dash-hover-bg)" : "var(--dash-surface)",
+                  borderColor: dragOverProductIndex === index && dragProductIndex !== index ? "var(--dash-text-primary)" : "var(--dash-border)",
+                }}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-base font-semibold text-neutral-900">
-                      {product.name}
-                    </h3>
+                <div className="flex items-start gap-3">
+                  <span
+                    className="mt-1 shrink-0 cursor-grab select-none font-mono text-lg leading-none active:cursor-grabbing"
+                    style={{ color: "var(--dash-border)" }}
+                    aria-hidden
+                  >
+                    {"\u283F"}
+                  </span>
 
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Categoria:{" "}
-                      {Array.isArray(product.categories)
-                        ? (product.categories[0]?.name ?? "Sem categoria")
-                        : (product.categories?.name ?? "Sem categoria")}
-                    </p>
+                  <div className="flex flex-1 items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                        {product.name}
+                      </h3>
 
-                    <p className="mt-2 text-sm text-neutral-700">
-                      {product.description || "Sem descrição"}
-                    </p>
-
-                    {product.specs && product.specs.length > 0 && (
-                      <p className="mt-2 text-sm text-neutral-600">
-                        {product.specs.map((spec, i) => (
-                          <span key={i}>
-                            {i > 0 ? " · " : null}
-                            <span>{spec.chave}:</span>{" "}
-                            <span className="font-semibold">{spec.valor}</span>
-                          </span>
-                        ))}
+                      <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+                        Categoria:{" "}
+                        {Array.isArray(product.categories)
+                          ? (product.categories[0]?.name ?? "Sem categoria")
+                          : (product.categories?.name ?? "Sem categoria")}
                       </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end gap-2 text-right">
-                    <p className="text-sm font-medium text-neutral-900">
-                      {formatPrice(product.price)}
-                    </p>
 
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(product)}
-                        className="rounded-lg border border-neutral-300 px-3 py-1 text-sm text-neutral-700 hover:bg-neutral-50"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(product.id)}
-                        className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        Excluir
-                      </button>
+                      <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+                        {product.description || "Sem descrição"}
+                      </p>
+
+                      {product.specs && product.specs.length > 0 && (
+                        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+                          {product.specs.map((spec, i) => (
+                            <span key={i}>
+                              {i > 0 ? " · " : null}
+                              <span>{spec.chave}:</span>{" "}
+                              <span className="font-semibold">{spec.valor}</span>
+                            </span>
+                          ))}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2 text-right">
+                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                        {formatPrice(product.price)}
+                      </p>
+
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(product)}
+                          className="rounded-lg border px-3 py-1 text-sm"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(product.id)}
+                          className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-500 hover:bg-red-50"
+                        >
+                          Excluir
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {product.image_url && (
-                  <p className="mt-3 break-all text-xs text-neutral-500">
-                    Imagem: {product.image_url}
-                  </p>
+                  <div className="mt-3 pl-7">
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="h-14 w-14 rounded-lg border object-contain"
+                      style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}
+                    />
+                  </div>
                 )}
               </div>
             ))}
@@ -673,14 +755,14 @@ export default function CatalogoPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl border p-6 shadow-xl" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold text-neutral-900">
+                <h2 className="text-xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   {isEditMode ? "Editar produto" : "Novo produto"}
                 </h2>
-                <p className="mt-1 text-sm text-neutral-600">
+                <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
                   Preencha os dados básicos do produto.
                 </p>
               </div>
@@ -688,7 +770,8 @@ export default function CatalogoPage() {
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="rounded-lg px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100"
+                className="rounded-lg px-2 py-1 text-sm"
+                style={{ color: "var(--dash-text-muted)" }}
               >
                 X
               </button>
@@ -700,7 +783,7 @@ export default function CatalogoPage() {
               ) : null}
 
               <div>
-                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Categoria
                 </label>
 
@@ -710,7 +793,8 @@ export default function CatalogoPage() {
                     setSelectedCategoryId(e.target.value);
                     setCategoryError("");
                   }}
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
                 >
                   <option value="">
                     {loadingCategories
@@ -730,7 +814,7 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Nome do produto
                 </label>
                 <input
@@ -741,7 +825,8 @@ export default function CatalogoPage() {
                     setNameError("");
                   }}
                   placeholder="Ex: Kit Amostras Premium"
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
                 />
                 {nameError ? (
                   <p className="mt-1 text-xs text-red-500">{nameError}</p>
@@ -749,20 +834,21 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Descrição
                 </label>
                 <textarea
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
                   placeholder="Descreva o produto"
-                  className="min-h-[100px] w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                  className="min-h-[100px] w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
                   required
                 />
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-medium text-neutral-700">
+                <p className="mb-2 text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                   Especificações técnicas (opcional)
                 </p>
 
@@ -803,17 +889,23 @@ export default function CatalogoPage() {
                           setDragOverIndex(null);
                         }}
                         onDragEnd={handleSpecDragEnd}
-                        className={`flex items-center justify-between gap-2 rounded-lg border-2 bg-neutral-50 px-3 py-2 text-sm text-neutral-800 ${
+                        className={`flex items-center justify-between gap-2 rounded-lg border-2 px-3 py-2 text-sm ${
                           dragIndex === index ? "opacity-50" : ""
                         } ${
                           dragOverIndex === index && dragIndex !== index
                             ? "border-blue-400"
-                            : "border-neutral-200"
+                            : ""
                         }`}
+                        style={{
+                          background: "var(--dash-hover-bg)",
+                          borderColor: dragOverIndex === index && dragIndex !== index ? undefined : "var(--dash-border)",
+                          color: "var(--dash-text-primary)",
+                        }}
                       >
                         <div className="flex min-w-0 flex-1 items-center gap-2">
                           <span
-                            className="shrink-0 cursor-grab select-none font-mono text-base leading-none text-neutral-400 active:cursor-grabbing"
+                            className="shrink-0 cursor-grab select-none font-mono text-base leading-none active:cursor-grabbing"
+                            style={{ color: "var(--dash-text-muted)" }}
                             aria-hidden
                           >
                             {"\u283F"}
@@ -836,7 +928,7 @@ export default function CatalogoPage() {
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-medium font-semibold text-neutral-600">
+                    <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
                       Característica
                     </label>
                     <input
@@ -847,11 +939,12 @@ export default function CatalogoPage() {
                         setSpecDraftError("");
                       }}
                       placeholder="Ex: Peso"
-                      className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                      className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                      style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-medium font-semibold text-neutral-600">
+                    <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
                       Valor
                     </label>
                     <input
@@ -862,13 +955,15 @@ export default function CatalogoPage() {
                         setSpecDraftError("");
                       }}
                       placeholder="Ex: 500g"
-                      className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                      className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                      style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
                   <button
                     type="button"
                     onClick={addSpec}
-                    className="shrink-0 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
+                    className="shrink-0 rounded-xl border px-4 py-2 text-sm font-medium"
+                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   >
                     Adicionar
                   </button>
@@ -879,7 +974,7 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Preço
                 </label>
                 <input
@@ -890,7 +985,8 @@ export default function CatalogoPage() {
                     setPriceError("");
                   }}
                   placeholder="Ex: 199,90"
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
                 />
                 {priceError ? (
                   <p className="mt-1 text-xs text-red-500">{priceError}</p>
@@ -898,27 +994,29 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium font-semibold text-neutral-700">
+                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Imagem (JPEG, PNG ou WebP, máx. 2MB)
                 </label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   onChange={handleImageFileChange}
-                  className="w-full text-sm text-neutral-700 file:mr-3 file:rounded-lg file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-neutral-800 hover:file:bg-neutral-50"
+                  className="w-full text-sm file:mr-3 file:rounded-lg file:border file:px-3 file:py-1.5 file:text-sm file:font-medium"
+                  style={{ color: "var(--dash-text-secondary)" }}
                 />
                 {imageFileError ? (
                   <p className="mt-1 text-xs text-red-500">{imageFileError}</p>
                 ) : null}
                 {imagePreviewUrl ? (
                   <div className="mt-3">
-                    <p className="mb-1 text-xs font-medium text-neutral-600">
+                    <p className="mb-1 text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
                       Pré-visualização
                     </p>
                     <img
                       src={imagePreviewUrl}
                       alt="Pré-visualização do produto"
-                      className="max-h-48 w-auto max-w-full rounded-lg border border-neutral-200 object-contain"
+                      className="max-h-48 w-auto max-w-full rounded-lg border object-contain"
+                      style={{ borderColor: "var(--dash-border)" }}
                     />
                   </div>
                 ) : null}
@@ -928,7 +1026,8 @@ export default function CatalogoPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+                  className="rounded-xl border px-4 py-2 text-sm font-medium"
+                  style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
                 >
                   Cancelar
                 </button>
