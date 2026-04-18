@@ -22,13 +22,7 @@ type Product = {
   specs: Spec[] | null;
   price: number | null;
   image_url: string | null;
-  sort_order: number | null;
-};
-
-type ProductImage = {
-  id: string;
-  product_id: string;
-  image_url: string;
+  image_urls?: string[] | null;
   sort_order: number | null;
 };
 
@@ -40,7 +34,6 @@ type ProductCatalogClientProps = {
   avatarUrl?: string | null;
   categories: Category[];
   products: Product[];
-  productImages: ProductImage[];
   whatsapp: string | null;
 };
 
@@ -61,7 +54,6 @@ export default function ProductCatalogClient({
   avatarUrl,
   categories,
   products,
-  productImages = [],
   whatsapp,
 }: ProductCatalogClientProps) {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -69,6 +61,7 @@ export default function ProductCatalogClient({
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState("center center");
   const [imageKey, setImageKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const hasTrackedCatalogViewRef = useRef(false);
 
   const selectedProduct = useMemo(() => {
@@ -78,15 +71,8 @@ export default function ProductCatalogClient({
   const selectedProductGallery = useMemo(() => {
     if (!selectedProduct) return [];
 
-    const galleryFromTable = productImages
-      .filter((image) => image.product_id === selectedProduct.id)
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((image) => image.image_url)
-      .filter(Boolean)
-      .slice(0, 10);
-
-    if (galleryFromTable.length > 0) {
-      return galleryFromTable;
+    if (selectedProduct.image_urls && selectedProduct.image_urls.length > 0) {
+      return selectedProduct.image_urls;
     }
 
     if (selectedProduct.image_url) {
@@ -94,7 +80,7 @@ export default function ProductCatalogClient({
     }
 
     return [];
-  }, [productImages, selectedProduct]);
+  }, [selectedProduct]);
 
   const selectedImageUrl =
     selectedProductGallery[selectedImageIndex] ?? selectedProduct?.image_url ?? null;
@@ -295,7 +281,7 @@ export default function ProductCatalogClient({
           )}
         </header>
 
-        {/* Título */}
+        {/* Título e Busca */}
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "36px 20px 8px" }}>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>
             Catálogo
@@ -303,13 +289,56 @@ export default function ProductCatalogClient({
           <p style={{ marginTop: 6, fontSize: 14, color: "rgba(255,255,255,0.35)" }}>
             {products.length} produto{products.length !== 1 ? "s" : ""} disponíve{products.length !== 1 ? "is" : "l"}
           </p>
+
+          <div style={{ marginTop: 24, position: "relative" }}>
+            <div style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar produtos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 16,
+                padding: "14px 16px 14px 44px",
+                color: "#fff",
+                fontSize: 15,
+                outline: "none",
+                transition: "all 0.2s ease",
+                boxSizing: "border-box"
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "rgba(37,211,102,0.4)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+              }}
+            />
+          </div>
         </div>
 
         {/* Categorias e produtos */}
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "16px 20px 0" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
             {categories.map((category) => {
-              const categoryProducts = products.filter((p) => p.category_id === category.id);
+              const categoryProducts = products.filter((p) => 
+                p.category_id === category.id &&
+                p.name.toLowerCase().includes(searchQuery.toLowerCase())
+              );
+
+              if (searchQuery && categoryProducts.length === 0) {
+                return null;
+              }
+
               return (
                 <section key={category.id}>
                   {/* Título da categoria */}
@@ -326,13 +355,12 @@ export default function ProductCatalogClient({
                   {categoryProducts.length > 0 ? (
                     <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
                       {categoryProducts.map((product) => {
-                        const gallery = productImages
-                          .filter((img) => img.product_id === product.id)
-                          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                          .map((img) => img.image_url)
-                          .filter(Boolean)
-                          .slice(0, 10);
-                        const cover = gallery[0] ?? product.image_url ?? null;
+                        const gallery = product.image_urls && product.image_urls.length > 0
+                          ? product.image_urls
+                          : product.image_url
+                            ? [product.image_url]
+                            : [];
+                        const cover = gallery[0] ?? null;
 
                         return (
                           <button
@@ -399,6 +427,23 @@ export default function ProductCatalogClient({
                 </section>
               );
             })}
+            
+            {searchQuery && products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px 20px" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+                <p style={{ fontSize: 16, fontWeight: 600, color: "#fff", margin: "0 0 8px" }}>
+                  Nenhum produto encontrado
+                </p>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                  Tente buscar com outras palavras.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -432,9 +477,9 @@ export default function ProductCatalogClient({
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }} className="modal-grid">
               {/* Galeria */}
-              <div style={{ background: "#0d0d0d", padding: 20, borderRadius: "24px 0 0 24px" }}>
+              <div style={{ background: "#ffffff", padding: 20, borderRadius: "24px 0 0 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <div
-                  style={{ borderRadius: 16, overflow: "hidden", background: "#0a0a0a", position: "relative", aspectRatio: "4/3", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{ borderRadius: 16, overflow: "hidden", background: "#ffffff", position: "relative", aspectRatio: "4/3", display: "flex", alignItems: "center", justifyContent: "center" }}
                   onMouseMove={handleImageZoomMove}
                   onMouseEnter={() => setIsZoomed(true)}
                   onMouseLeave={() => { setIsZoomed(false); setZoomOrigin("center center"); }}
@@ -447,16 +492,34 @@ export default function ProductCatalogClient({
                       style={{ width: "100%", height: "100%", objectFit: "contain", transform: isZoomed ? "scale(1.8)" : "scale(1)", transformOrigin: zoomOrigin, cursor: isZoomed ? "zoom-out" : "zoom-in", transition: "transform 0.3s ease", animation: "fadeIn 220ms ease-out" }}
                     />
                   ) : (
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>Sem imagem</span>
+                    <span style={{ fontSize: 13, color: "rgba(0,0,0,0.3)" }}>Sem imagem</span>
+                  )}
+
+                  {hasMultipleImages && !isZoomed && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); goToPreviousImage(); }}
+                        style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", width: 36, height: 36, borderRadius: "50%", background: "rgba(10,10,10,0.5)", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(10,10,10,0.8)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(10,10,10,0.5)")}
+                        aria-label="Anterior"
+                      >
+                        ←
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); goToNextImage(); }}
+                        style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", width: 36, height: 36, borderRadius: "50%", background: "rgba(10,10,10,0.5)", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(10,10,10,0.8)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(10,10,10,0.5)")}
+                        aria-label="Próxima"
+                      >
+                        →
+                      </button>
+                    </>
                   )}
                 </div>
-
-                {hasMultipleImages && (
-                  <>
-                    <button type="button" onClick={goToPreviousImage} style={{ position: "absolute", left: 28, top: "40%", width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} aria-label="Anterior">←</button>
-                    <button type="button" onClick={goToNextImage} style={{ position: "absolute", right: "52%", top: "40%", width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} aria-label="Próxima">→</button>
-                  </>
-                )}
 
                 {selectedProductGallery.length > 1 && (
                   <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
@@ -465,7 +528,7 @@ export default function ProductCatalogClient({
                         key={`${url}-${i}`}
                         type="button"
                         onClick={() => setSelectedImageIndex(i)}
-                        style={{ aspectRatio: "1", borderRadius: 10, overflow: "hidden", border: i === selectedImageIndex ? "2px solid #25D366" : "2px solid rgba(255,255,255,0.08)", cursor: "pointer", background: "#0a0a0a" }}
+                        style={{ aspectRatio: "1", borderRadius: 10, overflow: "hidden", border: i === selectedImageIndex ? "2px solid #25D366" : "2px solid rgba(0,0,0,0.1)", cursor: "pointer", background: "#ffffff" }}
                         aria-label={`Imagem ${i + 1}`}
                       >
                         <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />

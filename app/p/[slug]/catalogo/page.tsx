@@ -42,9 +42,11 @@ type Product = {
   specs: Spec[] | null;
   price: number | null;
   image_url: string | null;
+  image_urls: string[] | null;
   is_extra: boolean | null;
   sort_order: number | null;
 };
+
 
 
 
@@ -145,7 +147,7 @@ if (!catalogId) {
     const { data: productsData, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, image_url, is_extra, sort_order"
+        "id, category_id, name, description, specs, price, image_url, image_urls, is_extra, sort_order"
       )
       .in("category_id", categoryIds)
       .order("sort_order", { ascending: true });
@@ -157,7 +159,6 @@ if (!catalogId) {
     products = (productsData ?? []) as Product[];
   }
 
-  const productImages: [] = [];
 
   return (
     <ProductCatalogClient
@@ -168,7 +169,6 @@ if (!catalogId) {
       avatarUrl={profile.avatar_url}
       categories={categories}
       products={products}
-      productImages={productImages}
       whatsapp={profile.whatsapp}
     />
   );

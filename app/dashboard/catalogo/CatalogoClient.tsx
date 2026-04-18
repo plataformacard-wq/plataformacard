@@ -23,6 +23,7 @@ type ProductRow = {
   specs: Spec[] | null;
   price: number | null;
   image_url: string | null;
+  image_urls: string[] | null;
   created_at: string;
   categories:
     | {
@@ -88,8 +89,9 @@ export default function CatalogoPage() {
   const [specChaveDraft, setSpecChaveDraft] = useState("");
   const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
   const [nameError, setNameError] = useState("");
   const [categoryError, setCategoryError] = useState("");
@@ -99,6 +101,8 @@ export default function CatalogoPage() {
   const [productFormError, setProductFormError] = useState("");
   const [createProductError, setCreateProductError] = useState("");
   const [productListError, setProductListError] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     async function initialize() {
@@ -167,6 +171,7 @@ export default function CatalogoPage() {
       specs,
       price,
       image_url,
+      image_urls,
       created_at,
       categories (
         id,
@@ -253,9 +258,10 @@ export default function CatalogoPage() {
     setImageFileError("");
     setSpecDraftError("");
     setProductFormError("");
-    setImageFile(null);
-    revokePreviewIfBlob(imagePreviewUrl);
-    setImagePreviewUrl(null);
+    setImageFiles([]);
+    imagePreviewUrls.forEach(revokePreviewIfBlob);
+    setImagePreviewUrls([]);
+    setExistingImageUrls([]);
     setShowModal(true);
   }
 
@@ -271,9 +277,13 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice(formatPriceForInput(product.price));
-    setImageFile(null);
-    revokePreviewIfBlob(imagePreviewUrl);
-    setImagePreviewUrl(product.image_url);
+    setImageFiles([]);
+    imagePreviewUrls.forEach(revokePreviewIfBlob);
+    const urls = product.image_urls && product.image_urls.length > 0
+      ? product.image_urls
+      : product.image_url ? [product.image_url] : [];
+    setExistingImageUrls(urls);
+    setImagePreviewUrls(urls);
     setNameError("");
     setCategoryError("");
     setPriceError("");
@@ -295,9 +305,10 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
-    setImageFile(null);
-    revokePreviewIfBlob(imagePreviewUrl);
-    setImagePreviewUrl(null);
+    setImageFiles([]);
+    imagePreviewUrls.forEach(revokePreviewIfBlob);
+    setImagePreviewUrls([]);
+    setExistingImageUrls([]);
     setSaving(false);
     setNameError("");
     setCategoryError("");
@@ -308,22 +319,44 @@ export default function CatalogoPage() {
   }
 
   function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
 
-    if (!file) {
+    if (files.length === 0) return;
+
+    const currentTotal = existingImageUrls.length + imageFiles.length;
+    if (currentTotal + files.length > 5) {
+      setImageFileError("O limite é de 5 imagens por produto.");
       return;
     }
 
-    if (file.size > MAX_IMAGE_BYTES) {
-      setImageFileError("A imagem deve ter no máximo 2MB");
-      return;
+    const validFiles = files.filter(f => f.size <= MAX_IMAGE_BYTES);
+    if (validFiles.length < files.length) {
+      setImageFileError("Algumas imagens foram ignoradas por passarem de 2MB.");
+    } else {
+      setImageFileError("");
     }
 
-    setImageFileError("");
-    setImageFile(file);
-    revokePreviewIfBlob(imagePreviewUrl);
-    setImagePreviewUrl(URL.createObjectURL(file));
+    const newPreviewUrls = validFiles.map(f => URL.createObjectURL(f));
+
+    setImageFiles(prev => [...prev, ...validFiles]);
+    setImagePreviewUrls(prev => [...prev, ...newPreviewUrls]);
+  }
+
+  function handleRemoveImage(index: number) {
+    if (index < existingImageUrls.length) {
+      setExistingImageUrls(prev => prev.filter((_, i) => i !== index));
+      setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
+    } else {
+      const fileIndex = index - existingImageUrls.length;
+      setImageFiles(prev => prev.filter((_, i) => i !== fileIndex));
+      
+      setImagePreviewUrls(prev => {
+        const urlToRemove = prev[index];
+        revokePreviewIfBlob(urlToRemove);
+        return prev.filter((_, i) => i !== index);
+      });
+    }
   }
 
   function addSpec() {
@@ -470,23 +503,26 @@ export default function CatalogoPage() {
     };
 
     if (editingProduct) {
-      let imageUrl = editingProduct.image_url;
+      let finalUrls = [...existingImageUrls];
 
-      if (imageFile) {
-        const uploaded = await uploadProductImage(orgId, editingProduct.id, imageFile);
-        if (!uploaded) {
-          setProductFormError("Erro ao enviar a imagem. Tente novamente.");
-          setSaving(false);
-          return;
+      if (imageFiles.length > 0) {
+        for (const file of imageFiles) {
+          const uploaded = await uploadProductImage(orgId, editingProduct.id, file);
+          if (!uploaded) {
+            setProductFormError("Erro ao enviar algumas imagens. Tente novamente.");
+            setSaving(false);
+            return;
+          }
+          finalUrls.push(uploaded);
         }
-        imageUrl = uploaded;
       }
 
       const { error } = await supabase
         .from("products")
         .update({
           ...basePayload,
-          image_url: imageUrl,
+          image_url: finalUrls.length > 0 ? finalUrls[0] : null,
+          image_urls: finalUrls,
         })
         .eq("id", editingProduct.id);
 
@@ -508,6 +544,7 @@ export default function CatalogoPage() {
       .insert({
         ...basePayload,
         image_url: null,
+        image_urls: [],
         is_extra: false,
         sort_order: 0,
         organization_id: orgId,
@@ -522,20 +559,27 @@ export default function CatalogoPage() {
       return;
     }
 
-    if (imageFile) {
-      const uploaded = await uploadProductImage(orgId, inserted.id, imageFile);
-      if (!uploaded) {
-        setProductFormError("Produto criado, mas houve erro ao enviar a imagem.");
-        setSaving(false);
-        handleCloseModal();
-        await refreshLimit();
-        await fetchProducts();
-        return;
+    if (imageFiles.length > 0) {
+      const finalUrls = [];
+      for (const file of imageFiles) {
+        const uploaded = await uploadProductImage(orgId, inserted.id, file);
+        if (!uploaded) {
+          setProductFormError("Produto criado, mas houve erro ao enviar algumas imagens.");
+          setSaving(false);
+          handleCloseModal();
+          await refreshLimit();
+          await fetchProducts();
+          return;
+        }
+        finalUrls.push(uploaded);
       }
 
       const { error: updateImgError } = await supabase
         .from("products")
-        .update({ image_url: uploaded })
+        .update({ 
+          image_url: finalUrls.length > 0 ? finalUrls[0] : null,
+          image_urls: finalUrls 
+        })
         .eq("id", inserted.id);
 
       if (updateImgError) {
@@ -563,6 +607,10 @@ export default function CatalogoPage() {
   }
 
   const isEditMode = editingProduct !== null;
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div>
@@ -619,9 +667,29 @@ export default function CatalogoPage() {
           </div>
         </div>
 
-        {products.length > 1 && (
+        <div className="mt-4">
+          <input
+            type="text"
+            placeholder="Buscar produto por nome..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--dash-border)]"
+            style={{
+              background: "var(--dash-bg)",
+              borderColor: "var(--dash-border)",
+              color: "var(--dash-text-primary)",
+            }}
+          />
+        </div>
+
+        {products.length > 1 && !searchQuery && (
           <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
             ⠿ Arraste os produtos para reordenar a exibição no catálogo.
+          </p>
+        )}
+        {searchQuery && (
+          <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+            A ordenação está desativada durante a busca.
           </p>
         )}
 
@@ -631,27 +699,30 @@ export default function CatalogoPage() {
 
         {loadingProducts ? (
           <p className="mt-4 text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando produtos...</p>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <p className="mt-4 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-            Nenhum produto cadastrado ainda.
+            {searchQuery ? "Nenhum produto encontrado para essa busca." : "Nenhum produto cadastrado ainda."}
           </p>
         ) : (
           <div className="mt-4 space-y-3">
-            {products.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
-                draggable
+                draggable={!searchQuery}
                 onDragStart={(e) => {
+                  if (searchQuery) return;
                   setDragProductIndex(index);
                   e.dataTransfer.effectAllowed = "move";
                   e.dataTransfer.setData("text/plain", String(index));
                 }}
                 onDragOver={(e) => {
+                  if (searchQuery) return;
                   e.preventDefault();
                   e.dataTransfer.dropEffect = "move";
                   setDragOverProductIndex(index);
                 }}
                 onDrop={(e) => {
+                  if (searchQuery) return;
                   e.preventDefault();
                   const raw = e.dataTransfer.getData("text/plain");
                   const from = raw === "" ? NaN : Number.parseInt(raw, 10);
@@ -674,13 +745,15 @@ export default function CatalogoPage() {
                 }}
               >
                 <div className="flex items-start gap-3">
-                  <span
-                    className="mt-1 shrink-0 cursor-grab select-none font-mono text-lg leading-none active:cursor-grabbing"
-                    style={{ color: "var(--dash-border)" }}
-                    aria-hidden
-                  >
-                    {"\u283F"}
-                  </span>
+                  {!searchQuery && (
+                    <span
+                      className="mt-1 shrink-0 cursor-grab select-none font-mono text-lg leading-none active:cursor-grabbing"
+                      style={{ color: "var(--dash-border)" }}
+                      aria-hidden
+                    >
+                      {"\u283F"}
+                    </span>
+                  )}
 
                   <div className="flex flex-1 items-start justify-between gap-4">
                     <div>
@@ -738,10 +811,10 @@ export default function CatalogoPage() {
                   </div>
                 </div>
 
-                {product.image_url && (
+                {(product.image_urls?.[0] || product.image_url) && (
                   <div className="mt-3 pl-7">
                     <img
-                      src={product.image_url}
+                      src={product.image_urls?.[0] || product.image_url || undefined}
                       alt={product.name}
                       className="h-14 w-14 rounded-lg border object-contain"
                       style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}
@@ -994,30 +1067,54 @@ export default function CatalogoPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  Imagem (JPEG, PNG ou WebP, máx. 2MB)
-                </label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleImageFileChange}
-                  className="w-full text-sm file:mr-3 file:rounded-lg file:border file:px-3 file:py-1.5 file:text-sm file:font-medium"
-                  style={{ color: "var(--dash-text-secondary)" }}
-                />
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                    Imagens (Até 5 fotos, máx. 2MB cada)
+                  </label>
+                  <span className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>
+                    {imagePreviewUrls.length} / 5
+                  </span>
+                </div>
+                
+                {imagePreviewUrls.length < 5 && (
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleImageFileChange}
+                    className="w-full text-sm file:mr-3 file:rounded-lg file:border file:px-3 file:py-1.5 file:text-sm file:font-medium"
+                    style={{ color: "var(--dash-text-secondary)" }}
+                  />
+                )}
                 {imageFileError ? (
                   <p className="mt-1 text-xs text-red-500">{imageFileError}</p>
                 ) : null}
-                {imagePreviewUrl ? (
+
+                {imagePreviewUrls.length > 0 ? (
                   <div className="mt-3">
-                    <p className="mb-1 text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
+                    <p className="mb-2 text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
                       Pré-visualização
                     </p>
-                    <img
-                      src={imagePreviewUrl}
-                      alt="Pré-visualização do produto"
-                      className="max-h-48 w-auto max-w-full rounded-lg border object-contain"
-                      style={{ borderColor: "var(--dash-border)" }}
-                    />
+                    <div className="flex flex-wrap gap-3">
+                      {imagePreviewUrls.map((url, idx) => (
+                        <div key={idx} className="relative group">
+                          <img
+                            src={url}
+                            alt="Pré-visualização"
+                            className="h-24 w-24 rounded-lg border object-cover"
+                            style={{ borderColor: "var(--dash-border)" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx)}
+                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600"
+                            title="Remover imagem"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>
