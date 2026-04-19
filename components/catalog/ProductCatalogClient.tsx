@@ -21,6 +21,10 @@ type Product = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
+  sku: string | null;
+  has_wholesale: boolean | null;
+  wholesale_price: number | null;
+  wholesale_min_quantity: number | null;
   image_url: string | null;
   image_urls?: string[] | null;
   sort_order: number | null;
@@ -140,7 +144,7 @@ export default function ProductCatalogClient({
   const whatsappUrl =
     whatsapp && selectedProduct
       ? `https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
-          `Olá! Tenho interesse no produto ${selectedProduct.name}.`
+          `Olá! Tenho interesse no produto ${selectedProduct.name}${selectedProduct.sku ? ` (Ref: ${selectedProduct.sku})` : ""}.`
         )}`
       : null;
 
@@ -544,12 +548,34 @@ export default function ProductCatalogClient({
                 <h3 style={{ marginTop: 8, fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
                   {selectedProduct.name}
                 </h3>
+                {selectedProduct.sku && (
+                  <p style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>
+                    Ref: {selectedProduct.sku}
+                  </p>
+                )}
 
                 <div style={{ marginTop: 20 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: 0 }}>Preço</p>
-                  <p style={{ marginTop: 6, fontSize: 26, fontWeight: 700, color: "#25D366", margin: "6px 0 0" }}>
-                    {formatPrice(selectedProduct.price) ?? <span style={{ fontSize: 16, color: "rgba(255,255,255,0.3)" }}>Sob consulta</span>}
-                  </p>
+                  
+                  {selectedProduct.has_wholesale ? (
+                    <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", margin: 0 }}>
+                        Varejo: <span style={{ fontWeight: 600 }}>{formatPrice(selectedProduct.price) ?? "Sob consulta"}</span>
+                      </p>
+                      <p style={{ fontSize: 24, fontWeight: 700, color: "#25D366", margin: 0 }}>
+                        Atacado: {formatPrice(selectedProduct.wholesale_price) ?? "Sob consulta"}
+                        {selectedProduct.wholesale_min_quantity && (
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginLeft: 8 }}>
+                            a partir de {selectedProduct.wholesale_min_quantity} unid.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <p style={{ marginTop: 6, fontSize: 26, fontWeight: 700, color: "#25D366", margin: "6px 0 0" }}>
+                      {formatPrice(selectedProduct.price) ?? <span style={{ fontSize: 16, color: "rgba(255,255,255,0.3)" }}>Sob consulta</span>}
+                    </p>
+                  )}
                 </div>
 
                 {selectedProduct.description && (

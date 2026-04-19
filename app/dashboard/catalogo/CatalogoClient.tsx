@@ -22,6 +22,10 @@ type ProductRow = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
+  sku: string | null;
+  has_wholesale: boolean | null;
+  wholesale_price: number | null;
+  wholesale_min_quantity: number | null;
   image_url: string | null;
   image_urls: string[] | null;
   created_at: string;
@@ -89,6 +93,10 @@ export default function CatalogoPage() {
   const [specChaveDraft, setSpecChaveDraft] = useState("");
   const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
+  const [sku, setSku] = useState("");
+  const [hasWholesale, setHasWholesale] = useState(false);
+  const [wholesalePrice, setWholesalePrice] = useState("");
+  const [wholesaleMinQuantity, setWholesaleMinQuantity] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
@@ -170,6 +178,10 @@ export default function CatalogoPage() {
       description,
       specs,
       price,
+      sku,
+      has_wholesale,
+      wholesale_price,
+      wholesale_min_quantity,
       image_url,
       image_urls,
       created_at,
@@ -252,6 +264,10 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
+    setSku("");
+    setHasWholesale(false);
+    setWholesalePrice("");
+    setWholesaleMinQuantity("");
     setNameError("");
     setCategoryError("");
     setPriceError("");
@@ -277,6 +293,10 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice(formatPriceForInput(product.price));
+    setSku(product.sku ?? "");
+    setHasWholesale(product.has_wholesale ?? false);
+    setWholesalePrice(formatPriceForInput(product.wholesale_price));
+    setWholesaleMinQuantity(product.wholesale_min_quantity ? String(product.wholesale_min_quantity) : "");
     setImageFiles([]);
     imagePreviewUrls.forEach(revokePreviewIfBlob);
     const urls = product.image_urls && product.image_urls.length > 0
@@ -305,6 +325,10 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
+    setSku("");
+    setHasWholesale(false);
+    setWholesalePrice("");
+    setWholesaleMinQuantity("");
     setImageFiles([]);
     imagePreviewUrls.forEach(revokePreviewIfBlob);
     setImagePreviewUrls([]);
@@ -456,6 +480,12 @@ export default function CatalogoPage() {
     const parsedPrice =
       productPrice.trim() === "" ? null : Number(normalizedPrice);
 
+    const normalizedWholesalePrice = wholesalePrice.replace(",", ".");
+    const parsedWholesalePrice =
+      wholesalePrice.trim() === "" ? null : Number(normalizedWholesalePrice);
+    
+    const parsedMinQty = wholesaleMinQuantity.trim() === "" ? null : parseInt(wholesaleMinQuantity, 10);
+
     if (parsedPrice !== null && Number.isNaN(parsedPrice)) {
       setPriceError("Use apenas números. Ex: 199,90");
       setSaving(false);
@@ -500,6 +530,10 @@ export default function CatalogoPage() {
       description: productDescription.trim(),
       specs,
       price: parsedPrice,
+      sku: sku.trim() || null,
+      has_wholesale: hasWholesale,
+      wholesale_price: hasWholesale ? parsedWholesalePrice : null,
+      wholesale_min_quantity: hasWholesale ? parsedMinQty : null,
     };
 
     if (editingProduct) {
@@ -761,6 +795,12 @@ export default function CatalogoPage() {
                         {product.name}
                       </h3>
 
+                      {product.sku && (
+                        <p className="mt-1 text-xs font-mono" style={{ color: "var(--dash-text-secondary)" }}>
+                          Ref: {product.sku}
+                        </p>
+                      )}
+
                       <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
                         Categoria:{" "}
                         {Array.isArray(product.categories)
@@ -789,6 +829,11 @@ export default function CatalogoPage() {
                       <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                         {formatPrice(product.price)}
                       </p>
+                      {product.has_wholesale && (
+                        <span className="rounded bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                          ATACADO
+                        </span>
+                      )}
 
                       <div className="flex flex-wrap justify-end gap-2">
                         <button
@@ -1048,6 +1093,20 @@ export default function CatalogoPage() {
 
               <div>
                 <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                  SKU (Código/Ref)
+                </label>
+                <input
+                  type="text"
+                  value={sku}
+                  onChange={(e) => setSku(e.target.value)}
+                  placeholder="Ex: REF-123"
+                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Preço
                 </label>
                 <input
@@ -1064,6 +1123,52 @@ export default function CatalogoPage() {
                 {priceError ? (
                   <p className="mt-1 text-xs text-red-500">{priceError}</p>
                 ) : null}
+              </div>
+
+              <div className="rounded-xl border p-4" style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasWholesale}
+                    onChange={(e) => setHasWholesale(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+                  />
+                  <span className="text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                    Habilitar Preço de Atacado
+                  </span>
+                </label>
+
+                {hasWholesale && (
+                  <div className="mt-4 flex gap-4">
+                    <div className="flex-1">
+                      <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
+                        Preço Atacado
+                      </label>
+                      <input
+                        type="text"
+                        value={wholesalePrice}
+                        onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))}
+                        placeholder="Ex: 150,00"
+                        className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                        style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
+                        Qtd. Mínima
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={wholesaleMinQuantity}
+                        onChange={(e) => setWholesaleMinQuantity(e.target.value)}
+                        placeholder="Ex: 10"
+                        className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                        style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

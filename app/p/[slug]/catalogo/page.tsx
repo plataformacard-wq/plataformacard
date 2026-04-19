@@ -41,6 +41,10 @@ type Product = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
+  sku: string | null;
+  has_wholesale: boolean | null;
+  wholesale_price: number | null;
+  wholesale_min_quantity: number | null;
   image_url: string | null;
   image_urls: string[] | null;
   is_extra: boolean | null;
@@ -147,7 +151,7 @@ if (!catalogId) {
     const { data: productsData, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, image_url, image_urls, is_extra, sort_order"
+        "id, category_id, name, description, specs, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order"
       )
       .in("category_id", categoryIds)
       .order("sort_order", { ascending: true });
