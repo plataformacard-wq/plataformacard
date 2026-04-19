@@ -177,7 +177,8 @@ export default async function Page(props: PageProps) {
     <main
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg, rgba(37,211,102,0.10) 0%, #0a0a0a 100%)",
+        background:
+          "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

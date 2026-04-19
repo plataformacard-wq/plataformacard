@@ -226,7 +226,7 @@ export default function ProductCatalogClient({
       <div
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(180deg, rgba(37,211,102,0.10) 0%, #0a0a0a 100%)",
+          background: "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)",
           padding: "0 0 60px",
         }}
       >
