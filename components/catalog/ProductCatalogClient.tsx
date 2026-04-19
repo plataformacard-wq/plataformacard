@@ -6,6 +6,7 @@ import { trackAnalyticsEvent } from "@/lib/analytics";
 type Category = {
   id: string;
   name: string;
+  description: string | null;
   sort_order: number | null;
 };
 
@@ -36,6 +37,8 @@ type ProductCatalogClientProps = {
   slug: string;
   fullName?: string | null;
   avatarUrl?: string | null;
+  catalogName?: string | null;
+  catalogDescription?: string | null;
   categories: Category[];
   products: Product[];
   whatsapp: string | null;
@@ -56,6 +59,8 @@ export default function ProductCatalogClient({
   slug,
   fullName,
   avatarUrl,
+  catalogName,
+  catalogDescription,
   categories,
   products,
   whatsapp,
@@ -289,9 +294,14 @@ export default function ProductCatalogClient({
         {/* Título e Busca */}
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "36px 20px 8px" }}>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>
-            Catálogo
+            {catalogName || "Catálogo"}
           </h1>
-          <p style={{ marginTop: 6, fontSize: 14, color: "rgba(255,255,255,0.35)" }}>
+          {catalogDescription && (
+            <p style={{ marginTop: 12, fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, maxWidth: 600 }}>
+              {catalogDescription}
+            </p>
+          )}
+          <p style={{ marginTop: 8, fontSize: 13, color: "rgba(255,255,255,0.3)", fontWeight: 500 }}>
             {products.length} produto{products.length !== 1 ? "s" : ""} disponíve{products.length !== 1 ? "is" : "l"}
           </p>
 
@@ -346,15 +356,21 @@ export default function ProductCatalogClient({
 
               return (
                 <section key={category.id}>
-                  {/* Título da categoria */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <div style={{ width: 3, height: 20, borderRadius: 2, background: "linear-gradient(180deg, #25D366, #128C7E)" }} />
-                    <h2 style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.85)", letterSpacing: "0.01em", margin: 0 }}>
-                      {category.name}
-                    </h2>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 500 }}>
-                      {categoryProducts.length}
-                    </span>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                      <div style={{ width: 3, height: 20, borderRadius: 2, background: "linear-gradient(180deg, #25D366, #128C7E)" }} />
+                      <h2 style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.85)", letterSpacing: "0.01em", margin: 0 }}>
+                        {category.name}
+                      </h2>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 500 }}>
+                        {categoryProducts.length}
+                      </span>
+                    </div>
+                    {category.description && (
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginLeft: 15 }}>
+                        {category.description}
+                      </p>
+                    )}
                   </div>
 
                   {categoryProducts.length > 0 ? (

@@ -22,12 +22,16 @@ export async function createSeller(formData: FormData) {
 
   const { data: profileManager } = await supabaseServer
     .from("profiles")
-    .select("organization_id")
+    .select("organization_id, role")
     .eq("user_id", user.id)
     .single();
 
   if (!profileManager?.organization_id) {
     return { error: "Organização não encontrada." };
+  }
+
+  if (profileManager.role !== "b2b_admin" && profileManager.role !== "superadmin") {
+    return { error: "Permissão negada. Apenas administradores B2B podem adicionar vendedores." };
   }
 
   const adminAuthClient = createAdminClient();
@@ -65,6 +69,7 @@ export async function createSeller(formData: FormData) {
       full_name: fullName,
       slug: slug,
       organization_id: profileManager.organization_id,
+      role: "seller",
     })
     .eq("user_id", newAuthUser.user.id);
 
@@ -82,6 +87,16 @@ export async function deleteSeller(userId: string) {
 
   if (!user) {
     return { error: "Usuário não autenticado." };
+  }
+
+  const { data: profileManager } = await supabaseServer
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileManager?.role !== "b2b_admin" && profileManager?.role !== "superadmin") {
+    return { error: "Permissão negada." };
   }
 
   if (user.id === userId) {
@@ -107,6 +122,16 @@ export async function updateSellerPassword(userId: string, newPassword: string) 
     return { error: "Usuário não autenticado." };
   }
 
+  const { data: profileManager } = await supabaseServer
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileManager?.role !== "b2b_admin" && profileManager?.role !== "superadmin") {
+    return { error: "Permissão negada." };
+  }
+
   if (!newPassword || newPassword.length < 6) {
     return { error: "A nova senha deve ter pelo menos 6 caracteres." };
   }
@@ -119,6 +144,38 @@ export async function updateSellerPassword(userId: string, newPassword: string) 
   if (error) {
     console.error("Erro ao atualizar senha:", error);
     return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function updateSellerPermissions(userId: string, canCustomizeHours: boolean) {
+  const supabaseServer = await createClient();
+  const { data: { user } } = await supabaseServer.auth.getUser();
+
+  if (!user) {
+    return { error: "Usuário não autenticado." };
+  }
+
+  const { data: profileManager } = await supabaseServer
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileManager?.role !== "b2b_admin" && profileManager?.role !== "superadmin") {
+    return { error: "Permissão negada." };
+  }
+
+  const adminAuthClient = createAdminClient();
+  const { error } = await adminAuthClient
+    .from("profiles")
+    .update({ can_customize_hours: canCustomizeHours })
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Erro ao atualizar permissões:", error);
+    return { error: "Erro ao atualizar permissões do vendedor." };
   }
 
   return { success: true };

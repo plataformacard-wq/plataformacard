@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createSeller, deleteSeller, updateSellerPassword } from "@/lib/dashboard/sellerActions";
+import { createSeller, deleteSeller, updateSellerPassword, updateSellerPermissions } from "@/lib/dashboard/sellerActions";
 import { useRouter } from "next/navigation";
 
 type Seller = {
@@ -11,6 +11,7 @@ type Seller = {
   slug: string;
   avatar_url: string | null;
   created_at: string;
+  can_customize_hours: boolean | null;
 };
 
 export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
@@ -74,6 +75,25 @@ export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
     setUpdatePwdLoading(false);
   }
 
+  const [sellerToUpdatePerm, setSellerToUpdatePerm] = useState<Seller | null>(null);
+  const [updatePermLoading, setUpdatePermLoading] = useState(false);
+  const [canCustomizeTemp, setCanCustomizeTemp] = useState(false);
+
+  async function handleUpdatePermissions(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!sellerToUpdatePerm?.user_id) return;
+    setUpdatePermLoading(true);
+    
+    const result = await updateSellerPermissions(sellerToUpdatePerm.user_id, canCustomizeTemp);
+    if (result.error) {
+      alert(result.error);
+    } else {
+      setSellerToUpdatePerm(null);
+      router.refresh();
+    }
+    setUpdatePermLoading(false);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -122,6 +142,16 @@ export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
                    </a>
                    {seller.user_id && (
                      <>
+                       <button
+                         onClick={() => {
+                           setSellerToUpdatePerm(seller);
+                           setCanCustomizeTemp(seller.can_customize_hours ?? false);
+                         }}
+                         className="text-sm font-medium hover:underline"
+                         style={{ color: "var(--dash-text-secondary)" }}
+                       >
+                         Permissões
+                       </button>
                        <button
                          onClick={() => setSellerToUpdatePwd(seller)}
                          className="text-sm font-medium hover:underline"
@@ -221,6 +251,46 @@ export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
                 <button type="button" onClick={() => setSellerToUpdatePwd(null)} disabled={updatePwdLoading} className="rounded-xl border px-4 py-2 text-sm font-medium" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}>Cancelar</button>
                 <button type="submit" disabled={updatePwdLoading} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
                   {updatePwdLoading ? "Salvando..." : "Salvar Senha"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Permissions Modal */}
+      {sellerToUpdatePerm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-2xl border p-6 shadow-xl" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--dash-text-primary)" }}>Permissões do Vendedor</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--dash-text-secondary)" }}>
+              Gerencie os acessos de <strong>{sellerToUpdatePerm.full_name}</strong>.
+            </p>
+            <form onSubmit={handleUpdatePermissions}>
+              <div className="mb-6 space-y-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <div className="pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={canCustomizeTemp}
+                      onChange={(e) => setCanCustomizeTemp(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                      Personalizar Horários
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-muted)" }}>
+                      Permite que este vendedor sobrescreva o horário padrão da empresa e crie sua própria grade de horários.
+                    </p>
+                  </div>
+                </label>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                <button type="button" onClick={() => setSellerToUpdatePerm(null)} disabled={updatePermLoading} className="rounded-xl border px-4 py-2 text-sm font-medium" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}>Cancelar</button>
+                <button type="submit" disabled={updatePermLoading} className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+                  {updatePermLoading ? "Salvando..." : "Salvar Permissões"}
                 </button>
               </div>
             </form>

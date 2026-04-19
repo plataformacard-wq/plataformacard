@@ -2,6 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
+
+const defaultBusinessHours: BusinessHours = {
+  timezone: "America/Sao_Paulo",
+  manual_override: null,
+  schedule: {
+    monday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    tuesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    wednesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    thursday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    friday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    saturday: { isOpen: true, shifts: [{ open: "08:00", close: "12:00" }] },
+    sunday: { isOpen: false, shifts: [] },
+  },
+};
+
+const dayNamesMap = {
+  monday: "Segunda-feira",
+  tuesday: "Terça-feira",
+  wednesday: "Quarta-feira",
+  thursday: "Quinta-feira",
+  friday: "Sexta-feira",
+  saturday: "Sábado",
+  sunday: "Domingo",
+};
 
 type ProfileData = {
   full_name: string | null;
@@ -9,6 +34,9 @@ type ProfileData = {
   bio: string | null;
   whatsapp: string | null;
   slug: string | null;
+  is_available: boolean | null;
+  custom_business_hours: any;
+  can_customize_hours: boolean | null;
 };
 
 function sanitizeSlug(value: string): string {
@@ -33,6 +61,10 @@ export default function PerfilPage() {
   const [slugOriginal, setSlugOriginal] = useState("");
   const [slugError, setSlugError] = useState("");
   const [slugChecking, setSlugChecking] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [useCompanyHours, setUseCompanyHours] = useState(true);
+  const [canCustomize, setCanCustomize] = useState(false);
+  const [customBusinessHours, setCustomBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -55,7 +87,7 @@ export default function PerfilPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, bio, whatsapp, slug")
+        .select("full_name, avatar_url, bio, whatsapp, slug, is_available, custom_business_hours, can_customize_hours")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
 
@@ -67,6 +99,17 @@ export default function PerfilPage() {
         setSlugInput(profile.slug || "");
         setSlugOriginal(profile.slug || "");
         setAvatar(profile.avatar_url || null);
+        setIsAvailable(profile.is_available ?? true);
+        
+        const hasPermission = profile.can_customize_hours ?? false;
+        setCanCustomize(hasPermission);
+
+        if (profile.custom_business_hours && hasPermission) {
+          setUseCompanyHours(false);
+          setCustomBusinessHours(profile.custom_business_hours as BusinessHours);
+        } else {
+          setUseCompanyHours(true);
+        }
       }
 
       setLoading(false);
@@ -99,6 +142,72 @@ export default function PerfilPage() {
     const sanitized = sanitizeSlug(value);
     setSlugInput(sanitized);
     setSlugError("");
+  }
+
+  function handleDayToggle(day: keyof BusinessHours["schedule"]) {
+    setCustomBusinessHours(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [day]: {
+          ...prev.schedule[day],
+          isOpen: !prev.schedule[day].isOpen,
+          shifts: !prev.schedule[day].isOpen && prev.schedule[day].shifts.length === 0 
+            ? [{ open: "08:00", close: "18:00" }] 
+            : prev.schedule[day].shifts
+        }
+      }
+    }));
+  }
+
+  function handleShiftChange(day: keyof BusinessHours["schedule"], shiftIndex: number, field: keyof TimeShift, value: string) {
+    setCustomBusinessHours(prev => {
+      const newShifts = [...prev.schedule[day].shifts];
+      newShifts[shiftIndex] = { ...newShifts[shiftIndex], [field]: value };
+      return {
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          [day]: {
+            ...prev.schedule[day],
+            shifts: newShifts
+          }
+        }
+      };
+    });
+  }
+
+  function handleAddShift(day: keyof BusinessHours["schedule"]) {
+    setCustomBusinessHours(prev => {
+      if (prev.schedule[day].shifts.length >= 2) return prev;
+      return {
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          [day]: {
+            ...prev.schedule[day],
+            shifts: [...prev.schedule[day].shifts, { open: "13:00", close: "18:00" }]
+          }
+        }
+      };
+    });
+  }
+
+  function handleRemoveShift(day: keyof BusinessHours["schedule"], shiftIndex: number) {
+    setCustomBusinessHours(prev => {
+      const newShifts = prev.schedule[day].shifts.filter((_, i) => i !== shiftIndex);
+      return {
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          [day]: {
+            ...prev.schedule[day],
+            shifts: newShifts,
+            isOpen: newShifts.length > 0
+          }
+        }
+      };
+    });
   }
 
   const avatarPreview = avatarFile ? URL.createObjectURL(avatarFile) : avatar;
@@ -173,6 +282,8 @@ export default function PerfilPage() {
         bio: bioInput.trim() || null,
         whatsapp: whatsappInput.trim() || null,
         slug: trimmedSlug || null,
+        is_available: isAvailable,
+        custom_business_hours: useCompanyHours ? null : customBusinessHours,
       })
       .eq("user_id", user.id);
 
@@ -435,6 +546,129 @@ export default function PerfilPage() {
                 <p className="mt-0.5 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                   O email não pode ser alterado aqui.
                 </p>
+              </div>
+
+              {/* Status de Atendimento & Horários */}
+              <div className="pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                <h3 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                  Horário de Atendimento
+                </h3>
+                
+                <div className="mt-4 space-y-4">
+                  {/* Emergency Toggle */}
+                  <div>
+                    <label className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                      Status Rápido (Modo Férias)
+                    </label>
+                    <select
+                      value={isAvailable ? "true" : "false"}
+                      onChange={(e) => setIsAvailable(e.target.value === "true")}
+                      className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                      style={{
+                        background: "var(--dash-input-bg)",
+                        borderColor: "var(--dash-input-border)",
+                        color: "var(--dash-text-primary)",
+                      }}
+                    >
+                      <option value="true">Normal (Seguir regras de horário)</option>
+                      <option value="false">Forçar Fechado (Ex: Férias / Indisponível)</option>
+                    </select>
+                  </div>
+
+                  {/* Inheritance Toggle */}
+                  <label className={`flex items-center gap-3 mt-4 ${canCustomize ? "cursor-pointer" : "cursor-not-allowed opacity-80"}`}>
+                    <input
+                      type="checkbox"
+                      checked={useCompanyHours}
+                      onChange={(e) => canCustomize && setUseCompanyHours(e.target.checked)}
+                      disabled={!canCustomize}
+                      className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
+                    />
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                        Seguir horário padrão da empresa
+                      </p>
+                      {canCustomize ? (
+                        <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-muted)" }}>
+                          Desmarque para configurar um horário de atendimento exclusivo para você.
+                        </p>
+                      ) : (
+                        <p className="text-xs mt-0.5 text-orange-500 font-medium">
+                          🔒 Apenas o administrador da empresa pode habilitar horários customizados.
+                        </p>
+                      )}
+                    </div>
+                  </label>
+
+                  {/* Custom Schedule Editor */}
+                  {!useCompanyHours && (
+                    <div className="mt-6 space-y-6 rounded-xl border p-5" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>Seus Horários Customizados</p>
+                      {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
+                        const dayData = customBusinessHours.schedule[day];
+                        return (
+                          <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
+                            <div className="w-32 pt-1 flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={dayData.isOpen}
+                                onChange={() => handleDayToggle(day)}
+                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                              />
+                              <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
+                                {dayNamesMap[day]}
+                              </span>
+                            </div>
+
+                            <div className="flex-1 space-y-3">
+                              {dayData.isOpen ? (
+                                dayData.shifts.map((shift, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <input
+                                      type="time"
+                                      value={shift.open}
+                                      onChange={(e) => handleShiftChange(day, index, "open", e.target.value)}
+                                      className="rounded-md border px-2 py-1 text-sm outline-none w-24"
+                                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                                    />
+                                    <span className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>até</span>
+                                    <input
+                                      type="time"
+                                      value={shift.close}
+                                      onChange={(e) => handleShiftChange(day, index, "close", e.target.value)}
+                                      className="rounded-md border px-2 py-1 text-sm outline-none w-24"
+                                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveShift(day, index)}
+                                      className="p-1 text-red-500 hover:bg-red-50 rounded text-xs"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Fechado</span>
+                              )}
+                              
+                              {dayData.isOpen && dayData.shifts.length < 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddShift(day)}
+                                  className="text-xs font-medium px-2 py-1 rounded border transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                                  style={{ color: "var(--dash-text-secondary)", borderColor: "var(--dash-border)" }}
+                                >
+                                  + Turno
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

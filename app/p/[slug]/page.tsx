@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
+import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -16,6 +17,8 @@ type ProfileRow = {
   bio: string | null;
   avatar_url: string | null;
   whatsapp: string | null;
+  is_available: boolean | null;
+  custom_business_hours: any;
 };
 
 export const dynamicParams = true;
@@ -136,7 +139,7 @@ export default async function Page(props: PageProps) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -149,7 +152,7 @@ export default async function Page(props: PageProps) {
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
     supabase
       .from("organizations")
-      .select("name")
+      .select("name, business_hours")
       .eq("id", safeProfile.organization_id)
       .maybeSingle(),
     getCatalogStats(supabase, safeProfile),
@@ -159,6 +162,19 @@ export default async function Page(props: PageProps) {
   ]);
 
   const orgName = orgRes.data?.name?.trim() ?? null;
+  const orgBusinessHours = (orgRes.data?.business_hours as unknown as BusinessHours) ?? null;
+  const customBusinessHours = (safeProfile.custom_business_hours as unknown as BusinessHours) ?? null;
+  
+  // Decide if we use the profile's manual override or the organization's business hours
+  // Fase 2: Herança de Horários
+  const activeHours = customBusinessHours || orgBusinessHours;
+  const businessStatus = getBusinessStatus(activeHours);
+  
+  // Se o perfil estava com is_available = false (manual), forçamos o fechamento. 
+  // Caso contrário, seguimos a regra.
+  const isAvailableNow = safeProfile.is_available === false ? false : businessStatus.isOpenNow;
+  const statusMessage = safeProfile.is_available === false ? "Pausado" : businessStatus.message;
+
   const bioLine = [safeProfile.bio?.trim() || null, orgName]
     .filter(Boolean)
     .join(" · ");
@@ -314,7 +330,7 @@ export default async function Page(props: PageProps) {
               </div>
             </div>
 
-            {/* Badge DISPONÍVEL */}
+            {/* Badge DISPONÍVEL / PAUSADO / ABERTO AGORA */}
             <div
               style={{
                 marginTop: -10,
@@ -323,18 +339,18 @@ export default async function Page(props: PageProps) {
                 alignItems: "center",
                 gap: 5,
                 background: "rgba(0,0,0,0.75)",
-                border: "1px solid rgba(37,211,102,0.25)",
+                border: `1px solid ${isAvailableNow ? "rgba(37,211,102,0.25)" : "rgba(156,163,175,0.25)"}`,
                 borderRadius: 999,
                 padding: "3px 10px",
               }}
             >
               <span
-                className="glow-badge"
+                className={isAvailableNow ? "glow-badge" : ""}
                 style={{
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: "#25D366",
+                  background: isAvailableNow ? "#25D366" : "#9CA3AF",
                   display: "block",
                 }}
               />
@@ -347,7 +363,7 @@ export default async function Page(props: PageProps) {
                   textTransform: "uppercase",
                 }}
               >
-                Disponível
+                {statusMessage}
               </span>
             </div>
           </div>

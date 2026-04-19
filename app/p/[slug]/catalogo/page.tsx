@@ -19,6 +19,7 @@ type Profile = {
 type Catalog = {
   id: string;
   name: string;
+  description: string | null;
   catalog_type: string | null;
 };
 
@@ -26,6 +27,7 @@ type Category = {
   id: string;
   catalog_id: string;
   name: string;
+  description: string | null;
   sort_order: number | null;
 };
 
@@ -122,7 +124,7 @@ if (!catalogId) {
 
   const { data: catalogData, error: catalogError } = await supabase
     .from("catalogs")
-    .select("id, name, catalog_type")
+    .select("id, name, description, catalog_type")
     .eq("id", catalogId)
     .maybeSingle();
 
@@ -134,7 +136,7 @@ if (!catalogId) {
 
   const { data: categoriesData, error: categoriesError } = await supabase
     .from("categories")
-    .select("id, catalog_id, name, sort_order")
+    .select("id, catalog_id, name, description, sort_order")
     .eq("catalog_id", catalogId)
     .order("sort_order", { ascending: true });
 
@@ -171,6 +173,8 @@ if (!catalogId) {
       slug={profile.slug}
       fullName={profile.full_name}
       avatarUrl={profile.avatar_url}
+      catalogName={catalog.name}
+      catalogDescription={catalog.description}
       categories={categories}
       products={products}
       whatsapp={profile.whatsapp}

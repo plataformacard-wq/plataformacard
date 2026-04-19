@@ -13,6 +13,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const supabase = createClient();
   const [nome, setNome] = useState("Cliente");
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [role, setRole] = useState("seller");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -33,13 +34,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url")
+        .select("full_name, avatar_url, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (profile) {
         setNome(profile.full_name || "Cliente");
         setAvatar(profile.avatar_url || null);
+        setRole(profile.role || "b2c_admin");
       }
     }
 
@@ -107,22 +109,39 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <nav className="flex items-center gap-5 text-sm font-medium">
-            {[
-              { href: "/dashboard", label: "Dashboard" },
-              { href: "/dashboard/perfil", label: "Perfil" },
-              { href: "/dashboard/catalogo", label: "Catálogo" },
-              { href: "/dashboard/vendedores", label: "Vendedores" },
-              { href: "/dashboard/analytics", label: "Analytics" },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="transition-colors hover:opacity-70"
-                style={{ color: "var(--dash-text-primary)" }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {(() => {
+              const navLinks = [
+                { href: "/dashboard", label: "Dashboard" }
+              ];
+
+              if (role === "superadmin") {
+                navLinks.push({ href: "/admin", label: "⚙️ Painel MAJ" });
+              }
+
+              if (role !== "seller") {
+                navLinks.push({ href: "/dashboard/empresa", label: "Empresa" });
+                navLinks.push({ href: "/dashboard/catalogo", label: "Catálogo" });
+              }
+
+              navLinks.push({ href: "/dashboard/perfil", label: "Perfil" });
+
+              if (role === "b2b_admin" || role === "superadmin") {
+                navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores" });
+              }
+
+              navLinks.push({ href: "/dashboard/analytics", label: "Analytics" });
+
+              return navLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="transition-colors hover:opacity-70"
+                  style={{ color: "var(--dash-text-primary)" }}
+                >
+                  {item.label}
+                </Link>
+              ));
+            })()}
 
             {/* Toggle dark/light */}
             <button

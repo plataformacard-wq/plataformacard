@@ -8,6 +8,14 @@ import { useEffect, useState } from "react";
 type Category = {
   id: string;
   name: string;
+  description: string | null;
+  sort_order: number | null;
+};
+
+type Catalog = {
+  id: string;
+  name: string;
+  description: string | null;
 };
 
 type Spec = { chave: string; valor: string };
@@ -79,6 +87,18 @@ export default function CatalogoPage() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
 
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [catalogDescription, setCatalogDescription] = useState("");
+  const [savingCatalog, setSavingCatalog] = useState(false);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [catalogId, setCatalogId] = useState<string | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryDescription, setCategoryDescription] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [categoryManageError, setCategoryManageError] = useState("");
+
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [savingOrder, setSavingOrder] = useState(false);
@@ -114,11 +134,74 @@ export default function CatalogoPage() {
 
   useEffect(() => {
     async function initialize() {
-      await Promise.all([refreshLimit(), fetchCategories(), fetchProducts()]);
+      const oid = await fetchOrganizationId();
+      if (oid) {
+        setOrgId(oid);
+        const cid = await fetchCatalog(oid);
+        if (cid) {
+          setCatalogId(cid);
+          await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid)]);
+        }
+      }
     }
 
     initialize();
   }, []);
+
+  async function fetchOrganizationId(): Promise<string | null> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
+
+    return profile?.organization_id ?? null;
+  }
+
+  async function fetchCatalog(orgId: string): Promise<string | null> {
+    const supabase = createClient();
+    
+    // Tenta pegar o catálogo habilitado
+    const { data: orgCatalog } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", orgId)
+      .eq("is_enabled", true)
+      .limit(1)
+      .maybeSingle();
+
+    let catId = orgCatalog?.catalog_id;
+
+    if (!catId) {
+      // Fallback: pega qualquer um
+      const { data: anyOrgCatalog } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("organization_id", orgId)
+        .limit(1)
+        .maybeSingle();
+      catId = anyOrgCatalog?.catalog_id;
+    }
+
+    if (catId) {
+      const { data: catalogData } = await supabase
+        .from("catalogs")
+        .select("id, name, description")
+        .eq("id", catId)
+        .single();
+      
+      if (catalogData) {
+        setCatalog(catalogData);
+        setCatalogDescription(catalogData.description ?? "");
+      }
+    }
+
+    return catId ?? null;
+  }
 
   async function refreshLimit() {
     const supabase = createClient();
@@ -127,47 +210,26 @@ export default function CatalogoPage() {
     setLoadingLimit(false);
   }
 
-  async function fetchCategories() {
+  async function fetchCategories(catalogId: string) {
     const supabase = createClient();
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name")
-      .order("name", { ascending: true });
+      .select("id, name, description, sort_order")
+      .eq("catalog_id", catalogId)
+      .order("sort_order", { ascending: true });
 
     if (error) {
       console.error("Erro ao buscar categorias:", error);
     } else if (data) {
-      setCategories(data);
+      setCategories(data as Category[]);
     }
 
     setLoadingCategories(false);
   }
 
-  async function fetchProducts() {
+  async function fetchProducts(orgId: string) {
     const supabase = createClient();
     setLoadingProducts(true);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      console.error("Usuário não autenticado");
-      setLoadingProducts(false);
-      return;
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.organization_id) {
-      console.error("Erro ao buscar organização:", profileError);
-      setLoadingProducts(false);
-      return;
-    }
 
     const { data, error } = await supabase
       .from("products")
@@ -191,7 +253,7 @@ export default function CatalogoPage() {
       )
     `
       )
-      .eq("organization_id", profile.organization_id)
+      .eq("organization_id", orgId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
@@ -202,6 +264,110 @@ export default function CatalogoPage() {
     }
 
     setLoadingProducts(false);
+  }
+
+  async function handleSaveCatalogDescription() {
+    if (!catalogId || !catalog) return;
+    setSavingCatalog(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("catalogs")
+      .update({ description: catalogDescription })
+      .eq("id", catalogId);
+    
+    if (error) {
+      console.error("Erro ao salvar descrição do catálogo:", error);
+      alert("Erro ao salvar descrição.");
+    } else {
+      setCatalog({ ...catalog, description: catalogDescription });
+    }
+    setSavingCatalog(false);
+  }
+
+  async function handleSaveCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!catalogId) return;
+    
+    const trimmedName = categoryName.trim();
+    if (!trimmedName) {
+      setCategoryManageError("O nome da categoria é obrigatório.");
+      return;
+    }
+
+    setSavingCategory(true);
+    setCategoryManageError("");
+    const supabase = createClient();
+
+    if (editingCategory) {
+      const { error } = await supabase
+        .from("categories")
+        .update({
+          name: trimmedName,
+          description: categoryDescription.trim(),
+        })
+        .eq("id", editingCategory.id);
+
+      if (error) {
+        setCategoryManageError("Erro ao atualizar categoria.");
+        setSavingCategory(false);
+        return;
+      }
+    } else {
+      const { error } = await supabase
+        .from("categories")
+        .insert({
+          catalog_id: catalogId,
+          name: trimmedName,
+          description: categoryDescription.trim(),
+          sort_order: categories.length,
+        });
+
+      if (error) {
+        setCategoryManageError("Erro ao criar categoria.");
+        setSavingCategory(false);
+        return;
+      }
+    }
+
+    setCategoryName("");
+    setCategoryDescription("");
+    setEditingCategory(null);
+    setShowCategoryModal(false);
+    setSavingCategory(false);
+    await fetchCategories(catalogId);
+  }
+
+  async function handleDeleteCategory(id: string) {
+    const hasProducts = products.some(p => getProductCategoryId(p) === id);
+    if (hasProducts) {
+      alert("Esta categoria possui produtos vinculados. Remova ou altere os produtos antes de excluir a categoria.");
+      return;
+    }
+
+    if (!confirm("Tem certeza que deseja excluir esta categoria?")) return;
+
+    const supabase = createClient();
+    const { error } = await supabase.from("categories").delete().eq("id", id);
+    if (error) {
+      alert("Erro ao excluir categoria.");
+    } else {
+      if (catalogId) await fetchCategories(catalogId);
+    }
+  }
+
+  async function handleCategoryDrop(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex || !catalogId) return;
+    const reordered = [...categories];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setCategories(reordered);
+
+    const supabase = createClient();
+    await Promise.all(
+      reordered.map((cat, i) =>
+        supabase.from("categories").update({ sort_order: i }).eq("id", cat.id)
+      )
+    );
   }
 
   async function handleDelete(productId: string) {
@@ -223,7 +389,7 @@ export default function CatalogoPage() {
     }
 
     setProductListError("");
-    await fetchProducts();
+    if (orgId) await fetchProducts(orgId);
   }
 
   async function handleProductDrop(fromIndex: number, toIndex: number) {
@@ -304,6 +470,41 @@ export default function CatalogoPage() {
       : product.image_url ? [product.image_url] : [];
     setExistingImageUrls(urls);
     setImagePreviewUrls(urls);
+    setNameError("");
+    setCategoryError("");
+    setPriceError("");
+    setImageFileError("");
+    setSpecDraftError("");
+    setProductFormError("");
+    setShowModal(true);
+  }
+
+  function handleDuplicateProduct(product: ProductRow) {
+    if (!canCreateProduct) {
+      setProductListError("Você atingiu o limite do seu plano. Faça upgrade para continuar.");
+      return;
+    }
+    setCreateProductError("");
+    setEditingProduct(null);
+    setSelectedCategoryId(getProductCategoryId(product));
+    setProductName(`${product.name.toUpperCase()} (CÓPIA)`);
+    setProductDescription(product.description ?? "");
+    setSpecs(product.specs ?? []);
+    setDragIndex(null);
+    setDragOverIndex(null);
+    setSpecChaveDraft("");
+    setSpecValorDraft("");
+    setProductPrice(formatPriceForInput(product.price));
+    setSku("");
+    setHasWholesale(product.has_wholesale ?? false);
+    setWholesalePrice(formatPriceForInput(product.wholesale_price));
+    setWholesaleMinQuantity(product.wholesale_min_quantity ? String(product.wholesale_min_quantity) : "");
+    
+    setImageFiles([]);
+    imagePreviewUrls.forEach(revokePreviewIfBlob);
+    setImagePreviewUrls([]);
+    setExistingImageUrls([]);
+
     setNameError("");
     setCategoryError("");
     setPriceError("");
@@ -569,7 +770,7 @@ export default function CatalogoPage() {
 
       handleCloseModal();
       await refreshLimit();
-      await fetchProducts();
+      if (orgId) await fetchProducts(orgId);
       return;
     }
 
@@ -602,7 +803,7 @@ export default function CatalogoPage() {
           setSaving(false);
           handleCloseModal();
           await refreshLimit();
-          await fetchProducts();
+          if (orgId) await fetchProducts(orgId);
           return;
         }
         finalUrls.push(uploaded);
@@ -622,14 +823,14 @@ export default function CatalogoPage() {
         setSaving(false);
         handleCloseModal();
         await refreshLimit();
-        await fetchProducts();
+        if (orgId) await fetchProducts(orgId);
         return;
       }
     }
 
     handleCloseModal();
     await refreshLimit();
-    await fetchProducts();
+    if (orgId) await fetchProducts(orgId);
   }
 
   function formatPrice(value: number | null) {
@@ -651,8 +852,114 @@ export default function CatalogoPage() {
       <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Catálogo</h1>
 
       <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-        Gestão dos produtos exibidos no catálogo.
+        Gestão dos produtos e categorias exibidos no catálogo.
       </p>
+
+      {catalog && (
+        <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+            Configuração do Catálogo: {catalog.name}
+          </h2>
+          <div className="mt-4">
+            <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-secondary)" }}>
+              Descrição Geral do Catálogo (O que são os produtos?)
+            </label>
+            <textarea
+              value={catalogDescription}
+              onChange={(e) => setCatalogDescription(e.target.value)}
+              placeholder="Ex: Nossa coleção de inverno traz peças em lã e tecidos térmicos para garantir seu conforto com estilo."
+              className="w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--dash-border)] min-h-[80px]"
+              style={{
+                background: "var(--dash-bg)",
+                borderColor: "var(--dash-border)",
+                color: "var(--dash-text-primary)",
+              }}
+            />
+            <button
+              onClick={handleSaveCatalogDescription}
+              disabled={savingCatalog}
+              className="mt-3 rounded-xl px-4 py-2 text-sm font-medium"
+              style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)", opacity: savingCatalog ? 0.7 : 1 }}
+            >
+              {savingCatalog ? "Salvando..." : "Salvar Descrição"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+            Gerenciar Categorias
+          </h2>
+          <button
+            onClick={() => {
+              setEditingCategory(null);
+              setCategoryName("");
+              setCategoryDescription("");
+              setShowCategoryModal(true);
+            }}
+            className="rounded-xl px-4 py-2 text-sm font-medium border"
+            style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+          >
+            + Nova Categoria
+          </button>
+        </div>
+
+        {loadingCategories ? (
+          <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando categorias...</p>
+        ) : categories.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Nenhuma categoria cadastrada.</p>
+        ) : (
+          <div className="space-y-2">
+            {categories.map((cat, idx) => (
+              <div
+                key={cat.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", String(idx));
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                  handleCategoryDrop(from, idx);
+                }}
+                className="flex items-center justify-between p-3 rounded-xl border bg-[var(--dash-bg)]"
+                style={{ borderColor: "var(--dash-border)" }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="cursor-move text-[var(--dash-text-muted)]">⠿</span>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{cat.name}</p>
+                    {cat.description && (
+                      <p className="text-xs truncate max-w-[300px]" style={{ color: "var(--dash-text-secondary)" }}>{cat.description}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingCategory(cat);
+                      setCategoryName(cat.name);
+                      setCategoryDescription(cat.description ?? "");
+                      setShowCategoryModal(true);
+                    }}
+                    className="p-1.5 hover:bg-[rgba(0,0,0,0.05)] rounded"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    className="p-1.5 hover:bg-red-50 rounded text-red-500"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
@@ -836,6 +1143,14 @@ export default function CatalogoPage() {
                       )}
 
                       <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDuplicateProduct(product)}
+                          className="rounded-lg border px-3 py-1 text-sm"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
+                        >
+                          Duplicar
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(product)}
@@ -1240,6 +1555,79 @@ export default function CatalogoPage() {
                   className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                 >
                   {saving ? "Salvando..." : "Salvar produto"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div
+            className="w-full max-w-md rounded-2xl p-6 shadow-xl"
+            style={{ background: "var(--dash-surface)" }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                {editingCategory ? "Editar Categoria" : "Nova Categoria"}
+              </h2>
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                className="text-2xl"
+                style={{ color: "var(--dash-text-muted)" }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4">
+              {categoryManageError && (
+                <p className="text-xs text-red-500">{categoryManageError}</p>
+              )}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-primary)" }}>
+                  Nome da Categoria
+                </label>
+                <input
+                  type="text"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="Ex: Camisetas"
+                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-primary)" }}>
+                  Descrição (Opcional)
+                </label>
+                <textarea
+                  value={categoryDescription}
+                  onChange={(e) => setCategoryDescription(e.target.value)}
+                  placeholder="Ex: Coleção de camisetas 100% algodão com estampas exclusivas."
+                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none min-h-[80px]"
+                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryModal(false)}
+                  className="rounded-xl border px-4 py-2 text-sm font-medium"
+                  style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingCategory}
+                  className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+                >
+                  {savingCategory ? "Salvando..." : "Salvar Categoria"}
                 </button>
               </div>
             </form>
