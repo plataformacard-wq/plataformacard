@@ -186,10 +186,62 @@ export default async function Page(props: PageProps) {
         padding: "40px 16px",
       }}
     >
+      <style>{`
+        @keyframes slideUpFade {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-stagger-1 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .animate-stagger-2 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; opacity: 0; }
+        .animate-stagger-3 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards; opacity: 0; }
+        .animate-stagger-4 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; opacity: 0; }
+        .animate-stagger-5 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; opacity: 0; }
+
+        .btn-catalog {
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-catalog:hover {
+          background: rgba(255,255,255,0.08) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.03);
+          border-color: rgba(255,255,255,0.15) !important;
+        }
+        .btn-catalog:active {
+          transform: translateY(0);
+        }
+
+        .stat-block {
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+        }
+        .stat-block:hover {
+          background: rgba(255,255,255,0.06) !important;
+          transform: scale(1.06);
+          box-shadow: 0 0 30px rgba(0,0,0,0.5);
+          z-index: 10;
+          border-radius: 12px;
+        }
+        .stat-value {
+          transition: color 0.3s ease;
+        }
+        .stat-block:hover .stat-value {
+          color: #25D366 !important;
+          text-shadow: 0 0 12px rgba(37,211,102,0.4);
+        }
+        
+        .glow-badge {
+          animation: pulseGlow 2s infinite alternate;
+        }
+        @keyframes pulseGlow {
+          from { box-shadow: 0 0 6px #25D366; }
+          to { box-shadow: 0 0 12px #25D366, 0 0 2px #fff; }
+        }
+      `}</style>
       <ProfileViewTracker profileId={safeProfile.id} slug={slug} />
 
       {/* Card */}
       <div
+        className="animate-stagger-1"
         style={{
           width: "100%",
           maxWidth: 400,
@@ -277,13 +329,13 @@ export default async function Page(props: PageProps) {
               }}
             >
               <span
+                className="glow-badge"
                 style={{
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
                   background: "#25D366",
                   display: "block",
-                  boxShadow: "0 0 6px #25D366",
                 }}
               />
               <span
@@ -301,7 +353,7 @@ export default async function Page(props: PageProps) {
           </div>
 
           {/* Nome e bio */}
-          <div style={{ textAlign: "center", marginTop: 20 }}>
+          <div className="animate-stagger-2" style={{ textAlign: "center", marginTop: 20 }}>
             <h1
               style={{
                 fontSize: 30,
@@ -320,7 +372,8 @@ export default async function Page(props: PageProps) {
                 style={{
                   marginTop: 10,
                   fontSize: 14,
-                  color: "rgba(255,255,255,0.42)",
+                  color: "rgba(255,255,255,0.6)",
+                  fontWeight: 400,
                   lineHeight: 1.55,
                 }}
               >
@@ -331,6 +384,7 @@ export default async function Page(props: PageProps) {
 
           {/* Botões CTA */}
           <div
+            className="animate-stagger-3"
             style={{
               marginTop: 28,
               display: "flex",
@@ -348,6 +402,7 @@ export default async function Page(props: PageProps) {
 
             <Link
               href={`/p/${slug}/catalogo`}
+              className="btn-catalog"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -357,7 +412,7 @@ export default async function Page(props: PageProps) {
                 border: "1px solid rgba(255,255,255,0.09)",
                 borderRadius: 14,
                 padding: "14px 20px",
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(255,255,255,0.9)",
                 fontSize: 15,
                 fontWeight: 500,
                 textDecoration: "none",
@@ -388,6 +443,7 @@ export default async function Page(props: PageProps) {
 
           {/* Stats */}
           <div
+            className="animate-stagger-4"
             style={{
               marginTop: 28,
               display: "grid",
@@ -405,6 +461,7 @@ export default async function Page(props: PageProps) {
             ].map((stat, i) => (
               <div
                 key={i}
+                className="stat-block"
                 style={{
                   padding: "18px 8px",
                   textAlign: "center",
@@ -413,6 +470,7 @@ export default async function Page(props: PageProps) {
                 }}
               >
                 <p
+                  className="stat-value"
                   style={{
                     fontSize: 24,
                     fontWeight: 700,
@@ -444,6 +502,7 @@ export default async function Page(props: PageProps) {
 
       {/* Rodapé */}
       <footer
+        className="animate-stagger-5"
         style={{
           marginTop: 36,
           display: "flex",

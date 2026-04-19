@@ -111,6 +111,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               { href: "/dashboard", label: "Dashboard" },
               { href: "/dashboard/perfil", label: "Perfil" },
               { href: "/dashboard/catalogo", label: "Catálogo" },
+              { href: "/dashboard/vendedores", label: "Vendedores" },
               { href: "/dashboard/analytics", label: "Analytics" },
             ].map((item) => (
               <Link

@@ -212,6 +212,7 @@ export default function ProductCatalogClient({
         slug,
         path: `/p/${slug}/catalogo`,
         productName: selectedProduct.name,
+        price_type: selectedProduct.has_wholesale ? "wholesale" : "retail",
       },
     });
   }
