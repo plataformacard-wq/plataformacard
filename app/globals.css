@@ -2,85 +2,117 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
 
-  /* Dashboard theme tokens */
-  --dash-bg: #f5f5f5;
-  --dash-surface: #ffffff;
-  --dash-border: #e5e5e5;
-  --dash-text-primary: #171717;
-  --dash-text-secondary: #737373;
-  --dash-text-muted: #a3a3a3;
+  /* Premium Design Tokens (Apple/Stripe Style) */
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  
+  --dash-bg: #f8fafc;
+  --dash-surface: rgba(255, 255, 255, 0.8);
+  --dash-border: rgba(226, 232, 240, 0.8);
+  --dash-text-primary: #0f172a;
+  --dash-text-secondary: #475569;
+  --dash-text-muted: #94a3b8;
   --dash-input-bg: #ffffff;
-  --dash-input-border: #d4d4d4;
-  --dash-header-bg: #ffffff;
-  --dash-header-border: #e5e5e5;
-  --dash-hover-bg: #f5f5f5;
+  --dash-input-border: #e2e8f0;
+  --dash-header-bg: rgba(255, 255, 255, 0.7);
+  --dash-header-border: rgba(226, 232, 240, 0.6);
+  --dash-hover-bg: #f1f5f9;
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
 [data-theme="dark"] {
-  --dash-bg: #0a0a0a;
-  --dash-surface: #141414;
-  --dash-border: #262626;
-  --dash-text-primary: #fafafa;
-  --dash-text-secondary: #a3a3a3;
-  --dash-text-muted: #525252;
-  --dash-input-bg: #1a1a1a;
-  --dash-input-border: #333333;
-  --dash-header-bg: #111111;
-  --dash-header-border: #222222;
-  --dash-hover-bg: #1f1f1f;
+  --background: #020617;
+  --foreground: #f8fafc;
+
+  --dash-bg: #020617;
+  --dash-surface: rgba(15, 23, 42, 0.8);
+  --dash-border: rgba(30, 41, 59, 0.8);
+  --dash-text-primary: #f8fafc;
+  --dash-text-secondary: #94a3b8;
+  --dash-text-muted: #475569;
+  --dash-input-bg: #0f172a;
+  --dash-input-border: #1e293b;
+  --dash-header-bg: rgba(2, 6, 23, 0.7);
+  --dash-header-border: rgba(30, 41, 59, 0.6);
+  --dash-hover-bg: #1e293b;
+
+  /* Glassmorphism Dark */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular;
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-deep: 0 20px 50px -12px rgba(0, 0, 0, 0.25);
+  --color-border: var(--dash-border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--dash-border);
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-xl border;
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+  
+  .glass-dark {
+    @apply backdrop-blur-xl border;
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400;
+  }
+  
+  .premium-blur {
+    @apply backdrop-blur-2xl;
+  }
 }
 
-button,
-a,
-[role="button"],
-select,
-input[type="submit"],
-input[type="button"] {
-  cursor: pointer;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300 dark:bg-slate-700;
 }
 
-input,
-textarea,
-select {
-  color: #404040;
+button, a, [role="button"] {
+  @apply transition-all duration-200 active:scale-[0.98];
 }
 
-[data-theme="dark"] input,
-[data-theme="dark"] textarea,
-[data-theme="dark"] select {
-  color: #e5e5e5;
-  background-color: var(--dash-input-bg);
-  border-color: var(--dash-input-border);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #9ca3af;
-}
-
-[data-theme="dark"] input::placeholder,
-[data-theme="dark"] textarea::placeholder {
-  color: #525252;
-}

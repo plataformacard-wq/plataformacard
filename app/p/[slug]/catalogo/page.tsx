@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
@@ -53,12 +54,32 @@ type Product = {
   sort_order: number | null;
 };
 
+// SEO Metadata Generation
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const { slug } = await props.params;
+  const supabase = await createClient();
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, bio")
+    .eq("slug", slug)
+    .maybeSingle();
 
+  if (!profile) return { title: "Catálogo não encontrado" };
+
+  return {
+    title: `Catálogo de ${profile.full_name} | PlataformaCard`,
+    description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
+    openGraph: {
+      title: `Catálogo de ${profile.full_name}`,
+      description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
+      type: "website",
+    },
+  };
+}
 
 export default async function Page(props: PageProps) {
   const supabase = await createClient();
-
   const { slug } = await props.params;
 
   const { data: profileData, error: profileError } = await supabase
@@ -67,9 +88,9 @@ export default async function Page(props: PageProps) {
     .eq("slug", slug)
     .maybeSingle();
 
-if (profileError || !profileData) {
-  return notFound();
-}
+  if (profileError || !profileData) {
+    return notFound();
+  }
 
   const profile = profileData as Profile;
 
@@ -118,9 +139,9 @@ if (profileError || !profileData) {
     catalogId = anyCatalog?.catalog_id ?? null;
   }
 
-if (!catalogId) {
-  return notFound();
-}
+  if (!catalogId) {
+    return notFound();
+  }
 
   const { data: catalogData, error: catalogError } = await supabase
     .from("catalogs")
@@ -165,7 +186,6 @@ if (!catalogId) {
     products = (productsData ?? []) as Product[];
   }
 
-
   return (
     <ProductCatalogClient
       profileId={profile.id}
@@ -180,4 +200,4 @@ if (!catalogId) {
       whatsapp={profile.whatsapp}
     />
   );
-}
+}
