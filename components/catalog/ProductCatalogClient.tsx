@@ -51,6 +51,8 @@ type Product = {
   image_url: string | null;
   image_urls?: string[] | null;
   sort_order: number | null;
+  created_at: string;
+  updated_at: string;
 };
 
 type ProductCatalogClientProps = {
@@ -92,6 +94,20 @@ export default function ProductCatalogClient({
   const [zoomOrigin, setZoomOrigin] = useState("center center");
   const [searchQuery, setSearchQuery] = useState("");
   const hasTrackedCatalogViewRef = useRef(false);
+  const [lastViewTimestamp, setLastViewTimestamp] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!catalogId) return;
+    const lastSeen = localStorage.getItem(`last_catalog_view_${catalogId}`);
+    if (lastSeen) {
+      setLastViewTimestamp(new Date(lastSeen).getTime());
+    } else {
+      // First time visiting
+      setLastViewTimestamp(0);
+    }
+    // Update for next time
+    localStorage.setItem(`last_catalog_view_${catalogId}`, new Date().toISOString());
+  }, [catalogId]);
 
   const selectedProduct = useMemo(() => {
     return products.find((p) => p.id === selectedProductId) ?? null;
@@ -292,6 +308,22 @@ export default function ProductCatalogClient({
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
                         
+                        {/* New/Updated Badges */}
+                        {lastViewTimestamp !== null && (
+                          <div className="absolute top-4 left-4 flex flex-col gap-2">
+                            {new Date(product.created_at).getTime() > lastViewTimestamp && (
+                              <span className="bg-emerald-500 text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-emerald-400">
+                                NOVO
+                              </span>
+                            )}
+                            {new Date(product.updated_at).getTime() > lastViewTimestamp && new Date(product.created_at).getTime() <= lastViewTimestamp && (
+                              <span className="bg-blue-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-blue-400">
+                                ATUALIZADO
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
                             <Maximize2 size={18} className="text-white" />

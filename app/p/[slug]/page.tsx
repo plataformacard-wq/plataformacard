@@ -4,6 +4,7 @@ import Link from "next/link";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
 import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
+import CatalogBadge from "@/components/catalog/CatalogBadge";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -90,10 +91,10 @@ async function resolveCatalogId(
 async function getCatalogStats(
   supabase: Awaited<ReturnType<typeof createClient>>,
   profile: ProfileRow
-): Promise<{ productCount: number; categoryCount: number }> {
+): Promise<{ productCount: number; categoryCount: number; latestUpdate: string | null; catalogId: string | null }> {
   const catalogId = await resolveCatalogId(supabase, profile);
   if (!catalogId) {
-    return { productCount: 0, categoryCount: 0 };
+    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId: null };
   }
 
   const { data: categoriesData } = await supabase
@@ -108,14 +109,25 @@ async function getCatalogStats(
     return { productCount: 0, categoryCount: 0 };
   }
 
-  const { count: productCount } = await supabase
-    .from("products")
-    .select("*", { count: "exact", head: true })
-    .in("category_id", categoryIds);
+  const [{ count: productCount }, { data: latestProduct }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .in("category_id", categoryIds),
+    supabase
+      .from("products")
+      .select("created_at, updated_at")
+      .in("category_id", categoryIds)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+  ]);
 
   return {
     productCount: productCount ?? 0,
     categoryCount,
+    latestUpdate: latestProduct?.updated_at || latestProduct?.created_at || null,
+    catalogId,
   };
 }
 
@@ -416,45 +428,51 @@ export default async function Page(props: PageProps) {
               />
             ) : null}
 
-            <Link
-              href={`/p/${slug}/catalogo`}
-              className="btn-catalog"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.09)",
-                borderRadius: 14,
-                padding: "14px 20px",
-                color: "rgba(255,255,255,0.9)",
-                fontSize: 15,
-                fontWeight: 500,
-                textDecoration: "none",
-              }}
+            <CatalogBadge 
+              catalogId={catalogStats.catalogId || ""} 
+              latestProductTimestamp={catalogStats.latestUpdate}
             >
-              <svg
-                width={17}
-                height={17}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-                style={{ opacity: 0.6 }}
+              <Link
+                href={`/p/${slug}/catalogo`}
+                className="btn-catalog"
+                style={{
+                  display: "inline-flex",
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.09)",
+                  borderRadius: 14,
+                  padding: "14px 20px",
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: 15,
+                  fontWeight: 500,
+                  textDecoration: "none",
+                }}
               >
-                <path d="M8 6h13" />
-                <path d="M8 12h13" />
-                <path d="M8 18h13" />
-                <path d="M3 6h.01" />
-                <path d="M3 12h.01" />
-                <path d="M3 18h.01" />
-              </svg>
-              Ver catálogo
-            </Link>
+                <svg
+                  width={17}
+                  height={17}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                  style={{ opacity: 0.6 }}
+                >
+                  <path d="M8 6h13" />
+                  <path d="M8 12h13" />
+                  <path d="M8 18h13" />
+                  <path d="M3 6h.01" />
+                  <path d="M3 12h.01" />
+                  <path d="M3 18h.01" />
+                </svg>
+                Ver catálogo
+              </Link>
+            </CatalogBadge>
           </div>
 
           {/* Stats */}

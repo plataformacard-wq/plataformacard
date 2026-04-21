@@ -52,6 +52,8 @@ type Product = {
   image_urls: string[] | null;
   is_extra: boolean | null;
   sort_order: number | null;
+  created_at: string;
+  updated_at: string;
 };
 
 // SEO Metadata Generation
@@ -174,7 +176,7 @@ export default async function Page(props: PageProps) {
     const { data: productsData, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order"
+        "id, category_id, name, description, specs, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at"
       )
       .in("category_id", categoryIds)
       .order("sort_order", { ascending: true });

@@ -49,7 +49,14 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         { href: "/dashboard/empresa", label: "Horário de funcionamento", icon: Clock },
       ]
     } as any);
-    navLinks.push({ href: "/dashboard/catalogo", label: "Catálogo", icon: BookOpen });
+    navLinks.push({ 
+      label: "Catálogo", 
+      icon: BookOpen,
+      subItems: [
+        { href: "/dashboard/catalogo", label: "Cadastro de produtos", icon: BookOpen },
+        { href: "/dashboard/catalogo/bulk", label: "Cadastro em massa", icon: LayoutDashboard },
+      ]
+    } as any);
   }
 
   navLinks.push({ href: "/dashboard/perfil", label: "Perfil", icon: User });
