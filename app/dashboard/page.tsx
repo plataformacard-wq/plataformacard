@@ -172,17 +172,6 @@ export default function DashboardPage() {
             Aqui está o que está acontecendo com sua plataforma hoje.
           </p>
         </div>
-        
-        {slug && (
-          <Link 
-            href={`/${slug}`} 
-            target="_blank"
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95"
-          >
-            Meu Cartão Digital
-            <ExternalLink size={16} />
-          </Link>
-        )}
       </section>
 
       {/* KPI Grid */}

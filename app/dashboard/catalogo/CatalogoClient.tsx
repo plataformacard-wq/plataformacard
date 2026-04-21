@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Upload as UploadIcon, X as XIcon, Crop } from "lucide-react";
+import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
 type Category = {
   id: string;
@@ -94,6 +95,7 @@ export default function CatalogoPage() {
   const [savingCatalog, setSavingCatalog] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [catalogId, setCatalogId] = useState<string | null>(null);
+  const [isEmailConfirmed, setIsEmailConfirmed] = useState(true); // Definindo como true por padrão para não bloquear o gestor
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState("");
@@ -134,21 +136,29 @@ export default function CatalogoPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showNoCategoryModal, setShowNoCategoryModal] = useState(false);
+  const [showImageEditor, setShowImageEditor] = useState(false);
 
   useEffect(() => {
     async function initialize() {
       try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) return;
+
         const oid = await fetchOrganizationId();
+        
         if (oid) {
           setOrgId(oid);
           const cid = await fetchCatalog(oid);
+          
           if (cid) {
             setCatalogId(cid);
             await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid)]);
           }
         }
       } catch (err) {
-        console.error("Erro na inicialização do catálogo:", err);
+        console.error("Erro na inicialização:", err);
       } finally {
         setLoadingLimit(false);
         setLoadingCategories(false);
@@ -164,11 +174,55 @@ export default function CatalogoPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: profile } = await supabase
+    // 1. Tenta buscar o perfil pelo ID principal (que deve ser igual ao do usuário)
+    let { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id")
+      .select("organization_id, id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
+
+    // 2. Se não tem perfil ou não tem empresa, vamos criar agora
+    if (!profile || !profile.organization_id) {
+      // A. Criar a Organização com Slug Único (para evitar erro 409)
+      const uniqueSlug = `${user.user_metadata?.slug || "empresa"}-${Math.floor(Math.random() * 1000)}`;
+      
+      const { data: newOrg, error: orgError } = await supabase
+        .from("organizations")
+        .insert({ 
+          name: user.user_metadata?.full_name ? `Empresa de ${user.user_metadata.full_name}` : "Minha Empresa",
+          slug: uniqueSlug
+        })
+        .select()
+        .single();
+
+      if (orgError || !newOrg) return null;
+
+      // B. Criar ou Atualizar o Perfil
+      if (!profile) {
+        const { data: newProfile, error: profError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id, // Forçando o ID manual
+            user_id: user.id,
+            organization_id: newOrg.id,
+            full_name: user.user_metadata?.full_name || "Usuário",
+            role: "admin"
+          })
+          .select()
+          .maybeSingle();
+        
+        if (profError) return null;
+        profile = newProfile;
+      } else {
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ organization_id: newOrg.id, role: "admin" })
+          .eq("id", user.id);
+        
+        if (updateError) return null;
+        profile.organization_id = newOrg.id;
+      }
+    }
 
     return profile?.organization_id ?? null;
   }
@@ -176,26 +230,50 @@ export default function CatalogoPage() {
   async function fetchCatalog(orgId: string): Promise<string | null> {
     const supabase = createClient();
     
-    // Tenta pegar o catálogo habilitado
+    // 1. Tenta pegar o catálogo vinculado
     const { data: orgCatalog } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", orgId)
-      .eq("is_enabled", true)
-      .limit(1)
       .maybeSingle();
 
     let catId = orgCatalog?.catalog_id;
 
+    // 2. Se não existe, vamos criar um catálogo padrão agora mesmo
     if (!catId) {
-      // Fallback: pega qualquer um
-      const { data: anyOrgCatalog } = await supabase
+      console.log("Criando catálogo automático para a organização...");
+      
+      // Criar o catálogo
+      const { data: newCatalog, error: catError } = await supabase
+        .from("catalogs")
+        .insert({
+          name: "Meu Catálogo",
+          description: "Catálogo principal de produtos",
+          owner_id: orgId // Campo obrigatório identificado
+        })
+        .select()
+        .single();
+
+      if (catError || !newCatalog) {
+        console.error("Erro ao criar catálogo:", catError);
+        return null;
+      }
+
+      // Vincular à organização
+      const { error: linkError } = await supabase
         .from("organization_catalogs")
-        .select("catalog_id")
-        .eq("organization_id", orgId)
-        .limit(1)
-        .maybeSingle();
-      catId = anyOrgCatalog?.catalog_id;
+        .insert({
+          organization_id: orgId,
+          catalog_id: newCatalog.id,
+          is_enabled: true
+        });
+
+      if (linkError) {
+        console.error("Erro ao vincular catálogo:", linkError);
+        return null;
+      }
+
+      catId = newCatalog.id;
     }
 
     if (catId) {
@@ -297,6 +375,7 @@ export default function CatalogoPage() {
 
   async function handleSaveCategory(e: React.FormEvent) {
     e.preventDefault();
+    
     if (!catalogId) {
       console.warn("Tentativa de salvar categoria sem catalogId.");
       setCategoryManageError("Erro: Nenhum catálogo encontrado para esta organização.");
@@ -431,6 +510,7 @@ export default function CatalogoPage() {
   }
 
   function handleOpenCreateProduct() {
+
     if (categories.length === 0) {
       setShowNoCategoryModal(true);
       return;
@@ -569,28 +649,27 @@ export default function CatalogoPage() {
 
   function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    e.target.value = "";
-
     if (files.length === 0) return;
+    
+    // Instead of processing directly, we open the editor for the first file
+    // In a more advanced version we could loop, but for now 1 by 1 ensures quality
+    setShowImageEditor(true);
+    // Note: We don't need to keep the raw file in state here as the Editor handles its own input if we want,
+    // but the current Editor implementation handles file selection inside or can be passed a file.
+    // I'll update handleImageFileChange to just trigger the modal.
+  }
 
+  const onImageEditorConfirm = (file: File, previewUrl: string) => {
     const currentTotal = existingImageUrls.length + imageFiles.length;
-    if (currentTotal + files.length > 5) {
+    if (currentTotal >= 5) {
       setImageFileError("O limite é de 5 imagens por produto.");
       return;
     }
 
-    const validFiles = files.filter(f => f.size <= MAX_IMAGE_BYTES);
-    if (validFiles.length < files.length) {
-      setImageFileError("Algumas imagens foram ignoradas por passarem de 2MB.");
-    } else {
-      setImageFileError("");
-    }
-
-    const newPreviewUrls = validFiles.map(f => URL.createObjectURL(f));
-
-    setImageFiles(prev => [...prev, ...validFiles]);
-    setImagePreviewUrls(prev => [...prev, ...newPreviewUrls]);
-  }
+    setImageFiles(prev => [...prev, file]);
+    setImagePreviewUrls(prev => [...prev, previewUrl]);
+    setImageFileError("");
+  };
 
   function handleRemoveImage(index: number) {
     if (index < existingImageUrls.length) {
@@ -732,8 +811,8 @@ export default function CatalogoPage() {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("organization_id")
-      .eq("id", user.id)
-      .single();
+      .eq("user_id", user.id)
+      .maybeSingle();
 
     if (profileError) {
       console.error("Erro ao buscar perfil:", profileError);
@@ -884,166 +963,111 @@ export default function CatalogoPage() {
           <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-6">
             <AlertCircle className="text-amber-600 dark:text-amber-400" size={40} />
           </div>
-          <h2 className="text-2xl font-bold mb-3" style={{ color: "var(--dash-text-primary)" }}>Configuração Pendente</h2>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: "var(--dash-text-primary)" }}>Inicializando Catálogo</h2>
           <p className="max-w-md text-base mb-8 leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
-            Não encontramos um catálogo ativo para sua conta. Isso acontece quando sua organização ainda não foi vinculada a um catálogo da plataforma.
+            Estamos preparando sua área de produtos. Se esta mensagem persistir, por favor entre em contato com o suporte.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a 
-              href="/admin/catalogos"
-              className="px-8 py-3 bg-black text-white rounded-2xl font-bold text-sm shadow-xl shadow-black/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
-            >
-              Vincular Catálogo no Admin
-            </a>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-8 py-3 bg-white text-black border rounded-2xl font-bold text-sm hover:bg-gray-50 transition-all"
-              style={{ borderColor: "var(--dash-border)" }}
-            >
-              Recarregar Página
-            </button>
-          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-8 py-3 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            Recarregar Página
+          </button>
         </div>
       )}
 
       {catalogId && (
         <>
-          {catalog && (
-            <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          {/* Seção de Categorias */}
+          <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                Configuração do Catálogo: {catalog.name}
+                Categorias
               </h2>
-              <div className="mt-4">
-                <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-secondary)" }}>
-                  Descrição Geral do Catálogo (O que são os produtos?)
-                </label>
-                <textarea
-                  value={catalogDescription}
-                  onChange={(e) => setCatalogDescription(e.target.value)}
-                  placeholder="Ex: Nossa coleção de inverno traz peças em lã e tecidos térmicos para garantir seu conforto com estilo."
-                  className="w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--dash-border)] min-h-[80px]"
-                  style={{
-                    background: "var(--dash-bg)",
-                    borderColor: "var(--dash-border)",
-                    color: "var(--dash-text-primary)",
-                  }}
-                />
-                <button
-                  onClick={handleSaveCatalogDescription}
-                  disabled={savingCatalog}
-                  className="mt-3 rounded-xl px-4 py-2 text-sm font-medium"
-                  style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)", opacity: savingCatalog ? 0.7 : 1 }}
-                >
-                  {savingCatalog ? "Salvando..." : "Salvar Descrição"}
-                </button>
-              </div>
-            </div>
-          )}
-
-      <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-            Gerenciar Categorias
-          </h2>
-          <button
-            onClick={() => {
-              setEditingCategory(null);
-              setCategoryName("");
-              setCategoryDescription("");
-              setShowCategoryModal(true);
-            }}
-            className="rounded-xl px-4 py-2 text-sm font-medium border"
-            style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-          >
-            + Nova Categoria
-          </button>
-        </div>
-
-        {loadingCategories ? (
-          <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando categorias...</p>
-        ) : categories.length === 0 ? (
-          <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Nenhuma categoria cadastrada.</p>
-        ) : (
-          <div className="space-y-2">
-            {categories.map((cat, idx) => (
-              <div
-                key={cat.id}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("text/plain", String(idx));
+              <button
+                onClick={() => {
+                  setEditingCategory(null);
+                  setCategoryName("");
+                  setCategoryDescription("");
+                  setShowCategoryModal(true);
                 }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
-                  handleCategoryDrop(from, idx);
-                }}
-                className="flex items-center justify-between p-3 rounded-xl border bg-[var(--dash-bg)]"
-                style={{ borderColor: "var(--dash-border)" }}
+                className="rounded-xl px-4 py-2 text-sm font-medium border hover:bg-gray-50 transition-all"
+                style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               >
-                <div className="flex items-center gap-3">
-                  <span className="cursor-move text-[var(--dash-text-muted)]">⠿</span>
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{cat.name}</p>
-                    {cat.description && (
-                      <p className="text-xs truncate max-w-[300px]" style={{ color: "var(--dash-text-secondary)" }}>{cat.description}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingCategory(cat);
-                      setCategoryName(cat.name);
-                      setCategoryDescription(cat.description ?? "");
-                      setShowCategoryModal(true);
-                    }}
-                    className="p-1.5 hover:bg-[rgba(0,0,0,0.05)] rounded"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(cat.id)}
-                    className="p-1.5 hover:bg-red-50 rounded text-red-500"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                + Nova Categoria
+              </button>
+            </div>
+
+            {loadingCategories ? (
+              <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando categorias...</p>
+            ) : categories.length === 0 ? (
+              <div className="py-8 text-center border-t border-dashed mt-2" style={{ borderColor: "var(--dash-border)" }}>
+                <p className="text-sm italic" style={{ color: "var(--dash-text-secondary)" }}>Crie uma categoria para começar a organizar seus produtos.</p>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-2">
+                {categories.map((cat, idx) => (
+                  <div
+                    key={cat.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", String(idx));
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                      handleCategoryDrop(from, idx);
+                    }}
+                    className="flex items-center justify-between p-3 rounded-xl border bg-[var(--dash-bg)]"
+                    style={{ borderColor: "var(--dash-border)" }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="cursor-move text-[var(--dash-text-muted)]">⠿</span>
+                      <div>
+                        <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{cat.name}</p>
+                        {cat.description && (
+                          <p className="text-xs truncate max-w-[300px]" style={{ color: "var(--dash-text-secondary)" }}>{cat.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingCategory(cat);
+                          setCategoryName(cat.name);
+                          setCategoryDescription(cat.description ?? "");
+                          setShowCategoryModal(true);
+                        }}
+                        className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"
+                      >
+                        <EditIcon size={16} className="text-zinc-500" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        className="p-1.5 hover:bg-red-50 rounded-lg transition-colors group"
+                      >
+                        <TrashIcon size={16} className="text-zinc-400 group-hover:text-red-500" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-          Limite do plano
-        </h2>
-
-        {loadingLimit ? (
-          <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>Verificando limite...</p>
-        ) : canCreateProduct ? (
-          <p className="mt-2 text-sm text-green-600">
-            Seu plano permite criar novos produtos.
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-red-500">
-            Você atingiu o limite de produtos do seu plano.
-          </p>
-        )}
-      </div>
-
-      <div className="mt-6">
-        <button
-          onClick={handleOpenCreateProduct}
-          className="rounded-xl px-4 py-2 text-sm font-medium"
-          style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
-        >
-          Novo produto
-        </button>
-        {createProductError ? (
-          <p className="mt-1 text-xs text-red-500">{createProductError}</p>
-        ) : null}
-      </div>
+          <div className="mt-8 flex items-center justify-between">
+            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Meus Produtos</h2>
+            <button
+              onClick={handleOpenCreateProduct}
+              className="rounded-xl px-6 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
+            >
+              + Novo Produto
+            </button>
+          </div>
+          {createProductError ? (
+            <p className="mt-2 text-sm text-red-500 font-medium">{createProductError}</p>
+          ) : null}
 
       <div className="mt-8 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div className="flex items-center justify-between gap-4">
@@ -1550,14 +1574,15 @@ export default function CatalogoPage() {
                 </div>
                 
                 {imagePreviewUrls.length < 5 && (
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleImageFileChange}
-                    className="w-full text-sm file:mr-3 file:rounded-lg file:border file:px-3 file:py-1.5 file:text-sm file:font-medium"
-                    style={{ color: "var(--dash-text-secondary)" }}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowImageEditor(true)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 transition-all hover:border-emerald-500 hover:bg-emerald-50/10"
+                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
+                  >
+                    <UploadIcon size={18} />
+                    <span className="text-sm font-medium">Adicionar Foto</span>
+                  </button>
                 )}
                 {imageFileError ? (
                   <p className="mt-1 text-xs text-red-500">{imageFileError}</p>
@@ -1733,6 +1758,16 @@ export default function CatalogoPage() {
           </div>
         )}
       </AnimatePresence>
+
+
+      <ImageEditorModal
+        isOpen={showImageEditor}
+        onClose={() => setShowImageEditor(false)}
+        onConfirm={onImageEditorConfirm}
+        aspectRatio={1}
+        minWidth={600}
+        minHeight={600}
+      />
     </div>
   );
 }

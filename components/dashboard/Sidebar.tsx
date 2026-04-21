@@ -38,33 +38,30 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
   ];
 
   if (role === "superadmin") {
-    navLinks.push({ href: "/admin", label: "Painel Plataforma Card", icon: Settings });
+    navLinks.push({ href: "/admin", label: "Painel QG", icon: Settings });
   }
 
-  if (role !== "seller") {
+  // Se for Gestor B2B ou SuperAdmin, mostra tudo
+  if (role === "b2b_admin" || role === "superadmin") {
     navLinks.push({ 
       label: "Empresa", 
       icon: Building2,
       subItems: [
-        { href: "/dashboard/empresa", label: "Horário de funcionamento", icon: Clock },
+        { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
       ]
     } as any);
     navLinks.push({ 
       label: "Catálogo", 
       icon: BookOpen,
       subItems: [
-        { href: "/dashboard/catalogo", label: "Cadastro de produtos", icon: BookOpen },
-        { href: "/dashboard/catalogo/bulk", label: "Cadastro em massa", icon: LayoutDashboard },
+        { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
+        { href: "/dashboard/catalogo/bulk", label: "Cadastro em Massa", icon: LayoutDashboard },
       ]
     } as any);
-  }
-
-  navLinks.push({ href: "/dashboard/perfil", label: "Perfil", icon: User });
-
-  if (role === "b2b_admin" || role === "superadmin") {
     navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
   }
 
+  navLinks.push({ href: "/dashboard/perfil", label: "Perfil", icon: User });
   navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
 
   return (

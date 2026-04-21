@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
+import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
 
 const montserratBlackItalic = Montserrat({
   weight: ["900"],
@@ -33,6 +34,7 @@ export default function HomePage() {
         boxSizing: "border-box",
       }}
     >
+      <AuthRedirectHandler />
       <style
         dangerouslySetInnerHTML={{
           __html: `

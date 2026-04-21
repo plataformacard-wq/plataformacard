@@ -13,11 +13,13 @@
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.98.0",
     "@tanstack/react-table": "^8.21.3",
+    "browser-image-compression": "^2.0.2",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-easy-crop": "^5.5.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

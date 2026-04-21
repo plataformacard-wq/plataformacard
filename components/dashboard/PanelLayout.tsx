@@ -16,6 +16,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [nome, setNome] = useState("Carregando...");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [role, setRole] = useState("seller");
+  const [slug, setSlug] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -41,19 +42,29 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           return;
         }
 
+
         const { data: profile } = await supabase
           .from("profiles")
-          .select("full_name, avatar_url, role")
+          .select("full_name, avatar_url, role, slug")
           .eq("user_id", user.id)
           .maybeSingle();
 
+        // Prioridade 1: Nome no perfil | Prioridade 2: Nome nos metadados do auth | Prioridade 3: Prefixo do email
+        const userFullName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
+
         if (profile) {
-          setNome(profile.full_name || "Usuário");
+          setNome(userFullName);
           setAvatar(profile.avatar_url || null);
-          setRole(profile.role || "b2c_admin");
+          setRole(profile.role || "b2b_admin");
+          setSlug(profile.slug || null);
+        } else {
+          console.log("Perfil não encontrado, usando metadados.");
+          setNome(userFullName);
+          setRole("b2b_admin");
         }
       } catch (err) {
         console.error("Erro ao carregar perfil:", err);
+        setNome("Usuário");
       }
     }
 
@@ -73,10 +84,14 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   }
 
   async function handleLogout() {
-    const confirmLogout = window.confirm("Deseja sair?");
-    if (!confirmLogout) return;
-    await supabase.auth.signOut();
-    router.push("/entrar");
+    console.log("Executando handleLogout no PanelLayout...");
+    try {
+      await supabase.auth.signOut();
+      window.location.href = "/entrar";
+    } catch (err) {
+      console.error("Erro ao sair:", err);
+      window.location.href = "/entrar";
+    }
   }
 
   return (
@@ -92,6 +107,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           nome={nome}
           avatar={avatar}
           role={role}
+          slug={slug}
           isDark={isDark}
           toggleTheme={toggleTheme}
           handleLogout={handleLogout}
@@ -100,6 +116,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="mx-auto max-w-7xl">
+
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

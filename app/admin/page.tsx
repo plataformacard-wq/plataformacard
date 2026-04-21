@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { getInviteCode } from "@/lib/admin-actions";
+import AccessManager from "./AccessManager";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
+  const currentBetaCode = await getInviteCode();
 
   // 1. Total Organizations
   const { count: orgCount } = await supabase
@@ -42,6 +45,22 @@ export default async function AdminDashboardPage() {
         <p className="mt-2" style={{ color: "var(--dash-text-secondary)" }}>
           Bem-vindo ao centro nervoso do seu SaaS. Aqui você tem a visão global da operação.
         </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Gestão de Acesso */}
+        <AccessManager currentCode={currentBetaCode} />
+        
+        <div className="rounded-2xl border p-6 flex flex-col justify-center" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+           <p className="text-sm font-medium" style={{ color: "var(--dash-text-secondary)" }}>Status da Plataforma</p>
+           <div className="flex items-center gap-2 mt-2">
+              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="font-bold text-emerald-500 uppercase tracking-wider text-sm">Beta Ativo</span>
+           </div>
+           <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+              O cadastro público está restrito pelo código definido ao lado.
+           </p>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">

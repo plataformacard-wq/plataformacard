@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
+import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
+import { Upload } from "lucide-react";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -71,6 +73,7 @@ export default function PerfilPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showImageEditor, setShowImageEditor] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -303,6 +306,11 @@ export default function PerfilPage() {
     setTimeout(() => setSaveSuccess(false), 3000);
   }
 
+  function onImageEditorConfirm(file: File, previewUrl: string) {
+    setAvatarFile(file);
+    // Note: avatarPreview uses avatarFile if present, so it will update automatically
+  }
+
   return (
     <div className="relative space-y-6">
       <div>
@@ -351,25 +359,19 @@ export default function PerfilPage() {
                   </div>
                 )}
 
-                <label
-                  htmlFor="avatar-upload"
-                  className="cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:opacity-70"
+                <button
+                  type="button"
+                  onClick={() => setShowImageEditor(true)}
+                  className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:opacity-70 flex items-center gap-2"
                   style={{
                     borderColor: "var(--dash-border)",
                     color: "var(--dash-text-primary)",
                     background: "var(--dash-surface)",
                   }}
                 >
-                  {avatarFile ? "✓ Selecionada" : "Alterar foto"}
-                </label>
-
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                />
+                  <Upload size={14} />
+                  {avatarFile ? "Alterar foto" : "Adicionar foto"}
+                </button>
               </div>
 
               {/* Campos */}
@@ -704,6 +706,14 @@ export default function PerfilPage() {
           {saveMessage}
         </div>
       )}
+      <ImageEditorModal
+        isOpen={showImageEditor}
+        onClose={() => setShowImageEditor(false)}
+        onConfirm={onImageEditorConfirm}
+        aspectRatio={1}
+        minWidth={400}
+        minHeight={400}
+      />
     </div>
   );
 }

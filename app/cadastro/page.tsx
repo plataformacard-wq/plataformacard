@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -46,6 +46,8 @@ export default function CadastroPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [inviteCode, setInviteCode] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -53,7 +55,26 @@ export default function CadastroPage() {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [success, setSuccess] = useState(false);
+  const [activeBetaCode, setActiveBetaCode] = useState("");
+
+  // Busca o código ativo no banco ao carregar a página
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("platform_config")
+      .select("value")
+      .eq("key", "beta_invite_code")
+      .single()
+      .then(({ data }) => {
+        if (data?.value) setActiveBetaCode(data.value);
+      });
+  }, []);
+
   async function handleGoogleSignUp() {
+    setErrorMessage("O cadastro via Google está temporariamente desativado durante a fase Beta.");
+    return;
+    /*
     setErrorMessage("");
     setLoadingGoogle(true);
     const supabase = createClient();
@@ -69,6 +90,7 @@ export default function CadastroPage() {
       setLoadingGoogle(false);
       setErrorMessage(error.message);
     }
+    */
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -87,6 +109,12 @@ export default function CadastroPage() {
 
     if (!trimmedEmail) {
       setErrorMessage("Preencha seu email.");
+      return;
+    }
+
+    const codeToMatch = activeBetaCode || "MAJ2024"; // Fallback se o banco falhar
+    if (inviteCode.trim().toUpperCase() !== codeToMatch.toUpperCase()) {
+      setErrorMessage("Código de Convite inválido. Este sistema está em fase Beta fechada.");
       return;
     }
 
@@ -115,7 +143,7 @@ export default function CadastroPage() {
           ? `${window.location.origin}/auth/callback`
           : undefined;
 
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: trimmedEmail,
         password,
         options: {
@@ -128,17 +156,47 @@ export default function CadastroPage() {
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        if (error.message.includes("security purposes")) {
+          setErrorMessage("Muitas tentativas seguidas. Aguarde 60 segundos e tente novamente.");
+        } else {
+          setErrorMessage(error.message);
+        }
         return;
       }
 
-      // Redireciona para a página de sucesso
-      router.push("/cadastro/sucesso");
-    } catch {
+      // Se houver sesso (Auto Confirm ligado), vai direto pro dashboard
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        // Se no, avisa que precisa confirmar o e-mail
+        setSuccess(true);
+      }
+    } catch (err) {
       setErrorMessage("Ocorreu um erro ao criar sua conta. Tente novamente.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (success) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-white">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h2 className="mb-2 text-2xl font-bold">Quase lá!</h2>
+          <p className="mb-8 text-zinc-400">
+            Enviamos um link de ativação para <strong>{email}</strong>. 
+            Você precisa clicar no link enviado para confirmar sua identidade e acessar seu dashboard pela primeira vez.
+          </p>
+          <div className="rounded-xl border border-white/5 bg-white/5 p-4 text-xs text-zinc-500">
+            <p>Não recebeu? Verifique sua pasta de Spam ou aguarde alguns minutos.</p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -168,6 +226,21 @@ export default function CadastroPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="inviteCode" className="mb-2 block text-sm font-medium text-amber-400">
+              Código de Convite (Beta)
+            </label>
+            <input
+              id="inviteCode"
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              placeholder="Digite o código secreto"
+              className="w-full rounded-xl border border-amber-500/30 bg-zinc-900 px-4 py-3 text-sm outline-none transition focus:border-amber-500"
+              autoComplete="off"
+            />
+          </div>
+
           <div>
             <label htmlFor="fullName" className="mb-2 block text-sm font-medium">
               Nome

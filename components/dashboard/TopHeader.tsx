@@ -9,7 +9,8 @@ import {
   ChevronDown, 
   User, 
   LogOut,
-  Menu
+  Menu,
+  ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 
@@ -21,6 +22,7 @@ interface TopHeaderProps {
   toggleTheme: () => void;
   handleLogout: () => void;
   onMenuClick: () => void;
+  slug?: string | null;
 }
 
 export function TopHeader({ 
@@ -30,7 +32,8 @@ export function TopHeader({
   isDark, 
   toggleTheme, 
   handleLogout,
-  onMenuClick
+  onMenuClick,
+  slug
 }: TopHeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -103,7 +106,12 @@ export function TopHeader({
             )}
             <div className="hidden sm:flex flex-col items-start text-left">
               <span className="text-xs font-semibold leading-none text-[var(--dash-text-primary)]">{nome}</span>
-              <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">{role.replace("_", " ")}</span>
+              <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">
+                {role === "superadmin" ? "Admin QG" : 
+                 role === "b2b_admin" ? "Gestor" : 
+                 role === "b2c_admin" ? "Gestor" : 
+                 role === "seller" ? "Vendedor" : role}
+              </span>
             </div>
             <ChevronDown size={14} className={`text-[var(--dash-text-muted)] transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -114,28 +122,47 @@ export function TopHeader({
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 top-full mt-2 w-56 glass rounded-2xl p-2 shadow-deep overflow-hidden z-50 border border-[var(--dash-border)]"
+                className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 shadow-2xl overflow-hidden z-[100] border border-[var(--dash-border)] bg-[var(--dash-surface)]"
               >
                 <div className="px-3 py-2 mb-1 border-b border-[var(--dash-border)]/50 pb-3">
                   <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Conta</p>
                   <p className="text-xs font-medium text-[var(--dash-text-primary)] mt-0.5 truncate">{nome}</p>
                 </div>
-                <Link
-                  href="/dashboard/perfil"
-                  onClick={() => setIsUserMenuOpen(false)}
-                  className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--dash-text-secondary)] transition-all hover:bg-[var(--dash-hover-bg)] hover:text-primary"
-                >
-                  <User size={16} />
-                  Meu Perfil
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-500/10"
+                <div className="flex flex-col gap-1">
+                  {slug && (
+                    <Link
+                      href={`/${slug}`}
+                      target="_blank"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center justify-between w-full rounded-xl px-3 py-2.5 text-sm font-bold text-emerald-500 transition-all hover:bg-emerald-500/10"
+                    >
+                      <div className="flex items-center gap-3">
+                        <ExternalLink size={16} />
+                        Meu Cartão Digital
+                      </div>
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/dashboard/perfil"
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--dash-text-secondary)] transition-all hover:bg-[var(--dash-hover-bg)] hover:text-primary"
+                  >
+                    <User size={16} />
+                    Meu Perfil
+                  </Link>
+                </div>
+                <div
+                  role="button"
+                  onClick={(e) => {
+                    console.log("Logout clicado!");
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
                 >
                   <LogOut size={16} />
                   Sair
-                </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
