@@ -137,14 +137,22 @@ export default function CatalogoPage() {
 
   useEffect(() => {
     async function initialize() {
-      const oid = await fetchOrganizationId();
-      if (oid) {
-        setOrgId(oid);
-        const cid = await fetchCatalog(oid);
-        if (cid) {
-          setCatalogId(cid);
-          await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid)]);
+      try {
+        const oid = await fetchOrganizationId();
+        if (oid) {
+          setOrgId(oid);
+          const cid = await fetchCatalog(oid);
+          if (cid) {
+            setCatalogId(cid);
+            await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid)]);
+          }
         }
+      } catch (err) {
+        console.error("Erro na inicialização do catálogo:", err);
+      } finally {
+        setLoadingLimit(false);
+        setLoadingCategories(false);
+        setLoadingProducts(false);
       }
     }
 
@@ -289,13 +297,19 @@ export default function CatalogoPage() {
 
   async function handleSaveCategory(e: React.FormEvent) {
     e.preventDefault();
-    if (!catalogId) return;
+    if (!catalogId) {
+      console.warn("Tentativa de salvar categoria sem catalogId.");
+      setCategoryManageError("Erro: Nenhum catálogo encontrado para esta organização.");
+      return;
+    }
     
     const trimmedName = categoryName.trim();
     if (!trimmedName) {
       setCategoryManageError("O nome da categoria é obrigatório.");
       return;
     }
+
+    console.log("Iniciando salvamento de categoria...", { catalogId, categoryName: trimmedName });
 
     setSavingCategory(true);
     setCategoryManageError("");
@@ -311,7 +325,8 @@ export default function CatalogoPage() {
         .eq("id", editingCategory.id);
 
       if (error) {
-        setCategoryManageError("Erro ao atualizar categoria.");
+        console.error("Erro ao atualizar categoria:", error);
+        setCategoryManageError(`Erro ao atualizar categoria: ${error.message}`);
         setSavingCategory(false);
         return;
       }
@@ -326,7 +341,8 @@ export default function CatalogoPage() {
         });
 
       if (error) {
-        setCategoryManageError("Erro ao criar categoria.");
+        console.error("Erro ao criar categoria:", error);
+        setCategoryManageError(`Erro ao criar categoria: ${error.message}`);
         setSavingCategory(false);
         return;
       }
@@ -863,37 +879,66 @@ export default function CatalogoPage() {
         Gestão dos produtos e categorias exibidos no catálogo.
       </p>
 
-      {catalog && (
-        <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-            Configuração do Catálogo: {catalog.name}
-          </h2>
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-secondary)" }}>
-              Descrição Geral do Catálogo (O que são os produtos?)
-            </label>
-            <textarea
-              value={catalogDescription}
-              onChange={(e) => setCatalogDescription(e.target.value)}
-              placeholder="Ex: Nossa coleção de inverno traz peças em lã e tecidos térmicos para garantir seu conforto com estilo."
-              className="w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--dash-border)] min-h-[80px]"
-              style={{
-                background: "var(--dash-bg)",
-                borderColor: "var(--dash-border)",
-                color: "var(--dash-text-primary)",
-              }}
-            />
-            <button
-              onClick={handleSaveCatalogDescription}
-              disabled={savingCatalog}
-              className="mt-3 rounded-xl px-4 py-2 text-sm font-medium"
-              style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)", opacity: savingCatalog ? 0.7 : 1 }}
+      {!loadingProducts && !loadingCategories && !catalogId && (
+        <div className="mt-8 flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-3xl" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>
+          <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-6">
+            <AlertCircle className="text-amber-600 dark:text-amber-400" size={40} />
+          </div>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: "var(--dash-text-primary)" }}>Configuração Pendente</h2>
+          <p className="max-w-md text-base mb-8 leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
+            Não encontramos um catálogo ativo para sua conta. Isso acontece quando sua organização ainda não foi vinculada a um catálogo da plataforma.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a 
+              href="/admin/catalogos"
+              className="px-8 py-3 bg-black text-white rounded-2xl font-bold text-sm shadow-xl shadow-black/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              {savingCatalog ? "Salvando..." : "Salvar Descrição"}
+              Vincular Catálogo no Admin
+            </a>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-8 py-3 bg-white text-black border rounded-2xl font-bold text-sm hover:bg-gray-50 transition-all"
+              style={{ borderColor: "var(--dash-border)" }}
+            >
+              Recarregar Página
             </button>
           </div>
         </div>
       )}
+
+      {catalogId && (
+        <>
+          {catalog && (
+            <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+              <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                Configuração do Catálogo: {catalog.name}
+              </h2>
+              <div className="mt-4">
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-secondary)" }}>
+                  Descrição Geral do Catálogo (O que são os produtos?)
+                </label>
+                <textarea
+                  value={catalogDescription}
+                  onChange={(e) => setCatalogDescription(e.target.value)}
+                  placeholder="Ex: Nossa coleção de inverno traz peças em lã e tecidos térmicos para garantir seu conforto com estilo."
+                  className="w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--dash-border)] min-h-[80px]"
+                  style={{
+                    background: "var(--dash-bg)",
+                    borderColor: "var(--dash-border)",
+                    color: "var(--dash-text-primary)",
+                  }}
+                />
+                <button
+                  onClick={handleSaveCatalogDescription}
+                  disabled={savingCatalog}
+                  className="mt-3 rounded-xl px-4 py-2 text-sm font-medium"
+                  style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)", opacity: savingCatalog ? 0.7 : 1 }}
+                >
+                  {savingCatalog ? "Salvando..." : "Salvar Descrição"}
+                </button>
+              </div>
+            </div>
+          )}
 
       <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div className="flex items-center justify-between mb-4">
@@ -1641,6 +1686,8 @@ export default function CatalogoPage() {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
       {/* Modal: Nenhuma Categoria Encontrada */}
       <AnimatePresence>
