@@ -106,7 +106,7 @@ async function getCatalogStats(
   const categoryCount = categoryIds.length;
 
   if (categoryIds.length === 0) {
-    return { productCount: 0, categoryCount: 0 };
+    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId };
   }
 
   const [{ count: productCount }, { data: latestProduct }] = await Promise.all([
