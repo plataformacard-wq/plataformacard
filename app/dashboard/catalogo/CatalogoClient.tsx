@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Upload as UploadIcon, X as XIcon, Crop } from "lucide-react";
+import { AlertCircle, Upload as UploadIcon, X as XIcon, Crop, Edit2 as EditIcon, Trash2 as TrashIcon } from "lucide-react";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
 type Category = {
