@@ -5,26 +5,56 @@ import { createClient } from "@/lib/supabase/client";
 import { 
   Users, 
   UserPlus, 
-  Settings2, 
   Trash2, 
   Mail, 
   Phone, 
   Clock, 
-  ShieldCheck,
   Search,
-  MoreVertical,
-  X
+  X,
+  Upload,
+  ChevronLeft,
+  CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
+import { BusinessHours, TimeShift } from "@/lib/utils/time";
 
 type Seller = {
   id: string;
   full_name: string | null;
   email: string | null;
   whatsapp: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  slug: string | null;
   can_customize_hours: boolean | null;
   is_available: boolean | null;
+  custom_business_hours: any;
   role: string;
+};
+
+const defaultBusinessHours: BusinessHours = {
+  timezone: "America/Sao_Paulo",
+  manual_override: null,
+  schedule: {
+    monday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    tuesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    wednesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    thursday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    friday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    saturday: { isOpen: true, shifts: [{ open: "08:00", close: "12:00" }] },
+    sunday: { isOpen: false, shifts: [] },
+  },
+};
+
+const dayNamesMap = {
+  monday: "Segunda-feira",
+  tuesday: "Terça-feira",
+  wednesday: "Quarta-feira",
+  thursday: "Quinta-feira",
+  friday: "Sexta-feira",
+  saturday: "Sábado",
+  sunday: "Domingo",
 };
 
 export default function VendedoresClient() {
@@ -34,16 +64,24 @@ export default function VendedoresClient() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Modais
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // View State: 'list' | 'form'
+  const [view, setView] = useState<'list' | 'form'>('list');
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   
-  // Form Novo Vendedor
-  const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newWhatsapp, setNewWhatsapp] = useState("");
+  // Form State (Ficha completa igual ao perfil)
+  const [formEmail, setFormEmail] = useState("");
+  const [formName, setFormName] = useState("");
+  const [formBio, setFormBio] = useState("");
+  const [formWhatsapp, setFormWhatsapp] = useState("");
+  const [formSlug, setFormSlug] = useState("");
+  const [formAvatar, setFormAvatar] = useState<string | null>(null);
+  const [formAvatarFile, setFormAvatarFile] = useState<File | null>(null);
+  const [formCanCustomize, setFormCanCustomize] = useState(false);
+  const [formHours, setFormHours] = useState<BusinessHours>(defaultBusinessHours);
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -54,7 +92,6 @@ export default function VendedoresClient() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Pega a organização do Gestor
     const { data: profile } = await supabase
       .from("profiles")
       .select("organization_id")
@@ -63,8 +100,6 @@ export default function VendedoresClient() {
 
     if (profile?.organization_id) {
       setOrgId(profile.organization_id);
-      
-      // 2. Busca os vendedores desta organização
       const { data: sellers } = await supabase
         .from("profiles")
         .select("*")
@@ -72,258 +107,352 @@ export default function VendedoresClient() {
         .eq("role", "seller")
         .order("full_name");
 
-      if (sellers) {
-        setVendedores(sellers as Seller[]);
-      }
+      if (sellers) setVendedores(sellers as Seller[]);
     }
     setLoading(false);
   }
 
-  async function handleAddSeller() {
-    if (!orgId || !newEmail || !newName) return;
+  function handleOpenForm(seller?: Seller) {
+    if (seller) {
+      setSelectedSeller(seller);
+      setFormEmail(seller.email || "");
+      setFormName(seller.full_name || "");
+      setFormBio(seller.bio || "");
+      setFormWhatsapp(seller.whatsapp || "");
+      setFormSlug(seller.slug || "");
+      setFormAvatar(seller.avatar_url);
+      setFormCanCustomize(seller.can_customize_hours || false);
+      setFormHours(seller.custom_business_hours || defaultBusinessHours);
+    } else {
+      setSelectedSeller(null);
+      setFormEmail("");
+      setFormName("");
+      setFormBio("");
+      setFormWhatsapp("");
+      setFormSlug("");
+      setFormAvatar(null);
+      setFormCanCustomize(false);
+      setFormHours(defaultBusinessHours);
+    }
+    setView('form');
+  }
+
+  async function handleSave() {
+    if (!orgId || !formName) {
+      setMessage("O nome é obrigatório.");
+      return;
+    }
     setSaving(true);
     
-    // Nota: Em um sistema real, aqui dispararíamos um convite por e-mail 
-    // ou criaríamos o usuário via Admin Auth. 
-    // Por enquanto, vamos simular a inserção no profiles (precisa de trigger ou RPC para criar o Auth).
-    // Para simplificar esta demonstração, vamos focar na UI de gestão.
+    // Se for um novo vendedor, em um cenário real precisaríamos criar o Auth User.
+    // Como estamos focando no cadastro de perfil, vamos simular ou atualizar se já existir.
     
-    alert("Funcionalidade de criação de usuário Auth requer Edge Function ou permissões de Admin. Vamos focar na gestão de perfis existentes.");
-    
+    let finalAvatarUrl = formAvatar;
+    if (formAvatarFile && selectedSeller) {
+      const fileExt = formAvatarFile.name.split(".").pop();
+      const filePath = `${selectedSeller.id}/avatar.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, formAvatarFile, { upsert: true });
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+        finalAvatarUrl = urlData.publicUrl;
+      }
+    }
+
+    const profileData = {
+      full_name: formName,
+      bio: formBio,
+      whatsapp: formWhatsapp,
+      slug: formSlug,
+      avatar_url: finalAvatarUrl,
+      can_customize_hours: formCanCustomize,
+      custom_business_hours: formHours,
+      organization_id: orgId,
+      role: 'seller'
+    };
+
+    let error;
+    if (selectedSeller) {
+      const { error: err } = await supabase
+        .from("profiles")
+        .update(profileData)
+        .eq("id", selectedSeller.id);
+      error = err;
+    } else {
+      // Para novo, precisaríamos do user_id do Auth. 
+      // Mostraremos um alerta de que o convite deve ser enviado.
+      alert("Para criar um NOVO vendedor, o sistema enviará um convite por e-mail (Simulado).");
+      setSaving(false);
+      setView('list');
+      return;
+    }
+
+    if (error) {
+      setMessage("Erro ao salvar dados.");
+    } else {
+      setMessage("Dados salvos com sucesso!");
+      setTimeout(() => {
+        setView('list');
+        fetchData();
+      }, 1500);
+    }
     setSaving(false);
-    setShowAddModal(false);
   }
 
-  async function togglePermission(sellerId: string, currentVal: boolean) {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ can_customize_hours: !currentVal })
-      .eq("id", sellerId);
-
-    if (!error) {
-      setVendedores(prev => 
-        prev.map(v => v.id === sellerId ? { ...v, can_customize_hours: !currentVal } : v)
-      );
-    }
+  // Handlers de Horários (Copiados do Perfil para consistência total)
+  function handleDayToggle(day: keyof BusinessHours["schedule"]) {
+    setFormHours(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [day]: {
+          ...prev.schedule[day],
+          isOpen: !prev.schedule[day].isOpen,
+          shifts: !prev.schedule[day].isOpen && prev.schedule[day].shifts.length === 0 
+            ? [{ open: "08:00", close: "18:00" }] 
+            : prev.schedule[day].shifts
+        }
+      }
+    }));
   }
 
-  async function handleDeleteSeller(sellerId: string) {
-    if (!confirm("Tem certeza que deseja remover este vendedor da organização?")) return;
-    
-    const { error } = await supabase
-      .from("profiles")
-      .update({ organization_id: null, role: 'user' }) // Desvincula o vendedor
-      .eq("id", sellerId);
-
-    if (!error) {
-      setVendedores(prev => prev.filter(v => v.id !== sellerId));
-    }
+  function handleShiftChange(day: keyof BusinessHours["schedule"], shiftIndex: number, field: keyof TimeShift, value: string) {
+    setFormHours(prev => {
+      const newShifts = [...prev.schedule[day].shifts];
+      newShifts[shiftIndex] = { ...newShifts[shiftIndex], [field]: value };
+      return { ...prev, schedule: { ...prev.schedule, [day]: { ...prev.schedule[day], shifts: newShifts } } };
+    });
   }
-
-  const filteredVendedores = vendedores.filter(v => 
-    v.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Gestão de Vendedores</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
-            Adicione e gerencie as permissões da sua equipe de vendas.
-          </p>
-        </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
-          style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
-        >
-          <UserPlus size={18} />
-          Novo Vendedor
-        </button>
-      </div>
-
-      {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
-        <input 
-          type="text"
-          placeholder="Buscar vendedor por nome ou e-mail..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 rounded-2xl border outline-none transition-all focus:ring-2 focus:ring-primary/20"
-          style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-        />
-      </div>
-
-      {/* Lista de Vendedores */}
-      <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p style={{ color: "var(--dash-text-secondary)" }}>Carregando equipe...</p>
-          </div>
-        ) : filteredVendedores.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-full w-fit mx-auto mb-4">
-              <Users size={32} className="text-zinc-400" />
+    <div className="space-y-6 pb-20">
+      <AnimatePresence mode="wait">
+        {view === 'list' ? (
+          <motion.div 
+            key="list"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="space-y-6"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Vendedores</h1>
+                <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
+                  Gerencie a ficha completa e as permissões da sua equipe.
+                </p>
+              </div>
+              <button 
+                onClick={() => handleOpenForm()}
+                className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
+              >
+                <UserPlus size={18} />
+                Novo Vendedor
+              </button>
             </div>
-            <p className="font-medium" style={{ color: "var(--dash-text-primary)" }}>Nenhum vendedor encontrado</p>
-            <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>Comece adicionando seu primeiro vendedor acima.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b" style={{ borderColor: "var(--dash-border)" }}>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">Vendedor</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">Contato</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">Permissões</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">Status</th>
-                  <th className="px-6 py-4 text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y" style={{ divideColor: "var(--dash-border)" }}>
-                {filteredVendedores.map((vendedor) => (
-                  <tr key={vendedor.id} className="hover:bg-black/5 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                          {vendedor.full_name?.charAt(0) || "V"}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[var(--dash-text-primary)]">{vendedor.full_name || "Sem nome"}</p>
-                          <p className="text-xs text-[var(--dash-text-muted)]">{vendedor.role === 'seller' ? 'Vendedor' : vendedor.role}</p>
-                        </div>
+
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
+              <input 
+                type="text"
+                placeholder="Buscar por nome ou e-mail..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-2xl border outline-none"
+                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {vendedores.map(v => (
+                <div 
+                  key={v.id} 
+                  onClick={() => handleOpenForm(v)}
+                  className="group cursor-pointer rounded-3xl border p-5 transition-all hover:shadow-md hover:border-primary/30"
+                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                >
+                  <div className="flex items-center gap-4">
+                    {v.avatar_url ? (
+                      <img src={v.avatar_url} className="h-14 w-14 rounded-2xl object-cover border" style={{ borderColor: "var(--dash-border)" }} />
+                    ) : (
+                      <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+                        {v.full_name?.charAt(0) || "V"}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-[var(--dash-text-secondary)]">
-                          <Mail size={12} /> {vendedor.email || "Sem e-mail"}
-                        </div>
-                        {vendedor.whatsapp && (
-                          <div className="flex items-center gap-2 text-xs text-[var(--dash-text-secondary)]">
-                            <Phone size={12} /> {vendedor.whatsapp}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button 
-                        onClick={() => togglePermission(vendedor.id, vendedor.can_customize_hours || false)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          vendedor.can_customize_hours 
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
-                            : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
-                        }`}
-                      >
-                        <Clock size={14} />
-                        {vendedor.can_customize_hours ? "Pode alterar horário" : "Horário bloqueado"}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        vendedor.is_available 
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
-                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                      }`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${vendedor.is_available ? "bg-green-500" : "bg-red-500"}`} />
-                        {vendedor.is_available ? "Online" : "Offline"}
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold truncate text-[var(--dash-text-primary)]">{v.full_name || "Sem nome"}</p>
+                      <p className="text-xs text-[var(--dash-text-muted)] truncate">{v.email}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} className={v.can_customize_hours ? "text-green-500" : "text-zinc-400"} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">
+                        {v.can_customize_hours ? "Horário Livre" : "Horário Fixo"}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => handleDeleteSeller(vendedor.id)}
-                          className="p-2 hover:bg-red-50 rounded-lg text-zinc-400 hover:text-red-500 transition-colors"
-                          title="Remover Vendedor"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Modal Adicionar (Simplificado) */}
-      <AnimatePresence>
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl p-6 shadow-2xl"
-              style={{ background: "var(--dash-surface)" }}
+                    </div>
+                    <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">Editar Ficha →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="form"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="max-w-4xl mx-auto space-y-6"
+          >
+            <button 
+              onClick={() => setView('list')}
+              className="flex items-center gap-2 text-sm font-medium text-[var(--dash-text-secondary)] hover:text-primary transition-colors"
             >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Novo Vendedor</h3>
-                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-black/5 rounded-full text-[var(--dash-text-muted)]">
-                  <X size={20} />
+              <ChevronLeft size={18} /> Voltar para a lista
+            </button>
+
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                {selectedSeller ? `Editando: ${formName}` : "Nova Ficha de Vendedor"}
+              </h2>
+            </div>
+
+            {/* Ficha Completa (Igual ao Perfil) */}
+            <div className="space-y-6">
+              {/* Card 1: Identidade */}
+              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                  <Users size={18} className="text-primary" /> Identidade do Vendedor
+                </h3>
+                <div className="flex flex-col md:flex-row gap-8">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-24 w-24 rounded-3xl border overflow-hidden bg-zinc-50" style={{ borderColor: "var(--dash-border)" }}>
+                      {formAvatar ? <img src={formAvatar} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-zinc-300"><Upload size={32} /></div>}
+                    </div>
+                    <button 
+                      onClick={() => setShowImageEditor(true)}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      Alterar Foto
+                    </button>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
+                      <input 
+                        type="text" value={formName} onChange={e => setFormName(e.target.value)}
+                        className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                        style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Bio / Cargo</label>
+                      <input 
+                        type="text" value={formBio} onChange={e => setFormBio(e.target.value)}
+                        placeholder="Ex: Especialista em Mobilidade"
+                        className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                        style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Contato e Link */}
+              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                  <Phone size={18} className="text-primary" /> Contato e Link
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp</label>
+                    <input 
+                      type="tel" value={formWhatsapp} onChange={e => setFormWhatsapp(e.target.value)}
+                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                      style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Link do Cartão (Slug)</label>
+                    <input 
+                      type="text" value={formSlug} onChange={e => setFormSlug(e.target.value)}
+                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                      style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Permissões e Horários */}
+              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                    <Clock size={18} className="text-primary" /> Horário e Permissões
+                  </h3>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" checked={formCanCustomize} onChange={e => setFormCanCustomize(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Permitir que ele altere seu horário</span>
+                  </label>
+                </div>
+
+                <div className="space-y-4">
+                  {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
+                    const dayData = formHours.schedule[day];
+                    return (
+                      <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
+                        <div className="w-32 flex items-center gap-2">
+                          <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4" />
+                          <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
+                        </div>
+                        <div className="flex-1 flex flex-wrap gap-2">
+                          {dayData.isOpen && dayData.shifts.map((shift, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <input 
+                                type="time" value={shift.open} onChange={e => handleShiftChange(day, idx, "open", e.target.value)}
+                                className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
+                              />
+                              <span className="text-[10px]">até</span>
+                              <input 
+                                type="time" value={shift.close} onChange={e => handleShiftChange(day, idx, "close", e.target.value)}
+                                className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleSave} disabled={saving}
+                  className="px-8 py-3 rounded-2xl font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                  style={{ background: "var(--dash-text-primary)" }}
+                >
+                  {saving ? "Salvando..." : "Salvar Ficha do Vendedor"}
                 </button>
+                {message && <span className="text-sm font-medium text-green-600 flex items-center gap-1"><CheckCircle2 size={16} /> {message}</span>}
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome Completo</label>
-                  <input 
-                    type="text" 
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border outline-none focus:ring-2 focus:ring-primary/20"
-                    style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">E-mail de Acesso</label>
-                  <input 
-                    type="email" 
-                    value={newEmail}
-                    onChange={e => setNewEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border outline-none focus:ring-2 focus:ring-primary/20"
-                    style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp (Opcional)</label>
-                  <input 
-                    type="tel" 
-                    value={newWhatsapp}
-                    onChange={e => setNewWhatsapp(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border outline-none focus:ring-2 focus:ring-primary/20"
-                    style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button 
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 py-3 text-sm font-bold rounded-xl border transition-colors hover:bg-gray-50"
-                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    onClick={handleAddSeller}
-                    disabled={saving}
-                    className="flex-1 py-3 text-sm font-bold rounded-xl text-white shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
-                    style={{ background: "var(--dash-text-primary)" }}
-                  >
-                    {saving ? "Criando..." : "Criar Vendedor"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
+
+      <ImageEditorModal
+        isOpen={showImageEditor}
+        onClose={() => setShowImageEditor(false)}
+        onConfirm={(file) => { setFormAvatarFile(file); setFormAvatar(URL.createObjectURL(file)); }}
+        aspectRatio={1}
+      />
     </div>
   );
 }
