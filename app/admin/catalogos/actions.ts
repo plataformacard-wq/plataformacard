@@ -44,3 +44,27 @@ export async function deactivateCatalog(formData: FormData) {
 
   revalidatePath("/admin/catalogos");
 }
+
+export async function createCatalog(formData: FormData) {
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+
+  if (!name) throw new Error("Nome é obrigatório");
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("catalogs")
+    .insert({
+      name,
+      description,
+      catalog_type: "platform"
+    });
+
+  if (error) {
+    console.error("createCatalog error:", error);
+    throw new Error(`Erro ao criar catálogo: ${error.message}`);
+  }
+
+  revalidatePath("/admin/catalogos");
+}

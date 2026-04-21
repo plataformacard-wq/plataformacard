@@ -426,7 +426,7 @@ export default async function Page(props: PageProps) {
                 slug={slug}
                 whatsapp={safeProfile.whatsapp}
               />
-            ) : null}
+            ) : <p style={{color: 'red'}}>WhatsApp is NULL</p>}
 
             <CatalogBadge 
               catalogId={catalogStats.catalogId || ""} 
