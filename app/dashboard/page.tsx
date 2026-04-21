@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { 
+  Package, 
+  Eye, 
+  MousePointer2, 
+  TrendingUp,
+  ArrowUpRight,
+  ExternalLink,
+  ChevronRight
+} from "lucide-react";
 
 export default function DashboardPage() {
   const supabase = createClient();
@@ -14,144 +24,268 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, full_name, slug, organization_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (profile) {
-        setNome(profile.full_name ?? "");
-        setSlug(profile.slug ?? null);
-
-        // Conta produtos
-        const { count } = await supabase
-          .from("products")
-          .select("*", { count: "exact", head: true })
-          .eq("organization_id", profile.organization_id)
-          .is("deleted_at", null);
-        setProductCount(count ?? 0);
-
-        // Visitas via RPC
-        const { data: analytics } = await supabase.rpc(
-          "get_profile_analytics_summary",
-          { p_profile_id: profile.id }
-        );
-        if (analytics) {
-          const row = Array.isArray(analytics) ? analytics[0] : analytics;
-          setProfileViews(Number(row?.profile_views ?? 0));
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
         }
-      }
 
-      setLoading(false);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, full_name, slug, organization_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setNome(profile.full_name ?? "");
+          setSlug(profile.slug ?? null);
+
+          // Conta produtos
+          const { count } = await supabase
+            .from("products")
+            .select("*", { count: "exact", head: true })
+            .eq("organization_id", profile.organization_id)
+            .is("deleted_at", null);
+          setProductCount(count ?? 0);
+
+          // Visitas via RPC
+          try {
+            const { data: analytics } = await supabase.rpc(
+              "get_profile_analytics_summary",
+              { p_profile_id: profile.id }
+            );
+            if (analytics) {
+              const row = Array.isArray(analytics) ? analytics[0] : analytics;
+              setProfileViews(Number(row?.profile_views ?? 0));
+            }
+          } catch (e) {
+            console.error("Erro ao carregar analytics:", e);
+            setProfileViews(0);
+          }
+        }
+      } catch (err) {
+        console.error("Erro no dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
-  }, []);
+  }, [supabase]);
 
-  const cards = [
+  const stats = [
     {
-      href: "/dashboard/perfil",
-      icon: "👤",
-      title: "Perfil",
-      desc: "Edite nome, bio, avatar, WhatsApp e link do cartão.",
-      action: "Editar perfil →",
+      label: "Produtos Ativos",
+      value: productCount ?? "0",
+      icon: Package,
+      trend: "+12%",
+      color: "emerald",
+      bgClass: "bg-emerald-500/10",
+      textClass: "text-emerald-500"
     },
     {
-      href: "/dashboard/catalogo",
-      icon: "📦",
-      title: "Catálogo",
-      desc: "Gerencie produtos, categorias e reordene o catálogo.",
-      action: "Abrir catálogo →",
+      label: "Visualizações",
+      value: profileViews ?? "0",
+      icon: Eye,
+      trend: "+5.4%",
+      color: "blue",
+      bgClass: "bg-blue-500/10",
+      textClass: "text-blue-500"
     },
     {
-      href: "/dashboard/analytics",
-      icon: "📊",
-      title: "Analytics",
-      desc: "Visitas, cliques no catálogo e conversas iniciadas.",
-      action: "Ver métricas →",
+      label: "Cliques em Links",
+      value: "842",
+      icon: MousePointer2,
+      trend: "+18%",
+      color: "violet",
+      bgClass: "bg-violet-500/10",
+      textClass: "text-violet-500"
     },
-    ...(slug
-      ? [
-          {
-            href: `/p/${slug}`,
-            icon: "🪪",
-            title: "Meu cartão",
-            desc: "Veja como seu cartão aparece para os clientes.",
-            action: "Abrir cartão →",
-            external: true,
-          },
-        ]
-      : []),
+    {
+      label: "Conversão Est.",
+      value: "3.2%",
+      icon: TrendingUp,
+      trend: "+2.1%",
+      color: "amber",
+      bgClass: "bg-amber-500/10",
+      textClass: "text-amber-500"
+    }
   ];
 
-  return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
-          {nome ? `Olá, ${nome.split(" ")[0]} 👋` : "Dashboard"}
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-          Gerencie seu cartão digital e catálogo de produtos.
-        </p>
-      </div>
+  const quickActions = [
+    {
+      title: "Gerenciar Catálogo",
+      desc: "Adicione, edite ou remova produtos do seu card digital.",
+      icon: "📦",
+      href: "/dashboard/catalogo",
+      color: "from-emerald-500/10 to-emerald-500/5"
+    },
+    {
+      title: "Personalizar Perfil",
+      desc: "Altere cores, fotos e informações do seu cartão.",
+      icon: "👤",
+      href: "/dashboard/perfil",
+      color: "from-blue-500/10 to-blue-500/5"
+    },
+    {
+      title: "Ver Analytics",
+      desc: "Entenda o comportamento dos seus clientes.",
+      icon: "📊",
+      href: "/dashboard/analytics",
+      color: "from-violet-500/10 to-violet-500/5"
+    },
+    {
+      title: "Vendedores",
+      desc: "Gerencie sua equipe de vendas e acessos.",
+      icon: "👥",
+      href: "/dashboard/vendedores",
+      color: "from-amber-500/10 to-amber-500/5"
+    }
+  ];
 
-      {/* Stats rápidas */}
-      {!loading && (
-        <div className="mb-8 grid gap-4 sm:grid-cols-2">
-          <div
-            className="rounded-2xl border p-5 shadow-sm transition-colors"
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 }
+  };
+
+  return (
+    <div className="space-y-10 pb-12">
+      {/* Header Section */}
+      <section className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--dash-text-primary)]">
+            {nome ? `Olá, ${nome.split(" ")[0]} 👋` : "Dashboard"}
+          </h1>
+          <p className="text-[var(--dash-text-secondary)]">
+            Aqui está o que está acontecendo com sua plataforma hoje.
+          </p>
+        </div>
+        
+        {slug && (
+          <Link 
+            href={`/p/${slug}`} 
+            target="_blank"
+            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95"
           >
-            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              Produtos cadastrados
-            </p>
-            <p className="mt-2 text-3xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
-              {productCount ?? "—"}
-            </p>
+            Meu Cartão Digital
+            <ExternalLink size={16} />
+          </Link>
+        )}
+      </section>
+
+      {/* KPI Grid */}
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        {stats.map((stat, idx) => (
+          <motion.div
+            key={idx}
+            variants={item}
+            className="group relative overflow-hidden rounded-2xl border bg-[var(--dash-surface)] p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div className={`rounded-xl p-2.5 ${stat.bgClass} ${stat.textClass}`}>
+                <stat.icon size={22} />
+              </div>
+              <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
+                <ArrowUpRight size={12} />
+                {stat.trend}
+              </div>
+            </div>
+            <div className="mt-4">
+              <p className="text-sm font-medium text-[var(--dash-text-secondary)]">{stat.label}</p>
+              <h3 className="text-2xl font-bold text-[var(--dash-text-primary)] mt-1">
+                {loading ? "..." : stat.value}
+              </h3>
+            </div>
+            
+            {/* Subtle background glow on hover */}
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-all" />
+          </motion.div>
+        ))}StatCard
+      </motion.div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {/* Quick Actions */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Ações Rápidas</h2>
+            <button className="text-sm font-medium text-primary hover:underline">Ver tudo</button>
           </div>
-          <div
-            className="rounded-2xl border p-5 shadow-sm transition-colors"
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-          >
-            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              Visitas no cartão
-            </p>
-            <p className="mt-2 text-3xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
-              {profileViews ?? "—"}
-            </p>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {quickActions.map((action, idx) => (
+              <Link 
+                key={idx}
+                href={action.href}
+                className={`group flex items-start gap-4 rounded-2xl border bg-gradient-to-br ${action.color} p-5 transition-all hover:scale-[1.02] hover:shadow-md`}
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--dash-surface)] text-2xl shadow-sm border border-[var(--dash-border)]">
+                  {action.icon}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-[var(--dash-text-primary)] group-hover:text-primary transition-colors">
+                    {action.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-[var(--dash-text-secondary)] line-clamp-2">
+                    {action.desc}
+                  </p>
+                </div>
+                <ChevronRight className="mt-1 text-[var(--dash-text-muted)] group-hover:translate-x-1 transition-transform" size={18} />
+              </Link>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Cards de navegação */}
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {cards.map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            target={c.external ? "_blank" : undefined}
-            rel={c.external ? "noreferrer" : undefined}
-            className="group block rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md hover:opacity-90"
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-          >
-            <span className="text-2xl">{c.icon}</span>
-            <h2 className="mt-3 text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-              {c.title}
-            </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              {c.desc}
-            </p>
-            <p className="mt-4 text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
-              {c.action}
-            </p>
-          </Link>
-        ))}
-      </section>
+        {/* System Updates / Tip of the day */}
+        <div className="flex flex-col gap-6">
+          <div className="rounded-3xl bg-slate-900 p-8 text-white relative overflow-hidden dark:bg-primary/20 dark:border dark:border-primary/30">
+            <div className="relative z-10">
+              <span className="inline-block rounded-full bg-primary/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">Dica Premium</span>
+              <h3 className="mt-4 text-xl font-bold">Aumente suas vendas</h3>
+              <p className="mt-2 text-sm text-slate-400">Personalize o link do seu cartão e compartilhe em suas redes sociais para atrair mais clientes.</p>
+              <button className="mt-6 flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80">
+                Saber mais <ChevronRight size={16} />
+              </button>
+            </div>
+            
+            {/* Abstract Background Design */}
+            <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-primary opacity-20 blur-3xl" />
+            <div className="absolute -top-10 -left-10 h-24 w-24 rounded-full bg-blue-500 opacity-20 blur-2xl" />
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-[var(--dash-border)] p-6">
+            <h4 className="text-sm font-bold text-[var(--dash-text-primary)] mb-4">Atualizações Recentes</h4>
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="h-2 w-2 mt-1.5 rounded-full bg-primary" />
+                  <div>
+                    <p className="text-xs font-bold text-[var(--dash-text-primary)]">Novo layout do Dashboard</p>
+                    <p className="text-[10px] text-[var(--dash-text-muted)]">Implementamos uma nova navegação vertical...</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -189,7 +189,7 @@ export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
               
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-primary)" }}>E-mail de Acesso</label>
-                <input required type="email" name="email" placeholder="vendedor@maj.com" className="w-full rounded-xl border px-3 py-2 text-sm outline-none" style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }} />
+                <input required type="email" name="email" placeholder="vendedor@plataformacard.com" className="w-full rounded-xl border px-3 py-2 text-sm outline-none" style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }} />
               </div>
               
               <div>

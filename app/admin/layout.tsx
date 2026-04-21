@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
-              MASTER START
+              PLATAFORMA CARD
             </span>
             <span className="text-sm text-zinc-400">SaaS QG</span>
           </div>
