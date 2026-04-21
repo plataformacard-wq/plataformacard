@@ -41,8 +41,8 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
     navLinks.push({ href: "/admin", label: "Painel QG", icon: Settings });
   }
 
-  // Se for Gestor B2B ou SuperAdmin, mostra tudo
-  if (role === "b2b_admin" || role === "superadmin") {
+  // Se for Gestor B2B (admin), b2b_admin ou SuperAdmin, mostra tudo
+  if (role === "admin" || role === "b2b_admin" || role === "superadmin") {
     navLinks.push({ 
       label: "Empresa", 
       icon: Building2,
