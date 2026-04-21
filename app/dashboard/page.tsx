@@ -175,7 +175,7 @@ export default function DashboardPage() {
         
         {slug && (
           <Link 
-            href={`/p/${slug}`} 
+            href={`/${slug}`} 
             target="_blank"
             className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95"
           >

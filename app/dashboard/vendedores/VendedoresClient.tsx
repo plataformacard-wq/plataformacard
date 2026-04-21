@@ -129,12 +129,12 @@ export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
                   )}
                   <div>
                     <p className="font-semibold" style={{ color: "var(--dash-text-primary)" }}>{seller.full_name || "Sem Nome"}</p>
-                    <p className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>/p/{seller.slug}</p>
+                    <p className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>/{seller.slug}</p>
                   </div>
                 </div>
                 <div className="text-right flex items-center justify-end gap-3">
                    <a 
-                     href={`/p/${seller.slug}`} 
+                     href={`/${seller.slug}`} 
                      target="_blank" 
                      className="text-sm font-medium text-blue-500 hover:underline"
                    >
@@ -201,7 +201,7 @@ export default function VendedoresClient({ sellers }: { sellers: Seller[] }) {
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: "var(--dash-text-primary)" }}>Slug (Link do Catálogo)</label>
                 <div className="flex items-center">
-                  <span className="rounded-l-xl border border-r-0 px-3 py-2 text-sm" style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-hover-bg)", color: "var(--dash-text-secondary)" }}>/p/</span>
+                  <span className="rounded-l-xl border border-r-0 px-3 py-2 text-sm" style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-hover-bg)", color: "var(--dash-text-secondary)" }}>/</span>
                   <input required type="text" name="slug" placeholder="joao-silva" className="w-full rounded-r-xl border px-3 py-2 text-sm outline-none" style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }} />
                 </div>
               </div>

@@ -89,8 +89,8 @@ export default async function AdminDashboardPage() {
                 <tr key={p.id} className="hover:bg-[var(--dash-hover-bg)] transition-colors">
                   <td className="px-6 py-4 font-medium" style={{ color: "var(--dash-text-primary)" }}>{p.full_name || "Sem Nome"}</td>
                   <td className="px-6 py-4">
-                    <a href={`/p/${p.slug}`} target="_blank" className="text-blue-500 hover:underline">
-                      /p/{p.slug}
+                    <a href={`/${p.slug}`} target="_blank" className="text-blue-500 hover:underline">
+                      /{p.slug}
                     </a>
                   </td>
                   <td className="px-6 py-4">

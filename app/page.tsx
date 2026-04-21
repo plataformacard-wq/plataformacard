@@ -163,7 +163,7 @@ export default function HomePage() {
               Falar com a gente
             </a>
             <Link
-              href="/p/vendedor-teste"
+              href="/vendedor-teste"
               style={{
                 color: "#fff",
                 fontSize: 15,

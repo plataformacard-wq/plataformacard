@@ -131,7 +131,7 @@ export default function ProductCatalogClient({
       catalogId,
       eventType: "catalog_view",
       pageType: "catalog",
-      metadata: { slug, path: `/p/${slug}/catalogo` },
+      metadata: { slug, path: `/${slug}/catalogo` },
     });
   }, [profileId, catalogId, slug]);
 
@@ -171,7 +171,7 @@ export default function ProductCatalogClient({
       productId: product.id,
       eventType: "product_click",
       pageType: "product",
-      metadata: { slug, path: `/p/${slug}/catalogo`, productName: product.name },
+      metadata: { slug, path: `/${slug}/catalogo`, productName: product.name },
     });
   };
 
@@ -200,7 +200,7 @@ export default function ProductCatalogClient({
         className="sticky top-0 z-40 glass-dark border-b border-white/5 px-6 py-4 backdrop-blur-xl"
       >
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href={`/p/${slug}`} className="flex items-center gap-2 group text-slate-400 hover:text-white transition-colors">
+          <Link href={`/${slug}`} className="flex items-center gap-2 group text-slate-400 hover:text-white transition-colors">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-medium">Voltar</span>
           </Link>

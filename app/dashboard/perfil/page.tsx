@@ -211,7 +211,7 @@ export default function PerfilPage() {
   }
 
   const avatarPreview = avatarFile ? URL.createObjectURL(avatarFile) : avatar;
-  const slugPreview = slugInput ? `anotameucontato.com.br/p/${slugInput}` : null;
+  const slugPreview = slugInput ? `anotameucontato.com.br/${slugInput}` : null;
 
   async function handleSave() {
     setSaving(true);
@@ -493,7 +493,7 @@ export default function PerfilPage() {
                     className="absolute inset-y-0 left-3 flex items-center text-xs"
                     style={{ color: "var(--dash-text-muted)" }}
                   >
-                    /p/
+                    /
                   </span>
                   <input
                     id="slug"
