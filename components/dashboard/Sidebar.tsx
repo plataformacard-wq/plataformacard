@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 interface SidebarProps {
-  role: string;
+  role: "superadmin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
   businessModel: "B2B" | "B2C";
   isOpen: boolean;
   onClose: () => void;
