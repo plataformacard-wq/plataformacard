@@ -23,6 +23,7 @@ interface TopHeaderProps {
   handleLogout: () => void;
   onMenuClick: () => void;
   slug?: string | null;
+  businessModel: "B2B" | "B2C";
 }
 
 export function TopHeader({ 
@@ -33,7 +34,8 @@ export function TopHeader({
   toggleTheme, 
   handleLogout,
   onMenuClick,
-  slug
+  slug,
+  businessModel
 }: TopHeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -129,7 +131,7 @@ export function TopHeader({
                   <p className="text-xs font-medium text-[var(--dash-text-primary)] mt-0.5 truncate">{nome}</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  {slug && (
+                  {slug && businessModel === "B2C" && (
                     <Link
                       href={`/${slug}`}
                       target="_blank"
@@ -144,7 +146,7 @@ export function TopHeader({
                   )}
 
                   <Link
-                    href="/dashboard/perfil"
+                    href="/dashboard/perfil#perfil"
                     onClick={() => setIsUserMenuOpen(false)}
                     className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--dash-text-secondary)] transition-all hover:bg-[var(--dash-hover-bg)] hover:text-primary"
                   >

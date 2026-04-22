@@ -36,6 +36,7 @@ export default function EmpresaPage() {
   const [orgId, setOrgId] = useState<string | null>(null);
   
   const [businessHours, setBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
 
   useEffect(() => {
     async function loadData() {
@@ -55,12 +56,13 @@ export default function EmpresaPage() {
         setOrgId(profile.organization_id);
         const { data: org } = await supabase
           .from("organizations")
-          .select("business_hours")
+          .select("business_hours, business_model")
           .eq("id", profile.organization_id)
           .maybeSingle();
         
-        if (org && org.business_hours) {
-          setBusinessHours(org.business_hours as unknown as BusinessHours);
+        if (org) {
+          if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
+          if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C");
         }
       }
       setLoading(false);
@@ -141,7 +143,9 @@ export default function EmpresaPage() {
 
     const { error } = await supabase
       .from("organizations")
-      .update({ business_hours: businessHours as any })
+      .update({ 
+        business_hours: businessHours as any,
+      })
       .eq("id", orgId);
 
     if (error) {

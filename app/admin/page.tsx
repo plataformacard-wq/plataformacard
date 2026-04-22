@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getInviteCode } from "@/lib/admin-actions";
 import AccessManager from "./AccessManager";
+import UserList from "./UserList";
 
 export const dynamic = "force-dynamic";
 
@@ -31,10 +32,21 @@ export default async function AdminDashboardPage() {
     .select("*", { count: "exact", head: true })
     .eq("role", "seller");
 
-  // List recent signups
+  // List recent signups with organization data
   const { data: recentProfiles } = await supabase
     .from("profiles")
-    .select("id, full_name, slug, role, created_at")
+    .select(`
+      id, 
+      full_name, 
+      slug, 
+      role, 
+      created_at,
+      organization_id,
+      organizations (
+        id,
+        business_model
+      )
+    `)
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -93,46 +105,7 @@ export default async function AdminDashboardPage() {
         <div className="border-b px-6 py-4" style={{ borderColor: "var(--dash-border)" }}>
           <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>Usuários Recentes na Plataforma</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b text-xs uppercase" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}>
-              <tr>
-                <th className="px-6 py-3 font-medium">Nome</th>
-                <th className="px-6 py-3 font-medium">Slug</th>
-                <th className="px-6 py-3 font-medium">Plano / Cargo</th>
-                <th className="px-6 py-3 font-medium">Data de Criação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y" style={{ borderColor: "var(--dash-border)" }}>
-              {recentProfiles?.map((p) => (
-                <tr key={p.id} className="hover:bg-[var(--dash-hover-bg)] transition-colors">
-                  <td className="px-6 py-4 font-medium" style={{ color: "var(--dash-text-primary)" }}>{p.full_name || "Sem Nome"}</td>
-                  <td className="px-6 py-4">
-                    <a href={`/${p.slug}`} target="_blank" className="text-blue-500 hover:underline">
-                      /{p.slug}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      p.role === 'superadmin' ? 'bg-red-500/10 text-red-500' :
-                      p.role === 'b2b_admin' ? 'bg-blue-500/10 text-blue-500' :
-                      p.role === 'b2c_admin' ? 'bg-emerald-500/10 text-emerald-500' :
-                      'bg-purple-500/10 text-purple-500'
-                    }`}>
-                      {p.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4" style={{ color: "var(--dash-text-secondary)" }}>
-                    {new Date(p.created_at).toLocaleDateString("pt-BR")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {(!recentProfiles || recentProfiles.length === 0) && (
-            <p className="p-6 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>Nenhum usuário encontrado.</p>
-          )}
-        </div>
+        <UserList profiles={recentProfiles as any} />
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [slug, setSlug] = useState<string | null>(null);
   const [productCount, setProductCount] = useState<number | null>(null);
   const [profileViews, setProfileViews] = useState<number | null>(null);
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +65,18 @@ export default function DashboardPage() {
           } catch (e) {
             console.error("Erro ao carregar analytics:", e);
             setProfileViews(0);
+          }
+          // Buscar modelo de negócio
+          if (profile.organization_id) {
+            const { data: org } = await supabase
+              .from("organizations")
+              .select("business_model")
+              .eq("id", profile.organization_id)
+              .maybeSingle();
+            
+            if (org?.business_model) {
+              setBusinessModel(org.business_model as "B2B" | "B2C");
+            }
           }
         }
       } catch (err) {
@@ -126,7 +139,7 @@ export default function DashboardPage() {
       title: "Personalizar Perfil",
       desc: "Altere cores, fotos e informações do seu cartão.",
       icon: "👤",
-      href: "/dashboard/perfil",
+      href: businessModel === "B2C" ? "/dashboard/perfil#cartao" : "/dashboard/perfil#perfil",
       color: "from-blue-500/10 to-blue-500/5"
     },
     {
@@ -136,13 +149,13 @@ export default function DashboardPage() {
       href: "/dashboard/analytics",
       color: "from-violet-500/10 to-violet-500/5"
     },
-    {
+    ...(businessModel === "B2B" ? [{
       title: "Vendedores",
       desc: "Gerencie sua equipe de vendas e acessos.",
       icon: "👥",
       href: "/dashboard/vendedores",
       color: "from-amber-500/10 to-amber-500/5"
-    }
+    }] : [])
   ];
 
   const container = {

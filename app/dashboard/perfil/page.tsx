@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
@@ -39,6 +40,11 @@ type ProfileData = {
   is_available: boolean | null;
   custom_business_hours: any;
   can_customize_hours: boolean | null;
+  role: string | null;
+  organization_id: string | null;
+  organizations?: {
+    business_model: string;
+  };
 };
 
 function sanitizeSlug(value: string): string {
@@ -53,6 +59,8 @@ function sanitizeSlug(value: string): string {
 
 export default function PerfilPage() {
   const supabase = createClient();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [nome, setNome] = useState("Cliente");
@@ -74,6 +82,33 @@ export default function PerfilPage() {
   const [saveMessage, setSaveMessage] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
+  
+  // Password State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  
+  // Detectar se veio pelo menu "Editar Cartão Público"
+  const [view, setView] = useState<"all" | "card" | "security">("all");
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash;
+      console.log("🔗 Hash detectado:", hash);
+      if (hash === "#cartao") {
+        setView("card");
+      } else {
+        // Padrão é segurança se não for cartão
+        setView("security");
+      }
+    };
+
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     async function loadProfile() {
@@ -90,7 +125,7 @@ export default function PerfilPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, bio, whatsapp, slug, is_available, custom_business_hours, can_customize_hours")
+        .select("full_name, avatar_url, bio, whatsapp, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
 
@@ -107,11 +142,21 @@ export default function PerfilPage() {
         const hasPermission = profile.can_customize_hours ?? false;
         setCanCustomize(hasPermission);
 
-        if (profile.custom_business_hours && hasPermission) {
-          setUseCompanyHours(false);
+        if (profile.custom_business_hours) {
           setCustomBusinessHours(profile.custom_business_hours as BusinessHours);
-        } else {
-          setUseCompanyHours(true);
+        }
+
+        // Buscar modelo de negócio separadamente para garantir sincronia com PanelLayout
+        if (profile.organization_id) {
+          const { data: org } = await supabase
+            .from("organizations")
+            .select("business_model")
+            .eq("id", profile.organization_id)
+            .maybeSingle();
+          
+          if (org?.business_model) {
+            setBusinessModel(org.business_model as "B2B" | "B2C");
+          }
         }
       }
 
@@ -286,7 +331,7 @@ export default function PerfilPage() {
         whatsapp: whatsappInput.trim() || null,
         slug: trimmedSlug || null,
         is_available: isAvailable,
-        custom_business_hours: useCompanyHours ? null : customBusinessHours,
+        custom_business_hours: customBusinessHours,
       })
       .eq("user_id", user.id);
 
@@ -306,6 +351,28 @@ export default function PerfilPage() {
     setTimeout(() => setSaveSuccess(false), 3000);
   }
 
+  async function handleChangePassword() {
+    if (!newPassword || newPassword !== confirmNewPassword) {
+      setSaveMessage("As senhas não coincidem ou estão vazias.");
+      return;
+    }
+
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      setSaveMessage("Erro ao alterar senha: " + error.message);
+    } else {
+      setSaveMessage("Senha alterada com sucesso!");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setCurrentPassword("");
+    }
+    setChangingPassword(false);
+  }
+
   function onImageEditorConfirm(file: File, previewUrl: string) {
     setAvatarFile(file);
     // Note: avatarPreview uses avatarFile if present, so it will update automatically
@@ -315,10 +382,12 @@ export default function PerfilPage() {
     <div className="relative space-y-6">
       <div>
         <h1 className="text-2xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-          Perfil
+          {view === "card" ? "Editar Cartão Público" : "Meu Perfil"}
         </h1>
         <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-          Edite suas informações públicas e o link do seu cartão.
+          {view === "card" 
+            ? "Gerencie as informações que aparecem para seus clientes." 
+            : "Gerencie seus dados de acesso e informações administrativas."}
         </p>
       </div>
 
@@ -329,6 +398,7 @@ export default function PerfilPage() {
       ) : (
         <>
           {/* Card 1 — Identidade */}
+          {view === "card" && (
           <div
             className="rounded-2xl border p-6 shadow-sm transition-colors"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
@@ -399,165 +469,176 @@ export default function PerfilPage() {
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="bio"
-                    className="text-sm font-medium"
-                    style={{ color: "var(--dash-text-primary)" }}
-                  >
-                    Bio{" "}
-                    <span className="font-normal" style={{ color: "var(--dash-text-muted)" }}>
-                      (opcional)
-                    </span>
-                  </label>
-                  <textarea
-                    id="bio"
-                    value={bioInput}
-                    onChange={(e) => setBioInput(e.target.value)}
-                    placeholder="Ex: Representante comercial · Região ES/RJ"
-                    rows={2}
-                    maxLength={120}
-                    className="mt-1 w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
-                    style={{
-                      background: "var(--dash-input-bg)",
-                      borderColor: "var(--dash-input-border)",
-                      color: "var(--dash-text-primary)",
-                    }}
-                  />
-                  <p className="mt-1 text-right text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                    {bioInput.length}/120
-                  </p>
-                </div>
+                {businessModel === "B2C" && (
+                  <div>
+                    <label
+                      htmlFor="bio"
+                      className="text-sm font-medium"
+                      style={{ color: "var(--dash-text-primary)" }}
+                    >
+                      Bio{" "}
+                      <span className="font-normal" style={{ color: "var(--dash-text-muted)" }}>
+                        (opcional)
+                      </span>
+                    </label>
+                    <textarea
+                      id="bio"
+                      value={bioInput}
+                      onChange={(e) => setBioInput(e.target.value)}
+                      placeholder="Ex: Representante comercial · Região ES/RJ"
+                      rows={2}
+                      maxLength={120}
+                      className="mt-1 w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                      style={{
+                        background: "var(--dash-input-bg)",
+                        borderColor: "var(--dash-input-border)",
+                        color: "var(--dash-text-primary)",
+                      }}
+                    />
+                    <p className="mt-1 text-right text-xs" style={{ color: "var(--dash-text-muted)" }}>
+                      {bioInput.length}/120
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
+        )}
 
-          {/* Card 2 — Contato e Link */}
-          <div
-            className="rounded-2xl border p-6 shadow-sm transition-colors"
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-          >
-            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-              Contato e link do cartão
-            </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              Como seus clientes entram em contato e acessam seu cartão.
-            </p>
+          {/* Botão salvar Identidade */}
+          {businessModel === "B2B" && (
+            <div className="flex justify-start">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-xl px-6 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
+                style={{ background: "var(--dash-text-primary)" }}
+              >
+                {saving ? "Salvando..." : "Atualizar Nome"}
+              </button>
+            </div>
+          )}
 
-            <div className="mt-6 space-y-5">
-              {/* WhatsApp */}
-              <div>
-                <label
-                  htmlFor="whatsapp"
-                  className="text-sm font-medium"
-                  style={{ color: "var(--dash-text-primary)" }}
-                >
-                  WhatsApp
-                </label>
-                <div className="relative mt-1">
-                  <span
-                    className="absolute inset-y-0 left-3 flex items-center text-sm"
-                    style={{ color: "var(--dash-text-muted)" }}
-                  >
-                    +55
-                  </span>
-                  <input
-                    id="whatsapp"
-                    type="tel"
-                    value={whatsappInput}
-                    onChange={(e) => setWhatsappInput(e.target.value.replace(/\D/g, ""))}
-                    placeholder="27999999999"
-                    maxLength={13}
-                    className="w-full rounded-lg border py-2 pl-10 pr-3 text-sm outline-none transition-colors"
-                    style={{
-                      background: "var(--dash-input-bg)",
-                      borderColor: "var(--dash-input-border)",
-                      color: "var(--dash-text-primary)",
-                    }}
-                  />
-                </div>
-                <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                  Apenas números, com DDD. Ex: 27999887766
-                </p>
-              </div>
-
-              {/* Slug */}
-              <div>
-                <label
-                  htmlFor="slug"
-                  className="text-sm font-medium"
-                  style={{ color: "var(--dash-text-primary)" }}
-                >
-                  Link personalizado do cartão
-                </label>
-                <div className="relative mt-1">
-                  <span
-                    className="absolute inset-y-0 left-3 flex items-center text-xs"
-                    style={{ color: "var(--dash-text-muted)" }}
-                  >
-                    /
-                  </span>
-                  <input
-                    id="slug"
-                    type="text"
-                    value={slugInput}
-                    onChange={(e) => handleSlugChange(e.target.value)}
-                    placeholder="seu-nome"
-                    maxLength={40}
-                    className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors"
-                    style={{
-                      background: "var(--dash-input-bg)",
-                      borderColor: slugError ? "#ef4444" : "var(--dash-input-border)",
-                      color: "var(--dash-text-primary)",
-                    }}
-                  />
-                  {slugChecking && (
-                    <span
-                      className="absolute inset-y-0 right-3 flex items-center text-xs"
-                      style={{ color: "var(--dash-text-muted)" }}
-                    >
-                      verificando...
-                    </span>
-                  )}
-                </div>
-
-                {slugError ? (
-                  <p className="mt-1 text-xs text-red-500">{slugError}</p>
-                ) : slugPreview ? (
-                  <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                    Seu link:{" "}
-                    <span className="font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                      {slugPreview}
-                    </span>
-                  </p>
-                ) : (
-                  <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                    Use letras minúsculas, números e hífens. Ex: joao-silva
-                  </p>
-                )}
-              </div>
-
-              {/* Email (leitura) */}
-              <div>
-                <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                  Email
-                </p>
+          {/* Card 2 — Contato e Link (Apenas B2C e se view for card) */}
+          {businessModel === "B2C" && view === "card" && (
+            <>
+              <div
+                className="rounded-2xl border p-6 shadow-sm transition-colors"
+                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+              >
+                <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                  Contato e link do cartão
+                </h2>
                 <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                  {email || "Email não disponível"}
+                  Como seus clientes entram em contato e acessam seu cartão.
                 </p>
-                <p className="mt-0.5 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                  O email não pode ser alterado aqui.
-                </p>
+
+                <div className="mt-6 space-y-5">
+                  {/* WhatsApp */}
+                  <div>
+                    <label
+                      htmlFor="whatsapp"
+                      className="text-sm font-medium"
+                      style={{ color: "var(--dash-text-primary)" }}
+                    >
+                      WhatsApp
+                    </label>
+                    <div className="relative mt-1">
+                      <span
+                        className="absolute inset-y-0 left-3 flex items-center text-sm"
+                        style={{ color: "var(--dash-text-muted)" }}
+                      >
+                        +55
+                      </span>
+                      <input
+                        id="whatsapp"
+                        type="tel"
+                        value={whatsappInput}
+                        onChange={(e) => setWhatsappInput(e.target.value.replace(/\D/g, ""))}
+                        placeholder="27999999999"
+                        maxLength={13}
+                        className="w-full rounded-lg border py-2 pl-10 pr-3 text-sm outline-none transition-colors"
+                        style={{
+                          background: "var(--dash-input-bg)",
+                          borderColor: "var(--dash-input-border)",
+                          color: "var(--dash-text-primary)",
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+                      Apenas números, com DDD. Ex: 27999887766
+                    </p>
+                  </div>
+
+                  {/* Slug */}
+                  <div>
+                    <label
+                      htmlFor="slug"
+                      className="text-sm font-medium"
+                      style={{ color: "var(--dash-text-primary)" }}
+                    >
+                      Link personalizado do cartão
+                    </label>
+                    <div className="relative mt-1">
+                      <span
+                        className="absolute inset-y-0 left-3 flex items-center text-xs"
+                        style={{ color: "var(--dash-text-muted)" }}
+                      >
+                        /
+                      </span>
+                      <input
+                        id="slug"
+                        type="text"
+                        value={slugInput}
+                        onChange={(e) => handleSlugChange(e.target.value)}
+                        placeholder="seu-nome"
+                        maxLength={40}
+                        className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors"
+                        style={{
+                          background: "var(--dash-input-bg)",
+                          borderColor: slugError ? "#ef4444" : "var(--dash-input-border)",
+                          color: "var(--dash-text-primary)",
+                        }}
+                      />
+                      {slugChecking && (
+                        <span
+                          className="absolute inset-y-0 right-3 flex items-center text-xs"
+                          style={{ color: "var(--dash-text-muted)" }}
+                        >
+                          verificando...
+                        </span>
+                      )}
+                    </div>
+
+                    {slugError ? (
+                      <p className="mt-1 text-xs text-red-500">{slugError}</p>
+                    ) : slugPreview ? (
+                      <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+                        Seu link:{" "}
+                        <span className="font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                          {slugPreview}
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+                        Use letras minúsculas, números e hífens. Ex: joao-silva
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Status de Atendimento & Horários */}
-              <div className="pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+              {/* Status de Atendimento & Horários (Apenas se view for card) */}
+              <div
+                className="rounded-2xl border p-6 shadow-sm transition-colors"
+                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+              >
                 <h3 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
                   Horário de Atendimento
                 </h3>
                 
                 <div className="mt-4 space-y-4">
-                  {/* Emergency Toggle */}
                   <div>
                     <label className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                       Status Rápido (Modo Férias)
@@ -577,120 +658,156 @@ export default function PerfilPage() {
                     </select>
                   </div>
 
-                  {/* Inheritance Toggle */}
-                  <label className={`flex items-center gap-3 mt-4 ${canCustomize ? "cursor-pointer" : "cursor-not-allowed opacity-80"}`}>
-                    <input
-                      type="checkbox"
-                      checked={useCompanyHours}
-                      onChange={(e) => canCustomize && setUseCompanyHours(e.target.checked)}
-                      disabled={!canCustomize}
-                      className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
-                    />
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                        Seguir horário padrão da empresa
-                      </p>
-                      {canCustomize ? (
-                        <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-muted)" }}>
-                          Desmarque para configurar um horário de atendimento exclusivo para você.
-                        </p>
-                      ) : (
-                        <p className="text-xs mt-0.5 text-orange-500 font-medium">
-                          🔒 Apenas o administrador da empresa pode habilitar horários customizados.
-                        </p>
-                      )}
-                    </div>
-                  </label>
-
-                  {/* Custom Schedule Editor */}
-                  {!useCompanyHours && (
-                    <div className="mt-6 space-y-6 rounded-xl border p-5" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>Seus Horários Customizados</p>
-                      {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
-                        const dayData = customBusinessHours.schedule[day];
-                        return (
-                          <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
-                            <div className="w-32 pt-1 flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={dayData.isOpen}
-                                onChange={() => handleDayToggle(day)}
-                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                              />
-                              <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
-                                {dayNamesMap[day]}
-                              </span>
-                            </div>
-
-                            <div className="flex-1 space-y-3">
-                              {dayData.isOpen ? (
-                                dayData.shifts.map((shift, index) => (
-                                  <div key={index} className="flex items-center gap-2">
-                                    <input
-                                      type="time"
-                                      value={shift.open}
-                                      onChange={(e) => handleShiftChange(day, index, "open", e.target.value)}
-                                      className="rounded-md border px-2 py-1 text-sm outline-none w-24"
-                                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
-                                    />
-                                    <span className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>até</span>
-                                    <input
-                                      type="time"
-                                      value={shift.close}
-                                      onChange={(e) => handleShiftChange(day, index, "close", e.target.value)}
-                                      className="rounded-md border px-2 py-1 text-sm outline-none w-24"
-                                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveShift(day, index)}
-                                      className="p-1 text-red-500 hover:bg-red-50 rounded text-xs"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                ))
-                              ) : (
-                                <span className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Fechado</span>
-                              )}
-                              
-                              {dayData.isOpen && dayData.shifts.length < 2 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleAddShift(day)}
-                                  className="text-xs font-medium px-2 py-1 rounded border transition-colors hover:bg-[rgba(255,255,255,0.05)]"
-                                  style={{ color: "var(--dash-text-secondary)", borderColor: "var(--dash-border)" }}
-                                >
-                                  + Turno
-                                </button>
-                              )}
-                            </div>
+                  <div className="mt-6 space-y-6 rounded-xl border p-5" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                    <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>Seus Horários Customizados</p>
+                    {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
+                      const dayData = customBusinessHours.schedule[day];
+                      return (
+                        <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
+                          <div className="w-32 pt-1 flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={dayData.isOpen}
+                              onChange={() => handleDayToggle(day)}
+                              className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            />
+                            <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
+                              {dayNamesMap[day]}
+                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+
+                          <div className="flex-1 space-y-3">
+                            {dayData.isOpen ? (
+                              dayData.shifts.map((shift, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <input
+                                    type="time"
+                                    value={shift.open}
+                                    onChange={(e) => handleShiftChange(day, index, "open", e.target.value)}
+                                    className="rounded-md border px-2 py-1 text-sm outline-none w-24"
+                                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                                  />
+                                  <span className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>até</span>
+                                  <input
+                                    type="time"
+                                    value={shift.close}
+                                    onChange={(e) => handleShiftChange(day, index, "close", e.target.value)}
+                                    className="rounded-md border px-2 py-1 text-sm outline-none w-24"
+                                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveShift(day, index)}
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded text-xs"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Fechado</span>
+                            )}
+                            
+                            {dayData.isOpen && dayData.shifts.length < 2 && (
+                              <button
+                                type="button"
+                                onClick={() => handleAddShift(day)}
+                                className="text-xs font-medium px-2 py-1 rounded border transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                                style={{ color: "var(--dash-text-secondary)", borderColor: "var(--dash-border)" }}
+                              >
+                                + Turno
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+            </>
+          )}
+          
+          {/* Fim do Bloco de Identidade/Card */}
+          {view === "card" && (
+            <div className="flex justify-start">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-xl px-8 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
+              >
+                {saving ? "Salvando..." : "Salvar Alterações"}
+              </button>
+            </div>
+          )}
+          
+          {/* Card Segurança */}
+          {view === "security" && (
+            <div
+              className="rounded-2xl border p-6 shadow-sm transition-colors"
+              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+            >
+              <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                Segurança
+              </h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+              Altere sua senha de acesso ao painel.
+            </p>
+
+            <div className="mt-6 space-y-4 max-w-md">
+              <div>
+                <label className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>Nova Senha</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                  style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>Confirmar Nova Senha</label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                  style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleChangePassword}
+                disabled={changingPassword}
+                className="rounded-lg border px-4 py-2 text-xs font-bold transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+              >
+                {changingPassword ? "Alterando..." : "Alterar Senha"}
+              </button>
             </div>
           </div>
+          )}
 
-          {/* Botão salvar */}
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="rounded-xl px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
-              style={{ background: "var(--dash-text-primary)" }}
-            >
-              {saving ? "Salvando..." : "Salvar todas as alterações"}
-            </button>
-
-            {saveSuccess && (
-              <span className="text-sm text-green-500 font-medium">✓ Salvo com sucesso</span>
-            )}
+          {/* Email */}
+          {view === "security" && (
+          <div
+            className="rounded-2xl border p-6 shadow-sm transition-colors"
+            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+          >
+            <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+              Email de Acesso
+            </p>
+            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+              {email || "Email não disponível"}
+            </p>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+              O email é usado para login e não pode ser alterado aqui.
+            </p>
           </div>
+          )}
+
         </>
       )}
 

@@ -13,8 +13,10 @@ import {
   X,
   Upload,
   ChevronLeft,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 import { BusinessHours, TimeShift } from "@/lib/utils/time";
@@ -63,6 +65,8 @@ export default function VendedoresClient() {
   const [vendedores, setVendedores] = useState<Seller[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isB2C, setIsB2C] = useState(false);
+  const router = useRouter(); // Import useRouter if not present
   
   // View State: 'list' | 'form'
   const [view, setView] = useState<'list' | 'form'>('list');
@@ -100,6 +104,7 @@ export default function VendedoresClient() {
 
     if (profile?.organization_id) {
       setOrgId(profile.organization_id);
+      
       const { data: sellers } = await supabase
         .from("profiles")
         .select("*")
@@ -108,6 +113,19 @@ export default function VendedoresClient() {
         .order("full_name");
 
       if (sellers) setVendedores(sellers as Seller[]);
+
+      // Verificar se é B2C para bloquear acesso à página
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("business_model")
+        .eq("id", profile.organization_id)
+        .maybeSingle();
+      
+      if (org?.business_model === "B2C" || profile.role === "b2c_admin") {
+        setIsB2C(true);
+        // Redirecionar após um pequeno delay ou imediatamente
+        router.push("/dashboard");
+      }
     }
     setLoading(false);
   }
@@ -393,13 +411,6 @@ export default function VendedoresClient() {
                   <h3 className="font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
                     <Clock size={18} className="text-primary" /> Horário e Permissões
                   </h3>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="checkbox" checked={formCanCustomize} onChange={e => setFormCanCustomize(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Permitir que ele altere seu horário</span>
-                  </label>
                 </div>
 
                 <div className="space-y-4">

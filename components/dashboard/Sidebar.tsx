@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,9 +7,11 @@ import {
   LayoutDashboard, 
   Building2, 
   BookOpen, 
-  User, 
-  Users, 
-  BarChart3, 
+  User,
+  UserCircle,
+  ShieldCheck,
+  Users,
+  BarChart3,
   Settings,
   X,
   ChevronDown,
@@ -19,12 +21,21 @@ import {
 
 interface SidebarProps {
   role: string;
+  businessModel: "B2B" | "B2C";
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [currentHash, setCurrentHash] = useState("");
+
+  useEffect(() => {
+    const handleHash = () => setCurrentHash(window.location.hash.replace("#", ""));
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, []);
   const [openMenus, setOpenMenus] = useState<string[]>([]); // Começa fechado conforme solicitado
 
   const toggleMenu = (label: string) => {
@@ -58,10 +69,20 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         { href: "/dashboard/catalogo/bulk", label: "Cadastro em Massa", icon: LayoutDashboard },
       ]
     } as any);
-    navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
+
+    // No modelo B2C, não há gestão de vendedores
+    // Esconde se for explicitamente B2C ou se a role for b2c_admin
+    const isB2C = businessModel === "B2C" || role === "b2c_admin";
+    
+    if (!isB2C) {
+      navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
+    } else {
+      // Para B2C, o "Vendedor" é ele mesmo, então chamamos de Editar Cartão Público
+      navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
+    }
   }
 
-  navLinks.push({ href: "/dashboard/perfil", label: "Perfil", icon: User });
+  navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
   navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
 
   return (
@@ -84,7 +105,9 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
               </div>
               <div className="flex flex-col">
                 <span className="text-base font-bold tracking-tight leading-none text-[var(--dash-text-primary)]">PlataformaCard</span>
-                <span className="text-[10px] text-[var(--dash-text-muted)] font-medium uppercase tracking-wider">Painel Gestor</span>
+                <span className="text-[10px] text-[var(--dash-text-muted)] font-medium uppercase tracking-wider">
+                  {businessModel === "B2B" ? "Painel de gestão empresarial" : "Painel Gestor"}
+                </span>
               </div>
             </Link>
             <button onClick={onClose} className="rounded-lg p-1 hover:bg-[var(--dash-hover-bg)] lg:hidden">
@@ -96,7 +119,11 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             {navLinks.map((item: any) => {
               const hasSubItems = item.subItems && item.subItems.length > 0;
               const isMenuOpen = openMenus.includes(item.label);
-              const isActive = pathname === item.href || (hasSubItems && item.subItems.some((s: any) => pathname === s.href));
+              const itemHash = item.href?.includes("#") ? item.href.split("#")[1] : null;
+              const isSamePath = pathname === item.href?.split("#")[0];
+              const isSameHash = itemHash ? currentHash === itemHash : !currentHash;
+              
+              const isActive = (isSamePath && isSameHash) || (hasSubItems && item.subItems.some((s: any) => pathname === s.href));
 
               if (hasSubItems) {
                 return (
@@ -105,17 +132,20 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                       onClick={() => toggleMenu(item.label)}
                       className={`group relative flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                         isActive 
-                          ? "text-primary" 
+                          ? "text-primary bg-primary/5" 
                           : "text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-[var(--dash-text-primary)]"
                       }`}
                     >
                       <div className="flex items-center gap-3">
+                        {isActive && (
+                          <div className="absolute left-0 h-6 w-1 rounded-r-full bg-primary" />
+                        )}
                         <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                        {item.label}
+                        <span>{item.label}</span>
                       </div>
                       <ChevronDown 
                         size={16} 
-                        className={`transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} 
+                        className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
                       />
                     </button>
                     
@@ -134,7 +164,9 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                               <Link
                                 key={sub.href}
                                 href={sub.href}
-                                onClick={() => { if (window.innerWidth < 1024) onClose(); }}
+                                onClick={() => { 
+                                  if (window.innerWidth < 1024) onClose(); 
+                                }}
                                 className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                                   isSubActive 
                                     ? "text-primary bg-primary/5" 
@@ -157,10 +189,18 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => { if (window.innerWidth < 1024) onClose(); }}
+                  onClick={() => { 
+                    if (window.innerWidth < 1024) onClose();
+                    // Forçar atualização do hash para o indicador reagir na hora
+                    if (item.href.includes("#")) {
+                      setCurrentHash(item.href.split("#")[1]);
+                    } else {
+                      setCurrentHash("");
+                    }
+                  }}
                   className={`group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                     isActive 
-                      ? "text-primary" 
+                      ? "text-primary bg-primary/5" 
                       : "text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-[var(--dash-text-primary)]"
                   }`}
                 >
@@ -174,7 +214,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                         className="absolute inset-0 bg-primary/10 rounded-xl -z-10"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
-                      <div className="absolute right-0 h-5 w-1 rounded-l-full bg-primary shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
+                      <div className="absolute left-0 h-6 w-1 rounded-r-full bg-primary" />
                     </>
                   )}
                 </Link>
