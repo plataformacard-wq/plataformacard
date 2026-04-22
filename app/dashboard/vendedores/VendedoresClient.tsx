@@ -98,9 +98,9 @@ export default function VendedoresClient() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id")
+      .select("organization_id, role")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (profile?.organization_id) {
       setOrgId(profile.organization_id);
