@@ -72,7 +72,7 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
 
     // No modelo B2C, não há gestão de vendedores
     // Esconde se for explicitamente B2C ou se a role for b2c_admin
-    const isB2C = businessModel === "B2C" || role === "b2c_admin";
+    const isB2C = businessModel === "B2C" || (role as any) === "b2c_admin";
     
     if (!isB2C) {
       navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
