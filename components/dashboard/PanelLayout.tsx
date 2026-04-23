@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopHeader } from "@/components/dashboard/TopHeader";
+import GlobalAlert from "@/components/dashboard/GlobalAlert";
 
 type PanelLayoutProps = {
   children: React.ReactNode;
@@ -22,6 +23,8 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
+
   useEffect(() => {
     // Tema
     const saved = localStorage.getItem("dash-theme");
@@ -32,7 +35,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
       document.documentElement.removeAttribute("data-theme");
     }
 
-    async function loadProfile() {
+    async function loadData() {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
         
@@ -41,6 +44,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           return;
         }
 
+        // 1. Carregar Perfil e Org
         const { data: profile, error: profError } = await supabase
           .from("profiles")
           .select("*")
@@ -51,6 +55,20 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           setBusinessModel("B2B");
           return;
         }
+
+        // 2. Carregar Configurações Globais (Alerta e Manutenção)
+        const { data: configRows } = await supabase.from("platform_config").select("key, value");
+        const configs: Record<string, string> = {};
+        configRows?.forEach(r => configs[r.key] = r.value);
+
+        const currentRole = profile.role || "admin";
+        setRole(currentRole);
+
+        setNotice({
+          id: configs.system_notice_id || "0",
+          text: configs.system_notice_text || "",
+          active: configs.system_notice_active === "true"
+        });
 
         // Trava de Vendedores
         if (profile.role === "seller") {
@@ -81,16 +99,15 @@ export function PanelLayout({ children }: PanelLayoutProps) {
 
         setNome(profile.full_name || "Usuário");
         setAvatar(profile.avatar_url || null);
-        setRole(profile.role || "admin");
         setSlug(profile.slug || null);
 
       } catch (err) {
-        console.error("Erro no loadProfile:", err);
+        console.error("Erro no loadData:", err);
         setBusinessModel("B2B");
       }
     }
 
-    loadProfile();
+    loadData();
   }, [supabase, router, pathname]);
 
   function toggleTheme() {
@@ -106,7 +123,6 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   }
 
   async function handleLogout() {
-    console.log("Executando handleLogout no PanelLayout...");
     try {
       await supabase.auth.signOut();
       window.location.href = "/entrar";
@@ -149,9 +165,17 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           onMenuClick={() => setIsSidebarOpen(true)}
         />
 
+        {/* Banner Global de Avisos */}
+        {notice && (
+          <GlobalAlert 
+            noticeId={notice.id} 
+            noticeText={notice.text} 
+            isActive={notice.active} 
+          />
+        )}
+
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="mx-auto max-w-7xl">
-
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

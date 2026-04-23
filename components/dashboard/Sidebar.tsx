@@ -44,46 +44,53 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
     );
   };
 
-  const navLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
-  ];
+  let navLinks: any[] = [];
 
   if (role === "superadmin") {
-    navLinks.push({ href: "/admin", label: "Painel QG", icon: Settings });
-  }
+    // Menu exclusivo do Super Admin (QG)
+    navLinks = [
+      { href: "/admin", label: "Painel QG", icon: Settings },
+      { href: "/admin/clientes", label: "Clientes do SaaS", icon: Building2 },
+      { href: "/admin/catalogos", label: "Análise de Catálogos", icon: BookOpen },
+      { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
+      { href: "/admin/analytics", label: "Analytics Global", icon: BarChart3 },
+      { href: "/admin/settings", label: "Admin Settings", icon: ShieldCheck },
+    ];
+  } else {
+    // Menu padrão para outros usuários (B2B/B2C)
+    navLinks = [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
+    ];
 
-  // Se for Gestor B2B (admin), b2b_admin ou SuperAdmin, mostra tudo
-  if (role === "admin" || role === "b2b_admin" || role === "superadmin") {
-    navLinks.push({ 
-      label: "Empresa", 
-      icon: Building2,
-      subItems: [
-        { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
-      ]
-    } as any);
-    navLinks.push({ 
-      label: "Catálogo", 
-      icon: BookOpen,
-      subItems: [
-        { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
-        { href: "/dashboard/catalogo/bulk", label: "Cadastro em Massa", icon: LayoutDashboard },
-      ]
-    } as any);
+    if (role === "admin" || role === "b2b_admin") {
+      navLinks.push({ 
+        label: "Empresa", 
+        icon: Building2,
+        subItems: [
+          { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
+        ]
+      } as any);
+      navLinks.push({ 
+        label: "Catálogo", 
+        icon: BookOpen,
+        subItems: [
+          { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
+          { href: "/dashboard/catalogo/bulk", label: "Cadastro em Massa", icon: LayoutDashboard },
+        ]
+      } as any);
 
-    // No modelo B2C, não há gestão de vendedores
-    // Esconde se for explicitamente B2C ou se a role for b2c_admin
-    const isB2C = businessModel === "B2C" || (role as any) === "b2c_admin";
-    
-    if (!isB2C) {
-      navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
-    } else {
-      // Para B2C, o "Vendedor" é ele mesmo, então chamamos de Editar Cartão Público
-      navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
+      const isB2C = businessModel === "B2C" || (role as any) === "b2c_admin";
+      
+      if (!isB2C) {
+        navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
+      } else {
+        navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
+      }
     }
-  }
 
-  navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
-  navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+    navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
+    navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+  }
 
   return (
     <>
@@ -106,7 +113,7 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
               <div className="flex flex-col">
                 <span className="text-base font-bold tracking-tight leading-none text-[var(--dash-text-primary)]">PlataformaCard</span>
                 <span className="text-[10px] text-[var(--dash-text-muted)] font-medium uppercase tracking-wider">
-                  {businessModel === "B2B" ? "Painel de gestão empresarial" : "Painel Gestor"}
+                  {role === "superadmin" ? "Centro de Inteligência" : (businessModel === "B2B" ? "Painel de gestão empresarial" : "Painel Gestor")}
                 </span>
               </div>
             </Link>
