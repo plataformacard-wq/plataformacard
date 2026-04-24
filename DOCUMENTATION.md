@@ -80,6 +80,7 @@ O projeto encontra-se na fase de **Consolidação e Refinamento de UX/UI**. Apó
 | :--- | :--- | :--- |
 | 2026-04-24 | Criação do documento e definição de escopo (B2B, B2C, CaaS). | Antigravity |
 | 2026-04-24 | Bugfix: Correção de erro de tipagem no build do Vercel (CatalogoClient.tsx). | Antigravity |
+| 2026-04-24 | Bugfix: Correção de importação ausente do ícone Clock (PanelLayout.tsx). | Antigravity |
 
 ---
 

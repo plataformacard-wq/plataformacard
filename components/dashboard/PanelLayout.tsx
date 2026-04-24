@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopHeader } from "@/components/dashboard/TopHeader";
+import { Clock } from "lucide-react";
 import GlobalAlert from "@/components/dashboard/GlobalAlert";
 
 type PanelLayoutProps = {
