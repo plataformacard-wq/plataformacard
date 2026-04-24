@@ -79,6 +79,7 @@ O projeto encontra-se na fase de **Consolidação e Refinamento de UX/UI**. Apó
 | Data | Alteração | Responsável |
 | :--- | :--- | :--- |
 | 2026-04-24 | Criação do documento e definição de escopo (B2B, B2C, CaaS). | Antigravity |
+| 2026-04-24 | Bugfix: Correção de erro de tipagem no build do Vercel (CatalogoClient.tsx). | Antigravity |
 
 ---
 

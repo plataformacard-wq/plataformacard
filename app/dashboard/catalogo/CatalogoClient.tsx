@@ -183,9 +183,14 @@ export default function CatalogoPage() {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.organizations?.plans) {
-      const plan = (profile.organizations as any).plans;
-      setProductLimit(plan.max_products || 20);
+    if (profile?.organizations) {
+      const orgs = profile.organizations as any;
+      const org = Array.isArray(orgs) ? orgs[0] : orgs;
+      const plan = Array.isArray(org?.plans) ? org.plans[0] : org?.plans;
+      
+      if (plan) {
+        setProductLimit(plan.max_products || 20);
+      }
     }
 
     return (profile?.organization_id as string) ?? null;
