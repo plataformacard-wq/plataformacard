@@ -74,5 +74,13 @@ O projeto encontra-se na fase de **Consolidação e Refinamento de UX/UI**. Apó
 
 ---
 
+## 6. Registro de Alterações (Log)
+
+| Data | Alteração | Responsável |
+| :--- | :--- | :--- |
+| 2026-04-24 | Criação do documento e definição de escopo (B2B, B2C, CaaS). | Antigravity |
+
+---
+
 > [!NOTE]
 > Este documento é dinâmico e deve ser atualizado a cada grande marco de desenvolvimento.
