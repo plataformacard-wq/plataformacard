@@ -23,7 +23,7 @@ interface TopHeaderProps {
   handleLogout: () => void;
   onMenuClick: () => void;
   slug?: string | null;
-  businessModel: "B2B" | "B2C";
+  businessModel: "B2B" | "B2C" | "CaaS";
 }
 
 export function TopHeader({ 
@@ -110,8 +110,9 @@ export function TopHeader({
               <span className="text-xs font-semibold leading-none text-[var(--dash-text-primary)]">{nome}</span>
               <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">
                 {role === "superadmin" ? "Admin QG" : 
-                 role === "b2b_admin" ? "Gestor" : 
-                 role === "b2c_admin" ? "Gestor" : 
+                 role === "b2b_admin" ? "Gestor B2B" : 
+                 role === "b2c_admin" ? "Gestor B2C" : 
+                 role === "caas_admin" ? "Gestor Catálogo" : 
                  role === "seller" ? "Vendedor" : role}
               </span>
             </div>

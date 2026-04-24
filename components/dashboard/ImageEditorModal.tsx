@@ -134,40 +134,40 @@ export default function ImageEditorModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-white shadow-2xl dark:bg-slate-900"
+          className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/10 bg-zinc-900 shadow-2xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                <Crop size={18} />
+          <div className="flex items-center justify-between border-b border-white/5 p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                <Crop size={20} />
               </div>
-              <h3 className="font-semibold text-slate-800 dark:text-white">
+              <h3 className="text-lg font-bold text-white">
                 Editar Imagem
               </h3>
             </div>
             <button
               onClick={resetAndClose}
-              className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+              className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Body */}
-          <div className="p-6">
+          <div className="p-8">
             {!imageSrc ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-12 transition-all hover:border-emerald-500 hover:bg-emerald-50/30 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-emerald-500/50"
+                className="group flex cursor-pointer flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-white/10 bg-white/5 p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
               >
-                <div className="mb-4 rounded-full bg-white p-4 shadow-sm transition-transform group-hover:scale-110 dark:bg-slate-700">
+                <div className="mb-4 rounded-2xl bg-white/5 p-5 shadow-sm transition-transform group-hover:scale-110">
                   <Upload className="text-emerald-500" size={32} />
                 </div>
-                <p className="mb-1 font-medium text-slate-700 dark:text-slate-200">
+                <p className="mb-1 font-bold text-white">
                   Clique para selecionar ou arraste a imagem
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-zinc-500">
                   JPG, PNG ou WebP (Mín. {minWidth}x{minHeight}px)
                 </p>
                 <input
@@ -181,7 +181,7 @@ export default function ImageEditorModal({
             ) : (
               <div className="space-y-6">
                 {/* Cropper Container */}
-                <div className="relative h-80 w-full overflow-hidden rounded-xl bg-slate-950">
+                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-black">
                   <Cropper
                     image={imageSrc}
                     crop={crop}
@@ -195,7 +195,7 @@ export default function ImageEditorModal({
 
                 {/* Controls */}
                 <div className="flex items-center gap-4 px-2">
-                  <Minus size={16} className="text-slate-400" />
+                  <Minus size={16} className="text-zinc-500" />
                   <input
                     type="range"
                     value={zoom}
@@ -204,29 +204,30 @@ export default function ImageEditorModal({
                     step={0.1}
                     aria-labelledby="Zoom"
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-emerald-500 dark:bg-slate-700"
+                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-emerald-500"
                   />
-                  <Plus size={16} className="text-slate-400" />
+                  <Plus size={16} className="text-zinc-500" />
                   <button 
                     onClick={() => setZoom(1)}
-                    className="ml-2 text-xs font-medium text-slate-500 hover:text-emerald-500"
+                    className="ml-2 text-xs font-bold text-zinc-500 hover:text-emerald-500"
                   >
-                    Resetar
+                    RESETAR
                   </button>
                 </div>
 
                 {/* Instructions */}
-                <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
-                  <div className="flex gap-3">
-                    <Info className="shrink-0 text-emerald-500" size={20} />
+                <div className="rounded-2xl bg-white/5 p-5 border border-white/5">
+                  <div className="flex gap-4">
+                    <div className="shrink-0 h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                      <Info className="text-emerald-500" size={20} />
+                    </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                      <p className="text-sm font-bold text-white">
                         Dicas para uma imagem premium:
                       </p>
-                      <ul className="list-inside list-disc text-xs text-slate-500 dark:text-slate-400">
+                      <ul className="list-inside list-disc text-xs text-zinc-500 space-y-1">
                         <li>Fundos claros (branco ou cinza) valorizam o produto.</li>
                         <li>Centralize bem o item principal no enquadramento.</li>
-                        <li>Evite sombras fortes ou imagens desfocadas.</li>
                         <li>Imagens serão otimizadas automaticamente para carregamento rápido.</li>
                       </ul>
                     </div>
@@ -236,26 +237,26 @@ export default function ImageEditorModal({
             )}
 
             {error && (
-              <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
-                <AlertCircle size={16} />
+              <div className="mt-6 flex items-center gap-3 rounded-2xl bg-red-500/10 p-4 border border-red-500/20 text-sm font-bold text-red-400">
+                <AlertCircle size={18} />
                 <span>{error}</span>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+          <div className="flex items-center justify-end gap-3 border-t border-white/5 bg-white/5 p-6">
             <button
               onClick={resetAndClose}
               disabled={isProcessing}
-              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl px-6 py-3 text-sm font-bold text-zinc-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirm}
               disabled={!imageSrc || isProcessing}
-              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-700 hover:shadow-emerald-500/40 disabled:opacity-50 active:scale-95"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-black text-white shadow-xl shadow-emerald-500/20 transition-all hover:bg-emerald-500 disabled:opacity-50 active:scale-95"
             >
               {isProcessing ? (
                 <>

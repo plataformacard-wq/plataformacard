@@ -21,7 +21,7 @@ import {
 
 interface SidebarProps {
   role: "superadmin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
-  businessModel: "B2B" | "B2C";
+  businessModel: "B2B" | "B2C" | "CaaS";
   isOpen: boolean;
   onClose: () => void;
 }
@@ -75,15 +75,18 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
         icon: BookOpen,
         subItems: [
           { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
-          { href: "/dashboard/catalogo/bulk", label: "Cadastro em Massa", icon: LayoutDashboard },
+          { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
         ]
       } as any);
 
       const isB2C = businessModel === "B2C" || (role as any) === "b2c_admin";
+      const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
       
-      if (!isB2C) {
+      if (!isB2C && !isCaaS) {
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
-      } else {
+      }
+      
+      if (isB2C) {
         navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
       }
     }

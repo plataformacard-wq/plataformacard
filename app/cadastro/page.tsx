@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isReservedSlug } from "@/lib/utils/reserved-slugs";
 
 function GoogleIcon() {
   return (
@@ -132,6 +133,11 @@ export default function CadastroPage() {
 
     if (!generatedSlug) {
       setErrorMessage("Não foi possível gerar um slug válido com esse nome.");
+      return;
+    }
+
+    if (isReservedSlug(generatedSlug)) {
+      setErrorMessage("Este nome de usuário é reservado pelo sistema. Por favor, tente outro.");
       return;
     }
 

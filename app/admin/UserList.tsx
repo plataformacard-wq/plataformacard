@@ -63,6 +63,29 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
     }
   }
 
+  async function authorizeOnboarding(profileId: string) {
+    setLoadingId(profileId);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ role: "authorized" })
+        .eq("id", profileId);
+
+      if (error) throw error;
+
+      setProfiles(prev => prev.map(p => {
+        if (p.id === profileId) {
+          return { ...p, role: "authorized" };
+        }
+        return p;
+      }));
+    } catch (err: any) {
+      alert(`Erro ao autorizar: ${err.message}`);
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
@@ -112,10 +135,21 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
                     p.role === 'superadmin' ? 'bg-red-500/10 text-red-500' :
                     p.role === 'b2b_admin' ? 'bg-blue-500/10 text-blue-500' :
                     p.role === 'b2c_admin' ? 'bg-emerald-500/10 text-emerald-500' :
+                    p.role === 'authorized' ? 'bg-violet-500/10 text-violet-500' :
                     'bg-zinc-500/10 text-[var(--dash-text-secondary)]'
                   }`}>
-                    {p.role}
+                    {p.role || "pending"}
                   </span>
+                  
+                  {!p.organization_id && p.role !== "authorized" && (
+                    <button
+                      onClick={() => authorizeOnboarding(p.id)}
+                      disabled={loadingId === p.id}
+                      className="ml-3 inline-flex items-center rounded-lg bg-violet-600 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition-all hover:bg-violet-500 active:scale-95 disabled:opacity-50"
+                    >
+                      {loadingId === p.id ? "..." : "Liberar Onboarding"}
+                    </button>
+                  )}
                 </td>
                 <td className="px-6 py-4" style={{ color: "var(--dash-text-secondary)" }}>
                   {new Date(p.created_at).toLocaleDateString("pt-BR")}

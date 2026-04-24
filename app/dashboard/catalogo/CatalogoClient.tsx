@@ -81,6 +81,8 @@ function revokePreviewIfBlob(url: string | null) {
 
 export default function CatalogoPage() {
   const [canCreateProduct, setCanCreateProduct] = useState<boolean | null>(null);
+  const [productLimit, setProductLimit] = useState<number>(0);
+  const [productUsageCount, setProductUsageCount] = useState<number>(0);
   const [loadingLimit, setLoadingLimit] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -175,56 +177,18 @@ export default function CatalogoPage() {
     if (!user) return null;
 
     // 1. Tenta buscar o perfil pelo ID principal (que deve ser igual ao do usuário)
-    let { data: profile } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id, id")
+      .select("organization_id, id, organizations(plan_id, plans(*))")
       .eq("id", user.id)
       .maybeSingle();
 
-    // 2. Se não tem perfil ou não tem empresa, vamos criar agora
-    if (!profile || !profile.organization_id) {
-      // A. Criar a Organização com Slug Único (para evitar erro 409)
-      const uniqueSlug = `${user.user_metadata?.slug || "empresa"}-${Math.floor(Math.random() * 1000)}`;
-      
-      const { data: newOrg, error: orgError } = await supabase
-        .from("organizations")
-        .insert({ 
-          name: user.user_metadata?.full_name ? `Empresa de ${user.user_metadata.full_name}` : "Minha Empresa",
-          slug: uniqueSlug
-        })
-        .select()
-        .single();
-
-      if (orgError || !newOrg) return null;
-
-      // B. Criar ou Atualizar o Perfil
-      if (!profile) {
-        const { data: newProfile, error: profError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id, // Forçando o ID manual
-            user_id: user.id,
-            organization_id: newOrg.id,
-            full_name: user.user_metadata?.full_name || "Usuário",
-            role: "admin"
-          })
-          .select()
-          .maybeSingle();
-        
-        if (profError) return null;
-        profile = newProfile;
-      } else {
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ organization_id: newOrg.id, role: "admin" })
-          .eq("id", user.id);
-        
-        if (updateError) return null;
-        profile.organization_id = newOrg.id;
-      }
+    if (profile?.organizations?.plans) {
+      const plan = (profile.organizations as any).plans;
+      setProductLimit(plan.max_products || 20);
     }
 
-    return profile?.organization_id ?? null;
+    return (profile?.organization_id as string) ?? null;
   }
 
   async function fetchCatalog(orgId: string): Promise<string | null> {
@@ -346,10 +310,10 @@ export default function CatalogoPage() {
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Erro ao buscar produtos:", error);
-    } else if (data) {
-      setProducts((data ?? []) as unknown as ProductRow[]);
+    if (data) {
+      const prodList = (data ?? []) as unknown as ProductRow[];
+      setProducts(prodList);
+      setProductUsageCount(prodList.length);
     }
 
     setLoadingProducts(false);
@@ -951,12 +915,37 @@ export default function CatalogoPage() {
   );
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Catálogo</h1>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-white">Catálogo</h1>
+          <p className="text-sm text-zinc-500">
+            Gestão dos produtos e categorias exibidos no catálogo.
+          </p>
+        </div>
 
-      <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-        Gestão dos produtos e categorias exibidos no catálogo.
-      </p>
+        {/* Product Limit Indicator */}
+        <div className="flex flex-col gap-2 rounded-2xl bg-white/5 p-4 border border-white/5 min-w-[240px]">
+          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            <span>Uso do Plano</span>
+            <span className={productUsageCount >= productLimit ? "text-red-400" : "text-emerald-400"}>
+              {productUsageCount} / {productLimit} Produtos
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min((productUsageCount / productLimit) * 100, 100)}%` }}
+              className={`h-full rounded-full transition-colors ${
+                productUsageCount >= productLimit ? "bg-red-500" : "bg-emerald-500"
+              }`}
+            />
+          </div>
+          <p className="text-[10px] text-zinc-600">
+            {Math.round((productUsageCount / productLimit) * 100)}% do limite utilizado
+          </p>
+        </div>
+      </div>
 
       {!loadingProducts && !loadingCategories && !catalogId && (
         <div className="mt-8 flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-3xl" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>

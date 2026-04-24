@@ -18,7 +18,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [nome, setNome] = useState("Carregando...");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [role, setRole] = useState("admin");
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | null>(null);
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -52,7 +52,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           .maybeSingle();
 
         if (profError || !profile) {
-          setBusinessModel("B2B");
+          router.push("/onboarding");
           return;
         }
 
@@ -61,7 +61,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         const configs: Record<string, string> = {};
         configRows?.forEach(r => configs[r.key] = r.value);
 
-        const currentRole = profile.role || "admin";
+        const currentRole = profile.role || "pending";
         setRole(currentRole);
 
         setNotice({
@@ -89,17 +89,30 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             .maybeSingle();
           
           if (org?.business_model) {
-            setBusinessModel(org.business_model as "B2B" | "B2C");
+            setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
           } else {
-            setBusinessModel("B2B");
+            router.push("/onboarding");
           }
         } else {
-          setBusinessModel("B2B");
+          router.push("/onboarding");
+          return;
         }
 
         setNome(profile.full_name || "Usuário");
         setAvatar(profile.avatar_url || null);
         setSlug(profile.slug || null);
+
+        // Bloqueio de Onboarding se não autorizado
+        if (!profile.organization_id) {
+          if (currentRole === "authorized") {
+            if (pathname !== "/onboarding") {
+              router.push("/onboarding");
+            }
+          } else {
+            // Se não for autorizado e não tiver organização, fica no estado "pending"
+            // que mostraremos abaixo
+          }
+        }
 
       } catch (err) {
         console.error("Erro no loadData:", err);
@@ -133,6 +146,31 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   }
 
   if (businessModel === null) {
+    // Se o usuário não tem organização e não é autorizado, mostra tela de espera
+    if (!slug && role === "pending") {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-[var(--dash-bg)] text-[var(--dash-text-primary)] p-6">
+          <div className="max-w-md text-center space-y-6">
+            <div className="mx-auto w-20 h-20 bg-amber-500/10 text-amber-500 rounded-3xl flex items-center justify-center">
+              <Clock size={40} />
+            </div>
+            <h1 className="text-2xl font-bold">Acesso em Análise</h1>
+            <p className="text-[var(--dash-text-secondary)]">
+              Olá! Recebemos seu cadastro. Durante esta fase Beta, o Super Admin precisa liberar seu acesso manualmente para que você possa escolher seu modelo de negócio e configurar seu perfil.
+            </p>
+            <div className="pt-4">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-bold text-red-500 hover:underline"
+              >
+                Sair da conta
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--dash-bg)] text-[var(--dash-text-primary)]">
         <div className="flex flex-col items-center gap-4">

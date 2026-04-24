@@ -123,21 +123,39 @@ export default function BulkGridEditor() {
   // Fetch initial data
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id, full_name")
-        .eq("id", user.id)
-        .single();
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("organization_id, full_name")
+          .eq("id", user.id)
+          .maybeSingle();
 
-      if (profile?.organization_id) {
+        if (profileError) throw profileError;
+        if (!profile?.organization_id) return;
+
         setUserId(user.id);
         setUserName(profile.full_name || "Membro");
         setOrgId(profile.organization_id);
         
-        // Fetch Catalog
+        // 1. Fetch products (primary data)
+        const { data: prods, error: prodsError } = await supabase
+          .from("products")
+          .select("id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, category_id, updated_at")
+          .eq("organization_id", profile.organization_id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false });
+
+        if (prodsError) throw prodsError;
+
+        setData((prods || []).map(p => ({
+          ...p,
+          has_wholesale: !!p.has_wholesale
+        })));
+
+        // 2. Fetch Catalog & Categories
         const { data: orgCatalog } = await supabase
           .from("organization_catalogs")
           .select("catalog_id")
@@ -147,29 +165,17 @@ export default function BulkGridEditor() {
 
         if (orgCatalog?.catalog_id) {
           setCatalogId(orgCatalog.catalog_id);
-          
-          // Fetch Categories
           const { data: cats } = await supabase
             .from("categories")
             .select("id, name")
             .eq("catalog_id", orgCatalog.catalog_id);
           setCategories(cats || []);
-
-          // Fetch Products
-          const { data: prods } = await supabase
-            .from("products")
-            .select("id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, category_id, updated_at")
-            .eq("organization_id", profile.organization_id)
-            .is("deleted_at", null)
-            .order("created_at", { ascending: false });
-
-          setData((prods || []).map(p => ({
-            ...p,
-            has_wholesale: !!p.has_wholesale
-          })));
         }
+      } catch (err) {
+        console.error("Erro ao carregar dados do Bulk Editor:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     init();

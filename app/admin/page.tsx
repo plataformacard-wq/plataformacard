@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getInviteCode } from "@/lib/admin-actions";
 import UserList from "./UserList";
-import { Building2, Users, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { Building2, Users, LayoutDashboard, ShieldCheck, BookOpen } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,8 @@ export default async function AdminDashboardPage() {
   // 1. Total Organizations
   const { count: orgCount } = await supabase
     .from("organizations")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .neq("name", "Start - Super Admin");
 
   // 2. Total B2C Users
   const { count: b2cCount } = await supabase
@@ -41,6 +42,11 @@ export default async function AdminDashboardPage() {
   // 6. Total Categories
   const { count: categoryCount } = await supabase
     .from("categories")
+    .select("*", { count: "exact", head: true });
+
+  // 7. Total Catalogs
+  const { count: catalogCount } = await supabase
+    .from("catalogs")
     .select("*", { count: "exact", head: true });
 
   // List recent signups with organization data
@@ -83,47 +89,60 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Grid Principal de Métricas */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Card: Total Empresas */}
-        <div className="rounded-3xl border p-8 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="rounded-3xl border p-6 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Total de Empresas</p>
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <Building2 size={20} />
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Total de Empresas</p>
+            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Building2 size={16} />
             </div>
           </div>
-          <p className="text-5xl font-black" style={{ color: "var(--dash-text-primary)" }}>{orgCount || 0}</p>
-          <div className="mt-4 flex items-center gap-2 text-emerald-500 font-bold text-xs bg-emerald-500/10 w-fit px-2 py-1 rounded-full">
-            <span className="flex items-center gap-0.5">↑ 12%</span>
-            <span className="text-[10px] opacity-70">este mês</span>
+          <p className="text-4xl font-black" style={{ color: "var(--dash-text-primary)" }}>{orgCount || 0}</p>
+          <div className="mt-4 flex items-center gap-2 text-emerald-500 font-bold text-[10px] bg-emerald-500/10 w-fit px-2 py-0.5 rounded-full">
+            <span>↑ 12%</span>
           </div>
         </div>
 
         {/* Card: Total Usuários */}
-        <div className="rounded-3xl border p-8 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="rounded-3xl border p-6 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Total de Usuários</p>
-            <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-              <Users size={20} />
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Total de Usuários</p>
+            <div className="h-8 w-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+              <Users size={16} />
             </div>
           </div>
-          <p className="text-5xl font-black" style={{ color: "var(--dash-text-primary)" }}>{(b2bCount || 0) + (b2cCount || 0) + (sellerCount || 0)}</p>
-          <p className="mt-2 text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
-            {b2bCount || 0} B2B · {b2cCount || 0} B2C · {sellerCount || 0} Vendedores
+          <p className="text-4xl font-black" style={{ color: "var(--dash-text-primary)" }}>{(b2bCount || 0) + (b2cCount || 0) + (sellerCount || 0)}</p>
+          <p className="mt-2 text-[10px] font-medium truncate" style={{ color: "var(--dash-text-secondary)" }}>
+            {b2bCount || 0} B2B · {b2cCount || 0} B2C · {sellerCount || 0} Vend.
+          </p>
+        </div>
+
+        {/* Card: Catálogos Ativos */}
+        <div className="rounded-3xl border p-6 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Catálogos Ativos</p>
+            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+              <BookOpen size={16} />
+            </div>
+          </div>
+          <p className="text-4xl font-black" style={{ color: "var(--dash-text-primary)" }}>{catalogCount || 0}</p>
+          <p className="mt-2 text-[10px] font-medium" style={{ color: "var(--dash-text-secondary)" }}>
+            Infraestrutura de exibição
           </p>
         </div>
 
         {/* Card: Inventário Global */}
-        <div className="rounded-3xl border p-8 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="rounded-3xl border p-6 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Itens Cadastrados</p>
-            <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-              <LayoutDashboard size={20} />
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Itens Cadastrados</p>
+            <div className="h-8 w-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+              <LayoutDashboard size={16} />
             </div>
           </div>
-          <p className="text-5xl font-black" style={{ color: "var(--dash-text-primary)" }}>{productCount || 0}</p>
-          <p className="mt-2 text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
-            {categoryCount || 0} Categorias criadas em toda a plataforma
+          <p className="text-4xl font-black" style={{ color: "var(--dash-text-primary)" }}>{productCount || 0}</p>
+          <p className="mt-2 text-[10px] font-medium" style={{ color: "var(--dash-text-secondary)" }}>
+            {categoryCount || 0} Categorias globais
           </p>
         </div>
       </div>

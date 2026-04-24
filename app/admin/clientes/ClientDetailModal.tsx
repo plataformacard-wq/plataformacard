@@ -65,7 +65,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   }, [isOpen, organization?.id, supabase]);
 
   // Lógica de Contrato
-  const adherenceDate = new Date(organization.created_at);
+  const adherenceDate = organization?.created_at ? new Date(organization.created_at) : new Date();
   const expirationDate = new Date(adherenceDate);
   expirationDate.setFullYear(adherenceDate.getFullYear() + 1); // 12 meses padrão
 
@@ -75,7 +75,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
 
   const [showContract, setShowContract] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen || !organization) return null;
 
   return (
     <AnimatePresence>
@@ -130,7 +130,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                    <div className="flex items-center gap-2">
                      <div className="h-1 w-1 rounded-full bg-[var(--dash-border)]" />
                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                      PLANO: {organization.plan || 'STANDARD'}
+                      PLANO: {organization.plan_id || 'STANDARD'}
                      </span>
                    </div>
                 </div>
