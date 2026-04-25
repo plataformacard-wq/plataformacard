@@ -20,6 +20,14 @@ O projeto encontra-se na fase de **Consolidação e Refinamento de UX/UI**. Apó
 - **RBAC (Controle de Acesso)**: Papéis de Super Admin, Gestor, Vendedor e `caas_admin`.
 - **Blindagem**: Sistema de proteção e integridade para catálogos e acessos.
 
+## 🛡️ Protocolo de Robustez e Qualidade (Solo Dev)
+Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguimos rigorosamente este protocolo em cada nova implementação:
+
+1. **Componentização Estratégica**: Evitar arquivos gigantes. Funcionalidades complexas (Modais, Drawers, Grids) devem ser extraídas para componentes menores e reutilizáveis.
+2. **Clean Code & Documentação**: Lógicas críticas, cálculos de preço ou integrações com o banco devem conter comentários explicativos ("O porquê" e não apenas "o quê").
+3. **Refatoração Preventiva**: Antes de cada grande mudança, avaliamos a saúde do arquivo. Se houver dívida técnica ou desorganização, a limpeza precede a nova funcionalidade.
+4. **Segurança no Banco (RLS)**: Toda lógica de visibilidade deve ser espelhada nas políticas de Row Level Security do Supabase, garantindo que o front-end seja apenas um reflexo da segurança do back-end.
+
 ### 📊 Dashboard do Usuário (Gestor/Vendedor)
 - **Catálogo Inteligente**: Edição em massa de produtos (Bulk Editor) via interface tipo planilha.
 - **Gestão de Imagens**: Sistema de upload com crop automático e compressão no cliente para otimização de storage.

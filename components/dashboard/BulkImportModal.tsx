@@ -8,7 +8,10 @@ import {
   Check, 
   AlertCircle, 
   Loader2, 
-  ArrowRight,
+  ArrowRight, 
+  ArrowLeft,
+  FileSpreadsheet,
+  ExternalLink,
   Database,
   Table as TableIcon,
   ChevronRight
@@ -48,14 +51,49 @@ export default function BulkImportModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
+  // Gera um arquivo Excel (.xlsx) dinâmico com as categorias do cliente
+  const generateTemplate = () => {
+    const templateHeaders = [
+      "Nome do Produto", 
+      "Preço Venda", 
+      "Preço Atacado", 
+      "Qtd Mínima Atacado", 
+      "SKU", 
+      "Categoria", 
+      "Descrição", 
+      "Especificações Técnicas (Ex: Cor:Preto | Material:Alumínio)"
+    ];
+    
+    const exampleData = [
+      [
+        "Exemplo: Scooter X1", 
+        "2500.00", 
+        "2200.00", 
+        "5", 
+        "SC-001", 
+        categories[0]?.name || "Geral", 
+        "Descrição curta aqui...", 
+        "Cor:Preto | Material:Alumínio | Autonomia:40km"
+      ]
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
+    const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
+    XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
+    XLSX.writeFile(wb, "modelo_full_plataformacard.xlsx");
+  };
+
   const productFields = [
     { key: "name", label: "Nome do Produto", required: true },
     { key: "description", label: "Descrição", required: false },
-    { key: "price", label: "Preço", required: false },
-    { key: "sku", label: "SKU", required: false },
-    { key: "category_name", label: "Nome da Categoria", required: false },
+    { key: "price", label: "Preço Venda", required: false },
     { key: "wholesale_price", label: "Preço Atacado", required: false },
     { key: "wholesale_min_quantity", label: "Qtd Mín. Atacado", required: false },
+    { key: "sku", label: "SKU", required: false },
+    { key: "category_name", label: "Nome da Categoria", required: false },
+    { key: "specs_string", label: "Especificações Técnicas", required: false },
   ];
 
   if (!isOpen) return null;
@@ -128,12 +166,23 @@ export default function BulkImportModal({
           catalog_id: catalogId,
           name: row[mapping["name"]],
           description: row[mapping["description"]],
-          price: parseFloat(row[mapping["price"]]) || 0,
+          price: parseFloat(String(row[mapping["price"]]).replace(",", ".")) || 0,
           sku: row[mapping["sku"]],
-          wholesale_price: parseFloat(row[mapping["wholesale_price"]]) || null,
+          wholesale_price: parseFloat(String(row[mapping["wholesale_price"]]).replace(",", ".")) || null,
           wholesale_min_quantity: parseInt(row[mapping["wholesale_min_quantity"]]) || null,
           has_wholesale: !!row[mapping["wholesale_price"]],
         };
+
+        // Lógica de Especificações Técnicas (Conversor String -> JSON)
+        const specsRaw = row[mapping["specs_string"]];
+        if (specsRaw && typeof specsRaw === "string") {
+          // Exemplo esperado: "Cor:Preto | Material:Alumínio"
+          const specParts = specsRaw.split("|");
+          product.specs = specParts.map(part => {
+            const [label, value] = part.split(":").map(s => s.trim());
+            return { label: label || "", value: value || "" };
+          }).filter(s => s.label);
+        }
 
         // Match category
         const catName = row[mapping["category_name"]];
@@ -210,11 +259,41 @@ export default function BulkImportModal({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex flex-col items-center justify-center py-12"
+                className="space-y-6"
               >
+                {/* Seção de Modelos (Híbrida) */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={generateTemplate}
+                    className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-[var(--dash-border)] rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group"
+                  >
+                    <div className="p-3 bg-green-100 text-green-600 rounded-xl group-hover:scale-110 transition-transform">
+                      <FileSpreadsheet size={24} />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-bold text-sm">Baixar Modelo Excel</p>
+                      <p className="text-[10px] text-[var(--dash-text-muted)]">Já com suas categorias</p>
+                    </div>
+                  </button>
+
+                  <a 
+                    href="https://docs.google.com/spreadsheets/d/1_S6PqH_Yw7fXJp_Q7OqH6_Qz_X_M_G_Q/copy"
+                    target="_blank"
+                    className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-[var(--dash-border)] rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group"
+                  >
+                    <div className="p-3 bg-blue-100 text-blue-600 rounded-xl group-hover:scale-110 transition-transform">
+                      <ExternalLink size={24} />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-bold text-sm">Usar Google Sheets</p>
+                      <p className="text-[10px] text-[var(--dash-text-muted)]">Abrir modelo na nuvem</p>
+                    </div>
+                  </a>
+                </div>
+
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full max-w-lg border-2 border-dashed rounded-[32px] p-12 flex flex-col items-center gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                  className="w-full border-2 border-dashed rounded-[32px] p-12 flex flex-col items-center gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
                   style={{ borderColor: "var(--dash-border)" }}
                 >
                   <div className="h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">

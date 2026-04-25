@@ -24,9 +24,11 @@ interface SidebarProps {
   businessModel: "B2B" | "B2C" | "CaaS";
   isOpen: boolean;
   onClose: () => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (val: boolean) => void;
 }
 
-export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, setIsCollapsed }: SidebarProps) {
   const pathname = usePathname();
   const [currentHash, setCurrentHash] = useState("");
 
@@ -103,29 +105,50 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
         onClick={onClose}
       />
 
-      {/* Sidebar */}
+      {/* Sidebar Container */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform border-r bg-[var(--dash-bg)] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 transform border-r transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } ${
+          isCollapsed ? "w-20" : "w-72"
+        }`}
+        style={{ backgroundColor: "#1e1e1e", borderColor: "#2c3338" }}
       >
-        <div className="flex h-full flex-col px-4 py-6">
-          <div className="mb-10 flex items-center justify-between px-2">
+        <div className="flex h-full flex-col py-6 relative">
+          {/* Collapse Toggle Button (Desktop) */}
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-12 hidden lg:flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-md border border-[var(--dash-surface)] z-50 hover:scale-110 transition-transform"
+          >
+            <ChevronDown 
+              size={14} 
+              className={`transition-transform duration-300 ${isCollapsed ? "-rotate-90" : "rotate-90"}`} 
+            />
+          </button>
+
+          {/* Logo Area */}
+          <div className={`mb-10 flex items-center px-4 ${isCollapsed ? "justify-center" : "justify-between"}`}>
             <Link href="/dashboard" className="flex items-center gap-2 group">
-              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+              <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
                 <span className="text-white font-bold text-sm">P</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-base font-bold tracking-tight leading-none text-[var(--dash-text-primary)]">PlataformaCard</span>
-                <span className="text-[10px] text-[var(--dash-text-muted)] font-medium uppercase tracking-wider">
-                  {role === "superadmin" ? "Centro de Inteligência" : (businessModel === "B2B" ? "Painel de gestão empresarial" : "Painel Gestor")}
-                </span>
-              </div>
+              {!isCollapsed && (
+                <div className="flex flex-col overflow-hidden whitespace-nowrap transition-all">
+                  <span className="text-base font-bold tracking-tight leading-none text-white">PlataformaCard</span>
+                  <span className="text-[10px] text-[#a7aaad] font-medium uppercase tracking-wider">
+                    {role === "superadmin" ? "Centro de Inteligência" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor")}
+                  </span>
+                </div>
+              )}
             </Link>
-            <button onClick={onClose} className="rounded-lg p-1 hover:bg-[var(--dash-hover-bg)] lg:hidden">
-              <X size={20} />
-            </button>
+            {!isCollapsed && (
+              <button onClick={onClose} className="rounded-lg p-1 text-[#a7aaad] hover:bg-[#2c3338] lg:hidden">
+                <X size={20} />
+              </button>
+            )}
           </div>
 
-          <nav className="flex-1 space-y-1 overflow-y-auto pr-2 custom-scrollbar">
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
             {navLinks.map((item: any) => {
               const hasSubItems = item.subItems && item.subItems.length > 0;
               const isMenuOpen = openMenus.includes(item.label);
@@ -140,23 +163,31 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
                   <div key={item.label} className="space-y-1">
                     <button
                       onClick={() => toggleMenu(item.label)}
-                      className={`group relative flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                      className={`group relative flex w-full items-center justify-between rounded-xl p-3 text-sm font-medium transition-all ${
                         isActive 
-                          ? "text-primary bg-primary/5" 
-                          : "text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-[var(--dash-text-primary)]"
-                      }`}
+                          ? "text-white bg-primary" 
+                          : "text-[#a7aaad] hover:bg-[#2c3338] hover:text-white"
+                      } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
+                      title={isCollapsed ? item.label : ""}
                     >
                       <div className="flex items-center gap-3">
-                        {isActive && (
-                          <div className="absolute left-0 h-6 w-1 rounded-r-full bg-primary" />
-                        )}
-                        <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                        <span>{item.label}</span>
+                        <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                        {!isCollapsed && <span>{item.label}</span>}
                       </div>
-                      <ChevronDown 
-                        size={16} 
-                        className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
-                      />
+                      {!isCollapsed && (
+                        <ChevronDown 
+                          size={16} 
+                          className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
+                        />
+                      )}
+                      {isCollapsed && hasSubItems && (
+                        <div className="absolute right-[-12px] top-1/2 -translate-y-1/2 opacity-30">
+                          <ChevronDown 
+                            size={14} 
+                            className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
+                          />
+                        </div>
+                      )}
                     </button>
                     
                     <AnimatePresence>
@@ -166,7 +197,7 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.3, ease: "easeInOut" }}
-                          className="overflow-hidden pl-10 space-y-1"
+                          className={`overflow-hidden space-y-1 ${isCollapsed ? "px-0 flex flex-col items-center" : "pl-10"}`}
                         >
                           {item.subItems.map((sub: any) => {
                             const isSubActive = pathname === sub.href;
@@ -174,17 +205,17 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
                               <Link
                                 key={sub.href}
                                 href={sub.href}
-                                onClick={() => { 
-                                  if (window.innerWidth < 1024) onClose(); 
-                                }}
-                                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                                className={`flex items-center gap-2 rounded-lg transition-all ${
+                                  isCollapsed ? "p-2 justify-center" : "px-3 py-2 text-xs"
+                                } ${
                                   isSubActive 
-                                    ? "text-primary bg-primary/5" 
-                                    : "text-[var(--dash-text-secondary)] hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-hover-bg)]"
+                                    ? "text-white font-bold" 
+                                    : "text-[#a7aaad] hover:text-white"
                                 }`}
+                                title={isCollapsed ? sub.label : ""}
                               >
-                                {sub.icon && <sub.icon size={14} />}
-                                {sub.label}
+                                {sub.icon && <sub.icon size={isCollapsed ? 18 : 14} />}
+                                {!isCollapsed && sub.label}
                               </Link>
                             );
                           })}
@@ -199,46 +230,35 @@ export function Sidebar({ role, businessModel, isOpen, onClose }: SidebarProps) 
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => { 
-                    if (window.innerWidth < 1024) onClose();
-                    // Forçar atualização do hash para o indicador reagir na hora
-                    if (item.href.includes("#")) {
-                      setCurrentHash(item.href.split("#")[1]);
-                    } else {
-                      setCurrentHash("");
-                    }
-                  }}
-                  className={`group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                  className={`group relative flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-all ${
                     isActive 
-                      ? "text-primary bg-primary/5" 
-                      : "text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-[var(--dash-text-primary)]"
-                  }`}
+                      ? "text-white bg-primary" 
+                      : "text-[#a7aaad] hover:bg-[#2c3338] hover:text-white"
+                  } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
+                  title={isCollapsed ? item.label : ""}
                 >
-                  <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                  {item.label}
+                  <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                  {!isCollapsed && <span>{item.label}</span>}
                   
-                  {isActive && (
-                    <>
-                      <motion.div
-                        layoutId="sidebar-active"
-                        className="absolute inset-0 bg-primary/10 rounded-xl -z-10"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                      <div className="absolute left-0 h-6 w-1 rounded-r-full bg-primary" />
-                    </>
+                  {isActive && !isCollapsed && (
+                    <div className="absolute left-0 h-6 w-1 rounded-r-full bg-white/50" />
                   )}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="mt-auto rounded-2xl bg-gradient-to-br from-primary/5 to-transparent p-4 border border-primary/10">
-            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Status do Sistema</p>
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-medium text-[var(--dash-text-secondary)]">Operacional</span>
+          {!isCollapsed && (
+            <div className="mt-auto px-4 pb-6">
+              <div className="rounded-2xl bg-white/5 p-4 border border-white/10">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Status do Sistema</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs font-medium text-[#a7aaad]">Operacional</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </aside>
     </>

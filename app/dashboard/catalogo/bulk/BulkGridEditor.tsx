@@ -18,8 +18,19 @@ import {
   CheckCircle2,
   Image as ImageIcon,
   ChevronDown,
-  GripVertical
+  GripVertical,
+  Settings2,
+  X,
+  PlusCircle,
+  ExternalLink,
+  Download,
+  FileUp,
+  FileSpreadsheet,
+  Search,
+  RefreshCw,
+  Database
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import { motion, AnimatePresence } from "framer-motion";
 import BulkImportModal from "@/components/dashboard/BulkImportModal";
 
@@ -42,7 +53,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Database, FileUp } from "lucide-react";
 
 type Category = {
   id: string;
@@ -169,6 +179,8 @@ const DraggableRow = ({ row, children }: any) => {
   );
 };
 
+import ProductDetailDrawer from "@/components/dashboard/ProductDetailDrawer";
+
 export default function BulkGridEditor() {
   const [data, setData] = useState<ProductRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -181,6 +193,8 @@ export default function BulkGridEditor() {
   const [presence, setPresence] = useState<{ user: string; color: string }[]>([]);
   const [showNoCategoryModal, setShowNoCategoryModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
+  const editingProduct = editingRowIndex !== null ? data[editingRowIndex] : null;
   
   const supabase = createClient();
 
@@ -416,6 +430,20 @@ export default function BulkGridEditor() {
         size: 40,
       },
       {
+        id: "edit-details",
+        header: "",
+        cell: ({ row }) => (
+          <button 
+            onClick={() => setEditingRowIndex(row.index)}
+            className="p-2 text-[var(--dash-text-muted)] hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+            title="Editar todos os detalhes"
+          >
+            <Settings2 size={18} />
+          </button>
+        ),
+        size: 50,
+      },
+      {
         accessorKey: "name",
         header: "Nome do Produto",
         cell: (props) => <EditableCell {...props} updateData={updateData} />,
@@ -565,6 +593,46 @@ export default function BulkGridEditor() {
           >
             <FileUp size={18} />
             Importar CSV/Excel
+          </button>
+
+          {/* Botão de Download de Modelo Direto */}
+          <button
+            onClick={() => {
+              // Reutiliza a lógica de geração de template FULL
+              const templateHeaders = [
+                "Nome do Produto", 
+                "Preço Venda", 
+                "Preço Atacado", 
+                "Qtd Mínima Atacado", 
+                "SKU", 
+                "Categoria", 
+                "Descrição", 
+                "Especificações Técnicas (Ex: Cor:Preto | Material:Alumínio)"
+              ];
+              const exampleData = [
+                [
+                  "Exemplo: Scooter X1", 
+                  "2500.00", 
+                  "2200.00", 
+                  "5", 
+                  "SC-001", 
+                  categories[0]?.name || "Geral", 
+                  "Descrição curta aqui...", 
+                  "Cor:Preto | Material:Alumínio | Autonomia:40km"
+                ]
+              ];
+              const wb = XLSX.utils.book_new();
+              const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
+              const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
+              XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
+              XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
+              XLSX.writeFile(wb, "modelo_full_plataformacard.xlsx");
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
+            title="Baixar planilha modelo configurada"
+          >
+            <Download size={18} />
+            Baixar Modelo
           </button>
 
           <button
@@ -731,6 +799,19 @@ export default function BulkGridEditor() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Product Detail Drawer */}
+      <AnimatePresence>
+        {editingProduct && editingRowIndex !== null && (
+          <ProductDetailDrawer 
+            product={editingProduct}
+            rowIndex={editingRowIndex}
+            categories={categories}
+            updateData={updateData}
+            onClose={() => setEditingRowIndex(null)}
+          />
         )}
       </AnimatePresence>
 

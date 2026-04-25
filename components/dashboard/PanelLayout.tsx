@@ -23,6 +23,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [slug, setSlug] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
 
@@ -34,6 +35,12 @@ export function PanelLayout({ children }: PanelLayoutProps) {
       document.documentElement.setAttribute("data-theme", "dark");
     } else {
       document.documentElement.removeAttribute("data-theme");
+    }
+
+    // Sidebar Collapsed
+    const collapsed = localStorage.getItem("dash-sidebar-collapsed");
+    if (collapsed === "true") {
+      setIsSidebarCollapsed(true);
     }
 
     async function loadData() {
@@ -189,6 +196,11 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         businessModel={businessModel}
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={(val: boolean) => {
+          setIsSidebarCollapsed(val);
+          localStorage.setItem("dash-sidebar-collapsed", String(val));
+        }}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
