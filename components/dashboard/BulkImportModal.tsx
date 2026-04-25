@@ -202,7 +202,7 @@ export default function BulkImportModal({
             setError("A planilha parece estar vazia.");
           }
         },
-        error: (err) => setError("Erro ao processar dados da planilha: " + err.message)
+        error: (err: any) => setError("Erro ao processar dados da planilha: " + err.message)
       });
 
     } catch (err: any) {
