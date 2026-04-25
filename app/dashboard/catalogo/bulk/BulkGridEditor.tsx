@@ -568,72 +568,65 @@ export default function BulkGridEditor() {
     <div className="flex flex-col gap-4">
       {/* --- Toolbar --- */}
       <div className="flex items-center justify-between bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
+          {/* Gestão em Massa */}
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all border-none"
+          >
+            <Database size={18} />
+            Importar & Sincronizar
+          </button>
+
+          <button
+            onClick={() => {
+              const templateHeaders = ["Nome do Produto", "Preço Venda", "Preço Atacado", "Qtd Mínima Atacado", "SKU", "Categoria", "Descrição", "Especificações Técnicas"];
+              const exampleData = [["Exemplo: Scooter X1", "2500.00", "2200.00", "5", "SC-001", categories[0]?.name || "Geral", "Descrição curta aqui...", "Cor:Preto | Material:Alumínio"]];
+              const wb = XLSX.utils.book_new();
+              const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
+              ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+              ws['!protect'] = { password: 'plataformacard' };
+              const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
+              XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
+              XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
+              XLSX.writeFile(wb, "plataformacard_v1.0.xlsx");
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-secondary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
+            title="Baixar planilha modelo v1.0"
+          >
+            <Download size={18} />
+            Modelo
+          </button>
+
+          <div className="h-6 w-px bg-[var(--dash-border)] mx-1" />
+
+          {/* Edição Manual */}
           <button
             onClick={addRow}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
           >
             <Plus size={18} />
             Novo Produto
           </button>
 
           <button
-            onClick={() => setShowImportModal(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
+            onClick={saveChanges}
+            disabled={saving || data.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-900/20"
           >
-            <FileUp size={18} />
-            Importar CSV/Excel
-          </button>
-
-          {/* Botão de Download de Modelo Direto */}
-          <button
-            onClick={() => {
-              // Reutiliza a lógica de geração de template FULL
-              const templateHeaders = [
-                "Nome do Produto", 
-                "Preço Venda", 
-                "Preço Atacado", 
-                "Qtd Mínima Atacado", 
-                "SKU", 
-                "Categoria", 
-                "Descrição", 
-                "Especificações Técnicas (Ex: Cor:Preto | Material:Alumínio)"
-              ];
-              const exampleData = [
-                [
-                  "Exemplo: Scooter X1", 
-                  "2500.00", 
-                  "2200.00", 
-                  "5", 
-                  "SC-001", 
-                  categories[0]?.name || "Geral", 
-                  "Descrição curta aqui...", 
-                  "Cor:Preto | Material:Alumínio | Autonomia:40km"
-                ]
-              ];
-              const wb = XLSX.utils.book_new();
-              const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
-              const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
-              XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
-              XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
-              XLSX.writeFile(wb, "modelo_full_plataformacard.xlsx");
-            }}
-            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
-            title="Baixar planilha modelo configurada"
-          >
-            <Download size={18} />
-            Baixar Modelo
+            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            Salvar Grid
           </button>
 
           <button
             onClick={refreshData}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all disabled:opacity-50"
-            title="Sincronizar com o banco de dados"
+            className="p-2.5 border border-[var(--dash-border)] text-[var(--dash-text-muted)] rounded-xl hover:bg-[var(--dash-hover-bg)] transition-all"
+            title="Atualizar dados do banco"
           >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
-            Sincronizar
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           </button>
+        </div>
           
           {presence.length > 1 && (
             <div className="flex items-center gap-2">

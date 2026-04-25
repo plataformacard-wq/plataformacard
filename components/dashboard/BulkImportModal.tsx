@@ -14,7 +14,8 @@ import {
   ExternalLink,
   Database,
   Table as TableIcon,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Papa from "papaparse";
@@ -48,10 +49,13 @@ export default function BulkImportModal({
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, created: 0, updated: 0, failed: 0 });
   
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [isFetchingUrl, setIsFetchingUrl] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
-  // Gera um arquivo Excel (.xlsx) dinâmico com as categorias do cliente
+  // Gera um arquivo Excel (.xlsx) dinâmico com as categorias do cliente v1.0
   const generateTemplate = () => {
     const templateHeaders = [
       "Nome do Produto", 
@@ -61,7 +65,7 @@ export default function BulkImportModal({
       "SKU", 
       "Categoria", 
       "Descrição", 
-      "Especificações Técnicas (Ex: Cor:Preto | Material:Alumínio)"
+      "Especificações Técnicas"
     ];
     
     const exampleData = [
@@ -79,10 +83,32 @@ export default function BulkImportModal({
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
+    
+    // Trava a primeira linha (Cabeçalho)
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    // Ativa a proteção da planilha (Trancar Títulos)
+    ws['!protect'] = {
+      password: 'plataformacard',
+      selectLockedCells: true,
+      selectUnlockedCells: true,
+      formatCells: false,
+      formatColumns: false,
+      formatRows: false,
+      insertColumns: false,
+      insertRows: true,
+      insertHyperlinks: true,
+      deleteColumns: false,
+      deleteRows: true,
+      sort: true,
+      autoFilter: true,
+      pivotTables: false
+    };
+
     const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
     XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
     XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
-    XLSX.writeFile(wb, "modelo_full_plataformacard.xlsx");
+    XLSX.writeFile(wb, "plataformacard_v1.0.xlsx");
   };
 
   const productFields = [
@@ -140,6 +166,52 @@ export default function BulkImportModal({
     }
   };
 
+  const handleFetchSheet = async () => {
+    if (!sheetUrl.includes("docs.google.com/spreadsheets")) {
+      setError("Por favor, insira um link válido do Google Sheets.");
+      return;
+    }
+
+    setIsFetchingUrl(true);
+    setError(null);
+
+    try {
+      // O "Pulo do Gato": Converte o link de edição em um link de exportação CSV direta
+      let fetchUrl = sheetUrl;
+      if (sheetUrl.includes("/edit")) {
+        fetchUrl = sheetUrl.split("/edit")[0] + "/export?format=csv";
+      } else if (!sheetUrl.endsWith("/export?format=csv")) {
+        fetchUrl = sheetUrl.replace(/\/$/, "") + "/export?format=csv";
+      }
+
+      const response = await fetch(fetchUrl);
+      if (!response.ok) throw new Error("Não foi possível acessar a planilha. Verifique se ela está compartilhada como 'Qualquer pessoa com o link'.");
+
+      const csvText = await response.text();
+      
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.data.length > 0) {
+            setHeaders(results.meta.fields || []);
+            setFileData(results.data);
+            autoMap(results.meta.fields || []);
+            setStep("mapping");
+          } else {
+            setError("A planilha parece estar vazia.");
+          }
+        },
+        error: (err) => setError("Erro ao processar dados da planilha: " + err.message)
+      });
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsFetchingUrl(false);
+    }
+  };
+
   const autoMap = (incomingHeaders: string[]) => {
     const newMapping: Record<string, string> = {};
     productFields.forEach(field => {
@@ -159,7 +231,40 @@ export default function BulkImportModal({
     let failed = 0;
 
     try {
-      // 1. Prepare data
+      // 1. Identificar categorias únicas na planilha
+      const uniqueSheetCategories = Array.from(new Set(
+        fileData.map(row => row[mapping["category_name"]])
+                .filter(name => name && typeof name === "string")
+                .map(name => name.trim())
+      ));
+
+      // 2. Verificar quais não existem e criá-las
+      const existingMap = new Map(categories.map(c => [c.name.toLowerCase(), c.id]));
+      const newCategoriesToCreate = uniqueSheetCategories.filter(name => !existingMap.has(name.toLowerCase()));
+      
+      const currentCategories = [...categories];
+
+      if (newCategoriesToCreate.length > 0) {
+        const { data: createdCats, error: catError } = await supabase
+          .from("categories")
+          .insert(newCategoriesToCreate.map(name => ({
+            name,
+            organization_id: orgId,
+            catalog_id: catalogId,
+            sort_order: 99 // Coloca no final por padrão
+          })))
+          .select();
+
+        if (catError) throw new Error("Erro ao criar novas categorias: " + catError.message);
+        if (createdCats) {
+          currentCategories.push(...createdCats);
+        }
+      }
+
+      // Mapa final atualizado com IDs novos e antigos
+      const finalCategoryMap = new Map(currentCategories.map(c => [c.name.toLowerCase(), c.id]));
+
+      // 3. Preparar produtos para inserção
       const productsToInsert = fileData.map(row => {
         const product: any = {
           organization_id: orgId,
@@ -176,7 +281,6 @@ export default function BulkImportModal({
         // Lógica de Especificações Técnicas (Conversor String -> JSON)
         const specsRaw = row[mapping["specs_string"]];
         if (specsRaw && typeof specsRaw === "string") {
-          // Exemplo esperado: "Cor:Preto | Material:Alumínio"
           const specParts = specsRaw.split("|");
           product.specs = specParts.map(part => {
             const [label, value] = part.split(":").map(s => s.trim());
@@ -184,19 +288,18 @@ export default function BulkImportModal({
           }).filter(s => s.label);
         }
 
-        // Match category
-        const catName = row[mapping["category_name"]];
-        if (catName) {
-          const cat = categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
-          if (cat) product.category_id = cat.id;
-        } else if (categories.length > 0) {
-          product.category_id = categories[0].id;
+        // Vincular à categoria (Nova ou Existente)
+        const catName = row[mapping["category_name"]]?.toString().trim().toLowerCase();
+        if (catName && finalCategoryMap.has(catName)) {
+          product.category_id = finalCategoryMap.get(catName);
+        } else if (currentCategories.length > 0) {
+          product.category_id = currentCategories[0].id;
         }
 
         return product;
       }).filter(p => p.name);
 
-      // 2. Insert in batches
+      // 4. Inserção de produtos em lotes
       const batchSize = 50;
       for (let i = 0; i < productsToInsert.length; i += batchSize) {
         const batch = productsToInsert.slice(i, i + batchSize);
@@ -261,55 +364,108 @@ export default function BulkImportModal({
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                {/* Seção de Modelos (Híbrida) */}
-                <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={generateTemplate}
-                    className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-[var(--dash-border)] rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group"
-                  >
-                    <div className="p-3 bg-green-100 text-green-600 rounded-xl group-hover:scale-110 transition-transform">
-                      <FileSpreadsheet size={24} />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-bold text-sm">Baixar Modelo Excel</p>
-                      <p className="text-[10px] text-[var(--dash-text-muted)]">Já com suas categorias</p>
-                    </div>
-                  </button>
+                {/* Novo Fluxo Guiado 1-2-3 */}
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                    {/* Linha Conectora (Desktop) */}
+                    <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-[var(--dash-border)] -z-0" />
 
-                  <a 
-                    href="https://docs.google.com/spreadsheets/d/1_S6PqH_Yw7fXJp_Q7OqH6_Qz_X_M_G_Q/copy"
-                    target="_blank"
-                    className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-[var(--dash-border)] rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group"
-                  >
-                    <div className="p-3 bg-blue-100 text-blue-600 rounded-xl group-hover:scale-110 transition-transform">
-                      <ExternalLink size={24} />
+                    {/* Passo 1 */}
+                    <div className="relative flex flex-col items-center text-center gap-4 group">
+                      <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+                        1
+                      </div>
+                      <div className="flex-1 p-6 rounded-[24px] border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
+                        <div className="p-3 bg-green-100 text-green-600 rounded-xl">
+                          <FileSpreadsheet size={24} />
+                        </div>
+                        <h4 className="font-bold text-sm">Baixar Modelo</h4>
+                        <p className="text-[10px] text-[var(--dash-text-muted)]">Template configurado com suas categorias.</p>
+                        <button 
+                          onClick={generateTemplate}
+                          className="mt-2 w-full py-2 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all"
+                        >
+                          Download Excel
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="font-bold text-sm">Usar Google Sheets</p>
-                      <p className="text-[10px] text-[var(--dash-text-muted)]">Abrir modelo na nuvem</p>
-                    </div>
-                  </a>
-                </div>
 
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed rounded-[32px] p-12 flex flex-col items-center gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
-                  style={{ borderColor: "var(--dash-border)" }}
-                >
-                  <div className="h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <Upload size={40} />
+                    {/* Passo 2 */}
+                    <div className="relative flex flex-col items-center text-center gap-4 group">
+                      <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+                        2
+                      </div>
+                      <div className="flex-1 p-6 rounded-[24px] border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
+                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                          <Upload size={24} />
+                        </div>
+                        <h4 className="font-bold text-sm">Subir no Sheets</h4>
+                        <p className="text-[10px] text-[var(--dash-text-muted)]">Arraste para o seu Google Drive e abra como Planilha.</p>
+                        <div className="mt-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-[9px] font-medium border border-blue-100">
+                          Compartilhe como "Qualquer pessoa com o link"
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Passo 3 */}
+                    <div className="relative flex flex-col items-center text-center gap-4 group">
+                      <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+                        3
+                      </div>
+                      <div className="flex-1 p-6 rounded-[24px] border border-primary bg-primary/5 transition-all w-full flex flex-col items-center gap-3 shadow-xl shadow-primary/5">
+                        <div className="p-3 bg-primary text-white rounded-xl">
+                          <RefreshCw size={24} />
+                        </div>
+                        <h4 className="font-bold text-sm text-primary">Conectar & Sync</h4>
+                        <p className="text-[10px] text-[var(--dash-text-muted)]">Cole o link da planilha abaixo para sincronizar.</p>
+                        
+                        <div className="mt-2 w-full flex gap-2">
+                          <input 
+                            value={sheetUrl}
+                            onChange={(e) => setSheetUrl(e.target.value)}
+                            placeholder="Link do Google Sheets..."
+                            className="flex-1 bg-white border border-primary/20 rounded-lg px-2 py-2 text-[9px] outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                          <button 
+                            onClick={handleFetchSheet}
+                            disabled={isFetchingUrl || !sheetUrl}
+                            className="px-3 bg-primary text-white rounded-lg font-bold text-[9px] hover:opacity-90 disabled:opacity-50 transition-all"
+                          >
+                            {isFetchingUrl ? <Loader2 size={12} className="animate-spin" /> : 'Sincronizar'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>Arraste ou clique para selecionar</p>
-                    <p className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Suporta arquivos .CSV, .XLSX ou .XLS</p>
+
+                  {/* Opção Secundária (Upload Local) */}
+                  <div className="pt-8 border-t border-[var(--dash-border)]">
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-2 border-dashed rounded-[24px] p-6 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                      style={{ borderColor: "var(--dash-border)" }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-[var(--dash-hover-bg)] flex items-center justify-center text-[var(--dash-text-muted)] group-hover:text-primary transition-colors">
+                          <Upload size={24} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Prefere upload manual?</p>
+                          <p className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>Arraste ou clique para selecionar um arquivo .CSV ou .XLSX local</p>
+                        </div>
+                      </div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileUpload} 
+                        className="hidden" 
+                        accept=".csv,.xlsx,.xls"
+                      />
+                      <div className="px-4 py-2 bg-[var(--dash-hover-bg)] rounded-xl text-[10px] font-bold" style={{ color: "var(--dash-text-secondary)" }}>
+                        Selecionar Arquivo
+                      </div>
+                    </div>
                   </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleFileUpload} 
-                    className="hidden" 
-                    accept=".csv,.xlsx,.xls"
-                  />
                 </div>
                 
                 <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
