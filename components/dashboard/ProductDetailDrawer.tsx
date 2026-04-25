@@ -10,15 +10,15 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-interface ProductRow {
+export interface ProductRow {
   id: string;
   name: string;
-  price: number;
-  category_id: string;
-  sku: string;
-  description: string;
-  image_url: string;
-  image_urls: string[];
+  price: number | null;
+  category_id: string | null;
+  sku: string | null;
+  description: string | null;
+  image_url: string | null;
+  image_urls: string[] | null;
   specs: any;
   [key: string]: any;
 }
