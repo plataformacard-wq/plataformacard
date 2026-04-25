@@ -69,6 +69,9 @@ type ProductRow = {
   wholesale_price: number | null;
   wholesale_min_quantity: number | null;
   category_id: string | null;
+  image_url: string | null;
+  image_urls: string[] | null;
+  specs: any;
   updated_at: string;
   isNew?: boolean;
 };
