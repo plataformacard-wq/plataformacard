@@ -173,6 +173,8 @@ export default function BulkGridEditor() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+  const [storedSheetUrl, setStoredSheetUrl] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [catalogId, setCatalogId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -284,6 +286,32 @@ export default function BulkGridEditor() {
       console.error("[BulkEditor] Erro ao atualizar dados:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDirectSheetSync = async () => {
+    if (!storedSheetUrl) {
+      setShowImportModal(true);
+      return;
+    }
+
+    setIsSyncingSheets(true);
+    try {
+      let fetchUrl = storedSheetUrl;
+      if (storedSheetUrl.includes("/edit")) {
+        fetchUrl = storedSheetUrl.split("/edit")[0] + "/export?format=csv";
+      }
+
+      const response = await fetch(fetchUrl);
+      if (!response.ok) throw new Error("Link inválido ou sem permissão.");
+
+      // Se houver link, abrimos o modal já com a URL carregada para o processamento final
+      setShowImportModal(true);
+    } catch (err: any) {
+      alert("Erro na sincronização direta: " + err.message);
+      setShowImportModal(true);
+    } finally {
+      setIsSyncingSheets(false);
     }
   };
 
@@ -569,15 +597,27 @@ export default function BulkGridEditor() {
       {/* --- Toolbar --- */}
       <div className="flex items-center justify-between bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
-          {/* Gestão em Massa */}
+          {/* Edição Manual */}
           <button
-            onClick={() => setShowImportModal(true)}
+            onClick={addRow}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all border-none"
           >
-            <Database size={18} />
-            Importar & Sincronizar
+            <Plus size={18} />
+            Novo Produto
           </button>
 
+          <button
+            onClick={handleSave}
+            disabled={saving || data.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-900/20"
+          >
+            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            Salvar Alterações
+          </button>
+
+          <div className="h-6 w-px bg-[var(--dash-border)] mx-1" />
+
+          {/* Ferramentas de Massa */}
           <button
             onClick={() => {
               const templateHeaders = ["Nome do Produto", "Preço Venda", "Preço Atacado", "Qtd Mínima Atacado", "SKU", "Categoria", "Descrição", "Especificações Técnicas"];
@@ -598,33 +638,23 @@ export default function BulkGridEditor() {
             Modelo
           </button>
 
-          <div className="h-6 w-px bg-[var(--dash-border)] mx-1" />
-
-          {/* Edição Manual */}
           <button
-            onClick={addRow}
+            onClick={handleDirectSheetSync}
+            disabled={isSyncingSheets}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-900/20 border-none"
+            title={storedSheetUrl ? "Sincronizar agora com o Google Sheets salvo" : "Configurar Google Sheets para sincronização"}
+          >
+            {isSyncingSheets ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+            Sincronizar Sheets
+          </button>
+
+          <button
+            onClick={() => setShowImportModal(true)}
             className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
+            title="Importar arquivos locais"
           >
-            <Plus size={18} />
-            Novo Produto
-          </button>
-
-          <button
-            onClick={saveChanges}
-            disabled={saving || data.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-900/20"
-          >
-            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-            Salvar Grid
-          </button>
-
-          <button
-            onClick={refreshData}
-            disabled={loading}
-            className="p-2.5 border border-[var(--dash-border)] text-[var(--dash-text-muted)] rounded-xl hover:bg-[var(--dash-hover-bg)] transition-all"
-            title="Atualizar dados do banco"
-          >
-            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            <Database size={18} />
+            Importar & Sync
           </button>
         </div>
           
@@ -649,15 +679,7 @@ export default function BulkGridEditor() {
           )}
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-6 py-2 bg-[var(--dash-text-primary)] text-[var(--dash-bg)] rounded-xl font-medium hover:opacity-90 transition-all disabled:opacity-50"
-        >
-          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-          Salvar Alterações
-        </button>
-      </div>
+
 
       {/* --- Grid --- */}
       <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl shadow-sm overflow-hidden">
