@@ -16,9 +16,33 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronDown,
+  GripVertical
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import BulkImportModal from "@/components/dashboard/BulkImportModal";
+
+// DnD Kit Imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { Database, FileUp } from "lucide-react";
 
 type Category = {
   id: string;
@@ -41,18 +65,24 @@ type ProductRow = {
 
 // --- Editable Cell Component ---
 const EditableCell = ({
-  value: initialValue,
-  row: { index },
+  getValue,
+  row,
   column: { id },
+  table,
   updateData,
   type = "text",
   options = [],
 }: any) => {
+  const initialValue = getValue();
   const [value, setValue] = useState(initialValue);
 
   const onBlur = () => {
-    updateData(index, id, value);
+    updateData(row.index, id, value);
   };
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
 
   useEffect(() => {
     setValue(initialValue);
@@ -60,22 +90,27 @@ const EditableCell = ({
 
   if (type === "select") {
     return (
-      <select
-        value={value || ""}
-        onChange={(e) => {
-          setValue(e.target.value);
-          updateData(index, id, e.target.value);
-        }}
-        className="w-full bg-transparent border-none focus:ring-0 text-sm p-1"
-        style={{ color: "var(--dash-text-primary)" }}
-      >
-        <option value="">Selecione...</option>
-        {options.map((opt: any) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.name}
-          </option>
-        ))}
-      </select>
+      <div className="relative group">
+        <select
+          value={value ?? ""}
+          onChange={(e) => {
+            setValue(e.target.value);
+            updateData(row.index, id, e.target.value);
+          }}
+          className="w-full bg-transparent border-none focus:ring-0 text-sm p-1 pr-6 appearance-none cursor-pointer truncate"
+          style={{ color: "var(--dash-text-primary)" }}
+        >
+          <option value="">Selecione...</option>
+          {options.map((opt: any) => (
+            <option key={opt.id} value={opt.id} className="bg-[var(--dash-surface)]">
+              {opt.name}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none opacity-40 group-hover:opacity-70 transition-opacity">
+          <ChevronDown size={14} />
+        </div>
+      </div>
     );
   }
 
@@ -95,7 +130,7 @@ const EditableCell = ({
 
   return (
     <input
-      value={value || ""}
+      value={value ?? ""}
       onChange={(e) => setValue(e.target.value)}
       onBlur={onBlur}
       type={type}
@@ -103,6 +138,34 @@ const EditableCell = ({
       style={{ color: "var(--dash-text-primary)" }}
       placeholder="..."
     />
+  );
+};
+
+// --- Draggable Row Component ---
+const DraggableRow = ({ row, children }: any) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: row.original.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : 0,
+    position: "relative" as const,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} className="border-b border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)] transition-colors group">
+      {children(attributes, listeners)}
+    </tr>
   );
 };
 
@@ -117,6 +180,7 @@ export default function BulkGridEditor() {
   const [userName, setUserName] = useState<string>("");
   const [presence, setPresence] = useState<{ user: string; color: string }[]>([]);
   const [showNoCategoryModal, setShowNoCategoryModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   
   const supabase = createClient();
 
@@ -124,8 +188,9 @@ export default function BulkGridEditor() {
   useEffect(() => {
     async function init() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+        const user = session.user;
 
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -143,17 +208,18 @@ export default function BulkGridEditor() {
         // 1. Fetch products (primary data)
         const { data: prods, error: prodsError } = await supabase
           .from("products")
-          .select("id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, category_id, updated_at")
+          .select(`
+            id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, 
+            category_id, updated_at, image_url, image_urls, specs, organization_id,
+            categories (id, name)
+          `)
           .eq("organization_id", profile.organization_id)
           .is("deleted_at", null)
-          .order("created_at", { ascending: false });
+          .order("sort_order", { ascending: true });
 
         if (prodsError) throw prodsError;
 
-        setData((prods || []).map(p => ({
-          ...p,
-          has_wholesale: !!p.has_wholesale
-        })));
+        setData(prods || []);
 
         // 2. Fetch Catalog & Categories
         const { data: orgCatalog } = await supabase
@@ -169,7 +235,11 @@ export default function BulkGridEditor() {
             .from("categories")
             .select("id, name")
             .eq("catalog_id", orgCatalog.catalog_id);
+          
+          console.log(`[BulkEditor] Categorias carregadas: ${cats?.length || 0}`, cats);
           setCategories(cats || []);
+        } else {
+          console.warn("[BulkEditor] Nenhum catálogo ativo encontrado para esta organização.");
         }
       } catch (err) {
         console.error("Erro ao carregar dados do Bulk Editor:", err);
@@ -180,6 +250,41 @@ export default function BulkGridEditor() {
 
     init();
   }, [supabase]);
+
+  const refreshData = async () => {
+    if (!orgId) {
+      console.warn("[BulkEditor] Tentativa de refresh sem OrgId");
+      return;
+    }
+    setLoading(true);
+    try {
+      console.log(`[BulkEditor] Forçando atualização para Org: ${orgId}`);
+      const { data: prods, error: prodsError } = await supabase
+        .from("products")
+        .select(`
+          id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, 
+          category_id, updated_at, image_url, image_urls, specs,
+          categories (id, name)
+        `)
+        .eq("organization_id", orgId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+      if (prodsError) {
+        console.error("[BulkEditor] Erro crítico no Refresh:", prodsError);
+        throw prodsError;
+      }
+      
+      setData((prods || []).map(p => ({
+        ...p,
+        has_wholesale: !!p.has_wholesale
+      })));
+    } catch (err) {
+      console.error("[BulkEditor] Erro ao atualizar dados:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // --- Real-time Presence Logic ---
   useEffect(() => {
@@ -234,6 +339,29 @@ export default function BulkGridEditor() {
     };
   }, [orgId, catalogId, userId, userName, supabase]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setData((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over?.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const updateData = (rowIndex: number, columnId: string, value: any) => {
     setData((old) =>
       old.map((row, index) => {
@@ -277,6 +405,16 @@ export default function BulkGridEditor() {
 
   const columns = useMemo<ColumnDef<ProductRow>[]>(
     () => [
+      {
+        id: "drag-handle",
+        header: "",
+        cell: () => (
+          <div className="cursor-grab active:cursor-grabbing p-1 opacity-30 group-hover:opacity-100 transition-opacity">
+            <GripVertical size={18} />
+          </div>
+        ),
+        size: 40,
+      },
       {
         accessorKey: "name",
         header: "Nome do Produto",
@@ -354,7 +492,7 @@ export default function BulkGridEditor() {
         size: 50,
       },
     ],
-    [categories, data]
+    [categories] // Removido 'data' daqui para evitar re-criação constante das colunas
   );
 
   const table = useReactTable({
@@ -364,13 +502,40 @@ export default function BulkGridEditor() {
   });
 
   const handleSave = async () => {
+    if (!orgId || !catalogId) return;
+    
+    // 1. Validation
+    const invalidProducts = data.filter(p => !p.name || !p.category_id);
+    if (invalidProducts.length > 0) {
+      alert("Todos os produtos devem ter pelo menos um Nome e uma Categoria.");
+      return;
+    }
+
     setSaving(true);
-    // Logic for validation and upsert will be in Sprint 4
-    // For now, just a simulation
-    setTimeout(() => {
+    try {
+      const productsToUpsert = data.map((p, index) => {
+        const { isNew, updated_at, categories, ...cleanProd } = p as any;
+        return {
+          ...cleanProd,
+          organization_id: orgId,
+          sort_order: index, // A nova ordem é o índice atual na lista
+        };
+      });
+
+      const { error: upsertError } = await supabase
+        .from("products")
+        .upsert(productsToUpsert, { onConflict: 'id' });
+
+      if (upsertError) throw upsertError;
+
+      alert("Alterações salvas com sucesso!");
+      await refreshData();
+    } catch (err: any) {
+      console.error("Erro ao salvar produtos:", err);
+      alert("Erro ao salvar: " + err.message);
+    } finally {
       setSaving(false);
-      alert("Sprint 1: Estrutura do Grid validada! A lógica de salvamento com concorrência será implementada na Sprint 4.");
-    }, 1500);
+    }
   };
 
   if (loading) {
@@ -392,6 +557,24 @@ export default function BulkGridEditor() {
           >
             <Plus size={18} />
             Novo Produto
+          </button>
+
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
+          >
+            <FileUp size={18} />
+            Importar CSV/Excel
+          </button>
+
+          <button
+            onClick={refreshData}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-primary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all disabled:opacity-50"
+            title="Sincronizar com o banco de dados"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
+            Sincronizar
           </button>
           
           {presence.length > 1 && (
@@ -444,22 +627,43 @@ export default function BulkGridEditor() {
                 </tr>
               ))}
             </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr 
-                  key={row.id} 
-                  className="border-b border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)]/30 transition-colors group"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-2 relative">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      {/* Interaction highlight indicator (for Presence/Locking later) */}
-                      <div className="absolute inset-y-0 left-0 w-0.5 bg-transparent group-focus-within:bg-primary transition-colors" />
-                    </td>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToVerticalAxis]}
+            >
+              <SortableContext
+                items={data.map((d) => d.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <tbody className="divide-y divide-[var(--dash-border)]">
+                  {table.getRowModel().rows.map((row) => (
+                    <DraggableRow key={row.id} row={row}>
+                      {(attributes: any, listeners: any) => (
+                        <>
+                          {row.getVisibleCells().map((cell) => (
+                            <td
+                              key={cell.id}
+                              className="px-4 py-2 align-middle relative"
+                              style={{ width: cell.column.getSize() }}
+                              {...(cell.column.id === "drag-handle" ? { ...attributes, ...listeners } : {})}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                              {/* Indicador visual de foco/interação */}
+                              <div className="absolute inset-y-0 left-0 w-0.5 bg-transparent group-focus-within:bg-primary transition-colors" />
+                            </td>
+                          ))}
+                        </>
+                      )}
+                    </DraggableRow>
                   ))}
-                </tr>
-              ))}
-            </tbody>
+                </tbody>
+              </SortableContext>
+            </DndContext>
           </table>
         </div>
         
@@ -529,6 +733,20 @@ export default function BulkGridEditor() {
           </div>
         )}
       </AnimatePresence>
+
+      {orgId && catalogId && (
+        <BulkImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onSuccess={() => {
+            refreshData();
+            setShowImportModal(false);
+          }}
+          orgId={orgId}
+          catalogId={catalogId}
+          categories={categories}
+        />
+      )}
     </div>
   );
 }

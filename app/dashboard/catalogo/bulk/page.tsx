@@ -1,8 +1,10 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 
-const BulkGridEditor = dynamic(() => import("./BulkGridEditor"), {
+export const dynamic = "force-dynamic";
+
+const BulkGridEditor = nextDynamic(() => import("./BulkGridEditor"), {
   ssr: false,
 });
 
