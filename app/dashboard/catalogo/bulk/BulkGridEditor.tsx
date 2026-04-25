@@ -408,6 +408,9 @@ export default function BulkGridEditor() {
       wholesale_price: null,
       wholesale_min_quantity: null,
       category_id: categories[0]?.id || null,
+      image_url: null,
+      image_urls: [],
+      specs: [],
       updated_at: new Date().toISOString(),
       isNew: true
     };
