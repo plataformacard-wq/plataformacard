@@ -7,7 +7,7 @@ import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import 'react-quill-new/dist/quill.snow.css';
 
-// Carregamento dinâmico do Quill para evitar erros de SSR
+// Carregamento dinÃƒÂ¢mico do Quill para evitar erros de SSR
 const ReactQuill = nextDynamic(() => import("react-quill-new"), { 
   ssr: false,
   loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
@@ -38,7 +38,8 @@ import {
   GripVertical,
   DollarSign,
   Bold,
-  Italic
+  Italic,
+  Info
 } from "lucide-react";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
@@ -67,14 +68,19 @@ type ProductRow = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
+  compare_at_price: number | null;
   sku: string | null;
+  has_retail: boolean | null;
   has_wholesale: boolean | null;
   wholesale_price: number | null;
   wholesale_min_quantity: number | null;
   price_display_mode: string | null; // retail | wholesale | both
   image_url: string | null;
   image_urls: string[] | null;
+  is_active: boolean;
+  is_in_stock: boolean;
   created_at: string;
+  sort_order: number | null;
   categories:
     | {
         id: string;
@@ -105,7 +111,7 @@ function sanitizePriceTyping(raw: string): string {
 
 function parsePrice(value: string): number | null {
   if (!value.trim()) return null;
-  // Remove pontos (milhar) e troca vírgula por ponto (decimal)
+  // Remove pontos (milhar) e troca vÃƒÂ­rgula por ponto (decimal)
   const clean = value.replace(/\./g, "").replace(",", ".");
   const num = Number(clean);
   return isNaN(num) ? null : num;
@@ -162,7 +168,9 @@ export default function CatalogoPage() {
   const [specChaveDraft, setSpecChaveDraft] = useState("");
   const [specValorDraft, setSpecValorDraft] = useState("");
   const [productPrice, setProductPrice] = useState("");
+  const [productCompareAtPrice, setProductCompareAtPrice] = useState("");
   const [sku, setSku] = useState("");
+  const [hasRetail, setHasRetail] = useState(true);
   const [hasWholesale, setHasWholesale] = useState(false);
   const [wholesalePrice, setWholesalePrice] = useState("");
   const [wholesaleMinQuantity, setWholesaleMinQuantity] = useState("");
@@ -187,6 +195,12 @@ export default function CatalogoPage() {
   const [priceDisplayMode, setPriceDisplayMode] = useState<"retail" | "wholesale" | "both">("both");
   const [lastSavedProduct, setLastSavedProduct] = useState<{ description: string; specs: Spec[] } | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [isActive, setIsActive] = useState(true);
+  const [isInStock, setIsInStock] = useState(true);
+  const [showVisibilityAlert, setShowVisibilityAlert] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ product: ProductRow, field: 'is_active' | 'is_in_stock' } | null>(null);
+
   const stripHtml = (html: string) => {
     if (!html) return "";
     const tmp = document.createElement("DIV");
@@ -352,12 +366,14 @@ export default function CatalogoPage() {
       description,
       specs,
       price,
+      compare_at_price,
       sku,
+      has_retail,
       has_wholesale,
       wholesale_price,
       wholesale_min_quantity,
       image_url,
-      image_urls,
+      sort_order,
       created_at,
       categories (
         id,
@@ -367,6 +383,7 @@ export default function CatalogoPage() {
       )
       .eq("organization_id", orgId)
       .is("deleted_at", null)
+      .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
 
     if (data) {
@@ -557,7 +574,9 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice("");
+    setProductCompareAtPrice("");
     setSku("");
+    setHasRetail(true);
     setHasWholesale(false);
     setWholesalePrice("");
     setWholesaleMinQuantity("");
@@ -571,6 +590,8 @@ export default function CatalogoPage() {
     setExistingImageUrls([]);
     setImagePreviewUrls([]);
     setModalImages([]);
+    setIsActive(true);
+    setIsInStock(true);
     setShowModal(true);
   }
 
@@ -593,7 +614,9 @@ export default function CatalogoPage() {
     setSpecChaveDraft("");
     setSpecValorDraft("");
     setProductPrice(formatPriceForInput(product.price));
+    setProductCompareAtPrice(formatPriceForInput(product.compare_at_price));
     setSku(product.sku ?? "");
+    setHasRetail(product.has_retail ?? true);
     setHasWholesale(product.has_wholesale ?? false);
     setWholesalePrice(formatPriceForInput(product.wholesale_price));
     setWholesaleMinQuantity(product.wholesale_min_quantity ? String(product.wholesale_min_quantity) : "");
@@ -608,6 +631,8 @@ export default function CatalogoPage() {
       url,
       isExisting: true
     })));
+    setIsActive(product.is_active ?? true);
+    setIsInStock(product.is_in_stock ?? true);
     setNameError("");
     setCategoryError("");
     setPriceError("");
@@ -643,6 +668,8 @@ export default function CatalogoPage() {
     setImagePreviewUrls([]);
     setExistingImageUrls([]);
     setModalImages([]);
+    setIsActive(product.is_active ?? true);
+    setIsInStock(product.is_in_stock ?? true);
 
     setNameError("");
     setCategoryError("");
@@ -681,6 +708,78 @@ export default function CatalogoPage() {
     setSpecDraftError("");
     setProductFormError("");
   }
+
+  const toggleProductStatus = async (product: ProductRow, field: 'is_active' | 'is_in_stock') => {
+    const newValue = product[field] === false ? true : false;
+
+    // Se estiver tornando indisponível (is_active = false), mostra o alerta se permitido
+    if (field === 'is_active' && newValue === false) {
+      const skipAlert = localStorage.getItem('skip_visibility_alert') === 'true';
+      if (!skipAlert) {
+        setPendingStatusUpdate({ product, field });
+        setShowVisibilityAlert(true);
+        return;
+      }
+    }
+
+    await performStatusUpdate(product, field, newValue);
+  };
+
+  const performStatusUpdate = async (product: ProductRow, field: 'is_active' | 'is_in_stock', newValue: boolean) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ [field]: newValue })
+      .eq("id", product.id);
+
+    if (error) {
+      console.error(`Erro ao atualizar ${field}:`, error.message);
+      return;
+    }
+
+    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, [field]: newValue } : p));
+  };
+
+  const handleReorderProducts = async (newOrder: ProductRow[]) => {
+    // Atualiza localmente primeiro
+    setProducts(newOrder);
+
+    // Persiste no banco
+    const supabase = createClient();
+    const updates = newOrder.map((p, index) => ({
+      id: p.id,
+      sort_order: index
+    }));
+
+    // Atualização em lote via RPC ou múltiplas chamadas (Supabase update não suporta bulk update com IDs diferentes nativamente sem RPC customizado)
+    // Para simplificar e garantir funcionamento sem RPC novo, fazemos uma por uma ou um promise all
+    // No entanto, para performance em listas longas, o ideal é um RPC. 
+    // Como a lista costuma ser pequena (<100), faremos atualizações individuais controladas
+    
+    try {
+      await Promise.all(
+        newOrder.map((p, index) => 
+          supabase
+            .from("products")
+            .update({ sort_order: index })
+            .eq("id", p.id)
+        )
+      );
+    } catch (err) {
+      console.error("Erro ao salvar ordem dos produtos:", err);
+    }
+  };
+
+  const confirmVisibilityUpdate = async () => {
+    if (dontShowAgain) {
+      localStorage.setItem('skip_visibility_alert', 'true');
+    }
+    if (pendingStatusUpdate) {
+      await performStatusUpdate(pendingStatusUpdate.product, pendingStatusUpdate.field, false);
+    }
+    setShowVisibilityAlert(false);
+    setPendingStatusUpdate(null);
+  };
 
   function handleImageChange(files: File[]) {
     const currentTotal = modalImages.length;
@@ -830,6 +929,7 @@ export default function CatalogoPage() {
     setSaving(true);
 
     const parsedPrice = parsePrice(productPrice);
+    const parsedCompareAtPrice = parsePrice(productCompareAtPrice);
     const parsedWholesalePrice = parsePrice(wholesalePrice);
     const parsedMinQty = wholesaleMinQuantity.trim() === "" ? null : parseInt(wholesaleMinQuantity, 10);
 
@@ -877,10 +977,15 @@ export default function CatalogoPage() {
       description: productDescription.trim(),
       specs,
       price: parsedPrice,
+      compare_at_price: parsedCompareAtPrice,
       sku: sku.trim() || null,
+      has_retail: hasRetail,
       has_wholesale: hasWholesale,
       wholesale_price: hasWholesale ? parsedWholesalePrice : null,
       wholesale_min_quantity: hasWholesale ? parsedMinQty : null,
+      is_active: isActive,
+      is_in_stock: isInStock,
+      price_display_mode: priceDisplayMode,
     };
 
     if (editingProduct) {
@@ -910,8 +1015,8 @@ export default function CatalogoPage() {
         .eq("id", editingProduct.id);
 
       if (error) {
-        console.error("Erro ao atualizar produto:", error);
-        setProductFormError("Erro ao salvar produto.");
+        console.error("Erro ao atualizar produto:", error.message, error.details, error.hint);
+        setProductFormError(`Erro ao salvar: ${error.message || "Tente novamente"}`);
         setSaving(false);
         return;
       }
@@ -936,8 +1041,8 @@ export default function CatalogoPage() {
       .single();
 
     if (insertError || !inserted?.id) {
-      console.error("Erro ao salvar produto:", insertError);
-      setProductFormError("Erro ao salvar produto.");
+      console.error("Erro ao inserir produto:", insertError?.message, insertError?.details);
+      setProductFormError(`Erro ao criar produto: ${insertError?.message || "Tente novamente"}`);
       setSaving(false);
       return;
     }
@@ -1141,7 +1246,7 @@ export default function CatalogoPage() {
                     placeholder="Buscar por nome ou SKU..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-2xl border outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5"
+                    className="w-full pl-11 pr-4 py-3 rounded-2xl border outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5 caret-primary"
                     style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
@@ -1173,88 +1278,146 @@ export default function CatalogoPage() {
                   </p>
                 </div>
               ) : (
-                filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="group relative flex flex-col lg:flex-row items-center gap-6 p-6 rounded-[32px] border transition-all hover:shadow-2xl hover:shadow-black/5 hover:border-primary/30"
-                    style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-                  >
-                    {/* Imagem */}
-                    <div className="relative flex-shrink-0">
-                      {product.image_urls?.[0] || product.image_url ? (
-                        <img 
-                          src={product.image_urls?.[0] || product.image_url || ""} 
-                          className="h-24 w-24 rounded-[24px] object-cover border-2 border-white shadow-lg bg-zinc-50" 
-                        />
-                      ) : (
-                        <div className="h-24 w-24 rounded-[24px] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
-                          <Package size={32} />
+                <Reorder.Group axis="y" values={filteredProducts} onReorder={handleReorderProducts} className="space-y-4">
+                  {filteredProducts.map((product) => (
+                    <Reorder.Item
+                      key={product.id}
+                      value={product}
+                      onClick={() => handleOpenEdit(product)}
+                      className="group relative flex items-center gap-4 p-4 rounded-[24px] border transition-all hover:shadow-xl hover:border-emerald-500/30 cursor-pointer"
+                      style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                    >
+                      {/* Handle de Arraste (Sempre visível para facilitar descoberta) */}
+                      <div className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-emerald-500 transition-colors">
+                        <GripVertical size={20} />
+                      </div>
+
+                      {/* Imagem compacta */}
+                      <div className="relative flex-shrink-0">
+                        {product.is_in_stock === false && (
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-[16px]">
+                            <span className="bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
+                          </div>
+                        )}
+                        {product.image_urls?.[0] || product.image_url ? (
+                          <img 
+                            src={product.image_urls?.[0] || product.image_url || ""} 
+                            className={`h-16 w-16 rounded-[16px] object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
+                          />
+                        ) : (
+                          <div className={`h-16 w-16 rounded-[16px] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`}>
+                            <Package size={24} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Conteúdo Principal */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-2">
+                        {/* Linha Superior: Info */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-x-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-bold text-base truncate" style={{ color: "var(--dash-text-primary)" }}>
+                              {product.name}
+                            </h4>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
+                              {Array.isArray(product.categories)
+                                  ? (product.categories[0]?.name ?? "Sem categoria")
+                                  : (product.categories?.name ?? "Sem categoria")}
+                            </span>
+                            {product.sku && (
+                              <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 text-[9px] font-bold text-white uppercase tracking-wider">
+                                {product.sku}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {product.price !== null && (
+                              <div className="flex flex-col items-end">
+                                {(product.has_wholesale || product.compare_at_price) && (
+                                  <span className="text-[8px] font-black uppercase text-zinc-400 leading-none mb-0.5">Varejo</span>
+                                )}
+                                {product.compare_at_price && (
+                                  <span className="text-[9px] font-bold text-zinc-400 line-through leading-none mb-1">
+                                    {formatPrice(product.compare_at_price)}
+                                  </span>
+                                )}
+                                <p className="text-lg font-black" style={{ color: "var(--dash-text-primary)" }}>
+                                  {formatPrice(product.price)}
+                                </p>
+                              </div>
+                            )}
+                            {product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
+                              <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 self-end mb-1" />
+                            )}
+                            {product.has_wholesale && product.wholesale_price !== null && (
+                              <div className="flex flex-col items-end">
+                                <span className="text-[8px] font-black uppercase text-emerald-600 leading-none mb-0.5">Atacado</span>
+                                <p className="text-lg font-black text-emerald-600">
+                                  {formatPrice(product.wholesale_price)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Informações */}
-                    <div className="flex-1 min-w-0 text-center lg:text-left">
-                      <div className="flex flex-col lg:flex-row lg:items-center gap-2 mb-2">
-                        <h4 className="font-bold text-xl truncate" style={{ color: "var(--dash-text-primary)" }}>
-                          {product.name}
-                        </h4>
-                        {product.sku && (
-                          <span className="inline-block px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-500">
-                            REF: {product.sku}
-                          </span>
-                        )}
+                        {/* Linha Inferior: Controles */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }} onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-4">
+                            {/* Switches Compactos */}
+                            <div className="flex items-center gap-4">
+                              <div 
+                                onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_active'); }}
+                                className="flex items-center gap-2 cursor-pointer group/sw"
+                              >
+                                <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Disponível</span>
+                                <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
+                                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                </div>
+                              </div>
+
+                              <div 
+                                onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_in_stock'); }}
+                                className="flex items-center gap-2 cursor-pointer group/sw"
+                              >
+                                <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Estoque</span>
+                                <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
+                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                              title="Duplicar"
+                            >
+                              <Copy size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleOpenEdit(product); }}
+                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                              title="Editar"
+                            >
+                              <EditIcon size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }}
+                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
+                              title="Excluir"
+                            >
+                              <TrashIcon size={14} />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-[var(--dash-text-muted)] uppercase font-bold tracking-tighter mb-3">
-                        {Array.isArray(product.categories)
-                            ? (product.categories[0]?.name ?? "Sem categoria")
-                            : (product.categories?.name ?? "Sem categoria")}
-                      </p>
-                      <p className="text-sm line-clamp-1" style={{ color: "var(--dash-text-secondary)" }}>
-                        {stripHtml(product.description || "Nenhuma descrição informada.")}
-                      </p>
-                    </div>
-
-                    {/* Preço e Atacado */}
-                    <div className="flex flex-col items-center lg:items-end px-8 border-x border-dashed hidden xl:flex" style={{ borderColor: "var(--dash-border)" }}>
-                        <p className="text-2xl font-black" style={{ color: "var(--dash-text-primary)" }}>
-                          {formatPrice(product.price)}
-                        </p>
-                        {product.has_wholesale && (
-                          <span className="mt-1 px-2 py-0.5 rounded bg-emerald-50 text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
-                            Atacado Ativo
-                          </span>
-                        )}
-                    </div>
-
-                    {/* Ações */}
-                    <div className="flex flex-col gap-2 w-full lg:w-auto min-w-[180px]">
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicateProduct(product)}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-xs font-bold hover:bg-zinc-100 transition-all border border-zinc-100 dark:border-zinc-800"
-                        >
-                          <Copy size={14} /> Duplicar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(product)}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-black transition-all"
-                        >
-                          <EditIcon size={14} /> Editar
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(product.id)}
-                        className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-100 text-red-500 text-xs font-bold hover:bg-red-50 transition-all"
-                      >
-                        <TrashIcon size={14} /> Excluir
-                      </button>
-                    </div>
-                  </div>
-                ))
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
               )}
             </div>
           </section>
@@ -1263,23 +1426,27 @@ export default function CatalogoPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-[40px] border-none p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden bg-white text-zinc-900">
+          <div 
+            className="w-full max-w-2xl rounded-[40px] border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
+            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+          >
             {/* Header com Design Premium */}
-            <div className="relative px-10 py-8 border-b border-zinc-100 bg-zinc-50/50">
+            <div className="relative px-10 py-8 border-b" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-3xl font-black flex items-center gap-3 text-zinc-900">
+                  <h2 className="text-3xl font-black flex items-center gap-3" style={{ color: "var(--dash-text-primary)" }}>
                     {isEditMode ? <EditIcon size={28} className="text-emerald-500" /> : <Plus size={28} className="text-emerald-500" />}
                     {isEditMode ? "Editar Produto" : "Novo Produto"}
                   </h2>
-                  <p className="mt-1 text-sm font-medium text-zinc-500">
+                  <p className="mt-1 text-sm font-medium" style={{ color: "var(--dash-text-muted)" }}>
                     Gerencie os detalhes e a apresentação do seu item.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="rounded-2xl p-3 hover:bg-zinc-200 transition-colors bg-zinc-100 text-zinc-500"
+                  className="rounded-2xl p-3 transition-colors"
+                  style={{ background: "var(--dash-surface)", color: "var(--dash-text-muted)" }}
                 >
                   <XIcon size={24} />
                 </button>
@@ -1295,21 +1462,21 @@ export default function CatalogoPage() {
                 {/* Seção 1: Identidade */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                    <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
                       <Package size={16} /> Identidade do Produto
                     </h3>
                     {!isEditMode && lastSavedProduct && (
                       <button
                         type="button"
                         onClick={handleCopyLastProduct}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-black hover:bg-emerald-100 transition-all border border-emerald-100 uppercase tracking-wider"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 text-[10px] font-black hover:bg-emerald-100 transition-all border border-emerald-100 uppercase tracking-wider"
                       >
                         <Copy size={12} /> Copiar dados do último cadastro
                       </button>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-[32px] border border-zinc-100 bg-zinc-50/30">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-[32px] border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                     <div className="md:col-span-2">
                       <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
                         <Tag size={16} className="text-emerald-500" /> Categoria
@@ -1320,8 +1487,8 @@ export default function CatalogoPage() {
                           setSelectedCategoryId(e.target.value);
                           setCategoryError("");
                         }}
-                        className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
-                        style={{ color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-2xl border px-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
+                        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       >
                         <option value="">
                           {loadingCategories ? "Carregando..." : "Selecione uma categoria"}
@@ -1347,8 +1514,8 @@ export default function CatalogoPage() {
                           setNameError("");
                         }}
                         placeholder="Ex: SCOOTER ELÉTRICA MAJ X1"
-                        className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-sm font-normal outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
-                        style={{ color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-2xl border px-5 py-4 text-sm font-normal outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm cursor-text caret-emerald-600"
+                        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       {nameError && <p className="mt-1.5 text-xs text-red-500 font-bold">{nameError}</p>}
                     </div>
@@ -1362,12 +1529,56 @@ export default function CatalogoPage() {
                         value={sku}
                         onChange={(e) => setSku(e.target.value)}
                         placeholder="Ex: REF-123"
-                        className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-sm font-normal outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
-                        style={{ color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-2xl border px-5 py-4 text-sm font-normal outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm cursor-text caret-emerald-600"
+                        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
 
-                    <div className="md:col-span-2">
+                      <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                        <div 
+                          onClick={() => setIsActive(!isActive)}
+                          className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                            isActive ? 'border-emerald-500 bg-emerald-50/50' : ''
+                          }`}
+                          style={{ background: isActive ? '' : 'var(--dash-surface)', borderColor: isActive ? '' : 'var(--dash-border)' }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-emerald-500 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'}`}>
+                              <Eye size={20} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--dash-text-primary)" }}>Catálogo</p>
+                              <p className="text-[10px] font-medium" style={{ color: "var(--dash-text-muted)" }}>{isActive ? 'Visível ao Público' : 'Oculto do Público'}</p>
+                            </div>
+                          </div>
+                          <div className={`w-10 h-5 rounded-full relative transition-colors ${isActive ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? 'left-6' : 'left-1'}`} />
+                          </div>
+                        </div>
+
+                        <div 
+                          onClick={() => setIsInStock(!isInStock)}
+                          className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                            isInStock ? 'border-emerald-500 bg-emerald-50/50' : 'border-amber-500/20 bg-amber-500/5'
+                          }`}
+                          style={{ borderColor: isInStock ? '' : 'var(--dash-border)' }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isInStock ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+                              <Package size={20} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--dash-text-primary)" }}>Estoque</p>
+                              <p className="text-[10px] font-medium" style={{ color: "var(--dash-text-muted)" }}>{isInStock ? 'Disponível' : 'Esgotado'}</p>
+                            </div>
+                          </div>
+                          <div className={`w-10 h-5 rounded-full relative transition-colors ${isInStock ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isInStock ? 'left-6' : 'left-1'}`} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2">
                       <div className="mb-2 flex items-center justify-between">
                         <label className="flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
                           <FileText size={16} className="text-emerald-500" /> Descrição Completa
@@ -1394,23 +1605,34 @@ export default function CatalogoPage() {
                         .quill-premium .ql-toolbar {
                           border-top-left-radius: 1rem;
                           border-top-right-radius: 1rem;
-                          border: 1px solid #e4e4e7 !important;
-                          background: #f9fafb;
+                          border: 1px solid var(--dash-border) !important;
+                          background: var(--dash-surface-secondary);
                         }
                         .quill-premium .ql-container {
                           border-bottom-left-radius: 1rem;
                           border-bottom-right-radius: 1rem;
-                          border: 1px solid #e4e4e7 !important;
+                          border: 1px solid var(--dash-border) !important;
+                          background: var(--dash-surface);
+                          color: var(--dash-text-primary);
                           min-height: 120px;
                           font-family: inherit;
                           font-size: 0.875rem;
+                        }
+                        .quill-premium .ql-stroke {
+                          stroke: var(--dash-text-primary) !important;
+                        }
+                        .quill-premium .ql-fill {
+                          fill: var(--dash-text-primary) !important;
+                        }
+                        .quill-premium .ql-picker {
+                          color: var(--dash-text-primary) !important;
                         }
                         .quill-premium .ql-editor {
                           min-height: 120px;
                         }
                         .quill-premium .ql-editor.ql-blank::before {
                           font-style: normal;
-                          color: #a1a1aa;
+                          color: var(--dash-text-muted);
                         }
                         .ql-bold {
                           font-weight: 900 !important;
@@ -1422,6 +1644,10 @@ export default function CatalogoPage() {
                         .ql-snow.ql-toolbar button.ql-bold svg rect {
                           stroke-width: 3px;
                         }
+                        /* Global Caret Fix */
+                        input, textarea, [contenteditable], .ql-editor {
+                          caret-color: #10b981 !important;
+                        }
                       `}</style>
                     </div>
                   </div>
@@ -1432,15 +1658,15 @@ export default function CatalogoPage() {
                     <Settings size={16} /> Especificações Técnicas
                   </h3>
                   
-                  <div className="p-6 rounded-[32px] border border-zinc-100 bg-zinc-50/30 space-y-4">
+                  <div className="p-6 rounded-[32px] border space-y-4" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                     {specs.length > 0 && (
                       <Reorder.Group axis="y" values={specs} onReorder={setSpecs} className="space-y-1.5">
                         {specs.map((s, index) => (
                           <Reorder.Item
                             key={`${s.chave}-${index}`}
                             value={s}
-                            className="flex items-center justify-between gap-3 rounded-xl border border-zinc-100 bg-white px-4 py-1.5 text-sm shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
-                            style={{ color: "var(--dash-text-primary)" }}
+                            className="flex items-center justify-between gap-3 rounded-xl border px-4 py-1.5 text-sm shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                           >
                             <div className="flex items-center gap-4 flex-1">
                               <GripVertical size={14} className="text-zinc-300" />
@@ -1461,31 +1687,33 @@ export default function CatalogoPage() {
                       </Reorder.Group>
                     )}
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end bg-white p-6 rounded-3xl border border-dashed border-zinc-300">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end p-6 rounded-3xl border border-dashed" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
                       <div className="flex-1">
-                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Característica</label>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--dash-text-muted)" }}>Característica</label>
                         <input
                           type="text"
                           value={specChaveDraft}
                           onChange={(e) => setSpecChaveDraft(e.target.value)}
                           placeholder="Ex: Peso"
-                          className="w-full rounded-2xl border border-zinc-100 bg-zinc-50/50 px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                          className="w-full rounded-2xl border px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 transition-all cursor-text"
+                          style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Valor</label>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--dash-text-muted)" }}>Valor</label>
                         <input
                           type="text"
                           value={specValorDraft}
                           onChange={(e) => setSpecValorDraft(e.target.value)}
                           placeholder="Ex: 500g"
-                          className="w-full rounded-2xl border border-zinc-100 bg-zinc-50/50 px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                          className="w-full rounded-2xl border px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 transition-all cursor-text"
+                          style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                         />
                       </div>
                       <button
                         type="button"
                         onClick={addSpec}
-                        className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black hover:bg-black transition-all shadow-lg active:scale-95"
+                        className="px-6 py-3 bg-primary text-white rounded-2xl text-xs font-black hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95"
                       >
                         ADICIONAR
                       </button>
@@ -1499,85 +1727,115 @@ export default function CatalogoPage() {
                     <Eye size={16} /> Configuração de Preços e Exibição
                   </h3>
 
-                  <div className="p-6 rounded-3xl border bg-emerald-50/30 dark:bg-emerald-900/5 space-y-6" style={{ borderColor: "var(--dash-border)" }}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="mb-2 flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                          <Tag size={16} /> Preço de Varejo
-                        </label>
-                        <input
-                          type="text"
-                          value={productPrice}
-                          onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))}
-                          placeholder="Ex: 6.990,00"
-                          className="w-full rounded-2xl border px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-emerald-500/10 border-emerald-200 dark:border-emerald-800/50 font-normal"
-                          style={{ background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                        />
-                        {priceError && <p className="mt-1.5 text-xs text-red-500 font-bold">{priceError}</p>}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Coluna 1: Atacado */}
+                    <div className={`p-8 rounded-[40px] border transition-all duration-500 ${hasWholesale ? 'border-emerald-500/30 bg-emerald-50/5 shadow-inner' : 'opacity-40 grayscale bg-zinc-50'}`} style={{ borderColor: "var(--dash-border)" }}>
+                      <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2.5 rounded-2xl ${hasWholesale ? 'bg-emerald-500 text-white' : 'bg-zinc-200 text-zinc-500'}`}>
+                            <Layers size={18} />
+                          </div>
+                          <div>
+                            <h4 className="text-[11px] font-black uppercase tracking-widest" style={{ color: hasWholesale ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
+                              Módulo Atacado
+                            </h4>
+                            <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Venda em Volume</p>
+                          </div>
+                        </div>
+                        <div 
+                          onClick={() => setHasWholesale(!hasWholesale)}
+                          className={`w-11 h-6 rounded-full relative cursor-pointer transition-all duration-300 ${hasWholesale ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-zinc-300'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${hasWholesale ? 'left-6' : 'left-1'}`} />
+                        </div>
                       </div>
-
-                      <div className="flex flex-col justify-end pb-1">
-                        <label className="flex items-center gap-3 cursor-pointer group bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-dashed transition-all hover:border-emerald-500/50" style={{ borderColor: "var(--dash-border)" }}>
+                      
+                      <div className="space-y-6">
+                        <div>
+                          <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-400">Preço de Atacado</label>
                           <input
-                            type="checkbox"
-                            checked={hasWholesale}
-                            onChange={(e) => setHasWholesale(e.target.checked)}
-                            className="h-5 w-5 rounded-lg border-zinc-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                            type="text"
+                            disabled={!hasWholesale}
+                            value={wholesalePrice}
+                            onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))}
+                            placeholder="Ex: 5.990,00"
+                            className="w-full rounded-2xl border px-5 py-4 text-sm font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-text caret-emerald-600"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                           />
-                          <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Habilitar Preço de Atacado</span>
-                        </label>
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-400">Qtd. Mínima</label>
+                          <input
+                            type="number"
+                            disabled={!hasWholesale}
+                            value={wholesaleMinQuantity}
+                            onChange={(e) => setWholesaleMinQuantity(e.target.value)}
+                            placeholder="Ex: 5"
+                            className="w-full rounded-2xl border px-5 py-4 text-sm font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-text caret-emerald-600"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    {hasWholesale && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
-                        <div>
-                          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-emerald-600">Preço Atacado</label>
-                          <input
-                            type="text"
-                            value={wholesalePrice}
-                            onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))}
-                            placeholder="Ex: 150,00"
-                            className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none border-emerald-200 dark:border-emerald-800/50 font-normal"
-                            style={{ background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                          />
+                    {/* Coluna 2: Varejo */}
+                    <div className={`p-8 rounded-[40px] border transition-all duration-500 ${hasRetail ? 'border-emerald-500/30 bg-emerald-50/5 shadow-inner' : 'opacity-40 grayscale bg-zinc-50'}`} style={{ borderColor: "var(--dash-border)" }}>
+                      <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2.5 rounded-2xl ${hasRetail ? 'bg-emerald-500 text-white' : 'bg-zinc-200 text-zinc-500'}`}>
+                            <Tag size={18} />
+                          </div>
+                          <div>
+                            <h4 className="text-[11px] font-black uppercase tracking-widest" style={{ color: hasRetail ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
+                              Módulo Varejo
+                            </h4>
+                            <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Venda Unitária</p>
+                          </div>
                         </div>
-                        <div>
-                          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-emerald-600">Qtd. Mínima</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={wholesaleMinQuantity}
-                            onChange={(e) => setWholesaleMinQuantity(e.target.value)}
-                            placeholder="Ex: 10"
-                            className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none border-emerald-200 dark:border-emerald-800/50 font-normal"
-                            style={{ background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                          />
+                        <div 
+                          onClick={() => setHasRetail(!hasRetail)}
+                          className={`w-11 h-6 rounded-full relative cursor-pointer transition-all duration-300 ${hasRetail ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-zinc-300'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${hasRetail ? 'left-6' : 'left-1'}`} />
                         </div>
                       </div>
-                    )}
 
-                    <div className="pt-4 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }}>
-                      <label className="mb-4 block text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)]">O que exibir no catálogo?</label>
-                      <div className="flex flex-wrap gap-3">
-                        {[
-                          { id: "retail", label: "Só Varejo", icon: <Tag size={14} /> },
-                          { id: "wholesale", label: "Só Atacado", icon: <Layers size={14} /> },
-                          { id: "both", label: "Ambos os Preços", icon: <Eye size={14} /> },
-                        ].map((mode) => (
-                          <button
-                            key={mode.id}
-                            type="button"
-                            onClick={() => setPriceDisplayMode(mode.id as any)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all border-2 ${
-                              priceDisplayMode === mode.id
-                                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
-                                : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:border-primary/30"
-                            }`}
-                          >
-                            {mode.icon} {mode.label}
-                          </button>
-                        ))}
+                      <div className="space-y-6">
+                        <div>
+                          <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-rose-500 flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-rose-500"></span> De (Preço Original)
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              disabled={!hasRetail}
+                              value={productCompareAtPrice}
+                              onChange={(e) => setProductCompareAtPrice(sanitizePriceTyping(e.target.value))}
+                              placeholder="Ex: 7.990,00"
+                              className="w-full rounded-2xl border px-5 py-4 text-sm font-black outline-none focus:border-rose-500 transition-all disabled:opacity-30 line-through text-zinc-400 cursor-text caret-rose-500"
+                              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-rose-400 uppercase">Antigo</div>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-emerald-600 flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-emerald-500"></span> Por (Preço de Oferta)
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              disabled={!hasRetail}
+                              value={productPrice}
+                              onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))}
+                              placeholder="Ex: 6.990,00"
+                              className="w-full rounded-2xl border px-5 py-4 text-sm font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all disabled:opacity-30 cursor-text caret-emerald-600"
+                              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-400 uppercase animate-pulse">Oferta</div>
+                          </div>
+                          {priceError && <p className="mt-1.5 text-xs text-red-500 font-bold">{priceError}</p>}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1585,13 +1843,14 @@ export default function CatalogoPage() {
 
                 {/* Seção 4: Fotos */}
                 <div className="space-y-6 pb-6">
-                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
                     <Camera size={16} /> Galeria de Fotos
                   </h3>
                   
-                  <div className="p-8 rounded-[32px] border border-zinc-100 bg-zinc-50/30 space-y-6">
+                  <div className="p-8 rounded-[32px] border space-y-6" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                     <div
-                      className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-white px-6 py-10 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-50 shadow-sm cursor-pointer"
+                      className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed transition-all hover:border-emerald-500/50 hover:bg-emerald-50/10 shadow-sm cursor-pointer"
+                      style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                       onClick={() => setShowImageEditor(true)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
@@ -1805,6 +2064,68 @@ export default function CatalogoPage() {
         )}
       </AnimatePresence>
 
+
+      {/* Alerta de Visibilidade */}
+      <AnimatePresence>
+        {showVisibilityAlert && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => { setShowVisibilityAlert(false); setPendingStatusUpdate(null); }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md rounded-[32px] p-8 shadow-2xl border"
+              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+            >
+              <div className="h-16 w-16 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center text-amber-500 mb-6 mx-auto border border-amber-100 dark:border-amber-900/20">
+                <Info size={32} />
+              </div>
+              
+              <h3 className="text-xl font-black text-center mb-4 uppercase tracking-tight" style={{ color: "var(--dash-text-primary)" }}>Aviso de Visibilidade</h3>
+              
+              <p className="text-center text-sm leading-relaxed mb-8" style={{ color: "var(--dash-text-secondary)" }}>
+                Ao tornar o produto <span className="font-bold text-red-500">indisponível</span> ele não aparecerá no catálogo para seus clientes.
+              </p>
+
+              <div className="flex flex-col gap-4">
+                <label 
+                  className="flex items-center gap-3 cursor-pointer p-4 rounded-2xl border group transition-all"
+                  style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
+                >
+                  <input 
+                    type="checkbox" 
+                    checked={dontShowAgain}
+                    onChange={(e) => setDontShowAgain(e.target.checked)}
+                    className="h-5 w-5 rounded-lg border-zinc-300 text-emerald-600 focus:ring-emerald-500 bg-transparent"
+                  />
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>Não mostrar novamente</span>
+                </label>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowVisibilityAlert(false); setPendingStatusUpdate(null); }}
+                    className="flex-1 px-6 py-4 rounded-2xl bg-zinc-100 text-zinc-500 text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmVisibilityUpdate}
+                    className="flex-1 px-6 py-4 rounded-2xl bg-zinc-900 text-white text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-black/10"
+                  >
+                    Confirmar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <ImageEditorModal
         isOpen={showImageEditor}

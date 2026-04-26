@@ -176,7 +176,7 @@ export default async function Page(props: PageProps) {
     const { data: productsData, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at"
+        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock"
       )
       .in("category_id", categoryIds)
       .order("sort_order", { ascending: true });

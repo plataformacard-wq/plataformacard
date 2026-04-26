@@ -44,13 +44,17 @@ type Product = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
+  compare_at_price: number | null;
   sku: string | null;
+  has_retail?: boolean | null;
   has_wholesale: boolean | null;
   wholesale_price: number | null;
   wholesale_min_quantity: number | null;
   image_url: string | null;
   image_urls?: string[] | null;
   sort_order: number | null;
+  is_active?: boolean;
+  is_in_stock?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -180,6 +184,7 @@ export default function ProductCatalogClient({
       ...cat,
       products: products.filter(p => 
         p.category_id === cat.id && 
+        p.is_active !== false &&
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     })).filter(cat => cat.products.length > 0);
@@ -297,14 +302,21 @@ export default function ProductCatalogClient({
                       className="group relative bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-emerald-500/30 transition-all duration-300"
                     >
                       <div className="aspect-[4/3] relative overflow-hidden bg-slate-900 flex items-center justify-center p-4">
+                        {!product.is_in_stock && (
+                          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+                            <span className="bg-rose-600 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-2xl border border-rose-500">
+                              ESGOTADO
+                            </span>
+                          </div>
+                        )}
                         {product.image_url ? (
                           <img 
                             src={product.image_url} 
                             alt={product.name} 
-                            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                            className={`w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 ${!product.is_in_stock ? 'opacity-40 grayscale-[0.5]' : ''}`}
                           />
                         ) : (
-                          <Package size={48} className="text-slate-800" />
+                          <Package size={48} className={`text-slate-800 ${!product.is_in_stock ? 'opacity-30' : ''}`} />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
                         
@@ -334,14 +346,33 @@ export default function ProductCatalogClient({
                       <div className="p-6">
                         <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{product.name}</h3>
                         {product.description && (
-                          <p className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed">
-                            {product.description}
-                          </p>
+                          <div 
+                            className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: product.description }}
+                          />
                         )}
-                        <div className="flex items-center justify-between mt-auto">
-                          <p className="text-xl font-black text-emerald-400">
-                            {formatPrice(product.price) || <span className="text-xs text-slate-600 uppercase">Consultar</span>}
-                          </p>
+                        <div className="flex flex-col items-start mt-auto">
+                          {product.has_retail !== false && product.price !== null && (
+                            <div className="flex flex-col">
+                              {product.compare_at_price && (
+                                <span className="text-[10px] text-slate-500 line-through mb-0.5">
+                                  {formatPrice(product.compare_at_price)}
+                                </span>
+                              )}
+                              <p className="text-xl font-black text-emerald-400">
+                                {product.is_in_stock !== false ? formatPrice(product.price) : ""}
+                              </p>
+                            </div>
+                          )}
+                          {product.has_retail === false && product.has_wholesale && product.wholesale_price && (
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mb-0.5">A partir de (Atacado)</span>
+                              <p className="text-xl font-black text-emerald-400">
+                                {product.is_in_stock !== false ? formatPrice(product.wholesale_price) : ""}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                           <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-black transition-colors">
                             <ArrowRight size={18} />
                           </div>
@@ -462,8 +493,12 @@ export default function ProductCatalogClient({
               {/* Details Section */}
               <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto custom-scrollbar">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-emerald-500/20">
-                    Disponível
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                    selectedProduct.is_in_stock !== false 
+                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                      : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                  }`}>
+                    {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
                   </span>
                   {selectedProduct.sku && (
                     <span className="text-slate-500 text-[10px] font-mono tracking-tighter">REF: {selectedProduct.sku}</span>
@@ -474,46 +509,59 @@ export default function ProductCatalogClient({
                   {selectedProduct.name}
                 </h2>
 
-                <div className="space-y-6 mb-8">
-                  <div className="bg-white/5 border border-white/5 rounded-3xl p-6">
-                    {selectedProduct.has_wholesale ? (
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Preço Varejo</p>
-                          <p className="text-xl font-bold text-slate-300">{formatPrice(selectedProduct.price) || "Consulte"}</p>
-                        </div>
-                        <div className="h-px bg-white/5" />
-                        <div>
-                          <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1">Preço Atacado</p>
-                          <p className="text-3xl font-black text-emerald-400">
-                            {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
-                          </p>
-                          {selectedProduct.wholesale_min_quantity && (
-                            <p className="text-slate-500 text-xs mt-1 font-medium italic">
-                              Mínimo de {selectedProduct.wholesale_min_quantity} unidades
+                {selectedProduct.is_in_stock !== false && (
+                  <div className="space-y-6 mb-8">
+                    <div className="bg-white/5 border border-white/5 rounded-3xl p-6">
+                      <div className="space-y-6">
+                        {/* Seção Varejo */}
+                        {selectedProduct.has_retail !== false && (
+                          <div className={selectedProduct.has_wholesale ? "pb-6 border-b border-white/5" : ""}>
+                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
+                              <Tag size={12} /> Preço de Varejo
                             </p>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Preço Único</p>
-                        <p className="text-4xl font-black text-emerald-400">
-                          {formatPrice(selectedProduct.price) || "Consulte"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                            <div className="flex items-baseline gap-3">
+                              <p className="text-4xl font-black text-emerald-400">
+                                {formatPrice(selectedProduct.price) || "Consulte"}
+                              </p>
+                              {selectedProduct.compare_at_price && (
+                                <p className="text-lg text-slate-500 line-through font-bold">
+                                  {formatPrice(selectedProduct.compare_at_price)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
-                  {selectedProduct.description && (
+                        {/* Seção Atacado */}
+                        {selectedProduct.has_wholesale && (
+                          <div className={selectedProduct.has_retail !== false ? "pt-2" : ""}>
+                            <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
+                              <Layers size={12} /> Preço de Atacado
+                            </p>
+                            <p className="text-3xl font-black text-emerald-400">
+                              {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
+                            </p>
+                            {selectedProduct.wholesale_min_quantity && (
+                              <p className="text-slate-500 text-xs mt-1 font-medium italic">
+                                Mínimo de {selectedProduct.wholesale_min_quantity} unidades
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                )}
+
+                {selectedProduct.description && (
                     <div>
                       <h4 className="flex items-center gap-2 text-white font-bold text-sm mb-3">
                         <Info size={16} className="text-emerald-500" />
                         Descrição do Produto
                       </h4>
-                      <p className="text-slate-400 text-sm leading-relaxed">
-                        {selectedProduct.description}
-                      </p>
+                      <div 
+                        className="text-slate-400 text-sm leading-relaxed ql-editor-display"
+                        dangerouslySetInnerHTML={{ __html: selectedProduct.description }}
+                      />
                     </div>
                   )}
 
@@ -560,6 +608,8 @@ export default function ProductCatalogClient({
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .ql-editor-display p { margin-bottom: 0.5rem; }
+        .ql-editor-display b, .ql-editor-display strong { font-weight: 900; color: #fff; }
       `}</style>
     </div>
   );
