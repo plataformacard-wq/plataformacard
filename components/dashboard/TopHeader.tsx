@@ -23,6 +23,7 @@ interface TopHeaderProps {
   handleLogout: () => void;
   onMenuClick: () => void;
   slug?: string | null;
+  isReady: boolean;
   businessModel: "B2B" | "B2C" | "CaaS";
 }
 
@@ -35,8 +36,10 @@ export function TopHeader({
   handleLogout,
   onMenuClick,
   slug,
+  isReady,
   businessModel
 }: TopHeaderProps) {
+  const isB2B = businessModel === "B2B";
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -87,6 +90,28 @@ export function TopHeader({
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
+        {!isB2B && slug && (
+          <Link
+            href={`/${slug}`}
+            target="_blank"
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap shadow-lg ${
+              isReady 
+                ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:scale-105" 
+                : "bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] border border-[var(--dash-border)] opacity-80 hover:opacity-100"
+            }`}
+            title={isReady ? "Seu cartão está online" : "Ainda em rascunho - Complete o checklist"}
+          >
+            {isReady ? <ExternalLink size={18} /> : <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
+            <span className="hidden lg:inline">
+              {isReady 
+                ? "Ver meu Cartão" 
+                : "Visualizar Rascunho"
+              }
+            </span>
+            <span className="lg:hidden">{isReady ? (isB2B ? "Vitrine" : "Cartão") : "Rascunho"}</span>
+          </Link>
+        )}
+
         <div className="h-8 w-[1px] bg-[var(--dash-border)] mx-1" />
 
         <div ref={userMenuRef} className="relative">
@@ -132,20 +157,6 @@ export function TopHeader({
                   <p className="text-xs font-medium text-[var(--dash-text-primary)] mt-0.5 truncate">{nome}</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  {slug && businessModel === "B2C" && (
-                    <Link
-                      href={`/${slug}`}
-                      target="_blank"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center justify-between w-full rounded-xl px-3 py-2.5 text-sm font-bold text-emerald-500 transition-all hover:bg-emerald-500/10"
-                    >
-                      <div className="flex items-center gap-3">
-                        <ExternalLink size={16} />
-                        Meu Cartão Digital
-                      </div>
-                    </Link>
-                  )}
-
                   <Link
                     href="/dashboard/perfil#perfil"
                     onClick={() => setIsUserMenuOpen(false)}

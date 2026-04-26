@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -413,35 +413,54 @@ export default function PerfilPage() {
             <div className="mt-6 flex items-start gap-6">
               {/* Avatar */}
               <div className="flex flex-col items-center gap-3">
-                {avatarPreview ? (
-                  <img
-                    src={avatarPreview}
-                    alt={nome}
-                    className="h-20 w-20 rounded-full object-cover border"
-                    style={{ borderColor: "var(--dash-border)" }}
-                  />
-                ) : (
-                  <div
-                    className="flex h-20 w-20 items-center justify-center rounded-full text-xl font-medium text-white"
-                    style={{ background: "var(--dash-text-primary)" }}
-                  >
-                    {nome.charAt(0).toUpperCase()}
-                  </div>
-                )}
-
-                <button
-                  type="button"
+                <div 
+                  className="group relative h-24 w-24 rounded-full border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
+                  style={{ borderColor: "var(--dash-border)" }}
                   onClick={() => setShowImageEditor(true)}
-                  className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:opacity-70 flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--dash-border)",
-                    color: "var(--dash-text-primary)",
-                    background: "var(--dash-surface)",
-                  }}
                 >
-                  <Upload size={14} />
-                  {avatarFile ? "Alterar foto" : "Adicionar foto"}
-                </button>
+                  {avatarPreview ? (
+                    <>
+                      <img
+                        src={avatarPreview}
+                        alt={nome}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Upload className="text-white" size={20} />
+                      </div>
+                    </>
+                  ) : (
+                    <div
+                      className="flex h-full w-full items-center justify-center text-xl font-medium text-white"
+                      style={{ background: "var(--dash-text-primary)" }}
+                    >
+                      {nome.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowImageEditor(true)}
+                    className="text-xs font-bold text-primary hover:underline"
+                  >
+                    {avatarPreview ? "Alterar foto" : "Adicionar foto"}
+                  </button>
+                  
+                  {avatarPreview && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setAvatar(null);
+                        setAvatarFile(null);
+                      }}
+                      className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                    >
+                      <X size={12} /> Remover
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Campos */}

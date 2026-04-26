@@ -15,6 +15,8 @@ O projeto encontra-se na fase de **Consolidação e Refinamento de UX/UI**. Apó
 - **Plataforma Híbrida**: Suporte a três modelos principais:
     - **B2C (Cartão Digital)**: Foco em perfis pessoais e networking.
     - **B2B (Gestão de Vendas)**: Foco em times de vendas e hierarquia organizacional.
+        - **Conceito "Mini-site por Vendedor"**: Cada vendedor possui sua URL única (`/josegabriel`) como ferramenta de fechamento e pós-venda.
+        - **Descentralização**: O Admin orquestra o catálogo, mas o vendedor é o protagonista da interação na ponta.
     - **CaaS (Catalog as a Service)**: Modo catálogo puro para vitrines digitais de empresas.
 - **Multi-tenancy**: Separação completa de dados por conta/empresa.
 - **RBAC (Controle de Acesso)**: Papéis de Super Admin, Gestor, Vendedor e `caas_admin`.
@@ -64,6 +66,7 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 3.  **Logs de Auditoria**: Implementar rastreamento de alterações críticas feitas por vendedores/gestores.
 4.  **Otimização de Performance**: Lazy loading mais agressivo no Bulk Editor para catálogos com +500 itens.
 5.  **Notificações em Tempo Real**: Implementar via Supabase Realtime alertas para novos acessos ou atualizações do sistema.
+6.  **Gestão de Domínios (White-label)**: Implementar lógica técnica para suportar domínios customizados (ex: `anotameucontato.com.br`) via proxy ou CNAME.
 
 ---
 
@@ -89,6 +92,8 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 | 2026-04-24 | Criação do documento e definição de escopo (B2B, B2C, CaaS). | Antigravity |
 | 2026-04-24 | Bugfix: Correção de erro de tipagem no build do Vercel (CatalogoClient.tsx). | Antigravity |
 | 2026-04-24 | Bugfix: Correção de importação ausente do ícone Clock (PanelLayout.tsx). | Antigravity |
+| 2026-04-25 | Padronização de Branding: Atualização de links e previews para o domínio oficial `anotameucontato.com.br`. | Antigravity |
+| 2026-04-25 | Evolução B2B: Refatoração da listagem de vendedores para cards retangulares com toggle de status e analytics. | Antigravity |
 
 ---
 

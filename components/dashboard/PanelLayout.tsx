@@ -24,6 +24,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
 
@@ -109,6 +110,16 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         setNome(profile.full_name || "Usuário");
         setAvatar(profile.avatar_url || null);
         setSlug(profile.slug || null);
+
+        // Check for products count for isReady
+        const { count: pCount } = await supabase
+          .from("products")
+          .select("*", { count: "exact", head: true })
+          .eq("organization_id", profile.organization_id)
+          .is("deleted_at", null);
+
+        const ready = !!profile.avatar_url && !!profile.whatsapp && (pCount || 0) > 0;
+        setIsReady(ready);
 
         // Bloqueio de Onboarding se não autorizado
         if (!profile.organization_id) {
@@ -209,6 +220,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           avatar={avatar}
           role={role}
           slug={slug}
+          isReady={isReady}
           businessModel={businessModel}
           isDark={isDark}
           toggleTheme={toggleTheme}

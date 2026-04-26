@@ -5,38 +5,40 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function createSeller(formData: FormData) {
   const fullName = formData.get("fullName") as string;
-  const email = formData.get("email") as string;
   const slug = formData.get("slug") as string;
-  const password = formData.get("password") as string;
+  const bio = formData.get("bio") as string;
+  const whatsapp = formData.get("whatsapp") as string;
+  const avatarUrl = formData.get("avatarUrl") as string;
 
-  if (!fullName || !email || !slug || !password) {
-    return { error: "Todos os campos são obrigatórios." };
+  if (!fullName || !slug) {
+    return { error: "Nome e slug são obrigatórios." };
   }
 
   const supabaseServer = await createClient();
-  const { data: { user } } = await supabaseServer.auth.getUser();
+  const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
 
-  if (!user) {
+  if (!adminUser) {
     return { error: "Usuário não autenticado." };
   }
 
   const { data: profileManager } = await supabaseServer
     .from("profiles")
     .select("organization_id, role")
-    .eq("user_id", user.id)
+    .eq("user_id", adminUser.id)
     .single();
 
   if (!profileManager?.organization_id) {
     return { error: "Organização não encontrada." };
   }
 
-  if (profileManager.role !== "b2b_admin" && profileManager.role !== "superadmin") {
-    return { error: "Permissão negada. Apenas administradores B2B podem adicionar vendedores." };
+  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  if (!allowedRoles.includes(profileManager.role)) {
+    return { error: "Permissão negada." };
   }
 
   const adminAuthClient = createAdminClient();
 
-  // Verifica se o slug já existe para não quebrar a trigger/constraint
+  // Verifica se o slug já existe
   const { data: existingSlug } = await adminAuthClient
     .from("profiles")
     .select("id")
@@ -47,38 +49,149 @@ export async function createSeller(formData: FormData) {
     return { error: "Este slug (link) já está em uso." };
   }
 
-  const { data: newAuthUser, error: createUserError } = await adminAuthClient.auth.admin.createUser({
-    email: email,
-    password: password,
-    email_confirm: true,
-  });
+  console.log("🛠️ INICIANDO GRAVAÇÃO DE VENDEDOR...");
+  console.log("📍 Org ID Alvo:", profileManager.organization_id);
 
-  if (createUserError) {
-    console.error("Erro ao criar usuário auth:", createUserError);
-    return { error: createUserError.message };
-  }
+  try {
+    // ESTRATÉGIA: Criar uma conta técnica invisível para satisfazer o banco de dados
+    const virtualEmail = `vendedor_${slug}_${profileManager.organization_id.split("-")[0]}@interno.plataforma.card`;
+    const randomPassword = crypto.randomUUID();
 
-  if (!newAuthUser.user) {
-    return { error: "Falha ao criar a conta de usuário." };
-  }
+    const { data: authData, error: authError } = await adminAuthClient.auth.admin.createUser({
+      email: virtualEmail,
+      password: randomPassword,
+      email_confirm: true,
+    });
 
-  // Atualiza o perfil criado via trigger
-  const { error: profileError } = await adminAuthClient
-    .from("profiles")
-    .update({
+    let targetUserId = "";
+
+    if (authError) {
+      if (authError.message.includes("already been registered")) {
+        const { data: users } = await adminAuthClient.auth.admin.listUsers();
+        const existing = users.users.find(u => u.email === virtualEmail);
+        if (!existing) return { error: "Erro crítico: Usuário existe mas não foi encontrado." };
+        targetUserId = existing.id;
+      } else {
+        return { error: `Erro Auth: ${authError.message}` };
+      }
+    } else {
+      targetUserId = authData.user.id;
+    }
+
+    console.log("🔑 User ID para Perfil:", targetUserId);
+
+    const profilePayload = {
+      id: targetUserId,
+      user_id: targetUserId,
       full_name: fullName,
       slug: slug,
+      bio: bio,
+      whatsapp: whatsapp,
+      avatar_url: avatarUrl,
       organization_id: profileManager.organization_id,
-      role: "seller",
-    })
-    .eq("user_id", newAuthUser.user.id);
+      role: "seller"
+    };
 
-  if (profileError) {
-    console.error("Erro ao atualizar perfil do vendedor:", profileError);
-    return { error: "Vendedor criado, mas erro ao salvar perfil." };
+    const { error: insertError } = await adminAuthClient
+      .from("profiles")
+      .insert(profilePayload);
+
+    if (insertError) {
+      if (insertError.code === '23505') {
+        // Se já existe (trigger criou), forçamos a atualização dos dados
+        const { error: updateError } = await adminAuthClient
+          .from("profiles")
+          .update(profilePayload)
+          .eq("id", targetUserId);
+        
+        if (updateError) return { error: `Erro na atualização: ${updateError.message}` };
+      } else {
+        return { error: `Erro no banco: ${insertError.message}` };
+      }
+    }
+
+    return { success: true, id: targetUserId };
+
+  } catch (e: any) {
+    console.error("🔥 CRASH NA ACTION:", e);
+    return { error: `Erro Interno: ${e.message}` };
   }
+}
 
-  return { success: true };
+export async function updateSeller(sellerId: string, profileData: any) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+
+    const adminAuthClient = createAdminClient();
+    
+    const { error } = await adminAuthClient
+      .from("profiles")
+      .update(profileData)
+      .eq("id", sellerId);
+
+    if (error) return { error: error.message };
+    return { success: true };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+
+export async function toggleSellerStatus(sellerId: string, isAvailable: boolean) {
+  try {
+    const adminAuthClient = createAdminClient();
+    const { error } = await adminAuthClient
+      .from("profiles")
+      .update({ is_available: isAvailable })
+      .eq("id", sellerId);
+
+    if (error) return { error: error.message };
+    return { success: true };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+
+export async function getSellers() {
+  const supabaseServer = await createClient();
+  const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+
+  if (!adminUser) return { error: "Não autenticado" };
+
+  const adminAuthClient = createAdminClient();
+
+  const { data: profileManager } = await adminAuthClient
+    .from("profiles")
+    .select("organization_id")
+    .eq("user_id", adminUser.id)
+    .single();
+
+  console.log("--- DEBUG GET SELLERS ---");
+  console.log("Org ID do Gestor:", profileManager?.organization_id);
+
+  if (!profileManager?.organization_id) return { sellers: [] };
+
+  const { data: sellers } = await adminAuthClient
+    .from("profiles")
+    .select("*")
+    .eq("organization_id", profileManager.organization_id)
+    .order("full_name");
+
+  // DIAGNÓSTICO: Buscar os 3 últimos criados no sistema GERAL
+  const { data: globalLast } = await adminAuthClient
+    .from("profiles")
+    .select("full_name, organization_id, slug")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  return { 
+    sellers: sellers || [], 
+    debug: { 
+      managerOrg: profileManager.organization_id,
+      globalRecent: globalLast 
+    } 
+  };
 }
 
 export async function deleteSeller(userId: string) {
@@ -95,7 +208,8 @@ export async function deleteSeller(userId: string) {
     .eq("user_id", user.id)
     .single();
 
-  if (profileManager?.role !== "b2b_admin" && profileManager?.role !== "superadmin") {
+  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
 
@@ -128,7 +242,8 @@ export async function updateSellerPassword(userId: string, newPassword: string) 
     .eq("user_id", user.id)
     .single();
 
-  if (profileManager?.role !== "b2b_admin" && profileManager?.role !== "superadmin") {
+  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
 
@@ -163,7 +278,8 @@ export async function updateSellerPermissions(userId: string, canCustomizeHours:
     .eq("user_id", user.id)
     .single();
 
-  if (profileManager?.role !== "b2b_admin" && profileManager?.role !== "superadmin") {
+  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
 

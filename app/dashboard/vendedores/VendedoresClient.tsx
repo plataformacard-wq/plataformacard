@@ -14,7 +14,9 @@ import {
   Upload,
   ChevronLeft,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink,
+  ChevronDown
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,6 +61,8 @@ const dayNamesMap = {
   sunday: "Domingo",
 };
 
+import { createSeller, updateSeller, getSellers, toggleSellerStatus } from "@/lib/dashboard/sellerActions";
+
 export default function VendedoresClient() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -66,14 +70,15 @@ export default function VendedoresClient() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isB2C, setIsB2C] = useState(false);
-  const router = useRouter(); // Import useRouter if not present
+  const router = useRouter();
   
   // View State: 'list' | 'form'
   const [view, setView] = useState<'list' | 'form'>('list');
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   
-  // Form State (Ficha completa igual ao perfil)
+  // Form State
   const [formEmail, setFormEmail] = useState("");
+  const [formPassword, setFormPassword] = useState("");
   const [formName, setFormName] = useState("");
   const [formBio, setFormBio] = useState("");
   const [formWhatsapp, setFormWhatsapp] = useState("");
@@ -86,64 +91,97 @@ export default function VendedoresClient() {
   
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [showHoursConfig, setShowHoursConfig] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const [debugData, setDebugData] = useState<any>(null);
+
   async function fetchData() {
     setLoading(true);
+    
+    // 1. Buscar via Server Action (Ignora RLS)
+    const result = await getSellers();
+    
+    if (result.error) {
+      console.error("❌ Erro ao buscar vendedores:", result.error);
+    } else if (result.sellers) {
+      setVendedores(result.sellers as Seller[]);
+      setDebugData(result.debug);
+    }
+
+    // 2. Verificar permissões e B2C (Para redirecionamento se necessário)
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("organization_id, role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (profile?.organization_id) {
-      setOrgId(profile.organization_id);
-      
-      const { data: sellers } = await supabase
+    if (user) {
+      const { data: profile } = await supabase
         .from("profiles")
-        .select("*")
-        .eq("organization_id", profile.organization_id)
-        .eq("role", "seller")
-        .order("full_name");
-
-      if (sellers) setVendedores(sellers as Seller[]);
-
-      // Verificar se é B2C para bloquear acesso à página
-      const { data: org } = await supabase
-        .from("organizations")
-        .select("business_model")
-        .eq("id", profile.organization_id)
+        .select("organization_id, role")
+        .eq("user_id", user.id)
         .maybeSingle();
-      
-      if (org?.business_model === "B2C" || profile.role === "b2c_admin") {
-        setIsB2C(true);
-        // Redirecionar após um pequeno delay ou imediatamente
-        router.push("/dashboard");
+
+      if (profile?.organization_id) {
+        setOrgId(profile.organization_id);
+        const { data: org } = await supabase
+          .from("organizations")
+          .select("business_model")
+          .eq("id", profile.organization_id)
+          .maybeSingle();
+        
+        if (org?.business_model === "B2C" || profile.role === "b2c_admin") {
+          setIsB2C(true);
+          router.push("/dashboard");
+        }
       }
     }
+    
     setLoading(false);
   }
 
+  const formatWhatsApp = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 11) {
+      return digits
+        .replace(/^(\d{2})(\d)/g, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2");
+    }
+    return digits.slice(0, 11)
+      .replace(/^(\d{2})(\d)/g, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2");
+  };
+
+  async function handleToggleStatus(seller: Seller) {
+    const newStatus = !seller.is_available;
+    
+    // Atualiza localmente para feedback instantâneo
+    setVendedores(prev => prev.map(v => v.id === seller.id ? { ...v, is_available: newStatus } : v));
+
+    const result = await toggleSellerStatus(seller.id, newStatus);
+    if (result.error) {
+      setMessage(`Erro ao mudar status: ${result.error}`);
+      // Reverte se der erro
+      fetchData();
+    }
+  }
+
   function handleOpenForm(seller?: Seller) {
+    setMessage("");
     if (seller) {
       setSelectedSeller(seller);
       setFormEmail(seller.email || "");
+      setFormPassword("");
       setFormName(seller.full_name || "");
       setFormBio(seller.bio || "");
-      setFormWhatsapp(seller.whatsapp || "");
+      setFormWhatsapp(seller.whatsapp ? formatWhatsApp(seller.whatsapp) : "");
       setFormSlug(seller.slug || "");
-      setFormAvatar(seller.avatar_url);
+      setFormAvatar(seller.avatar_url || null);
       setFormCanCustomize(seller.can_customize_hours || false);
       setFormHours(seller.custom_business_hours || defaultBusinessHours);
     } else {
       setSelectedSeller(null);
       setFormEmail("");
+      setFormPassword("");
       setFormName("");
       setFormBio("");
       setFormWhatsapp("");
@@ -155,67 +193,89 @@ export default function VendedoresClient() {
     setView('form');
   }
 
+  const isFormValid = !!(formName && formBio && formWhatsapp && formSlug);
+
   async function handleSave() {
-    if (!orgId || !formName) {
-      setMessage("O nome é obrigatório.");
+    if (!isFormValid) {
+      setMessage("Preencha todos os campos obrigatórios (Nome, Bio, WhatsApp e Link).");
       return;
     }
     setSaving(true);
     
-    // Se for um novo vendedor, em um cenário real precisaríamos criar o Auth User.
-    // Como estamos focando no cadastro de perfil, vamos simular ou atualizar se já existir.
-    
     let finalAvatarUrl = formAvatar;
-    if (formAvatarFile && selectedSeller) {
-      const fileExt = formAvatarFile.name.split(".").pop();
-      const filePath = `${selectedSeller.id}/avatar.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, formAvatarFile, { upsert: true });
+    
+    // Se for NOVO, primeiro criamos o usuário para pegar o ID
+    if (!selectedSeller) {
+      const formData = new FormData();
+      formData.append("fullName", formName);
+      formData.append("slug", formSlug);
+      formData.append("bio", formBio);
+      formData.append("whatsapp", formWhatsapp.replace(/\D/g, ""));
+      formData.append("avatarUrl", formAvatar || ""); // Envia a foto se houver (mesmo blob)
 
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-        finalAvatarUrl = urlData.publicUrl;
+      const result = await createSeller(formData);
+      
+      if (result.error) {
+        setMessage(`Erro: ${result.error}`);
+        setSaving(false);
+        return;
+      }
+
+      // Agora que temos o ID, fazemos o upload da foto se houver um NOVO arquivo
+      if (formAvatarFile && result.id) {
+        const fileExt = formAvatarFile.name.split(".").pop();
+        const filePath = `${result.id}/avatar.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, formAvatarFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+          finalAvatarUrl = urlData.publicUrl;
+          
+          // Atualiza o perfil com a URL real via SERVER ACTION (para ignorar RLS)
+          await updateSeller(result.id, { avatar_url: finalAvatarUrl });
+        }
+      }
+    } else {
+      // EDIÇÃO
+      if (formAvatarFile) {
+        const fileExt = formAvatarFile.name.split(".").pop();
+        const filePath = `${selectedSeller.id}/avatar.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, formAvatarFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+          finalAvatarUrl = urlData.publicUrl;
+        }
+      }
+
+      const profileData = {
+        full_name: formName,
+        bio: formBio,
+        whatsapp: formWhatsapp.replace(/\D/g, ""),
+        slug: formSlug,
+        avatar_url: finalAvatarUrl,
+        can_customize_hours: formCanCustomize,
+        custom_business_hours: formHours,
+      };
+
+      // USA SERVER ACTION para ignorar RLS
+      const result = await updateSeller(selectedSeller.id, profileData);
+      
+      if (result.error) {
+        setMessage(`Erro no servidor: ${result.error}`);
+        setSaving(false);
+        return;
       }
     }
 
-    const profileData = {
-      full_name: formName,
-      bio: formBio,
-      whatsapp: formWhatsapp,
-      slug: formSlug,
-      avatar_url: finalAvatarUrl,
-      can_customize_hours: formCanCustomize,
-      custom_business_hours: formHours,
-      organization_id: orgId,
-      role: 'seller'
-    };
-
-    let error;
-    if (selectedSeller) {
-      const { error: err } = await supabase
-        .from("profiles")
-        .update(profileData)
-        .eq("id", selectedSeller.id);
-      error = err;
-    } else {
-      // Para novo, precisaríamos do user_id do Auth. 
-      // Mostraremos um alerta de que o convite deve ser enviado.
-      alert("Para criar um NOVO vendedor, o sistema enviará um convite por e-mail (Simulado).");
-      setSaving(false);
-      setView('list');
-      return;
-    }
-
-    if (error) {
-      setMessage("Erro ao salvar dados.");
-    } else {
-      setMessage("Dados salvos com sucesso!");
-      setTimeout(() => {
-        setView('list');
-        fetchData();
-      }, 1500);
-    }
+    setMessage("Vendedor salvo com sucesso!");
+    router.refresh();
+    fetchData();
+    setTimeout(() => setView('list'), 1500);
     setSaving(false);
   }
 
@@ -276,7 +336,7 @@ export default function VendedoresClient() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
               <input 
                 type="text"
-                placeholder="Buscar por nome ou e-mail..."
+                placeholder="Buscar por nome ou telefone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 rounded-2xl border outline-none"
@@ -284,35 +344,90 @@ export default function VendedoresClient() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {vendedores.map(v => (
+            <div className="space-y-4">
+              {vendedores
+                .filter(v => v.role === 'seller')
+                .filter(v => {
+                  const query = searchQuery.toLowerCase();
+                  return (
+                    v.full_name?.toLowerCase().includes(query) || 
+                    v.whatsapp?.includes(query.replace(/\D/g, ""))
+                  );
+                })
+                .map(v => (
                 <div 
                   key={v.id} 
-                  onClick={() => handleOpenForm(v)}
-                  className="group cursor-pointer rounded-3xl border p-5 transition-all hover:shadow-md hover:border-primary/30"
+                  className="group relative flex flex-col md:flex-row items-center gap-6 p-5 rounded-[32px] border transition-all hover:shadow-xl hover:border-primary/30"
                   style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                 >
-                  <div className="flex items-center gap-4">
-                    {v.avatar_url ? (
-                      <img src={v.avatar_url} className="h-14 w-14 rounded-2xl object-cover border" style={{ borderColor: "var(--dash-border)" }} />
-                    ) : (
-                      <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                        {v.full_name?.charAt(0) || "V"}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold truncate text-[var(--dash-text-primary)]">{v.full_name || "Sem nome"}</p>
-                      <p className="text-xs text-[var(--dash-text-muted)] truncate">{v.email}</p>
+                  {/* Foto e Info Principal */}
+                  <div className="flex items-center gap-4 w-full md:w-auto md:min-w-[280px] md:max-w-[300px]">
+                    <div className="relative flex-shrink-0">
+                      {v.avatar_url ? (
+                        <img src={v.avatar_url} className="h-20 w-20 rounded-[24px] object-cover border-2 border-white shadow-md" />
+                      ) : (
+                        <div className="h-20 w-20 rounded-[24px] bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
+                          {v.full_name?.charAt(0) || "V"}
+                        </div>
+                      )}
+                      <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-white shadow-sm ${v.is_available ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                     </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className={v.can_customize_hours ? "text-green-500" : "text-zinc-400"} />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">
-                        {v.can_customize_hours ? "Horário Livre" : "Horário Fixo"}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-lg truncate" style={{ color: "var(--dash-text-primary)" }}>{v.full_name || "Sem nome"}</h4>
+                      <p className="text-xs text-[var(--dash-text-muted)] truncate mb-1 pr-2" title={v.bio || ""}>
+                        {v.bio || "Consultor de Vendas"}
+                      </p>
+                      <span className="inline-block px-2 py-0.5 rounded-lg bg-primary/5 text-[10px] font-bold text-primary truncate max-w-full">
+                        anotameucontato.com.br/{v.slug}
                       </span>
                     </div>
-                    <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">Editar Ficha →</span>
+                  </div>
+
+                  {/* Dados Analíticos (Placeholders zerados para realidade) */}
+                  <div className="flex-1 grid grid-cols-3 gap-2 px-6 border-x border-dashed hidden lg:grid" style={{ borderColor: "var(--dash-border)" }}>
+                    <div className="text-center">
+                      <p className="text-[9px] font-bold uppercase tracking-tight text-[var(--dash-text-muted)] mb-1 whitespace-nowrap">Cliques no Link</p>
+                      <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>0</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] font-bold uppercase tracking-tight text-[var(--dash-text-muted)] mb-1 whitespace-nowrap">Contatos Realizados</p>
+                      <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>0</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] font-bold uppercase tracking-tight text-[var(--dash-text-muted)] mb-1 whitespace-nowrap">Conversão</p>
+                      <p className="text-xl font-black text-emerald-500">0%</p>
+                    </div>
+                  </div>
+
+                  {/* Ações Rápidas */}
+                  <div className="flex flex-row md:flex-col items-center gap-3 min-w-[140px]">
+                    <div className="flex items-center gap-3 mr-4 md:mr-0">
+                      <span className={`text-[10px] font-bold uppercase tracking-tighter ${v.is_available ? 'text-emerald-500' : 'text-slate-400'}`}>
+                        {v.is_available ? 'Ativo' : 'Inativo'}
+                      </span>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleToggleStatus(v); }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${v.is_available ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${v.is_available ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 w-full">
+                      <a 
+                        href={`/${v.slug}`} 
+                        target="_blank"
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all"
+                      >
+                        <ExternalLink size={14} /> Cartão Virtual
+                      </a>
+                      <button 
+                        onClick={() => handleOpenForm(v)}
+                        className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-black transition-all"
+                      >
+                        Editar Ficha
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -348,33 +463,72 @@ export default function VendedoresClient() {
                 </h3>
                 <div className="flex flex-col md:flex-row gap-8">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="h-24 w-24 rounded-3xl border overflow-hidden bg-zinc-50" style={{ borderColor: "var(--dash-border)" }}>
-                      {formAvatar ? <img src={formAvatar} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-zinc-300"><Upload size={32} /></div>}
-                    </div>
-                    <button 
+                    <div 
+                      className="group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
+                      style={{ borderColor: "var(--dash-border)" }}
                       onClick={() => setShowImageEditor(true)}
-                      className="text-xs font-bold text-primary hover:underline"
                     >
-                      Alterar Foto
-                    </button>
+                      {formAvatar ? (
+                        <>
+                          <img src={formAvatar} className="h-full w-full object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Upload className="text-white" size={24} />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-zinc-300 gap-1">
+                          <Upload size={32} />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={() => setShowImageEditor(true)}
+                        className="text-xs font-bold text-primary hover:underline"
+                      >
+                        {formAvatar ? "Alterar Foto" : "Enviar Foto"}
+                      </button>
+                      
+                      {formAvatar && (
+                        <button 
+                          onClick={() => {
+                            setFormAvatar(null);
+                            setFormAvatarFile(null);
+                          }}
+                          className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                        >
+                          <X size={12} /> Remover
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex-1 space-y-4">
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
-                      <input 
-                        type="text" value={formName} onChange={e => setFormName(e.target.value)}
-                        className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
-                        style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Bio / Cargo</label>
-                      <input 
-                        type="text" value={formBio} onChange={e => setFormBio(e.target.value)}
-                        placeholder="Ex: Especialista em Mobilidade"
-                        className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
-                        style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
+                        <input 
+                          type="text" value={formName} onChange={e => setFormName(e.target.value)}
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between items-center">
+                          <span>Bio / Cargo</span>
+                          <span className={`text-[10px] ${formBio.length >= 70 ? 'text-amber-500 font-bold' : 'text-zinc-400'}`}>
+                            {formBio.length}/80
+                          </span>
+                        </label>
+                        <textarea 
+                          value={formBio} onChange={e => setFormBio(e.target.value.slice(0, 80))}
+                          placeholder="um pequeno texto sobre o vendedor"
+                          maxLength={80}
+                          rows={2}
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] resize-none"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -389,7 +543,10 @@ export default function VendedoresClient() {
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp</label>
                     <input 
-                      type="tel" value={formWhatsapp} onChange={e => setFormWhatsapp(e.target.value)}
+                      type="tel" 
+                      value={formWhatsapp} 
+                      onChange={e => setFormWhatsapp(formatWhatsApp(e.target.value))}
+                      placeholder="(00) 00000-0000"
                       className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
                       style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
@@ -397,61 +554,104 @@ export default function VendedoresClient() {
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Link do Cartão (Slug)</label>
                     <input 
-                      type="text" value={formSlug} onChange={e => setFormSlug(e.target.value)}
+                      type="text" value={formSlug} onChange={e => setFormSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                      placeholder="ex: nome_do_vendedor"
                       className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
                       style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
+                    {formSlug && (
+                      <p className="mt-2 text-[10px] font-medium text-primary/60 truncate">
+                        Link: <span className="font-bold">anotameucontato.com.br/{formSlug}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Card 3: Permissões e Horários */}
-              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-                <div className="flex items-center justify-between mb-6">
+              {/* Card 3: Permissões e Horários (Colapsável) */}
+              <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <button 
+                  onClick={() => setShowHoursConfig(!showHoursConfig)}
+                  className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 transition-colors"
+                >
                   <h3 className="font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
                     <Clock size={18} className="text-primary" /> Horário e Permissões
                   </h3>
-                </div>
+                  <ChevronDown size={20} className={`text-zinc-400 transition-transform ${showHoursConfig ? 'rotate-180' : ''}`} />
+                </button>
 
-                <div className="space-y-4">
-                  {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
-                    const dayData = formHours.schedule[day];
-                    return (
-                      <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
-                        <div className="w-32 flex items-center gap-2">
-                          <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4" />
-                          <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
-                        </div>
-                        <div className="flex-1 flex flex-wrap gap-2">
-                          {dayData.isOpen && dayData.shifts.map((shift, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <input 
-                                type="time" value={shift.open} onChange={e => handleShiftChange(day, idx, "open", e.target.value)}
-                                className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
-                              />
-                              <span className="text-[10px]">até</span>
-                              <input 
-                                type="time" value={shift.close} onChange={e => handleShiftChange(day, idx, "close", e.target.value)}
-                                className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
-                              />
-                            </div>
-                          ))}
+                <AnimatePresence>
+                  {showHoursConfig && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 pt-0 space-y-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                        <div className="pt-4 space-y-4">
+                          {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
+                            const dayData = formHours.schedule[day];
+                            return (
+                              <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
+                                <div className="w-32 flex items-center gap-2">
+                                  <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4" />
+                                  <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
+                                </div>
+                                <div className="flex-1 flex flex-wrap gap-2">
+                                  {dayData.isOpen && dayData.shifts.map((shift, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <input 
+                                        type="time" value={shift.open} onChange={e => handleShiftChange(day, idx, "open", e.target.value)}
+                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
+                                      />
+                                      <span className="text-[10px]">até</span>
+                                      <input 
+                                        type="time" value={shift.close} onChange={e => handleShiftChange(day, idx, "close", e.target.value)}
+                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="flex items-center gap-4">
                 <button 
-                  onClick={handleSave} disabled={saving}
-                  className="px-8 py-3 rounded-2xl font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                  style={{ background: "var(--dash-text-primary)" }}
+                  onClick={handleSave} 
+                  disabled={saving || !isFormValid}
+                  className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+                    saving || !isFormValid 
+                    ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
+                    : "bg-zinc-900 text-white hover:scale-105 shadow-primary/20"
+                  }`}
                 >
                   {saving ? "Salvando..." : "Salvar Ficha do Vendedor"}
                 </button>
-                {message && <span className="text-sm font-medium text-green-600 flex items-center gap-1"><CheckCircle2 size={16} /> {message}</span>}
+                {message && (
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
+                    message.toLowerCase().includes("erro") || 
+                    message.toLowerCase().includes("negada") || 
+                    message.toLowerCase().includes("banco") 
+                    ? "bg-red-500/10 border-red-500/20 text-red-500" 
+                    : "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                  }`}>
+                    {message.toLowerCase().includes("erro") || 
+                     message.toLowerCase().includes("negada") || 
+                     message.toLowerCase().includes("banco") 
+                      ? <X size={16} /> 
+                      : <CheckCircle2 size={16} />
+                    }
+                    <span className="text-sm font-bold">{message}</span>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
