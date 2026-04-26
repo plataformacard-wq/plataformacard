@@ -4,13 +4,12 @@ import { useState } from "react";
 import { 
   Building2, 
   ExternalLink, 
-  Package, 
-  Calendar, 
-  TrendingUp,
   Search,
-  Filter
+  Filter,
+  RefreshCw
 } from "lucide-react";
 import ClientDetailModal from "./ClientDetailModal";
+import { updateOrganizationModel } from "@/lib/admin-actions";
 
 interface ClientListProps {
   organizations: any[];
@@ -24,6 +23,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
   // Modal State
   const [selectedOrg, setSelectedOrg] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const filteredOrgs = organizations?.filter(org => {
     const matchesSearch = org.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -35,6 +35,16 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
   const handleOpenDetails = (org: any) => {
     setSelectedOrg(org);
     setIsModalOpen(true);
+  };
+
+  const handleModelToggle = async (orgId: string, currentModel: string) => {
+    const newModel = currentModel === 'B2B' ? 'B2C' : 'B2B';
+    setUpdatingId(orgId);
+    const result = await updateOrganizationModel(orgId, newModel);
+    if (!result.success) {
+      alert("Erro ao mudar modelo: " + result.error);
+    }
+    setUpdatingId(null);
   };
 
   return (
@@ -80,60 +90,121 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
         </div>
       </div>
 
-      {/* Grid de Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredOrgs?.map((org) => (
-          <div 
-            key={org.id} 
-            onClick={() => handleOpenDetails(org)}
-            className="group relative rounded-3xl border p-6 transition-all hover:shadow-xl hover:border-primary/30 cursor-pointer" 
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
-                <Building2 size={28} />
-              </div>
-              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                org.business_model === 'B2B' 
-                  ? 'bg-blue-500/10 text-blue-500' 
-                  : 'bg-emerald-500/10 text-emerald-500'
-              }`}>
-                {org.business_model || 'B2B'}
-              </span>
-            </div>
+      {/* Lista de Cards Premium (Padrão Horizontal Vendedores) */}
+      <div className="space-y-4">
+        {filteredOrgs?.map((org) => {
+          // Mapeamento de Plano (UUID para Nome)
+          const getPlanName = (planId: string) => {
+            if (!planId) return "Sem Plano";
+            if (planId === "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0") return "STARTER";
+            if (planId === "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62") return "PRO BUSINESS";
+            if (planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26") return "ENTERPRISE";
+            return "Custom";
+          };
 
-            <div className="space-y-1">
-              <h3 className="text-xl font-bold truncate" style={{ color: "var(--dash-text-primary)" }}>
-                {org.name || "Sem Nome"}
-              </h3>
-              <p className="text-sm font-medium flex items-center gap-1" style={{ color: "var(--dash-text-muted)" }}>
-                /{org.slug}
-                <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-              </p>
-            </div>
+          return (
+            <div 
+              key={org.id} 
+              className="group relative flex flex-col md:flex-row items-center gap-6 p-6 rounded-[32px] border transition-all hover:shadow-2xl hover:border-primary/30" 
+              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+            >
+              {/* 1. Identidade da Empresa (Esquerda) */}
+              <div className="flex items-center gap-5 md:w-[350px] shrink-0">
+                <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+                  <Building2 size={32} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xl font-black truncate leading-tight" style={{ color: "var(--dash-text-primary)" }}>
+                    {org.name || "Sem Nome"}
+                  </h3>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] truncate max-w-[200px] mt-1">
+                    /{org.slug}
+                  </p>
+                </div>
+              </div>
 
-            <div className="mt-8 pt-6 border-t grid grid-cols-2 gap-4" style={{ borderColor: "var(--dash-border)" }}>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <Calendar size={12} /> Desde
-                </p>
-                <p className="text-xs font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
-                  {new Date(org.created_at).toLocaleDateString("pt-BR", { month: 'short', year: 'numeric' })}
-                </p>
+              {/* 2. Dados Analíticos / Saúde (Centro - Bordas Tracejadas) */}
+              <div className="flex-1 flex items-center justify-between px-8 border-y md:border-y-0 md:border-x border-dashed py-6 md:py-0 w-full md:w-auto gap-8" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="flex flex-col items-center md:items-start min-w-[70px]">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Desde</p>
+                  <p className="text-sm font-black" style={{ color: "var(--dash-text-primary)" }}>
+                    {new Date(org.created_at).toLocaleDateString("pt-BR", { month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+                
+                <div className="flex flex-col items-center min-w-[70px]">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Status</p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="text-sm font-black text-emerald-500 uppercase">Ativo</p>
+                  </div>
+                </div>
+
+                {/* SELETOR B2B / B2C ULTRA EVIDENTE */}
+                <div className="flex flex-col items-center min-w-[140px]">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-2">Modelo de Operação</p>
+                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative">
+                    {updatingId === org.id && (
+                      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
+                        <RefreshCw size={12} className="animate-spin text-white" />
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => org.business_model !== 'B2B' && handleModelToggle(org.id, 'B2C')}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                        org.business_model === 'B2B' 
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                          : 'text-[var(--dash-text-muted)] hover:text-blue-500'
+                      }`}
+                    >
+                      B2B
+                    </button>
+                    <button 
+                      onClick={() => org.business_model !== 'B2C' && handleModelToggle(org.id, 'B2B')}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                        org.business_model === 'B2C' 
+                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
+                          : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
+                      }`}
+                    >
+                      B2C
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center md:items-end min-w-[100px]">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Plano</p>
+                  <p className="text-sm font-black text-amber-500 uppercase text-right">
+                    {getPlanName(org.plan_id)}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <TrendingUp size={12} /> Performance
-                </p>
-                <p className="text-xs font-bold text-emerald-500">Alta</p>
+
+              {/* 3. Ações Rápidas (Direita) */}
+              <div className="flex items-center gap-3 md:w-64 justify-end shrink-0 w-full md:w-auto">
+                 <button 
+                  onClick={() => handleOpenDetails(org)}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-xs font-black bg-[var(--dash-bg)] border transition-all hover:bg-primary/10 hover:border-primary/30 active:scale-95"
+                  style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                 >
+                   VER RAIO-X
+                 </button>
+                 <a 
+                  href={`/${org.slug}`}
+                  target="_blank"
+                  className="p-4 rounded-2xl bg-[var(--dash-bg)] border text-[var(--dash-text-muted)] hover:text-primary transition-all flex-shrink-0"
+                  style={{ borderColor: "var(--dash-border)" }}
+                 >
+                   <ExternalLink size={18} />
+                 </a>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredOrgs?.length === 0 && (
-        <div className="text-center py-20 bg-[var(--dash-surface)] rounded-3xl border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+        <div className="text-center py-20 bg-[var(--dash-surface)] rounded-[32px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
           <p style={{ color: "var(--dash-text-muted)" }}>Nenhum cliente encontrado com os filtros aplicados.</p>
         </div>
       )}

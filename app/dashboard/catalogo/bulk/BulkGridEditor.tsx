@@ -683,8 +683,14 @@ export default function BulkGridEditor() {
 
       {/* --- Grid --- */}
       <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToVerticalAxis]}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="border-b border-[var(--dash-border)] bg-[var(--dash-hover-bg)]/50">
@@ -700,17 +706,11 @@ export default function BulkGridEditor() {
                 </tr>
               ))}
             </thead>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-              modifiers={[restrictToVerticalAxis]}
+            <SortableContext
+              items={data.map((d) => d.id)}
+              strategy={verticalListSortingStrategy}
             >
-              <SortableContext
-                items={data.map((d) => d.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <tbody className="divide-y divide-[var(--dash-border)]">
+              <tbody className="divide-y divide-[var(--dash-border)]">
                   {table.getRowModel().rows.map((row) => (
                     <DraggableRow key={row.id} row={row}>
                       {(attributes: any, listeners: any) => (
@@ -736,9 +736,9 @@ export default function BulkGridEditor() {
                   ))}
                 </tbody>
               </SortableContext>
-            </DndContext>
-          </table>
-        </div>
+            </table>
+          </div>
+        </DndContext>
         
         {data.length === 0 && (
           <div className="p-12 text-center">

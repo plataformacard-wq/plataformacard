@@ -85,7 +85,29 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 
 ---
 
-## 6. Registro de Alterações (Log)
+## 7. Modelo de Planos e Precificação (Rascunho Inicial)
+
+> [!IMPORTANT]
+> Os dados abaixo representam um **esboço estratégico inicial** para fins de planejamento. Estes planos, limites e valores são **passíveis de modificações** de acordo com a validação de mercado e necessidades operacionais.
+
+### 💎 Tabela de Planos Sugerida
+
+| Recurso | **Essential (B2C)** | **Pro Business (B2B)** | **Enterprise Maj (B2B+)** |
+| :--- | :--- | :--- | :--- |
+| **Vendedores** | 1 (Titular) | Até 10 Vendedores | Ilimitado |
+| **Produtos** | Até 30 produtos | Até 150 produtos | Ilimitado |
+| **Domínio** | `anotameucontato.com.br/slug` | Subdomínio Customizado ✅ | Subdomínio Customizado ✅ |
+| **Destaque** | Cartão Pessoal | Gestão de Pequena Equipe | Consultoria e Escala |
+| **Suporte** | E-mail | WhatsApp Prioritário | Gerente de Conta VIP |
+
+### 🛠️ Definição de Serviços Estratégicos
+
+- **Gerente de Conta (Exclusivo Enterprise):** Atua como um parceiro de *Customer Success*. Responsável pelo Onboarding VIP (carga de dados inicial), consultoria mensal de performance baseada em Analytics e treinamento direto das equipes de venda.
+- **Módulo BI Avançado:** Disponível nos planos Pro e Enterprise, oferecendo inteligência de dados sobre conversão de leads e performance individual de vendedores.
+
+---
+
+## 8. Registro de Alterações (Log)
 
 | Data | Alteração | Responsável |
 | :--- | :--- | :--- |
@@ -94,6 +116,7 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 | 2026-04-24 | Bugfix: Correção de importação ausente do ícone Clock (PanelLayout.tsx). | Antigravity |
 | 2026-04-25 | Padronização de Branding: Atualização de links e previews para o domínio oficial `anotameucontato.com.br`. | Antigravity |
 | 2026-04-25 | Evolução B2B: Refatoração da listagem de vendedores para cards retangulares com toggle de status e analytics. | Antigravity |
+| 2026-04-25 | Estratégia: Definição do rascunho inicial de Planos, Limites e Serviços (Gerente de Conta). | Antigravity |
 
 ---
 

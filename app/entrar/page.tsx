@@ -38,6 +38,15 @@ export default function LoginPage() {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Redireciona se já estiver logado
+  useState(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace("/dashboard");
+      }
+    });
+  });
+
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
@@ -56,7 +65,6 @@ export default function LoginPage() {
     }
 
     router.push("/dashboard");
-    router.refresh();
   }
 
   async function handleGoogleLogin() {

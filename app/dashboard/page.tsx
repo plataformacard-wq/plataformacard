@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [sellers, setSellers] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState<number | null>(null);
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
+  const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,11 +40,15 @@ export default function DashboardPage() {
           return;
         }
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profError } = await supabase
           .from("profiles")
-          .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio")
+          .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role")
           .eq("user_id", user.id)
           .maybeSingle();
+
+        if (profError) {
+          console.error("Erro ao carregar perfil no dashboard:", profError);
+        }
 
         if (profile) {
           setNome(profile.full_name ?? "");
@@ -51,25 +56,40 @@ export default function DashboardPage() {
           setAvatarUrl(profile.avatar_url ?? null);
           setWhatsapp(profile.whatsapp ?? null);
           setBio(profile.bio ?? null);
+          setUserRole(profile.role ?? "");
 
-          // Conta produtos
-          const { count: pCount } = await supabase
-            .from("products")
-            .select("*", { count: "exact", head: true })
-            .eq("organization_id", profile.organization_id)
-            .is("deleted_at", null);
-          setProductCount(pCount ?? 0);
+          // Dados dependentes da organização
+          if (profile.organization_id) {
+            // Conta produtos
+            const { count: pCount } = await supabase
+              .from("products")
+              .select("*", { count: "exact", head: true })
+              .eq("organization_id", profile.organization_id)
+              .is("deleted_at", null);
+            setProductCount(pCount ?? 0);
 
-          // Dados de Vendedores (Se for B2B)
-          const { data: sData, count: sCount } = await supabase
-            .from("profiles")
-            .select("id, full_name, slug, avatar_url", { count: "exact" })
-            .eq("organization_id", profile.organization_id)
-            .eq("role", "seller")
-            .limit(5);
-          
-          setSellerCount(sCount ?? 0);
-          setSellers(sData ?? []);
+            // Dados de Vendedores
+            const { data: sData, count: sCount } = await supabase
+              .from("profiles")
+              .select("id, full_name, slug, avatar_url", { count: "exact" })
+              .eq("organization_id", profile.organization_id)
+              .eq("role", "seller")
+              .limit(5);
+            
+            setSellerCount(sCount ?? 0);
+            setSellers(sData ?? []);
+
+            // Buscar modelo de negócio
+            const { data: org } = await supabase
+              .from("organizations")
+              .select("business_model")
+              .eq("id", profile.organization_id)
+              .maybeSingle();
+            
+            if (org?.business_model) {
+              setBusinessModel(org.business_model as "B2B" | "B2C");
+            }
+          }
 
           // Visitas via RPC
           try {
@@ -84,18 +104,6 @@ export default function DashboardPage() {
           } catch (e) {
             console.error("Erro ao carregar analytics:", e);
             setProfileViews(0);
-          }
-          // Buscar modelo de negócio
-          if (profile.organization_id) {
-            const { data: org } = await supabase
-              .from("organizations")
-              .select("business_model")
-              .eq("id", profile.organization_id)
-              .maybeSingle();
-            
-            if (org?.business_model) {
-              setBusinessModel(org.business_model as "B2B" | "B2C");
-            }
           }
         }
       } catch (err) {
@@ -242,8 +250,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Condicional: Checklist ou Spearhead Card */}
-      {!loading && (
+      {/* Condicional: Checklist ou Spearhead Card (Oculto para Super Admin) */}
+      {!loading && userRole !== 'superadmin' && (
         <div className="grid grid-cols-1 gap-6">
           {isReady ? (
             /* Card de Sucesso (Ponta de Lança) */

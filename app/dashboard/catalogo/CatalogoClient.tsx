@@ -2,10 +2,44 @@
 
 export const dynamic = "force-dynamic";
 
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Upload as UploadIcon, X as XIcon, Crop, Edit2 as EditIcon, Trash2 as TrashIcon } from "lucide-react";
+import 'react-quill-new/dist/quill.snow.css';
+
+// Carregamento dinâmico do Quill para evitar erros de SSR
+const ReactQuill = nextDynamic(() => import("react-quill-new"), { 
+  ssr: false,
+  loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
+});
+
+import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { 
+  AlertCircle, 
+  Upload as UploadIcon, 
+  Upload,
+  X as XIcon, 
+  Crop, 
+  Edit2 as EditIcon, 
+  Trash2 as TrashIcon,
+  Search,
+  Plus,
+  Copy,
+  ExternalLink,
+  ChevronDown,
+  Layers,
+  Package,
+  Tag,
+  FileText,
+  Settings,
+  Eye,
+  Camera,
+  CheckCircle2,
+  GripVertical,
+  DollarSign,
+  Bold,
+  Italic
+} from "lucide-react";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
 type Category = {
@@ -23,7 +57,7 @@ type Catalog = {
 
 type Spec = { chave: string; valor: string };
 
-const PRICE_INPUT_REGEX = /^[0-9]*[.,]?[0-9]*$/;
+const PRICE_INPUT_REGEX = /^[0-9.,]*$/;
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
@@ -37,6 +71,7 @@ type ProductRow = {
   has_wholesale: boolean | null;
   wholesale_price: number | null;
   wholesale_min_quantity: number | null;
+  price_display_mode: string | null; // retail | wholesale | both
   image_url: string | null;
   image_urls: string[] | null;
   created_at: string;
@@ -66,6 +101,14 @@ function formatPriceForInput(value: number | null): string {
 
 function sanitizePriceTyping(raw: string): string {
   return raw.replace(/[^0-9.,]/g, "");
+}
+
+function parsePrice(value: string): number | null {
+  if (!value.trim()) return null;
+  // Remove pontos (milhar) e troca vírgula por ponto (decimal)
+  const clean = value.replace(/\./g, "").replace(",", ".");
+  const num = Number(clean);
+  return isNaN(num) ? null : num;
 }
 
 function sanitizeStorageFilename(name: string): string {
@@ -126,6 +169,8 @@ export default function CatalogoPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  // Estado unificado para reordenação
+  const [modalImages, setModalImages] = useState<{ id: string; url: string; file?: File; isExisting: boolean }[]>([]);
 
   const [nameError, setNameError] = useState("");
   const [categoryError, setCategoryError] = useState("");
@@ -139,6 +184,15 @@ export default function CatalogoPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNoCategoryModal, setShowNoCategoryModal] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [priceDisplayMode, setPriceDisplayMode] = useState<"retail" | "wholesale" | "both">("both");
+  const [lastSavedProduct, setLastSavedProduct] = useState<{ description: string; specs: Spec[] } | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const stripHtml = (html: string) => {
+    if (!html) return "";
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
 
   useEffect(() => {
     async function initialize() {
@@ -507,17 +561,24 @@ export default function CatalogoPage() {
     setHasWholesale(false);
     setWholesalePrice("");
     setWholesaleMinQuantity("");
+    setPriceDisplayMode("both");
     setNameError("");
     setCategoryError("");
     setPriceError("");
     setImageFileError("");
     setSpecDraftError("");
     setProductFormError("");
-    setImageFiles([]);
-    imagePreviewUrls.forEach(revokePreviewIfBlob);
-    setImagePreviewUrls([]);
     setExistingImageUrls([]);
+    setImagePreviewUrls([]);
+    setModalImages([]);
     setShowModal(true);
+  }
+
+  function handleCopyLastProduct() {
+    if (lastSavedProduct) {
+      setProductDescription(lastSavedProduct.description);
+      setSpecs(lastSavedProduct.specs);
+    }
   }
 
   function handleOpenEdit(product: ProductRow) {
@@ -536,13 +597,17 @@ export default function CatalogoPage() {
     setHasWholesale(product.has_wholesale ?? false);
     setWholesalePrice(formatPriceForInput(product.wholesale_price));
     setWholesaleMinQuantity(product.wholesale_min_quantity ? String(product.wholesale_min_quantity) : "");
-    setImageFiles([]);
-    imagePreviewUrls.forEach(revokePreviewIfBlob);
+    setPriceDisplayMode((product.price_display_mode as any) || "both");
     const urls = product.image_urls && product.image_urls.length > 0
       ? product.image_urls
       : product.image_url ? [product.image_url] : [];
     setExistingImageUrls(urls);
     setImagePreviewUrls(urls);
+    setModalImages(urls.map(url => ({
+      id: `existing-${url}-${Math.random().toString(36).substr(2, 5)}`,
+      url,
+      isExisting: true
+    })));
     setNameError("");
     setCategoryError("");
     setPriceError("");
@@ -577,6 +642,7 @@ export default function CatalogoPage() {
     imagePreviewUrls.forEach(revokePreviewIfBlob);
     setImagePreviewUrls([]);
     setExistingImageUrls([]);
+    setModalImages([]);
 
     setNameError("");
     setCategoryError("");
@@ -616,27 +682,34 @@ export default function CatalogoPage() {
     setProductFormError("");
   }
 
-  function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length === 0) return;
-    
-    // Instead of processing directly, we open the editor for the first file
-    // In a more advanced version we could loop, but for now 1 by 1 ensures quality
-    setShowImageEditor(true);
-    // Note: We don't need to keep the raw file in state here as the Editor handles its own input if we want,
-    // but the current Editor implementation handles file selection inside or can be passed a file.
-    // I'll update handleImageFileChange to just trigger the modal.
-  }
-
-  const onImageEditorConfirm = (file: File, previewUrl: string) => {
-    const currentTotal = existingImageUrls.length + imageFiles.length;
-    if (currentTotal >= 5) {
+  function handleImageChange(files: File[]) {
+    const currentTotal = modalImages.length;
+    if (currentTotal + files.length > 5) {
       setImageFileError("O limite é de 5 imagens por produto.");
       return;
     }
 
-    setImageFiles(prev => [...prev, file]);
-    setImagePreviewUrls(prev => [...prev, previewUrl]);
+    const newItems = files.map((file, i) => ({
+      id: `new-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`,
+      url: URL.createObjectURL(file),
+      file,
+      isExisting: false
+    }));
+
+    setModalImages(prev => [...prev, ...newItems]);
+    setImageFileError("");
+  }
+
+  const onImageEditorConfirm = (file: File, previewUrl: string) => {
+    const newItem = {
+      id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      url: previewUrl,
+      file,
+      isExisting: false
+    };
+    setModalImages(prev => [...prev, newItem]);
+    setPendingFile(null);
+    setShowImageEditor(false);
     setImageFileError("");
   };
 
@@ -691,9 +764,14 @@ export default function CatalogoPage() {
     }
 
     const priceTrim = productPrice.trim();
-    if (priceTrim && !PRICE_INPUT_REGEX.test(priceTrim)) {
-      setPriceError("Use apenas números. Ex: 199,90");
-      valid = false;
+    if (priceTrim) {
+      const parsed = parsePrice(priceTrim);
+      if (parsed === null) {
+        setPriceError("Preço inválido. Ex: 199,90");
+        valid = false;
+      } else {
+        setPriceError("");
+      }
     } else {
       setPriceError("");
     }
@@ -716,11 +794,13 @@ export default function CatalogoPage() {
     file: File
   ): Promise<string | null> {
     const supabase = createClient();
-    const filename = sanitizeStorageFilename(file.name);
-    const path = `${organizationId}/${productId}/${filename}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const filename = `${Date.now()}-${sanitizeStorageFilename(file.name)}`;
+    const path = `${user.id}/${productId}/${filename}`;
     const { error } = await supabase.storage
       .from("products")
-      .upload(path, file, { upsert: true });
+      .upload(path, file);
 
     if (error) {
       console.error("Erro no upload da imagem:", error);
@@ -749,18 +829,12 @@ export default function CatalogoPage() {
 
     setSaving(true);
 
-    const normalizedPrice = productPrice.replace(",", ".");
-    const parsedPrice =
-      productPrice.trim() === "" ? null : Number(normalizedPrice);
-
-    const normalizedWholesalePrice = wholesalePrice.replace(",", ".");
-    const parsedWholesalePrice =
-      wholesalePrice.trim() === "" ? null : Number(normalizedWholesalePrice);
-    
+    const parsedPrice = parsePrice(productPrice);
+    const parsedWholesalePrice = parsePrice(wholesalePrice);
     const parsedMinQty = wholesaleMinQuantity.trim() === "" ? null : parseInt(wholesaleMinQuantity, 10);
 
-    if (parsedPrice !== null && Number.isNaN(parsedPrice)) {
-      setPriceError("Use apenas números. Ex: 199,90");
+    if (productPrice.trim() !== "" && parsedPrice === null) {
+      setPriceError("Preço inválido. Ex: 199,90");
       setSaving(false);
       return;
     }
@@ -810,11 +884,13 @@ export default function CatalogoPage() {
     };
 
     if (editingProduct) {
-      let finalUrls = [...existingImageUrls];
+      const finalUrls: string[] = [];
 
-      if (imageFiles.length > 0) {
-        for (const file of imageFiles) {
-          const uploaded = await uploadProductImage(orgId, editingProduct.id, file);
+      for (const img of modalImages) {
+        if (img.isExisting) {
+          finalUrls.push(img.url);
+        } else if (img.file) {
+          const uploaded = await uploadProductImage(orgId, editingProduct.id, img.file);
           if (!uploaded) {
             setProductFormError("Erro ao enviar algumas imagens. Tente novamente.");
             setSaving(false);
@@ -866,25 +942,20 @@ export default function CatalogoPage() {
       return;
     }
 
-    if (imageFiles.length > 0) {
-      const finalUrls = [];
-      for (const file of imageFiles) {
-        const uploaded = await uploadProductImage(orgId, inserted.id, file);
-        if (!uploaded) {
-          setProductFormError("Produto criado, mas houve erro ao enviar algumas imagens.");
-          setSaving(false);
-          handleCloseModal();
-          await refreshLimit();
-          if (orgId) await fetchProducts(orgId);
-          return;
-        }
-        finalUrls.push(uploaded);
+    // 3. Upload das fotos a partir do estado unificado
+    const finalUrls: string[] = [];
+    for (const img of modalImages) {
+      if (img.file) {
+        const uploaded = await uploadProductImage(orgId, inserted.id, img.file);
+        if (uploaded) finalUrls.push(uploaded);
       }
+    }
 
+    if (finalUrls.length > 0) {
       const { error: updateImgError } = await supabase
         .from("products")
         .update({ 
-          image_url: finalUrls.length > 0 ? finalUrls[0] : null,
+          image_url: finalUrls[0],
           image_urls: finalUrls 
         })
         .eq("id", inserted.id);
@@ -899,6 +970,12 @@ export default function CatalogoPage() {
         return;
       }
     }
+
+    // Salva para a função "Copiar último"
+    setLastSavedProduct({
+      description: productDescription.trim(),
+      specs: specs
+    });
 
     handleCloseModal();
     await refreshLimit();
@@ -920,64 +997,67 @@ export default function CatalogoPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-10 pb-20">
+      {/* Header com Título e Limite */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black text-white">Catálogo</h1>
-          <p className="text-sm text-zinc-500">
-            Gestão dos produtos e categorias exibidos no catálogo.
+          <h1 className="text-4xl font-black tracking-tight" style={{ color: "var(--dash-text-primary)" }}>
+            Catálogo
+          </h1>
+          <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
+            Gerencie seus produtos, categorias e a vitrine digital da sua marca.
           </p>
         </div>
 
-        {/* Product Limit Indicator */}
-        <div className="flex flex-col gap-2 rounded-2xl bg-white/5 p-4 border border-white/5 min-w-[240px]">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            <span>Uso do Plano</span>
-            <span className={productUsageCount >= productLimit ? "text-red-400" : "text-emerald-400"}>
-              {productUsageCount} / {productLimit} Produtos
+        <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
+            <span>Limite de Produtos</span>
+            <span className={productUsageCount >= productLimit ? "text-red-500" : "text-emerald-500"}>
+              {productUsageCount} / {productLimit}
             </span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${Math.min((productUsageCount / productLimit) * 100, 100)}%` }}
-              className={`h-full rounded-full transition-colors ${
+              className={`h-full rounded-full transition-all duration-1000 ${
                 productUsageCount >= productLimit ? "bg-red-500" : "bg-emerald-500"
               }`}
             />
           </div>
-          <p className="text-[10px] text-zinc-600">
-            {Math.round((productUsageCount / productLimit) * 100)}% do limite utilizado
+          <p className="text-[10px] font-bold text-center" style={{ color: "var(--dash-text-muted)" }}>
+            {Math.round((productUsageCount / productLimit) * 100)}% da sua capacidade utilizada
           </p>
         </div>
       </div>
 
-      {!loadingProducts && !loadingCategories && !catalogId && (
-        <div className="mt-8 flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-3xl" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>
-          <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full mb-6">
-            <AlertCircle className="text-amber-600 dark:text-amber-400" size={40} />
+      {!loadingProducts && !loadingCategories && !catalogId ? (
+        <div className="mt-8 flex flex-col items-center justify-center text-center p-16 border-2 border-dashed rounded-[40px]" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>
+          <div className="bg-amber-100 dark:bg-amber-900/30 p-5 rounded-full mb-6">
+            <AlertCircle className="text-amber-600 dark:text-amber-400" size={48} />
           </div>
           <h2 className="text-2xl font-bold mb-3" style={{ color: "var(--dash-text-primary)" }}>Inicializando Catálogo</h2>
           <p className="max-w-md text-base mb-8 leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
-            Estamos preparando sua área de produtos. Se esta mensagem persistir, por favor entre em contato com o suporte.
+            Estamos preparando sua área de produtos. Se esta mensagem persistir, por favor recarregue a página.
           </p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-8 py-3 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="px-10 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
-            Recarregar Página
+            Recarregar Catálogo
           </button>
         </div>
-      )}
-
-      {catalogId && (
-        <>
-          {/* Seção de Categorias */}
-          <div className="mt-6 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                Categorias
-              </h2>
+      ) : (
+        <div className="space-y-12">
+          {/* Categorias Section */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Layers size={24} />
+                </div>
+                <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Categorias</h2>
+              </div>
               <button
                 onClick={() => {
                   setEditingCategory(null);
@@ -985,651 +1065,625 @@ export default function CatalogoPage() {
                   setCategoryDescription("");
                   setShowCategoryModal(true);
                 }}
-                className="rounded-xl px-4 py-2 text-sm font-medium border hover:bg-gray-50 transition-all"
-                style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                className="flex items-center gap-2 rounded-xl px-5 py-2.5 bg-zinc-900 text-white text-sm font-bold hover:bg-black transition-all shadow-lg shadow-black/5"
               >
-                + Nova Categoria
+                <Plus size={18} /> Nova Categoria
               </button>
             </div>
 
-            {loadingCategories ? (
-              <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando categorias...</p>
-            ) : categories.length === 0 ? (
-              <div className="py-8 text-center border-t border-dashed mt-2" style={{ borderColor: "var(--dash-border)" }}>
-                <p className="text-sm italic" style={{ color: "var(--dash-text-secondary)" }}>Crie uma categoria para começar a organizar seus produtos.</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {categories.map((cat, idx) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {loadingCategories ? (
+                Array(4).fill(0).map((_, i) => (
+                  <div key={i} className="h-24 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800" />
+                ))
+              ) : categories.length === 0 ? (
+                <div className="col-span-full p-12 text-center rounded-[32px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+                  <p className="text-sm italic" style={{ color: "var(--dash-text-secondary)" }}>Nenhuma categoria cadastrada.</p>
+                </div>
+              ) : (
+                categories.map((cat, idx) => (
                   <div
                     key={cat.id}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData("text/plain", String(idx));
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
-                      handleCategoryDrop(from, idx);
-                    }}
-                    className="flex items-center justify-between p-3 rounded-xl border bg-[var(--dash-bg)]"
-                    style={{ borderColor: "var(--dash-border)" }}
+                    className="group flex flex-col justify-between p-5 rounded-[32px] border transition-all hover:shadow-lg hover:border-primary/30"
+                    style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="cursor-move text-[var(--dash-text-muted)]">⠿</span>
-                      <div>
-                        <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{cat.name}</p>
-                        {cat.description && (
-                          <p className="text-xs truncate max-w-[300px]" style={{ color: "var(--dash-text-secondary)" }}>{cat.description}</p>
-                        )}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="h-8 w-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 border flex items-center justify-center text-xs font-mono text-[var(--dash-text-muted)]">
+                        {idx + 1}
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button
+                            onClick={() => {
+                              setEditingCategory(cat);
+                              setCategoryName(cat.name);
+                              setCategoryDescription(cat.description ?? "");
+                              setShowCategoryModal(true);
+                            }}
+                            className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-primary"
+                          >
+                            <EditIcon size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(cat.id)}
+                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-zinc-400 hover:text-red-500"
+                          >
+                            <TrashIcon size={14} />
+                          </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingCategory(cat);
-                          setCategoryName(cat.name);
-                          setCategoryDescription(cat.description ?? "");
-                          setShowCategoryModal(true);
-                        }}
-                        className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"
-                      >
-                        <EditIcon size={16} className="text-zinc-500" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        className="p-1.5 hover:bg-red-50 rounded-lg transition-colors group"
-                      >
-                        <TrashIcon size={16} className="text-zinc-400 group-hover:text-red-500" />
-                      </button>
+                    <div>
+                      <p className="text-sm font-bold truncate" style={{ color: "var(--dash-text-primary)" }}>{cat.name}</p>
+                      <p className="text-[10px] font-bold uppercase text-[var(--dash-text-muted)]">
+                         {products.filter(p => getProductCategoryId(p) === cat.id).length} itens
+                      </p>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* Produtos Section */}
+          <section className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Package size={24} />
+                </div>
+                <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Produtos</h2>
+              </div>
+              
+              <div className="flex items-center gap-3 flex-1 max-w-xl">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome ou SKU..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 rounded-2xl border outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5"
+                    style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                  />
+                </div>
+                <button
+                  onClick={handleOpenCreateProduct}
+                  className="hidden md:flex items-center gap-2 rounded-xl px-6 py-3 bg-primary text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
+                >
+                  <Plus size={20} /> Novo Produto
+                </button>
+              </div>
+            </div>
+
+            {productListError && (
+              <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-500 text-sm font-medium">
+                {productListError}
               </div>
             )}
-          </div>
 
-          <div className="mt-8 flex items-center justify-between">
-            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Meus Produtos</h2>
-            <button
-              onClick={handleOpenCreateProduct}
-              className="rounded-xl px-6 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
-              style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
-            >
-              + Novo Produto
-            </button>
-          </div>
-          {createProductError ? (
-            <p className="mt-2 text-sm text-red-500 font-medium">{createProductError}</p>
-          ) : null}
-
-      <div className="mt-8 rounded-2xl border p-5 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-            Produtos cadastrados
-          </h2>
-
-          <div className="flex items-center gap-3">
-            {savingOrder && (
-              <span className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Salvando ordem...</span>
-            )}
-            <span className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              {products.length} produto(s)
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <input
-            type="text"
-            placeholder="Buscar produto por nome..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--dash-border)]"
-            style={{
-              background: "var(--dash-bg)",
-              borderColor: "var(--dash-border)",
-              color: "var(--dash-text-primary)",
-            }}
-          />
-        </div>
-
-        {products.length > 1 && !searchQuery && (
-          <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-            ⠿ Arraste os produtos para reordenar a exibição no catálogo.
-          </p>
-        )}
-        {searchQuery && (
-          <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-            A ordenação está desativada durante a busca.
-          </p>
-        )}
-
-        {productListError ? (
-          <p className="mt-4 text-xs text-red-500">{productListError}</p>
-        ) : null}
-
-        {loadingProducts ? (
-          <p className="mt-4 text-sm" style={{ color: "var(--dash-text-secondary)" }}>Carregando produtos...</p>
-        ) : filteredProducts.length === 0 ? (
-          <p className="mt-4 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-            {searchQuery ? "Nenhum produto encontrado para essa busca." : "Nenhum produto cadastrado ainda."}
-          </p>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {filteredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                draggable={!searchQuery}
-                onDragStart={(e) => {
-                  if (searchQuery) return;
-                  setDragProductIndex(index);
-                  e.dataTransfer.effectAllowed = "move";
-                  e.dataTransfer.setData("text/plain", String(index));
-                }}
-                onDragOver={(e) => {
-                  if (searchQuery) return;
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = "move";
-                  setDragOverProductIndex(index);
-                }}
-                onDrop={(e) => {
-                  if (searchQuery) return;
-                  e.preventDefault();
-                  const raw = e.dataTransfer.getData("text/plain");
-                  const from = raw === "" ? NaN : Number.parseInt(raw, 10);
-                  if (!Number.isNaN(from)) void handleProductDrop(from, index);
-                }}
-                onDragEnd={() => {
-                  setDragProductIndex(null);
-                  setDragOverProductIndex(null);
-                }}
-                className={`rounded-2xl border p-4 transition-all ${
-                  dragProductIndex === index
-                    ? "opacity-40"
-                    : dragOverProductIndex === index && dragProductIndex !== index
-                    ? "shadow-md"
-                    : ""
-                }`}
-                style={{
-                  background: dragOverProductIndex === index && dragProductIndex !== index ? "var(--dash-hover-bg)" : "var(--dash-surface)",
-                  borderColor: dragOverProductIndex === index && dragProductIndex !== index ? "var(--dash-text-primary)" : "var(--dash-border)",
-                }}
-              >
-                <div className="flex items-start gap-3">
-                  {!searchQuery && (
-                    <span
-                      className="mt-1 shrink-0 cursor-grab select-none font-mono text-lg leading-none active:cursor-grabbing"
-                      style={{ color: "var(--dash-border)" }}
-                      aria-hidden
-                    >
-                      {"\u283F"}
-                    </span>
-                  )}
-
-                  <div className="flex flex-1 items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                        {product.name}
-                      </h3>
-
-                      {product.sku && (
-                        <p className="mt-1 text-xs font-mono" style={{ color: "var(--dash-text-secondary)" }}>
-                          Ref: {product.sku}
-                        </p>
-                      )}
-
-                      <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                        Categoria:{" "}
-                        {Array.isArray(product.categories)
-                          ? (product.categories[0]?.name ?? "Sem categoria")
-                          : (product.categories?.name ?? "Sem categoria")}
-                      </p>
-
-                      <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                        {product.description || "Sem descrição"}
-                      </p>
-
-                      {product.specs && product.specs.length > 0 && (
-                        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                          {product.specs.map((spec, i) => (
-                            <span key={i}>
-                              {i > 0 ? " · " : null}
-                              <span>{spec.chave}:</span>{" "}
-                              <span className="font-semibold">{spec.valor}</span>
-                            </span>
-                          ))}
-                        </p>
+            <div className="space-y-4">
+              {loadingProducts ? (
+                Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="h-32 animate-pulse rounded-[32px] bg-zinc-100 dark:bg-zinc-800" />
+                ))
+              ) : filteredProducts.length === 0 ? (
+                <div className="p-20 text-center rounded-[40px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+                  <Package className="mx-auto h-16 w-16 text-zinc-200 mb-4" />
+                  <p className="text-zinc-500 font-medium">
+                    {searchQuery ? "Nenhum produto corresponde à sua busca." : "Nenhum produto cadastrado."}
+                  </p>
+                </div>
+              ) : (
+                filteredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="group relative flex flex-col lg:flex-row items-center gap-6 p-6 rounded-[32px] border transition-all hover:shadow-2xl hover:shadow-black/5 hover:border-primary/30"
+                    style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                  >
+                    {/* Imagem */}
+                    <div className="relative flex-shrink-0">
+                      {product.image_urls?.[0] || product.image_url ? (
+                        <img 
+                          src={product.image_urls?.[0] || product.image_url || ""} 
+                          className="h-24 w-24 rounded-[24px] object-cover border-2 border-white shadow-lg bg-zinc-50" 
+                        />
+                      ) : (
+                        <div className="h-24 w-24 rounded-[24px] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                          <Package size={32} />
+                        </div>
                       )}
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 text-right">
-                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                        {formatPrice(product.price)}
+                    {/* Informações */}
+                    <div className="flex-1 min-w-0 text-center lg:text-left">
+                      <div className="flex flex-col lg:flex-row lg:items-center gap-2 mb-2">
+                        <h4 className="font-bold text-xl truncate" style={{ color: "var(--dash-text-primary)" }}>
+                          {product.name}
+                        </h4>
+                        {product.sku && (
+                          <span className="inline-block px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-500">
+                            REF: {product.sku}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-[var(--dash-text-muted)] uppercase font-bold tracking-tighter mb-3">
+                        {Array.isArray(product.categories)
+                            ? (product.categories[0]?.name ?? "Sem categoria")
+                            : (product.categories?.name ?? "Sem categoria")}
                       </p>
-                      {product.has_wholesale && (
-                        <span className="rounded bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
-                          ATACADO
-                        </span>
-                      )}
+                      <p className="text-sm line-clamp-1" style={{ color: "var(--dash-text-secondary)" }}>
+                        {stripHtml(product.description || "Nenhuma descrição informada.")}
+                      </p>
+                    </div>
 
-                      <div className="flex flex-wrap justify-end gap-2">
+                    {/* Preço e Atacado */}
+                    <div className="flex flex-col items-center lg:items-end px-8 border-x border-dashed hidden xl:flex" style={{ borderColor: "var(--dash-border)" }}>
+                        <p className="text-2xl font-black" style={{ color: "var(--dash-text-primary)" }}>
+                          {formatPrice(product.price)}
+                        </p>
+                        {product.has_wholesale && (
+                          <span className="mt-1 px-2 py-0.5 rounded bg-emerald-50 text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
+                            Atacado Ativo
+                          </span>
+                        )}
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex flex-col gap-2 w-full lg:w-auto min-w-[180px]">
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => handleDuplicateProduct(product)}
-                          className="rounded-lg border px-3 py-1 text-sm"
-                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-xs font-bold hover:bg-zinc-100 transition-all border border-zinc-100 dark:border-zinc-800"
                         >
-                          Duplicar
+                          <Copy size={14} /> Duplicar
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(product)}
-                          className="rounded-lg border px-3 py-1 text-sm"
-                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-black transition-all"
                         >
-                          Editar
+                          <EditIcon size={14} /> Editar
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(product.id)}
-                          className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-500 hover:bg-red-50"
-                        >
-                          Excluir
-                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(product.id)}
+                        className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-100 text-red-500 text-xs font-bold hover:bg-red-50 transition-all"
+                      >
+                        <TrashIcon size={14} /> Excluir
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
+          <div className="w-full max-w-2xl rounded-[40px] border-none p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden bg-white text-zinc-900">
+            {/* Header com Design Premium */}
+            <div className="relative px-10 py-8 border-b border-zinc-100 bg-zinc-50/50">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-3xl font-black flex items-center gap-3 text-zinc-900">
+                    {isEditMode ? <EditIcon size={28} className="text-emerald-500" /> : <Plus size={28} className="text-emerald-500" />}
+                    {isEditMode ? "Editar Produto" : "Novo Produto"}
+                  </h2>
+                  <p className="mt-1 text-sm font-medium text-zinc-500">
+                    Gerencie os detalhes e a apresentação do seu item.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="rounded-2xl p-3 hover:bg-zinc-200 transition-colors bg-zinc-100 text-zinc-500"
+                >
+                  <XIcon size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8">
+              <form id="productForm" onSubmit={handleSubmitProduct} className="space-y-8">
+                {productFormError ? (
+                  <p className="text-xs text-red-500 font-bold bg-red-50 p-4 rounded-2xl border border-red-100 animate-pulse">{productFormError}</p>
+                ) : null}
+
+                {/* Seção 1: Identidade */}
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                      <Package size={16} /> Identidade do Produto
+                    </h3>
+                    {!isEditMode && lastSavedProduct && (
+                      <button
+                        type="button"
+                        onClick={handleCopyLastProduct}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-black hover:bg-emerald-100 transition-all border border-emerald-100 uppercase tracking-wider"
+                      >
+                        <Copy size={12} /> Copiar dados do último cadastro
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-[32px] border border-zinc-100 bg-zinc-50/30">
+                    <div className="md:col-span-2">
+                      <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
+                        <Tag size={16} className="text-emerald-500" /> Categoria
+                      </label>
+                      <select
+                        value={selectedCategoryId}
+                        onChange={(e) => {
+                          setSelectedCategoryId(e.target.value);
+                          setCategoryError("");
+                        }}
+                        className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
+                        style={{ color: "var(--dash-text-primary)" }}
+                      >
+                        <option value="">
+                          {loadingCategories ? "Carregando..." : "Selecione uma categoria"}
+                        </option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      {categoryError && <p className="mt-1.5 text-xs text-red-500 font-medium">{categoryError}</p>}
+                    </div>
+
+                    <div>
+                      <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
+                        <EditIcon size={16} className="text-emerald-500" /> Nome do produto
+                      </label>
+                      <input
+                        type="text"
+                        value={productName}
+                        onChange={(e) => {
+                          setProductName(e.target.value.toUpperCase());
+                          setNameError("");
+                        }}
+                        placeholder="Ex: SCOOTER ELÉTRICA MAJ X1"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-sm font-normal outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
+                        style={{ color: "var(--dash-text-primary)" }}
+                      />
+                      {nameError && <p className="mt-1.5 text-xs text-red-500 font-bold">{nameError}</p>}
+                    </div>
+
+                    <div>
+                      <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
+                        <Layers size={16} className="text-emerald-500" /> SKU (Código/Ref)
+                      </label>
+                      <input
+                        type="text"
+                        value={sku}
+                        onChange={(e) => setSku(e.target.value)}
+                        placeholder="Ex: REF-123"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-sm font-normal outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm"
+                        style={{ color: "var(--dash-text-primary)" }}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <div className="mb-2 flex items-center justify-between">
+                        <label className="flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
+                          <FileText size={16} className="text-emerald-500" /> Descrição Completa
+                        </label>
+                      </div>
+                      <div className="rich-text-editor-container">
+                        <ReactQuill
+                          theme="snow"
+                          value={productDescription}
+                          onChange={setProductDescription}
+                          placeholder="Descreva as principais qualidades do produto..."
+                          modules={{
+                            toolbar: [
+                              ['bold', 'italic'],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              ['clean']
+                            ],
+                          }}
+                          className="quill-premium"
+                        />
+                      </div>
+                      
+                      <style jsx global>{`
+                        .quill-premium .ql-toolbar {
+                          border-top-left-radius: 1rem;
+                          border-top-right-radius: 1rem;
+                          border: 1px solid #e4e4e7 !important;
+                          background: #f9fafb;
+                        }
+                        .quill-premium .ql-container {
+                          border-bottom-left-radius: 1rem;
+                          border-bottom-right-radius: 1rem;
+                          border: 1px solid #e4e4e7 !important;
+                          min-height: 120px;
+                          font-family: inherit;
+                          font-size: 0.875rem;
+                        }
+                        .quill-premium .ql-editor {
+                          min-height: 120px;
+                        }
+                        .quill-premium .ql-editor.ql-blank::before {
+                          font-style: normal;
+                          color: #a1a1aa;
+                        }
+                        .ql-bold {
+                          font-weight: 900 !important;
+                        }
+                        .ql-snow.ql-toolbar button.ql-bold {
+                          font-weight: 900 !important;
+                        }
+                        .ql-snow.ql-toolbar button.ql-bold svg path,
+                        .ql-snow.ql-toolbar button.ql-bold svg rect {
+                          stroke-width: 3px;
+                        }
+                      `}</style>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                    <Settings size={16} /> Especificações Técnicas
+                  </h3>
+                  
+                  <div className="p-6 rounded-[32px] border border-zinc-100 bg-zinc-50/30 space-y-4">
+                    {specs.length > 0 && (
+                      <Reorder.Group axis="y" values={specs} onReorder={setSpecs} className="space-y-1.5">
+                        {specs.map((s, index) => (
+                          <Reorder.Item
+                            key={`${s.chave}-${index}`}
+                            value={s}
+                            className="flex items-center justify-between gap-3 rounded-xl border border-zinc-100 bg-white px-4 py-1.5 text-sm shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
+                            style={{ color: "var(--dash-text-primary)" }}
+                          >
+                            <div className="flex items-center gap-4 flex-1">
+                              <GripVertical size={14} className="text-zinc-300" />
+                              <div className="flex items-center gap-2">
+                                <span className="text-emerald-600 font-black uppercase text-[9px] tracking-widest">{s.chave}:</span>
+                                <span className="font-normal text-zinc-600">{s.valor}</span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeSpec(index)}
+                              className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"
+                            >
+                              <TrashIcon size={16} />
+                            </button>
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    )}
+
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end bg-white p-6 rounded-3xl border border-dashed border-zinc-300">
+                      <div className="flex-1">
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Característica</label>
+                        <input
+                          type="text"
+                          value={specChaveDraft}
+                          onChange={(e) => setSpecChaveDraft(e.target.value)}
+                          placeholder="Ex: Peso"
+                          className="w-full rounded-2xl border border-zinc-100 bg-zinc-50/50 px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Valor</label>
+                        <input
+                          type="text"
+                          value={specValorDraft}
+                          onChange={(e) => setSpecValorDraft(e.target.value)}
+                          placeholder="Ex: 500g"
+                          className="w-full rounded-2xl border border-zinc-100 bg-zinc-50/50 px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={addSpec}
+                        className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black hover:bg-black transition-all shadow-lg active:scale-95"
+                      >
+                        ADICIONAR
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção 3: Preços e Exibição */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
+                    <Eye size={16} /> Configuração de Preços e Exibição
+                  </h3>
+
+                  <div className="p-6 rounded-3xl border bg-emerald-50/30 dark:bg-emerald-900/5 space-y-6" style={{ borderColor: "var(--dash-border)" }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="mb-2 flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                          <Tag size={16} /> Preço de Varejo
+                        </label>
+                        <input
+                          type="text"
+                          value={productPrice}
+                          onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))}
+                          placeholder="Ex: 6.990,00"
+                          className="w-full rounded-2xl border px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-emerald-500/10 border-emerald-200 dark:border-emerald-800/50 font-normal"
+                          style={{ background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                        />
+                        {priceError && <p className="mt-1.5 text-xs text-red-500 font-bold">{priceError}</p>}
+                      </div>
+
+                      <div className="flex flex-col justify-end pb-1">
+                        <label className="flex items-center gap-3 cursor-pointer group bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-dashed transition-all hover:border-emerald-500/50" style={{ borderColor: "var(--dash-border)" }}>
+                          <input
+                            type="checkbox"
+                            checked={hasWholesale}
+                            onChange={(e) => setHasWholesale(e.target.checked)}
+                            className="h-5 w-5 rounded-lg border-zinc-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                          />
+                          <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Habilitar Preço de Atacado</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {hasWholesale && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
+                        <div>
+                          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-emerald-600">Preço Atacado</label>
+                          <input
+                            type="text"
+                            value={wholesalePrice}
+                            onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))}
+                            placeholder="Ex: 150,00"
+                            className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none border-emerald-200 dark:border-emerald-800/50 font-normal"
+                            style={{ background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-emerald-600">Qtd. Mínima</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={wholesaleMinQuantity}
+                            onChange={(e) => setWholesaleMinQuantity(e.target.value)}
+                            placeholder="Ex: 10"
+                            className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none border-emerald-200 dark:border-emerald-800/50 font-normal"
+                            style={{ background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-4 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+                      <label className="mb-4 block text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)]">O que exibir no catálogo?</label>
+                      <div className="flex flex-wrap gap-3">
+                        {[
+                          { id: "retail", label: "Só Varejo", icon: <Tag size={14} /> },
+                          { id: "wholesale", label: "Só Atacado", icon: <Layers size={14} /> },
+                          { id: "both", label: "Ambos os Preços", icon: <Eye size={14} /> },
+                        ].map((mode) => (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => setPriceDisplayMode(mode.id as any)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all border-2 ${
+                              priceDisplayMode === mode.id
+                                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                                : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:border-primary/30"
+                            }`}
+                          >
+                            {mode.icon} {mode.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {(product.image_urls?.[0] || product.image_url) && (
-                  <div className="mt-3 pl-7">
-                    <img
-                      src={product.image_urls?.[0] || product.image_url || undefined}
-                      alt={product.name}
-                      className="h-14 w-14 rounded-lg border object-contain"
-                      style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}
-                    />
+                {/* Seção 4: Fotos */}
+                <div className="space-y-6 pb-6">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                    <Camera size={16} /> Galeria de Fotos
+                  </h3>
+                  
+                  <div className="p-8 rounded-[32px] border border-zinc-100 bg-zinc-50/30 space-y-6">
+                    <div
+                      className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-white px-6 py-10 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-50 shadow-sm cursor-pointer"
+                      onClick={() => setShowImageEditor(true)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const files = Array.from(e.dataTransfer.files);
+                        if (files.length === 1) {
+                          setPendingFile(files[0]);
+                          setShowImageEditor(true);
+                        } else if (files.length > 0) {
+                          handleImageChange(files);
+                        }
+                      }}
+                    >
+                      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-emerald-500 transition-all group-hover:bg-emerald-500 group-hover:text-white">
+                        <Upload size={28} />
+                      </div>
+                      <p className="text-lg font-black text-zinc-800">Adicionar fotos do produto</p>
+                      <p className="mt-1 text-sm font-medium text-zinc-400 italic">Arraste aqui ou clique para selecionar</p>
+                      <div className="mt-4 px-4 py-2 bg-amber-50 border border-amber-100 rounded-xl text-[10px] text-amber-700 font-bold uppercase tracking-tight">
+                        💡 Dica: O sistema converte fundos transparentes em branco automaticamente.
+                      </div>
+                    </div>
+
+                    {(modalImages.length > 0) && (
+                      <div className="space-y-4">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                           <GripVertical size={12} /> Arraste para definir a ordem das fotos
+                         </p>
+                         
+                         <Reorder.Group 
+                           axis="x" 
+                           values={modalImages} 
+                           onReorder={setModalImages} 
+                           className="flex flex-wrap gap-4"
+                         >
+                            {modalImages.map((img) => (
+                              <Reorder.Item
+                                key={img.id}
+                                value={img}
+                                drag
+                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                                className={`relative h-20 w-20 rounded-2xl border-2 shadow-lg overflow-hidden group cursor-grab active:cursor-grabbing z-10 ${
+                                  img.isExisting ? 'border-white' : 'border-emerald-200'
+                                }`}
+                              >
+                                <img src={img.url} className="h-full w-full object-cover pointer-events-none" />
+                                <button
+                                  type="button"
+                                  onClick={() => setModalImages(prev => prev.filter(item => item.id !== img.id))}
+                                  className="absolute top-1 right-1 h-5 w-5 rounded-lg bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-20"
+                                >
+                                  <XIcon size={12} />
+                                </button>
+                                {!img.isExisting && (
+                                  <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-emerald-500 text-white text-[7px] font-black rounded uppercase">Novo</div>
+                                )}
+                              </Reorder.Item>
+                            ))}
+                         </Reorder.Group>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                </div>
+              </form>
+            </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl border p-6 shadow-xl" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  {isEditMode ? "Editar produto" : "Novo produto"}
-                </h2>
-                <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                  Preencha os dados básicos do produto.
-                </p>
-              </div>
-
+            {/* Footer Fixo Premium */}
+            <div className="px-10 py-8 border-t border-zinc-100 bg-zinc-50/50 flex justify-end gap-4">
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="rounded-lg px-2 py-1 text-sm"
-                style={{ color: "var(--dash-text-muted)" }}
+                className="px-8 py-4 text-sm font-black text-zinc-400 hover:text-zinc-800 transition-colors uppercase tracking-widest"
               >
-                X
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="productForm"
+                disabled={saving}
+                className="px-10 py-4 bg-emerald-500 text-white rounded-2xl text-sm font-black shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase tracking-widest flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar Produto"
+                )}
               </button>
             </div>
-
-            <form onSubmit={handleSubmitProduct} className="mt-6 space-y-4">
-              {productFormError ? (
-                <p className="text-xs text-red-500">{productFormError}</p>
-              ) : null}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  Categoria
-                </label>
-
-                <select
-                  value={selectedCategoryId}
-                  onChange={(e) => {
-                    setSelectedCategoryId(e.target.value);
-                    setCategoryError("");
-                  }}
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                >
-                  <option value="">
-                    {loadingCategories
-                      ? "Carregando categorias..."
-                      : "Selecione uma categoria"}
-                  </option>
-
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-                {categoryError ? (
-                  <p className="mt-1 text-xs text-red-500">{categoryError}</p>
-                ) : null}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  Nome do produto
-                </label>
-                <input
-                  type="text"
-                  value={productName}
-                  onChange={(e) => {
-                    setProductName(e.target.value.toUpperCase());
-                    setNameError("");
-                  }}
-                  placeholder="Ex: Kit Amostras Premium"
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                />
-                {nameError ? (
-                  <p className="mt-1 text-xs text-red-500">{nameError}</p>
-                ) : null}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  Descrição
-                </label>
-                <textarea
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  placeholder="Descreva o produto"
-                  className="min-h-[100px] w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                  required
-                />
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                  Especificações técnicas (opcional)
-                </p>
-
-                {specs.length > 0 && (
-                  <ul className="mb-3 space-y-2">
-                    {specs.map((s, index) => (
-                      <li
-                        key={`${s.chave}-${index}`}
-                        draggable
-                        onDragStart={(e) => {
-                          setDragIndex(index);
-                          e.dataTransfer.effectAllowed = "move";
-                          e.dataTransfer.setData("text/plain", String(index));
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = "move";
-                          setDragOverIndex(index);
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const raw = e.dataTransfer.getData("text/plain");
-                          const from =
-                            raw === "" ? NaN : Number.parseInt(raw, 10);
-                          if (Number.isNaN(from) || from === index) {
-                            return;
-                          }
-                          setSpecs((prev) => {
-                            if (from < 0 || from >= prev.length) {
-                              return prev;
-                            }
-                            const next = [...prev];
-                            const [moved] = next.splice(from, 1);
-                            next.splice(index, 0, moved);
-                            return next;
-                          });
-                          setDragIndex(null);
-                          setDragOverIndex(null);
-                        }}
-                        onDragEnd={handleSpecDragEnd}
-                        className={`flex items-center justify-between gap-2 rounded-lg border-2 px-3 py-2 text-sm ${
-                          dragIndex === index ? "opacity-50" : ""
-                        } ${
-                          dragOverIndex === index && dragIndex !== index
-                            ? "border-blue-400"
-                            : ""
-                        }`}
-                        style={{
-                          background: "var(--dash-hover-bg)",
-                          borderColor: dragOverIndex === index && dragIndex !== index ? undefined : "var(--dash-border)",
-                          color: "var(--dash-text-primary)",
-                        }}
-                      >
-                        <div className="flex min-w-0 flex-1 items-center gap-2">
-                          <span
-                            className="shrink-0 cursor-grab select-none font-mono text-base leading-none active:cursor-grabbing"
-                            style={{ color: "var(--dash-text-muted)" }}
-                            aria-hidden
-                          >
-                            {"\u283F"}
-                          </span>
-                          <span className="truncate">
-                            {s.chave}: {s.valor}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeSpec(index)}
-                          className="shrink-0 text-xs font-medium text-red-600 hover:text-red-800"
-                        >
-                          Remover
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                  <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
-                      Característica
-                    </label>
-                    <input
-                      type="text"
-                      value={specChaveDraft}
-                      onChange={(e) => {
-                        setSpecChaveDraft(e.target.value);
-                        setSpecDraftError("");
-                      }}
-                      placeholder="Ex: Peso"
-                      className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                      style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
-                      Valor
-                    </label>
-                    <input
-                      type="text"
-                      value={specValorDraft}
-                      onChange={(e) => {
-                        setSpecValorDraft(e.target.value);
-                        setSpecDraftError("");
-                      }}
-                      placeholder="Ex: 500g"
-                      className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                      style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addSpec}
-                    className="shrink-0 rounded-xl border px-4 py-2 text-sm font-medium"
-                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  >
-                    Adicionar
-                  </button>
-                </div>
-                {specDraftError ? (
-                  <p className="mt-1 text-xs text-red-500">{specDraftError}</p>
-                ) : null}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  SKU (Código/Ref)
-                </label>
-                <input
-                  type="text"
-                  value={sku}
-                  onChange={(e) => setSku(e.target.value)}
-                  placeholder="Ex: REF-123"
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  Preço
-                </label>
-                <input
-                  type="text"
-                  value={productPrice}
-                  onChange={(e) => {
-                    setProductPrice(sanitizePriceTyping(e.target.value));
-                    setPriceError("");
-                  }}
-                  placeholder="Ex: 199,90"
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                />
-                {priceError ? (
-                  <p className="mt-1 text-xs text-red-500">{priceError}</p>
-                ) : null}
-              </div>
-
-              <div className="rounded-xl border p-4" style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hasWholesale}
-                    onChange={(e) => setHasWholesale(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
-                  />
-                  <span className="text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                    Habilitar Preço de Atacado
-                  </span>
-                </label>
-
-                {hasWholesale && (
-                  <div className="mt-4 flex gap-4">
-                    <div className="flex-1">
-                      <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
-                        Preço Atacado
-                      </label>
-                      <input
-                        type="text"
-                        value={wholesalePrice}
-                        onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))}
-                        placeholder="Ex: 150,00"
-                        className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                        style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="mb-1 block text-xs font-medium font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
-                        Qtd. Mínima
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={wholesaleMinQuantity}
-                        onChange={(e) => setWholesaleMinQuantity(e.target.value)}
-                        placeholder="Ex: 10"
-                        className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                        style={{ borderColor: "var(--dash-input-border)", background: "var(--dash-input-bg)", color: "var(--dash-text-primary)" }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <label className="block text-sm font-medium font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                    Imagens (Até 5 fotos, máx. 2MB cada)
-                  </label>
-                  <span className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>
-                    {imagePreviewUrls.length} / 5
-                  </span>
-                </div>
-                
-                {imagePreviewUrls.length < 5 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowImageEditor(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 transition-all hover:border-emerald-500 hover:bg-emerald-50/10"
-                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
-                  >
-                    <UploadIcon size={18} />
-                    <span className="text-sm font-medium">Adicionar Foto</span>
-                  </button>
-                )}
-                {imageFileError ? (
-                  <p className="mt-1 text-xs text-red-500">{imageFileError}</p>
-                ) : null}
-
-                {imagePreviewUrls.length > 0 ? (
-                  <div className="mt-3">
-                    <p className="mb-2 text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
-                      Pré-visualização
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {imagePreviewUrls.map((url, idx) => (
-                        <div key={idx} className="relative group">
-                          <img
-                            src={url}
-                            alt="Pré-visualização"
-                            className="h-24 w-24 rounded-lg border object-cover"
-                            style={{ borderColor: "var(--dash-border)" }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(idx)}
-                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600"
-                            title="Remover imagem"
-                          >
-                            &times;
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="rounded-xl border px-4 py-2 text-sm font-medium"
-                  style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-                >
-                  {saving ? "Salvando..." : "Salvar produto"}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
@@ -1706,8 +1760,6 @@ export default function CatalogoPage() {
           </div>
         </div>
       )}
-        </>
-      )}
       {/* Modal: Nenhuma Categoria Encontrada */}
       <AnimatePresence>
         {showNoCategoryModal && (
@@ -1756,11 +1808,12 @@ export default function CatalogoPage() {
 
       <ImageEditorModal
         isOpen={showImageEditor}
-        onClose={() => setShowImageEditor(false)}
+        onClose={() => {
+          setShowImageEditor(false);
+          setPendingFile(null);
+        }}
         onConfirm={onImageEditorConfirm}
-        aspectRatio={1}
-        minWidth={600}
-        minHeight={600}
+        initialFile={pendingFile}
       />
     </div>
   );

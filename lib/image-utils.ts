@@ -31,6 +31,10 @@ export async function getCroppedImg(
   ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
   ctx.translate(-canvas.width / 2, -canvas.height / 2);
 
+  // draw white background for transparency handling
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   // draw rotated image
   ctx.drawImage(
     image,

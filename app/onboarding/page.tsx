@@ -89,7 +89,7 @@ export default function OnboardingPage() {
         return;
       }
 
-      if (profile?.role !== "authorized") {
+      if (profile?.role !== "authorized" && profile?.role !== "superadmin") {
         router.replace("/dashboard");
         return;
       }

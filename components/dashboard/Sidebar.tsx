@@ -26,9 +26,10 @@ interface SidebarProps {
   onClose: () => void;
   isCollapsed: boolean;
   setIsCollapsed: (val: boolean) => void;
+  isShadowMode?: boolean;
 }
 
-export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, setIsCollapsed }: SidebarProps) {
+export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode }: SidebarProps) {
   const pathname = usePathname();
   const [currentHash, setCurrentHash] = useState("");
 
@@ -48,11 +49,10 @@ export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, set
 
   let navLinks: any[] = [];
 
-  if (role === "superadmin") {
+  if (role === "superadmin" && !isShadowMode) {
     // Menu exclusivo do Super Admin (QG)
     navLinks = [
-      { href: "/admin", label: "Painel QG", icon: Settings },
-      { href: "/admin/clientes", label: "Clientes do SaaS", icon: Building2 },
+      { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
       { href: "/admin/catalogos", label: "Análise de Catálogos", icon: BookOpen },
       { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
       { href: "/admin/analytics", label: "Analytics Global", icon: BarChart3 },
@@ -135,8 +135,8 @@ export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, set
               {!isCollapsed && (
                 <div className="flex flex-col overflow-hidden whitespace-nowrap transition-all">
                   <span className="text-base font-bold tracking-tight leading-none text-white">PlataformaCard</span>
-                  <span className="text-[10px] text-[#a7aaad] font-medium uppercase tracking-wider">
-                    {role === "superadmin" ? "Centro de Inteligência" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor")}
+                  <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider">
+                    {isShadowMode ? "Modo Simulação" : (role === "superadmin" ? "Centro de Inteligência" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor"))}
                   </span>
                 </div>
               )}

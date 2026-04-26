@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getInviteCode } from "@/lib/admin-actions";
-import UserList from "./UserList";
+import ClientList from "./clientes/ClientList";
 import { Building2, Users, LayoutDashboard, ShieldCheck, BookOpen } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -66,8 +66,16 @@ export default async function AdminDashboardPage() {
       )
     `)
     .neq("role", "superadmin")
+    .neq("role", "seller") // REMOVIDO: Vendedores não são clientes do SaaS
     .order("created_at", { ascending: false })
     .limit(20);
+
+  // 9. Fetch all organizations for the Unified Dashboard
+  const { data: organizations } = await supabase
+    .from("organizations")
+    .select("id, name, slug, business_model, created_at, plan_id")
+    .neq("name", "Start - Super Admin")
+    .order("created_at", { ascending: false });
 
   return (
     <div className="space-y-10">
@@ -104,17 +112,17 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card: Total Usuários */}
+        {/* Card: Total Usuários (Admins) */}
         <div className="rounded-3xl border p-6 shadow-sm transition-all hover:shadow-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Total de Usuários</p>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Clientes (Admins)</p>
             <div className="h-8 w-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
               <Users size={16} />
             </div>
           </div>
-          <p className="text-4xl font-black" style={{ color: "var(--dash-text-primary)" }}>{(b2bCount || 0) + (b2cCount || 0) + (sellerCount || 0)}</p>
+          <p className="text-4xl font-black" style={{ color: "var(--dash-text-primary)" }}>{(b2bCount || 0) + (b2cCount || 0)}</p>
           <p className="mt-2 text-[10px] font-medium truncate" style={{ color: "var(--dash-text-secondary)" }}>
-            {b2bCount || 0} B2B · {b2cCount || 0} B2C · {sellerCount || 0} Vend.
+            {b2bCount || 0} B2B · {b2cCount || 0} B2C <span className="opacity-40">· {sellerCount || 0} Vend.</span>
           </p>
         </div>
 
@@ -147,15 +155,15 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Tabela de Usuários Recentes */}
-      <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <div className="border-b px-8 py-6 flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
+      {/* Listagem Estratégica de Clientes (Unificada) */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Fluxo de Usuários</h2>
-            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Últimas adesões à plataforma PlataformaCard.</p>
+            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Gestão de Empresas SaaS</h2>
+            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Monitore a saúde e configure os planos de cada organização.</p>
           </div>
         </div>
-        <UserList profiles={recentProfiles as any} />
+        <ClientList organizations={organizations || []} />
       </div>
     </div>
   );

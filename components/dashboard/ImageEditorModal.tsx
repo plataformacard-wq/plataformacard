@@ -25,6 +25,7 @@ interface ImageEditorModalProps {
   minWidth?: number;
   minHeight?: number;
   maxFiles?: number;
+  initialFile?: File | null;
 }
 
 export default function ImageEditorModal({
@@ -34,6 +35,7 @@ export default function ImageEditorModal({
   aspectRatio = 1,
   minWidth = 600,
   minHeight = 600,
+  initialFile = null,
 }: ImageEditorModalProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
@@ -47,10 +49,14 @@ export default function ImageEditorModal({
     setCroppedAreaPixels(AreaPixels);
   }, []);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Carregar arquivo inicial se fornecido
+  React.useEffect(() => {
+    if (initialFile && isOpen) {
+      processFile(initialFile);
+    }
+  }, [initialFile, isOpen]);
 
+  const processFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       setError("Por favor, selecione um arquivo de imagem válido.");
       return;
@@ -60,7 +66,6 @@ export default function ImageEditorModal({
     reader.addEventListener("load", async () => {
       const src = reader.result?.toString() || null;
       if (src) {
-        // Validar resolução mínima antes de abrir o crop
         try {
           const img = await createImage(src);
           if (img.width < minWidth || img.height < minHeight) {
@@ -75,6 +80,11 @@ export default function ImageEditorModal({
       }
     });
     reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
   };
 
   const handleConfirm = async () => {

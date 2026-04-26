@@ -90,6 +90,7 @@ export function TopHeader({
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
+
         {!isB2B && slug && (
           <Link
             href={`/${slug}`}
@@ -150,7 +151,7 @@ export function TopHeader({
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 shadow-2xl overflow-hidden z-[100] border border-[var(--dash-border)] bg-[var(--dash-surface)]"
+                className="absolute right-0 top-full mt-2 w-64 rounded-2xl p-2 shadow-2xl overflow-hidden z-[100] border border-[var(--dash-border)] bg-[var(--dash-surface)]"
               >
                 <div className="px-3 py-2 mb-1 border-b border-[var(--dash-border)]/50 pb-3">
                   <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Conta</p>

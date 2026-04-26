@@ -12,10 +12,12 @@ import {
   ExternalLink,
   ChevronRight,
   TrendingUp,
-  Mail
+  Mail,
+  RefreshCw
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess } from "@/lib/admin-actions";
 
 interface ClientDetailModalProps {
   isOpen: boolean;
@@ -29,32 +31,59 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const [stats, setStats] = useState({
     userCount: 0,
     productCount: 0,
-    adminEmails: [] as string[]
+    categoryCount: 0,
+    adminEmails: [] as string[],
+    sellers: [] as any[],
+    productsList: [] as any[]
   });
+  const [currentPlan, setCurrentPlan] = useState(organization?.plan_id || '');
+  const [businessModel, setBusinessModel] = useState(organization?.business_model || 'B2B');
+  const [updatingPlan, setUpdatingPlan] = useState(false);
+  const [updatingModel, setUpdatingModel] = useState(false);
+  const [showSellers, setShowSellers] = useState(false);
+  const [showProducts, setShowProducts] = useState(false);
+
+  // Sincronizar estado quando a organização mudar (abertura do modal)
+  useEffect(() => {
+    if (organization) {
+      setCurrentPlan(organization.plan_id || '');
+      setBusinessModel(organization.business_model || 'B2B');
+    }
+  }, [organization]);
 
   useEffect(() => {
     if (isOpen && organization?.id) {
       async function fetchDetails() {
         setLoading(true);
         try {
-          // 1. Contagem de Produtos
-          const { count: pCount } = await supabase
-            .from("products")
-            .select("*", { count: "exact", head: true })
-            .eq("organization_id", organization.id)
-            .is("deleted_at", null);
+          // 1. Busca estatísticas via Server Action (Bypass RLS para Admin)
+          const result = await getOrganizationStats(organization.id);
 
-          // 2. Usuários/Perfis vinculados
+          // 2. Busca lista de vendedores para o drawer
           const { data: profiles } = await supabase
             .from("profiles")
-            .select("full_name, role")
+            .select("full_name, role, slug")
             .eq("organization_id", organization.id);
 
-          setStats({
-            userCount: profiles?.length || 0,
-            productCount: pCount || 0,
-            adminEmails: [] // Poderíamos buscar os e-mails da auth se necessário
-          });
+          // 3. Busca lista de produtos (limitada para preview)
+          const { data: products } = await supabase
+            .from("products")
+            .select("name, price, created_at")
+            .eq("organization_id", organization.id)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false })
+            .limit(10);
+
+          if (result.success) {
+            setStats({
+              userCount: result.stats.sellers,
+              productCount: result.stats.products,
+              categoryCount: result.stats.categories,
+              adminEmails: [],
+              sellers: profiles?.filter(p => p.role === 'seller') || [],
+              productsList: products || []
+            });
+          }
         } catch (err) {
           console.error("Erro ao buscar detalhes do cliente:", err);
         }
@@ -63,6 +92,30 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
       fetchDetails();
     }
   }, [isOpen, organization?.id, supabase]);
+
+  const handlePlanChange = async (newPlan: string) => {
+    setUpdatingPlan(true);
+    const result = await updateOrganizationPlan(organization.id, newPlan);
+    if (result.success) {
+      setCurrentPlan(newPlan);
+    } else {
+      alert("Erro ao atualizar plano: " + result.error);
+    }
+    setUpdatingPlan(false);
+  };
+
+
+  const handleModelToggle = async (newModel: 'B2B' | 'B2C') => {
+    if (newModel === businessModel) return;
+    setUpdatingModel(true);
+    const result = await updateOrganizationModel(organization.id, newModel);
+    if (result.success) {
+      setBusinessModel(newModel);
+    } else {
+      alert("Erro ao atualizar modelo: " + result.error);
+    }
+    setUpdatingModel(false);
+  };
 
   // Lógica de Contrato
   const adherenceDate = organization?.created_at ? new Date(organization.created_at) : new Date();
@@ -98,7 +151,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           style={{ background: "var(--dash-surface)" }}
         >
           {/* Header Color Bar */}
-          <div className={`h-3 w-full ${organization.business_model === 'B2B' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
+          <div className={`h-3 w-full ${businessModel === 'B2B' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
           
           <button 
             onClick={onClose}
@@ -107,61 +160,232 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             <X size={20} />
           </button>
 
-          <div className="p-8 sm:p-12">
+          <div className="p-8 sm:p-12 max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* Top Info */}
             <div className="flex items-center gap-6 mb-10">
-              <div className={`h-20 w-20 rounded-3xl flex items-center justify-center text-white shadow-xl ${organization.business_model === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+              <div className={`h-20 w-20 rounded-3xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
                 <Building2 size={40} />
               </div>
               <div>
                 <h2 className="text-3xl font-black mb-1" style={{ color: "var(--dash-text-primary)" }}>
                   {organization.name}
                 </h2>
-                <div className="flex flex-wrap items-center gap-3">
-                   <span className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)]">/{organization.slug}</span>
-                   
-                   <div className="flex items-center gap-2">
-                     <div className="h-1 w-1 rounded-full bg-[var(--dash-border)]" />
-                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${organization.business_model === 'B2B' ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                      MODELO: {organization.business_model || 'B2B'}
-                     </span>
-                   </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)]">/{organization.slug}</span>
+                    
+                    {/* AÇÕES DE COMANDO UNIFICADAS NO MODAL */}
+                    <div className="flex flex-wrap items-center gap-4 py-2">
+                       {/* Seletor B2B/B2C */}
+                       <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative">
+                        {updatingModel && (
+                          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
+                            <RefreshCw size={10} className="animate-spin text-white" />
+                          </div>
+                        )}
+                        <button 
+                          onClick={() => handleModelToggle('B2B')}
+                          className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${
+                            businessModel === 'B2B' 
+                              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                              : 'text-[var(--dash-text-muted)] hover:text-blue-500'
+                          }`}
+                        >
+                          B2B
+                        </button>
+                        <button 
+                          onClick={() => handleModelToggle('B2C')}
+                          className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${
+                            businessModel === 'B2C' 
+                              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
+                              : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
+                          }`}
+                        >
+                          B2C
+                        </button>
+                      </div>
 
-                   <div className="flex items-center gap-2">
-                     <div className="h-1 w-1 rounded-full bg-[var(--dash-border)]" />
-                     <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                      PLANO: {organization.plan_id || 'STANDARD'}
-                     </span>
-                   </div>
+                      {/* Seletor de Plano */}
+                      <div className="relative group/plan">
+                        <select 
+                          value={currentPlan || ''}
+                          disabled={updatingPlan}
+                          onChange={(e) => handlePlanChange(e.target.value)}
+                          className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                        >
+                          <option value="">SELECIONE UM PLANO</option>
+                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: STARTER</option>
+                          <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: PRO BUSINESS</option>
+                          <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">PLANO: ENTERPRISE</option>
+                        </select>
+                        {updatingPlan && (
+                          <div className="absolute -right-5 top-1/2 -translate-y-1/2">
+                            <RefreshCw size={10} className="animate-spin text-amber-600" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                 </div>
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-10">
-              <div className="p-5 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
-                <Package className="text-primary mb-3" size={20} />
-                <p className="text-2xl font-black" style={{ color: "var(--dash-text-primary)" }}>
-                  {loading ? "..." : stats.productCount}
-                </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Produtos</p>
-              </div>
-              <div className="p-5 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
-                <Users className="text-blue-500 mb-3" size={20} />
-                <p className="text-2xl font-black" style={{ color: "var(--dash-text-primary)" }}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+              {/* 01 - Vendedores */}
+              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+                <Users className="text-blue-500 mb-2" size={18} />
+                <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.userCount}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Usuários</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Vendedores</p>
               </div>
-              <div className="p-5 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)] col-span-2 sm:col-span-1">
-                <TrendingUp className="text-emerald-500 mb-3" size={20} />
-                <p className="text-2xl font-black text-emerald-500">Alta</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Saúde</p>
+
+              {/* 02 - Categorias */}
+              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+                <TrendingUp className="text-purple-500 mb-2" size={18} />
+                <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
+                  {loading ? "..." : stats.categoryCount}
+                </p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Categorias</p>
+              </div>
+
+              {/* 03 - Produtos */}
+              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+                <Package className="text-primary mb-2" size={18} />
+                <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
+                  {loading ? "..." : stats.productCount}
+                </p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Produtos</p>
+              </div>
+
+              {/* 04 - Saúde */}
+              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+                <ShieldAlert className="text-emerald-500 mb-2" size={18} />
+                <p className="text-xl font-black text-emerald-500">Alta</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Saúde</p>
               </div>
             </div>
 
             {/* Details Section */}
             <div className="space-y-4 mb-10">
+               {/* URL / CARTÕES - VISÃO HÍBRIDA B2B/B2C */}
+               <div className="flex flex-col rounded-2xl border border-[var(--dash-border)] overflow-hidden">
+                  <div 
+                    onClick={() => businessModel === 'B2B' && setShowSellers(!showSellers)}
+                    className={`flex items-center justify-between p-4 bg-[var(--dash-surface)] transition-all ${businessModel === 'B2B' ? 'cursor-pointer hover:bg-primary/5' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                        {businessModel === 'B2B' ? <Users size={16} /> : <Globe size={16} />}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-[var(--dash-text-muted)]">
+                          {businessModel === 'B2B' ? 'Cartões da Equipe (Catálogos)' : 'URL do Catálogo Público'}
+                        </p>
+                        <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                          {businessModel === 'B2B' 
+                            ? `${stats.sellers.length} vendedores ativos` 
+                            : `anotameucontato.com.br/${organization.slug}`
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    {businessModel === 'B2B' ? (
+                      <ChevronRight size={16} className={`text-[var(--dash-text-muted)] transition-transform ${showSellers ? 'rotate-90' : ''}`} />
+                    ) : (
+                      <a href={`/${organization.slug}`} target="_blank" className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
+                        <ExternalLink size={16} />
+                      </a>
+                    )}
+                  </div>
+
+                  {businessModel === 'B2B' && showSellers && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      className="bg-[var(--dash-bg)] border-t border-[var(--dash-border)]"
+                    >
+                      <div className="p-2 space-y-1">
+                        {stats.sellers.length > 0 ? stats.sellers.map((seller, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
+                            <div className="min-w-0">
+                              <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{seller.full_name}</p>
+                              <p className="text-xs font-bold text-[var(--dash-text-muted)] truncate lowercase tracking-tight">
+                                anotameucontato.com.br/{seller.slug}
+                              </p>
+                            </div>
+                            <a 
+                              href={`/${seller.slug}`} 
+                              target="_blank" 
+                              className="p-2.5 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-muted)] group-hover:text-primary transition-all shadow-sm group-hover:scale-110 active:scale-95"
+                            >
+                              <ExternalLink size={14} />
+                            </a>
+                          </div>
+                        )) : (
+                          <div className="p-8 text-center">
+                            <p className="text-xs text-[var(--dash-text-muted)] italic">Nenhum vendedor cadastrado ainda.</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+               </div>
+
+               {/* LISTA DE PRODUTOS */}
+               <div className="flex flex-col rounded-2xl border border-[var(--dash-border)] overflow-hidden">
+                  <div 
+                    onClick={() => setShowProducts(!showProducts)}
+                    className="flex items-center justify-between p-4 bg-[var(--dash-surface)] cursor-pointer hover:bg-primary/5 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                        <Package size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-[var(--dash-text-muted)]">Produtos Cadastrados</p>
+                        <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                          {stats.productCount} itens no inventário
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className={`text-[var(--dash-text-muted)] transition-transform ${showProducts ? 'rotate-90' : ''}`} />
+                  </div>
+
+                  {showProducts && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      className="bg-[var(--dash-bg)] border-t border-[var(--dash-border)]"
+                    >
+                      <div className="p-2 space-y-1">
+                        {stats.productsList.length > 0 ? stats.productsList.map((product, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
+                            <div className="min-w-0">
+                              <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{product.name}</p>
+                              <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">
+                                {product.price ? `R$ ${product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Preço sob consulta'}
+                              </p>
+                            </div>
+                            <div className="text-[9px] font-bold text-[var(--dash-text-muted)] bg-[var(--dash-surface)] px-2 py-1 rounded-lg border border-[var(--dash-border)]">
+                              {new Date(product.created_at).toLocaleDateString("pt-BR")}
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="p-8 text-center">
+                            <p className="text-xs text-[var(--dash-text-muted)] italic">Nenhum produto encontrado.</p>
+                          </div>
+                        )}
+                        {stats.productCount > 10 && (
+                          <div className="p-3 text-center">
+                            <p className="text-[10px] text-[var(--dash-text-muted)]">Mostrando os últimos 10 produtos...</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+               </div>
+
+               {/* CONTRATO */}
                <div 
                   onClick={() => setShowContract(!showContract)}
                   className="flex flex-col p-4 rounded-2xl border border-[var(--dash-border)] group cursor-pointer hover:bg-primary/5 transition-all"
@@ -172,7 +396,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         <Calendar size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase text-[var(--dash-text-muted)]">Data de Adesão</p>
+                        <p className="text-[10px] font-black uppercase text-[var(--dash-text-muted)]">Data de Adesão / Vigência</p>
                         <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
                           {adherenceDate.toLocaleDateString("pt-BR", { day: '2-digit', month: 'long', year: 'numeric' })}
                         </p>
@@ -202,37 +426,16 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     </motion.div>
                   )}
                </div>
-
-               <div className="flex items-center justify-between p-4 rounded-2xl border border-[var(--dash-border)] group cursor-pointer hover:bg-primary/5 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
-                      <Globe size={16} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase text-[var(--dash-text-muted)]">URL do Catálogo</p>
-                      <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                        anotameucontato.com.br/{organization.slug}
-                      </p>
-                    </div>
-                  </div>
-                  <ExternalLink size={16} className="text-[var(--dash-text-muted)] group-hover:text-primary transition-colors" />
-               </div>
             </div>
 
             {/* Actions */}
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="flex-1 py-4 rounded-2xl bg-[var(--dash-text-primary)] text-[var(--dash-bg)] font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
-                  Simular Acesso (Shadow)
-                </button>
                 <button className="flex-1 py-4 rounded-2xl border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
                   <ShieldAlert size={18} />
                   Suspender Conta
                 </button>
               </div>
-              <p className="text-[10px] text-center text-[var(--dash-text-muted)] italic">
-                * O acesso Shadow permite visualizar o painel exatamente como o cliente o vê, facilitando o suporte técnico sem necessidade de senha.
-              </p>
             </div>
           </div>
         </motion.div>

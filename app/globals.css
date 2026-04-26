@@ -9,8 +9,8 @@
   --primary-foreground: #ffffff;
   
   --dash-bg: #f8fafc;
-  --dash-surface: rgba(255, 255, 255, 0.8);
-  --dash-border: rgba(226, 232, 240, 0.8);
+  --dash-surface: #ffffff;
+  --dash-border: #e2e8f0;
   --dash-text-primary: #0f172a;
   --dash-text-secondary: #475569;
   --dash-text-muted: #94a3b8;
@@ -31,8 +31,8 @@
   --foreground: #f8fafc;
 
   --dash-bg: #020617;
-  --dash-surface: rgba(15, 23, 42, 0.8);
-  --dash-border: rgba(30, 41, 59, 0.8);
+  --dash-surface: #0f172a;
+  --dash-border: #1e293b;
   --dash-text-primary: #f8fafc;
   --dash-text-secondary: #94a3b8;
   --dash-text-muted: #475569;
