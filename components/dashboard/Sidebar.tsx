@@ -65,11 +65,14 @@ export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, set
     ];
 
     if (role === "admin" || role === "b2b_admin") {
+      const isB2B = businessModel === "B2B";
+
       navLinks.push({ 
         label: "Empresa", 
         icon: Building2,
         subItems: [
-          { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
+          ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
+          { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
         ]
       } as any);
       navLinks.push({ 

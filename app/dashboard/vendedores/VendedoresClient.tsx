@@ -357,7 +357,8 @@ export default function VendedoresClient() {
                 .map(v => (
                 <div 
                   key={v.id} 
-                  className="group relative flex flex-col md:flex-row items-center gap-6 p-5 rounded-[32px] border transition-all hover:shadow-xl hover:border-primary/30"
+                  onClick={() => handleOpenForm(v)}
+                  className="group relative flex flex-col md:flex-row items-center gap-6 p-5 rounded-[32px] border transition-all hover:shadow-xl hover:border-primary/30 cursor-pointer"
                   style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                 >
                   {/* Foto e Info Principal */}
@@ -417,6 +418,7 @@ export default function VendedoresClient() {
                       <a 
                         href={`/${v.slug}`} 
                         target="_blank"
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all"
                       >
                         <ExternalLink size={14} /> Cartão Virtual

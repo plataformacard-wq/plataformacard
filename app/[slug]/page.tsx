@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
@@ -158,6 +158,17 @@ export default async function Page(props: PageProps) {
     .maybeSingle();
 
   if (!profile) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("id, slug, business_model")
+      .eq("slug", slug)
+      .eq("business_model", "CaaS")
+      .maybeSingle();
+
+    if (org) {
+      redirect(`/${slug}/catalogo`);
+    }
+
     notFound();
   }
 

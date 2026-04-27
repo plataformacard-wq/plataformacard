@@ -13,7 +13,9 @@ import {
   ArrowRight,
   Info,
   Maximize2,
-  Package
+  Package,
+  Tag,
+  Layers
 } from "lucide-react";
 
 // WhatsApp Icon Component
@@ -377,7 +379,6 @@ export default function ProductCatalogClient({
                             <ArrowRight size={18} />
                           </div>
                         </div>
-                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -550,6 +551,7 @@ export default function ProductCatalogClient({
                         )}
                       </div>
                     </div>
+                  </div>
                 )}
 
                 {selectedProduct.description && (
@@ -581,7 +583,6 @@ export default function ProductCatalogClient({
                       </div>
                     </div>
                   )}
-                </div>
 
                 {whatsappUrl && (
                   <motion.a

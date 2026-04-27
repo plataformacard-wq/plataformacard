@@ -17,6 +17,14 @@ type Profile = {
   whatsapp: string | null;
 };
 
+type Organization = {
+  id: string;
+  slug: string;
+  name: string;
+  favicon_url: string | null;
+  business_model: string;
+};
+
 type Catalog = {
   id: string;
   name: string;
@@ -67,61 +75,101 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     .eq("slug", slug)
     .maybeSingle();
 
-  if (!profile) return { title: "Catálogo não encontrado" };
-
-  return {
-    title: `Catálogo de ${profile.full_name} | PlataformaCard`,
-    description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
-    openGraph: {
-      title: `Catálogo de ${profile.full_name}`,
+  if (profile) {
+    return {
+      title: `Catálogo de ${profile.full_name} | PlataformaCard`,
       description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
-      type: "website",
-    },
-  };
+      openGraph: {
+        title: `Catálogo de ${profile.full_name}`,
+        description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
+        type: "website",
+      },
+    };
+  }
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("name, meta_title, meta_description")
+    .eq("slug", slug)
+    .eq("business_model", "CaaS")
+    .maybeSingle();
+
+  if (org) {
+    return {
+      title: org.meta_title || `Catálogo de ${org.name} | PlataformaCard`,
+      description: org.meta_description || `Confira os produtos e ofertas exclusivas no catálogo digital de ${org.name}.`,
+      openGraph: {
+        title: org.meta_title || `Catálogo de ${org.name}`,
+        description: org.meta_description || `Confira os produtos e ofertas exclusivas no catálogo digital de ${org.name}.`,
+        type: "website",
+      },
+    };
+  }
+
+  return { title: "Catálogo não encontrado" };
 }
 
 export default async function Page(props: PageProps) {
   const supabase = await createClient();
   const { slug } = await props.params;
 
-  const { data: profileData, error: profileError } = await supabase
+  let profile: Profile | null = null;
+  let orgData: Organization | null = null;
+
+  const { data: profileData } = await supabase
     .from("profiles")
     .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
     .eq("slug", slug)
     .maybeSingle();
 
-  if (profileError || !profileData) {
-    return notFound();
+  if (profileData) {
+    profile = profileData as Profile;
+  } else {
+    const { data: orgRaw } = await supabase
+      .from("organizations")
+      .select("id, slug, name, favicon_url, business_model")
+      .eq("slug", slug)
+      .eq("business_model", "CaaS")
+      .maybeSingle();
+      
+    if (orgRaw) {
+      orgData = orgRaw as Organization;
+    } else {
+      return notFound();
+    }
   }
 
-  const profile = profileData as Profile;
-
-  const { data: profileCatalogData } = await supabase
-    .from("profile_catalogs")
-    .select("organization_catalog_id")
-    .eq("profile_id", profile.id)
-    .eq("is_selected", true)
-    .limit(1)
-    .maybeSingle();
+  const trackingProfileId = profile?.id || ("caas-org-" + orgData?.id);
+  const targetOrgId = profile?.organization_id || orgData?.id;
 
   let catalogId: string | null = null;
 
-  if (profileCatalogData?.organization_catalog_id) {
-    const { data: orgCatalogFromProfile } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id")
-      .eq("id", profileCatalogData.organization_catalog_id)
+  if (profile) {
+    const { data: profileCatalogData } = await supabase
+      .from("profile_catalogs")
+      .select("organization_catalog_id")
+      .eq("profile_id", profile.id)
+      .eq("is_selected", true)
+      .limit(1)
       .maybeSingle();
 
-    catalogId = orgCatalogFromProfile?.catalog_id ?? null;
+    if (profileCatalogData?.organization_catalog_id) {
+      const { data: orgCatalogFromProfile } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("id", profileCatalogData.organization_catalog_id)
+        .maybeSingle();
+
+      catalogId = orgCatalogFromProfile?.catalog_id ?? null;
+    }
   }
 
   // Tenta primeiro catálogo habilitado
-  if (!catalogId) {
+  if (!catalogId && targetOrgId) {
     const { data: enabledCatalog } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
-      .eq("organization_id", profile.organization_id)
+      .eq("organization_id", targetOrgId)
       .eq("is_enabled", true)
       .limit(1)
       .maybeSingle();
@@ -129,12 +177,12 @@ export default async function Page(props: PageProps) {
     catalogId = enabledCatalog?.catalog_id ?? null;
   }
 
-  // Fallback B2B: pega qualquer catálogo da organização
-  if (!catalogId) {
+  // Fallback B2B/CaaS: pega qualquer catálogo da organização
+  if (!catalogId && targetOrgId) {
     const { data: anyCatalog } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
-      .eq("organization_id", profile.organization_id)
+      .eq("organization_id", targetOrgId)
       .limit(1)
       .maybeSingle();
 
@@ -190,16 +238,16 @@ export default async function Page(props: PageProps) {
 
   return (
     <ProductCatalogClient
-      profileId={profile.id}
+      profileId={trackingProfileId}
       catalogId={catalog.id}
-      slug={profile.slug}
-      fullName={profile.full_name}
-      avatarUrl={profile.avatar_url}
+      slug={slug}
+      fullName={profile?.full_name || orgData?.name}
+      avatarUrl={profile?.avatar_url || orgData?.favicon_url}
       catalogName={catalog.name}
       catalogDescription={catalog.description}
       categories={categories}
       products={products}
-      whatsapp={profile.whatsapp}
+      whatsapp={profile?.whatsapp || null}
     />
   );
 }

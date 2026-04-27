@@ -1,0 +1,2 @@
+-- Adicionar coluna de ordenação customizada para produtos
+ALTER TABLE products ADD COLUMN IF NOT EXISTS sort_order INTEGER;
