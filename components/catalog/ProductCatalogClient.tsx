@@ -55,8 +55,8 @@ type Product = {
   image_url: string | null;
   image_urls?: string[] | null;
   sort_order: number | null;
-  is_active?: boolean;
-  is_in_stock?: boolean;
+  is_active?: boolean | null;
+  is_in_stock?: boolean | null;
   created_at: string;
   updated_at: string;
 };
