@@ -18,7 +18,7 @@ export interface ProductRow {
   sku: string | null;
   description: string | null;
   image_url: string | null;
-  image_urls: string[] | null;
+  image_urls: string[] | string | null;
   specs: any;
   [key: string]: any;
 }
