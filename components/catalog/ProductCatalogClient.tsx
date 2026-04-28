@@ -74,8 +74,8 @@ type ProductCatalogClientProps = {
   whatsapp: string | null;
 };
 
-const formatPrice = (price: number | null) => {
-  if (price === null) return null;
+const formatPrice = (price: number | null | undefined) => {
+  if (price === null || price === undefined) return null;
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
