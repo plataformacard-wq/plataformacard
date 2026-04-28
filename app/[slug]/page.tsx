@@ -5,6 +5,7 @@ import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
 import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
 import CatalogBadge from "@/components/catalog/CatalogBadge";
+import PublicThemeToggle from "@/components/PublicThemeToggle";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -215,9 +216,12 @@ export default async function Page(props: PageProps) {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
+    <>
+      <PublicThemeToggle />
+      <main
+        className="public-theme-invert"
+        style={{
+          minHeight: "100vh",
         background:
           "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)",
         display: "flex",
@@ -357,6 +361,7 @@ export default async function Page(props: PageProps) {
 
             {/* Badge DISPONÍVEL / PAUSADO / ABERTO AGORA */}
             <div
+              className="public-status-pill"
               style={{
                 marginTop: -10,
                 zIndex: 1,
@@ -380,6 +385,7 @@ export default async function Page(props: PageProps) {
                 }}
               />
               <span
+                className="public-text-status"
                 style={{
                   fontSize: 9,
                   color: "rgba(255,255,255,0.5)",
@@ -396,6 +402,7 @@ export default async function Page(props: PageProps) {
           {/* Nome e bio */}
           <div className="animate-stagger-2" style={{ textAlign: "center", marginTop: 20 }}>
             <h1
+              className="public-text-name"
               style={{
                 fontSize: 30,
                 fontWeight: 700,
@@ -410,6 +417,7 @@ export default async function Page(props: PageProps) {
 
             {bioLine ? (
               <p
+                className="public-text-bio"
                 style={{
                   marginTop: 10,
                   fontSize: 14,
@@ -490,7 +498,7 @@ export default async function Page(props: PageProps) {
 
           {/* Stats */}
           <div
-            className="animate-stagger-4"
+            className="animate-stagger-4 public-stat-wrapper"
             style={{
               marginTop: 28,
               display: "grid",
@@ -530,6 +538,7 @@ export default async function Page(props: PageProps) {
                   {stat.value}
                 </p>
                 <p
+                  className="public-text-stat-label"
                   style={{
                     fontSize: 10,
                     fontWeight: 600,
@@ -568,6 +577,7 @@ export default async function Page(props: PageProps) {
           }}
         />
         <span
+          className="public-text-footer"
           style={{
             fontSize: 12,
             color: "rgba(255,255,255,0.22)",
@@ -577,6 +587,7 @@ export default async function Page(props: PageProps) {
           anotameucontato.com.br
         </span>
       </footer>
-    </main>
+      </main>
+    </>
   );
 }

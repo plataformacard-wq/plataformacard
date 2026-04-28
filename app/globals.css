@@ -28,26 +28,29 @@
 }
 
 [data-theme="dark"] {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
 
-  --dash-bg: #020617;
-  --dash-surface: #0f172a;
-  --dash-border: #1e293b;
-  --dash-text-primary: #f8fafc;
-  --dash-text-secondary: #94a3b8;
-  --dash-text-muted: #475569;
-  --dash-input-bg: #0f172a;
-  --dash-input-border: #1e293b;
-  --dash-header-bg: rgba(2, 6, 23, 0.7);
-  --dash-header-border: rgba(30, 41, 59, 0.6);
-  --dash-hover-bg: #1e293b;
-  --dash-surface-secondary: #1e293b;
+  --primary: #25D366;
+  --primary-foreground: #000000;
+
+  --dash-bg: #0a0a0a;
+  --dash-surface: #141414;
+  --dash-border: rgba(255, 255, 255, 0.08);
+  --dash-text-primary: #ffffff;
+  --dash-text-secondary: rgba(255, 255, 255, 0.6);
+  --dash-text-muted: rgba(255, 255, 255, 0.28);
+  --dash-input-bg: rgba(255, 255, 255, 0.035);
+  --dash-input-border: rgba(255, 255, 255, 0.08);
+  --dash-header-bg: rgba(10, 10, 10, 0.7);
+  --dash-header-border: rgba(255, 255, 255, 0.08);
+  --dash-hover-bg: rgba(255, 255, 255, 0.06);
+  --dash-surface-secondary: rgba(255, 255, 255, 0.035);
 
   /* Glassmorphism Dark */
-  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.035);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --glass-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
 }
 
 @theme inline {
@@ -116,5 +119,101 @@
 
 button, a, [role="button"] {
   @apply transition-all duration-200 active:scale-[0.98];
+}
+
+/* LIGHT MODE OVERRIDES FOR PUBLIC PAGES */
+html:not([data-theme="dark"]) .public-theme-invert {
+  background: var(--dash-bg) !important;
+  color: var(--dash-text-primary) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .btn-catalog {
+  background: var(--dash-surface) !important;
+  border-color: var(--dash-border) !important;
+  color: var(--dash-text-primary) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .text-white,
+html:not([data-theme="dark"]) .public-theme-invert .text-white,
+html:not([data-theme="dark"]) .public-theme-invert .public-text-name,
+html:not([data-theme="dark"]) .public-theme-invert .stat-value,
+html:not([data-theme="dark"]) .public-theme-invert .public-text-status,
+html:not([data-theme="dark"]) .public-theme-invert [style*="color: #fff"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="color: rgb(255, 255, 255)"] {
+  color: var(--dash-text-primary) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .text-slate-400,
+html:not([data-theme="dark"]) .public-theme-invert .text-slate-500,
+html:not([data-theme="dark"]) .public-theme-invert .public-text-bio,
+html:not([data-theme="dark"]) .public-theme-invert .public-text-stat-label,
+html:not([data-theme="dark"]) .public-theme-invert .public-text-footer,
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255, 255, 255, 0.6)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255, 255, 255, 0.5)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255, 255, 255, 0.28)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255, 255, 255, 0.22)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255,255,255,0.6)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255,255,255,0.5)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255,255,255,0.28)"],
+html:not([data-theme="dark"]) .public-theme-invert [style*="rgba(255,255,255,0.22)"] {
+  color: var(--dash-text-secondary) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .bg-white\/5,
+html:not([data-theme="dark"]) .public-theme-invert .bg-slate-800,
+html:not([data-theme="dark"]) .public-theme-invert .bg-slate-900,
+html:not([data-theme="dark"]) .public-theme-invert .public-stat-wrapper,
+html:not([data-theme="dark"]) .public-theme-invert .public-status-pill {
+  background-color: var(--dash-surface) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .border-white\/5,
+html:not([data-theme="dark"]) .public-theme-invert .border-white\/10,
+html:not([data-theme="dark"]) .public-theme-invert .public-stat-wrapper,
+html:not([data-theme="dark"]) .public-theme-invert .public-status-pill,
+html:not([data-theme="dark"]) .public-theme-invert .stat-block {
+  border-color: var(--dash-border) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .glass-dark {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: var(--dash-border) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .stat-block {
+  border-color: var(--dash-border) !important;
+}
+
+/* LIGHT MODE MODAL OVERRIDES */
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content {
+  background: white !important;
+  border-color: #f1f5f9 !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content h2,
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content h4 {
+  color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content .sticky {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content .bg-white\/5 {
+  background-color: #f8fafc !important;
+  border-color: #f1f5f9 !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content .bg-white\/\[0\.02\] {
+  background-color: #f9fafb !important;
+  border-color: #f1f5f9 !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content .text-white {
+  color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]) .public-theme-invert .public-modal-content .text-slate-400 {
+  color: #64748b !important;
 }
 

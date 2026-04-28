@@ -373,6 +373,10 @@ export default function CatalogoPage() {
       wholesale_price,
       wholesale_min_quantity,
       image_url,
+      image_urls,
+      is_active,
+      is_in_stock,
+      price_display_mode,
       sort_order,
       created_at,
       categories (
@@ -621,8 +625,14 @@ export default function CatalogoPage() {
     setWholesalePrice(formatPriceForInput(product.wholesale_price));
     setWholesaleMinQuantity(product.wholesale_min_quantity ? String(product.wholesale_min_quantity) : "");
     setPriceDisplayMode((product.price_display_mode as any) || "both");
-    const urls = product.image_urls && product.image_urls.length > 0
-      ? product.image_urls
+    let parsedImageUrls = product.image_urls;
+    if (typeof parsedImageUrls === 'string') {
+      try { parsedImageUrls = JSON.parse(parsedImageUrls); } catch(e) { parsedImageUrls = []; }
+    }
+    if (!Array.isArray(parsedImageUrls)) parsedImageUrls = [];
+
+    const urls = parsedImageUrls.length > 0
+      ? parsedImageUrls
       : product.image_url ? [product.image_url] : [];
     setExistingImageUrls(urls);
     setImagePreviewUrls(urls);
@@ -1295,17 +1305,17 @@ export default function CatalogoPage() {
                       {/* Imagem compacta */}
                       <div className="relative flex-shrink-0">
                         {product.is_in_stock === false && (
-                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-[16px]">
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-2xl">
                             <span className="bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
                           </div>
                         )}
                         {product.image_urls?.[0] || product.image_url ? (
                           <img 
                             src={product.image_urls?.[0] || product.image_url || ""} 
-                            className={`h-16 w-16 rounded-[16px] object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
+                            className={`h-16 w-16 rounded-2xl object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
                           />
                         ) : (
-                          <div className={`h-16 w-16 rounded-[16px] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`}>
+                          <div className={`h-16 w-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`}>
                             <Package size={24} />
                           </div>
                         )}
@@ -1427,7 +1437,7 @@ export default function CatalogoPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
           <div 
-            className="w-full max-w-2xl rounded-[40px] border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
+            className="w-full max-w-2xl rounded-[32px] border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           >
             {/* Header com Design Premium */}
@@ -1476,7 +1486,7 @@ export default function CatalogoPage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-[32px] border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-2xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                     <div className="md:col-span-2">
                       <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
                         <Tag size={16} className="text-emerald-500" /> Categoria
@@ -1849,7 +1859,7 @@ export default function CatalogoPage() {
                   
                   <div className="p-8 rounded-[32px] border space-y-6" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                     <div
-                      className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed transition-all hover:border-emerald-500/50 hover:bg-emerald-50/10 shadow-sm cursor-pointer"
+                      className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed py-10 transition-all hover:border-emerald-500/50 hover:bg-emerald-50/10 shadow-sm cursor-pointer"
                       style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                       onClick={() => setShowImageEditor(true)}
                       onDragOver={(e) => e.preventDefault()}
@@ -1865,18 +1875,18 @@ export default function CatalogoPage() {
                         }
                       }}
                     >
-                      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-emerald-500 transition-all group-hover:bg-emerald-500 group-hover:text-white">
+                      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-emerald-500 transition-all group-hover:bg-emerald-500 group-hover:text-white">
                         <Upload size={28} />
                       </div>
                       <p className="text-lg font-black text-zinc-800">Adicionar fotos do produto</p>
                       <p className="mt-1 text-sm font-medium text-zinc-400 italic">Arraste aqui ou clique para selecionar</p>
-                      <div className="mt-4 px-4 py-2 bg-amber-50 border border-amber-100 rounded-xl text-[10px] text-amber-700 font-bold uppercase tracking-tight">
+                      <div className="mt-6 px-4 py-2 bg-amber-50 border border-amber-100 rounded-xl text-[10px] text-amber-700 font-bold uppercase tracking-tight">
                         💡 Dica: O sistema converte fundos transparentes em branco automaticamente.
                       </div>
                     </div>
 
                     {(modalImages.length > 0) && (
-                      <div className="space-y-4">
+                      <div className="space-y-4 pt-6 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }}>
                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                            <GripVertical size={12} /> Arraste para definir a ordem das fotos
                          </p>

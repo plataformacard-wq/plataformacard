@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import PublicThemeToggle from "@/components/PublicThemeToggle";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 
 type PageProps = {
@@ -237,17 +238,20 @@ export default async function Page(props: PageProps) {
   }
 
   return (
-    <ProductCatalogClient
-      profileId={trackingProfileId}
-      catalogId={catalog.id}
-      slug={slug}
-      fullName={profile?.full_name || orgData?.name}
-      avatarUrl={profile?.avatar_url || orgData?.favicon_url}
-      catalogName={catalog.name}
-      catalogDescription={catalog.description}
-      categories={categories}
-      products={products}
-      whatsapp={profile?.whatsapp || null}
-    />
+    <>
+      <PublicThemeToggle />
+      <ProductCatalogClient
+        profileId={trackingProfileId}
+        catalogId={catalog.id}
+        slug={slug}
+        fullName={profile?.full_name || orgData?.name}
+        avatarUrl={profile?.avatar_url || orgData?.favicon_url}
+        catalogName={catalog.name}
+        catalogDescription={catalog.description}
+        categories={categories}
+        products={products}
+        whatsapp={profile?.whatsapp || null}
+      />
+    </>
   );
 }

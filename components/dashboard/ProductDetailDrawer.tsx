@@ -93,7 +93,12 @@ export default function ProductDetailDrawer({
         .getPublicUrl(filePath);
 
       if (isGallery) {
-        const currentGallery = Array.isArray(product.image_urls) ? product.image_urls : [];
+        let currentGallery = product.image_urls;
+        if (typeof currentGallery === 'string') {
+          try { currentGallery = JSON.parse(currentGallery); } catch(e) { currentGallery = []; }
+        }
+        if (!Array.isArray(currentGallery)) currentGallery = [];
+        
         updateData(rowIndex, "image_urls", [...currentGallery, publicUrl]);
       } else {
         updateData(rowIndex, "image_url", publicUrl);
@@ -107,7 +112,12 @@ export default function ProductDetailDrawer({
 
   // Remove uma imagem da galeria (apenas do array, não deleta do storage para evitar perda acidental)
   const removeGalleryImage = (url: string) => {
-    const currentGallery = Array.isArray(product.image_urls) ? product.image_urls : [];
+    let currentGallery = product.image_urls;
+    if (typeof currentGallery === 'string') {
+      try { currentGallery = JSON.parse(currentGallery); } catch(e) { currentGallery = []; }
+    }
+    if (!Array.isArray(currentGallery)) currentGallery = [];
+    
     updateData(rowIndex, "image_urls", currentGallery.filter(img => img !== url));
   };
 
@@ -183,20 +193,27 @@ export default function ProductDetailDrawer({
 
               {/* Galeria Extra */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Fotos Extras ({product.image_urls?.length || 0})</label>
+                <label className="text-sm font-medium">Fotos Extras ({Array.isArray(product.image_urls) ? product.image_urls.length : (typeof product.image_urls === 'string' && product.image_urls.startsWith('[') ? JSON.parse(product.image_urls).length : 0)})</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {product.image_urls?.map((url: string, idx: number) => (
-                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group">
-                      <img src={url} alt="Extra" className="w-full h-full object-cover" />
-                      <button 
-                        onClick={() => removeGalleryImage(url)}
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                  <label className="aspect-square rounded-xl border-2 border-dashed border-[var(--dash-border)] flex items-center justify-center cursor-pointer hover:bg-[var(--dash-hover-bg)] transition-colors">
+                  {(() => {
+                    let urls = product.image_urls;
+                    if (typeof urls === 'string') {
+                      try { urls = JSON.parse(urls); } catch(e) { urls = []; }
+                    }
+                    if (!Array.isArray(urls)) urls = [];
+                    return urls.map((url: string, idx: number) => (
+                      <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group">
+                        <img src={url} alt="Extra" className="w-full h-full object-cover" />
+                        <button 
+                          onClick={() => removeGalleryImage(url)}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ));
+                  })()}
+                  <label className="aspect-square rounded-2xl border-2 border-dashed border-[var(--dash-border)] flex items-center justify-center cursor-pointer hover:bg-[var(--dash-hover-bg)] transition-colors">
                     <PlusCircle size={20} className="text-[var(--dash-text-muted)]" />
                     <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, true)} disabled={uploading} />
                   </label>
@@ -217,7 +234,7 @@ export default function ProductDetailDrawer({
                 <input 
                   value={product.name}
                   onChange={(e) => updateData(rowIndex, "name", e.target.value)}
-                  className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -227,7 +244,7 @@ export default function ProductDetailDrawer({
                   <select 
                     value={product.category_id || ""}
                     onChange={(e) => updateData(rowIndex, "category_id", e.target.value)}
-                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
+                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none"
                   >
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -239,7 +256,7 @@ export default function ProductDetailDrawer({
                   <input 
                     value={product.sku || ""}
                     onChange={(e) => updateData(rowIndex, "sku", e.target.value)}
-                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
+                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none"
                   />
                 </div>
               </div>
@@ -256,7 +273,7 @@ export default function ProductDetailDrawer({
               onChange={(e) => updateData(rowIndex, "description", e.target.value)}
               rows={5}
               placeholder="Descreva as características principais do produto..."
-              className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none resize-none"
+              className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none resize-none"
             />
           </section>
 
@@ -279,17 +296,17 @@ export default function ProductDetailDrawer({
                     placeholder="Título (ex: Material)"
                     value={spec.label}
                     onChange={(e) => updateSpec(idx, "label", e.target.value)}
-                    className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg text-sm"
+                    className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
                   />
                   <input 
                     placeholder="Valor (ex: Alumínio)"
                     value={spec.value}
                     onChange={(e) => updateSpec(idx, "value", e.target.value)}
-                    className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg text-sm"
+                    className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
                   />
                   <button 
                     onClick={() => removeSpec(idx)}
-                    className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -305,7 +322,7 @@ export default function ProductDetailDrawer({
           <div className="sticky bottom-0 left-0 right-0 p-6 bg-[var(--dash-surface)] border-t border-[var(--dash-border)] flex gap-4">
             <button 
               onClick={onClose}
-              className="flex-1 p-3 font-bold border border-[var(--dash-border)] rounded-xl hover:bg-[var(--dash-hover-bg)] transition-colors"
+              className="flex-1 p-3 font-bold border border-[var(--dash-border)] rounded-2xl hover:bg-[var(--dash-hover-bg)] transition-colors"
             >
               Concluir Edição
             </button>

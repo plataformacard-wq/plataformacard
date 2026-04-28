@@ -22,7 +22,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [role, setRole] = useState("admin");
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -32,11 +32,12 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   useEffect(() => {
     // Tema
     const saved = localStorage.getItem("dash-theme");
-    if (saved === "dark") {
+    if (saved === "light") {
+      setIsDark(false);
+      document.documentElement.removeAttribute("data-theme");
+    } else {
       setIsDark(true);
       document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
     }
 
     // Sidebar Collapsed

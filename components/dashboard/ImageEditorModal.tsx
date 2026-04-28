@@ -144,21 +144,23 @@ export default function ImageEditorModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/10 bg-zinc-900 shadow-2xl"
+          className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border shadow-2xl"
+          style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/5 p-6">
+          <div className="flex items-center justify-between border-b p-6" style={{ borderColor: "var(--dash-border)" }}>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
                 <Crop size={20} />
               </div>
-              <h3 className="text-lg font-bold text-white">
+              <h3 className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>
                 Editar Imagem
               </h3>
             </div>
             <button
               onClick={resetAndClose}
-              className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-white"
+              className="rounded-full p-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+              style={{ color: "var(--dash-text-muted)" }}
             >
               <X size={20} />
             </button>
@@ -169,15 +171,16 @@ export default function ImageEditorModal({
             {!imageSrc ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="group flex cursor-pointer flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-white/10 bg-white/5 p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                className="group flex cursor-pointer flex-col items-center justify-center rounded-[24px] border-2 border-dashed p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface-secondary)" }}
               >
-                <div className="mb-4 rounded-2xl bg-white/5 p-5 shadow-sm transition-transform group-hover:scale-110">
+                <div className="mb-4 rounded-2xl p-5 shadow-sm transition-transform group-hover:scale-110" style={{ background: "var(--dash-surface)" }}>
                   <Upload className="text-emerald-500" size={32} />
                 </div>
-                <p className="mb-1 font-bold text-white">
+                <p className="mb-1 font-bold" style={{ color: "var(--dash-text-primary)" }}>
                   Clique para selecionar ou arraste a imagem
                 </p>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>
                   JPG, PNG ou WebP (Mín. {minWidth}x{minHeight}px)
                 </p>
                 <input
@@ -214,7 +217,7 @@ export default function ImageEditorModal({
                     step={0.1}
                     aria-labelledby="Zoom"
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-emerald-500"
+                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-black/5 dark:bg-white/10 accent-emerald-500 border border-black/5 dark:border-white/5"
                   />
                   <Plus size={16} className="text-zinc-500" />
                   <button 
@@ -226,16 +229,16 @@ export default function ImageEditorModal({
                 </div>
 
                 {/* Instructions */}
-                <div className="rounded-2xl bg-white/5 p-5 border border-white/5">
+                <div className="rounded-2xl p-5 border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                   <div className="flex gap-4">
                     <div className="shrink-0 h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
                       <Info className="text-emerald-500" size={20} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-bold text-white">
+                      <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
                         Dicas para uma imagem premium:
                       </p>
-                      <ul className="list-inside list-disc text-xs text-zinc-500 space-y-1">
+                      <ul className="list-inside list-disc text-xs space-y-1" style={{ color: "var(--dash-text-muted)" }}>
                         <li>Fundos claros (branco ou cinza) valorizam o produto.</li>
                         <li>Centralize bem o item principal no enquadramento.</li>
                         <li>Imagens serão otimizadas automaticamente para carregamento rápido.</li>
@@ -254,12 +257,12 @@ export default function ImageEditorModal({
             )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-white/5 bg-white/5 p-6">
+          <div className="flex items-center justify-end gap-3 border-t p-6" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
             <button
               onClick={resetAndClose}
               disabled={isProcessing}
-              className="rounded-xl px-6 py-3 text-sm font-bold text-zinc-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+              className="rounded-xl px-6 py-3 text-sm font-bold transition-colors hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+              style={{ color: "var(--dash-text-muted)" }}
             >
               Cancelar
             </button>

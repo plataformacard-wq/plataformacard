@@ -191,13 +191,14 @@ export default function ProductCatalogClient({
       )
     })).filter(cat => cat.products.length > 0);
   }, [categories, products, searchQuery]);
-
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-100 pb-20 selection:bg-emerald-500/30">
+    <div 
+      className="min-h-screen text-slate-100 pb-20 selection:bg-emerald-500/30 public-theme-invert"
+      style={{ background: "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)" }}
+    >
       {/* Dynamic Background Effect */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
       </div>
 
       {/* Premium Header */}
@@ -289,7 +290,7 @@ export default function ProductCatalogClient({
                       <p className="text-slate-500 text-sm mt-2 ml-5">{category.description}</p>
                     )}
                   </div>
-                  <span className="text-xs font-bold text-slate-600 uppercase tracking-widest bg-slate-900 px-3 py-1.5 rounded-lg border border-white/5">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-2xl border border-white/5">
                     {category.products.length} itens
                   </span>
                 </div>
@@ -301,9 +302,9 @@ export default function ProductCatalogClient({
                       key={product.id}
                       onClick={() => handleOpenProduct(product)}
                       whileHover={{ y: -8 }}
-                      className="group relative bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-emerald-500/30 transition-all duration-300"
+                      className="group relative bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-emerald-500/30 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)]"
                     >
-                      <div className="aspect-[4/3] relative overflow-hidden bg-slate-900 flex items-center justify-center p-4">
+                      <div className="aspect-square relative overflow-hidden bg-white flex items-center justify-center p-0">
                         {!product.is_in_stock && (
                           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
                             <span className="bg-rose-600 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-2xl border border-rose-500">
@@ -320,7 +321,7 @@ export default function ProductCatalogClient({
                         ) : (
                           <Package size={48} className={`text-slate-800 ${!product.is_in_stock ? 'opacity-30' : ''}`} />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
+
                         
                         {/* New/Updated Badges */}
                         {lastViewTimestamp !== null && (
@@ -346,24 +347,32 @@ export default function ProductCatalogClient({
                       </div>
 
                       <div className="p-6">
-                        <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{product.name}</h3>
+                        <div className="mb-4">
+                          <h3 className="inline-block text-lg font-black text-white bg-white/5 border border-white/10 px-3 py-1.5 rounded-2xl shadow-sm">
+                             {product.name}
+                          </h3>
+                        </div>
                         {product.description && (
                           <div 
-                            className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed"
+                            className="text-slate-500 text-sm mb-5 leading-relaxed line-clamp-4 [&_*]:!whitespace-normal [&_*]:!break-words [&_*]:!max-w-full"
                             dangerouslySetInnerHTML={{ __html: product.description }}
                           />
                         )}
                         <div className="flex flex-col items-start mt-auto">
                           {product.has_retail !== false && product.price !== null && (
-                            <div className="flex flex-col">
+                            <div className="flex flex-col gap-0.5">
                               {product.compare_at_price && (
-                                <span className="text-[10px] text-slate-500 line-through mb-0.5">
-                                  {formatPrice(product.compare_at_price)}
-                                </span>
+                                <div className="text-sm font-semibold text-slate-400 flex items-center gap-1.5">
+                                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">De</span>
+                                  <span className="line-through">{formatPrice(product.compare_at_price)}</span>
+                                </div>
                               )}
-                              <p className="text-xl font-black text-emerald-400">
-                                {product.is_in_stock !== false ? formatPrice(product.price) : ""}
-                              </p>
+                              <div className="flex items-center gap-1.5">
+                                {product.compare_at_price && <span className="text-[10px] uppercase tracking-wider text-emerald-500/80 font-bold">Por</span>}
+                                <p className="text-xl font-black text-emerald-400">
+                                  {product.is_in_stock !== false ? formatPrice(product.price) : ""}
+                                </p>
+                              </div>
                             </div>
                           )}
                           {product.has_retail === false && product.has_wholesale && product.wholesale_price && (
@@ -415,26 +424,25 @@ export default function ProductCatalogClient({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedProductId(null)}
-              className="absolute inset-0 bg-[#020617]/80 backdrop-blur-md"
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
-            
-            <motion.div
+                     <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-5xl bg-[#0f172a] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+              className="relative w-full max-w-2xl bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] public-modal-content"
             >
               <button 
                 onClick={() => setSelectedProductId(null)}
-                className="absolute top-6 right-6 z-10 h-12 w-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:scale-110 active:scale-95 transition-all"
+                className="absolute top-4 right-4 z-10 h-10 w-10 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/40 hover:scale-110 active:scale-95 transition-all"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
 
               {/* Gallery Section */}
-              <div className="w-full md:w-1/2 bg-white flex flex-col relative">
+              <div className="w-full bg-white flex flex-col relative shrink-0">
                 <div 
-                  className="flex-1 relative overflow-hidden flex items-center justify-center p-8 min-h-[300px] md:min-h-[500px]"
+                  className="relative aspect-[16/10] overflow-hidden flex items-center justify-center p-4"
                   onMouseMove={handleImageZoomMove}
                   onMouseEnter={() => setIsZoomed(true)}
                   onMouseLeave={() => setIsZoomed(false)}
@@ -443,14 +451,17 @@ export default function ProductCatalogClient({
                     <motion.img 
                       key={selectedImageUrl}
                       initial={{ opacity: 0, scale: 1.1 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      animate={{ opacity: 1, scale: isZoomed ? 2.5 : 1 }}
+                      transition={{ 
+                        scale: { duration: 0.2, ease: "easeOut" },
+                        opacity: { duration: 0.3 }
+                      }}
                       src={selectedImageUrl} 
                       alt={selectedProduct.name}
                       style={{ 
-                        transformOrigin: zoomOrigin,
-                        transform: isZoomed ? "scale(2)" : "scale(1)"
+                        transformOrigin: zoomOrigin
                       }}
-                      className="w-full h-full object-contain transition-transform duration-300 ease-out cursor-zoom-in"
+                      className="w-full h-full object-contain cursor-zoom-in"
                     />
                   ) : (
                     <Package size={100} className="text-slate-200" />
@@ -460,28 +471,28 @@ export default function ProductCatalogClient({
                     <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
                       <button 
                         onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(prev => prev === 0 ? selectedProductGallery.length - 1 : prev - 1); }}
-                        className="pointer-events-auto h-12 w-12 rounded-full bg-white/80 border border-black/5 shadow-lg flex items-center justify-center text-slate-900 hover:scale-110 transition-transform"
+                        className="pointer-events-auto h-10 w-10 rounded-full bg-white/90 border border-black/5 shadow-lg flex items-center justify-center text-slate-900 hover:scale-110 transition-transform"
                       >
-                        <ChevronLeft size={24} />
+                        <ChevronLeft size={20} />
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(prev => prev === selectedProductGallery.length - 1 ? 0 : prev + 1); }}
-                        className="pointer-events-auto h-12 w-12 rounded-full bg-white/80 border border-black/5 shadow-lg flex items-center justify-center text-slate-900 hover:scale-110 transition-transform"
+                        className="pointer-events-auto h-10 w-10 rounded-full bg-white/90 border border-black/5 shadow-lg flex items-center justify-center text-slate-900 hover:scale-110 transition-transform"
                       >
-                        <ChevronRight size={24} />
+                        <ChevronRight size={20} />
                       </button>
                     </div>
                   )}
                 </div>
 
                 {hasMultipleImages && (
-                  <div className="p-6 border-t border-slate-100 flex gap-3 overflow-x-auto no-scrollbar justify-center">
+                  <div className="p-3 border-t border-slate-100 flex gap-2 overflow-x-auto no-scrollbar justify-center bg-slate-50/50">
                     {selectedProductGallery.map((url, idx) => (
                       <button 
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`h-16 w-16 rounded-xl border-2 flex-shrink-0 transition-all overflow-hidden ${
-                          selectedImageIndex === idx ? "border-emerald-500 scale-105" : "border-slate-100 opacity-60 hover:opacity-100"
+                        className={`h-14 w-14 rounded-2xl border-2 flex-shrink-0 transition-all overflow-hidden ${
+                          selectedImageIndex === idx ? "border-emerald-500 scale-105" : "border-slate-200 opacity-60 hover:opacity-100"
                         }`}
                       >
                         <img src={url} alt="" className="w-full h-full object-cover" />
@@ -492,27 +503,36 @@ export default function ProductCatalogClient({
               </div>
 
               {/* Details Section */}
-              <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto custom-scrollbar">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
-                    selectedProduct.is_in_stock !== false 
-                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
-                      : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                  }`}>
-                    {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
-                  </span>
-                  {selectedProduct.sku && (
-                    <span className="text-slate-500 text-[10px] font-mono tracking-tighter">REF: {selectedProduct.sku}</span>
-                  )}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="sticky top-0 z-20 px-6 sm:px-8 py-3 bg-zinc-950/80 backdrop-blur-md border-b border-white/5 flex items-center gap-4 flex-wrap">
+                  <h2 className="inline-block text-2xl font-black text-white bg-white/5 border border-white/10 px-4 py-2 rounded-2xl shadow-sm leading-tight">
+                    {selectedProduct.name}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                      selectedProduct.is_in_stock !== false 
+                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                        : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                    }`}>
+                      {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
+                    </span>
+                    {selectedProduct.sku && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 border border-white/5 text-[9px] font-black !text-white uppercase tracking-widest">
+                        REF: {selectedProduct.sku}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <h2 className="text-3xl font-black text-white leading-tight mb-4">
-                  {selectedProduct.name}
-                </h2>
+                <div className="flex-1 p-5 sm:p-6 overflow-y-auto custom-scrollbar">
+
+
+
+
 
                 {selectedProduct.is_in_stock !== false && (
                   <div className="space-y-6 mb-8">
-                    <div className="bg-white/5 border border-white/5 rounded-3xl p-6">
+                    <div className="bg-white/5 border border-white/5 rounded-2xl p-6">
                       <div className="space-y-6">
                         {/* Seção Varejo */}
                         {selectedProduct.has_retail !== false && (
@@ -520,15 +540,19 @@ export default function ProductCatalogClient({
                             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
                               <Tag size={12} /> Preço de Varejo
                             </p>
-                            <div className="flex items-baseline gap-3">
-                              <p className="text-4xl font-black text-emerald-400">
-                                {formatPrice(selectedProduct.price) || "Consulte"}
-                              </p>
+                            <div className="flex flex-col gap-1">
                               {selectedProduct.compare_at_price && (
-                                <p className="text-lg text-slate-500 line-through font-bold">
-                                  {formatPrice(selectedProduct.compare_at_price)}
-                                </p>
+                                <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                                  <span className="text-[10px] uppercase opacity-60">De</span>
+                                  <span className="line-through">{formatPrice(selectedProduct.compare_at_price)}</span>
+                                </div>
                               )}
+                              <div className="flex items-center gap-2">
+                                {selectedProduct.compare_at_price && <span className="text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
+                                <p className="text-3xl font-black text-emerald-400">
+                                  {formatPrice(selectedProduct.price) || "Consulte"}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -543,9 +567,11 @@ export default function ProductCatalogClient({
                               {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
                             </p>
                             {selectedProduct.wholesale_min_quantity && (
-                              <p className="text-slate-500 text-xs mt-1 font-medium italic">
-                                Mínimo de {selectedProduct.wholesale_min_quantity} unidades
-                              </p>
+                              <div className="mt-3">
+                                <span className="inline-block bg-emerald-500 !text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
+                                  Mínimo de {selectedProduct.wholesale_min_quantity} unidades
+                                </span>
+                              </div>
                             )}
                           </div>
                         )}
@@ -554,7 +580,8 @@ export default function ProductCatalogClient({
                   </div>
                 )}
 
-                {selectedProduct.description && (
+                <div className="space-y-8">
+                  {selectedProduct.description && (
                     <div>
                       <h4 className="flex items-center gap-2 text-white font-bold text-sm mb-3">
                         <Info size={16} className="text-emerald-500" />
@@ -573,30 +600,34 @@ export default function ProductCatalogClient({
                         <Package size={16} className="text-emerald-500" />
                         Especificações Técnicas
                       </h4>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1.5">
                         {selectedProduct.specs.map((spec, i) => (
-                          <div key={i} className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3">
-                            <span className="text-xs text-slate-500 font-medium">{spec.chave}</span>
-                            <span className="text-xs text-white font-bold">{spec.valor}</span>
+                          <div key={i} className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-2xl px-4 py-2.5">
+                            <span className="text-sm text-slate-400 font-bold">{spec.chave}</span>
+                            <span className="text-base text-white font-black">{spec.valor}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
+                </div>
 
                 {whatsappUrl && (
-                  <motion.a
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-center gap-3 w-full bg-emerald-500 text-black font-black text-sm py-5 rounded-2xl shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 transition-colors"
-                  >
-                    <WhatsAppIcon className="w-5 h-5" />
-                    FAZER PEDIDO VIA WHATSAPP
-                  </motion.a>
+                  <div className="mt-10 sticky bottom-0 pt-4 bg-zinc-950/80 backdrop-blur-md pb-2">
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:bg-[#128C7E] text-white font-black rounded-2xl shadow-xl shadow-emerald-500/20 transition-all text-sm uppercase tracking-wider"
+                    >
+                      <MessageCircle size={20} />
+                      Fazer Pedido via WhatsApp
+                    </motion.a>
+                  </div>
                 )}
+                </div>
               </div>
             </motion.div>
           </div>
@@ -609,8 +640,11 @@ export default function ProductCatalogClient({
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        .ql-editor-display p { margin-bottom: 0.5rem; }
-        .ql-editor-display b, .ql-editor-display strong { font-weight: 900; color: #fff; }
+        .ql-editor-display p { margin-bottom: 0.5rem; word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap !important; }
+        .ql-editor-display b, .ql-editor-display strong { font-weight: 900; }
+        html:not([data-theme="dark"]) .public-theme-invert .ql-editor-display b, 
+        html:not([data-theme="dark"]) .public-theme-invert .ql-editor-display strong { color: #000; }
+        [data-theme="dark"] .ql-editor-display b, [data-theme="dark"] .ql-editor-display strong { color: #fff; }
       `}</style>
     </div>
   );

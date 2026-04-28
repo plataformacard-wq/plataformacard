@@ -107,7 +107,27 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 
 ---
 
-## 8. Registro de Alterações (Log)
+## 8. Design System e Padrões de Tema (Themes)
+
+A plataforma utiliza um sistema unificado de temas com duas identidades visuais distintas e marcantes. O controle global do tema é feito através de CSS puro (`globals.css`) integrado com as variáveis do TailwindCSS.
+
+### Padrão Oficial (Modo Escuro / Premium)
+- **Onde atua**: É o padrão padrão ("default") de todo o sistema.
+- **Identidade**: Baseado na estética do Cartão Público, entregando um visual premium e noturno.
+- **Paleta de Cores**: Fundo negro absoluto (`#0a0a0a`) com degradê radial na cor verde esmeralda escuro (`#0d3b1f`), acentuado pelo verde neon (inspirado no WhatsApp, `#25D366`) como cor primária (`text-primary`, `bg-primary`).
+- **Superfícies**: Utiliza *Glassmorphism* (efeitos de vidro) com opacidade extremamente controlada (`rgba(255, 255, 255, 0.035)`) para manter o contraste luxuoso sem clarear o fundo.
+
+### Padrão Alternativo (Modo Claro / Clean)
+- **Onde atua**: Acionado via *Theme Toggle* (`PublicThemeToggle` ou Dashboard TopHeader). O estado é salvo em cache via `localStorage("dash-theme")`.
+- **Identidade**: Baseado na estética Clean/Minimalista corporativa.
+- **Paleta de Cores**: Fundo branco ou levemente acinzentado (`#f8fafc`, `#ffffff`) com textos em cinza escuro/slate (`#0f172a`, `#475569`).
+- **Superfícies**: Utiliza bordas sólidas (`#e2e8f0`) e sombras tradicionais no lugar de transparências.
+
+> **Engenharia do CSS**: Para preservar a perfeição pixel-a-pixel do Cartão Público no modo escuro (evitando conflitos de Tailwind no catálogo), foi criada a classe utilitária `.public-theme-invert` em `globals.css`. Esta classe atua unicamente injetando as variáveis do modo Claro nas páginas públicas apenas quando o `[data-theme="dark"]` não estiver presente.
+
+---
+
+## 9. Registro de Alterações (Log)
 
 | Data | Alteração | Responsável |
 | :--- | :--- | :--- |
@@ -117,6 +137,7 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 | 2026-04-25 | Padronização de Branding: Atualização de links e previews para o domínio oficial `anotameucontato.com.br`. | Antigravity |
 | 2026-04-25 | Evolução B2B: Refatoração da listagem de vendedores para cards retangulares com toggle de status e analytics. | Antigravity |
 | 2026-04-25 | Estratégia: Definição do rascunho inicial de Planos, Limites e Serviços (Gerente de Conta). | Antigravity |
+| 2026-04-27 | UI/UX: Unificação do Design System (Modo Claro/Escuro), Integração CaaS e refatoração do `globals.css` com suporte a `public-theme-invert`. | Antigravity |
 
 ---
 
