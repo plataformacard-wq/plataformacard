@@ -46,12 +46,12 @@ type Product = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
-  compare_at_price: number | null;
+  compare_at_price?: number | null;
   sku: string | null;
   has_retail?: boolean | null;
-  has_wholesale: boolean | null;
-  wholesale_price: number | null;
-  wholesale_min_quantity: number | null;
+  has_wholesale?: boolean | null;
+  wholesale_price?: number | null;
+  wholesale_min_quantity?: number | null;
   image_url: string | null;
   image_urls?: string[] | null;
   sort_order: number | null;
