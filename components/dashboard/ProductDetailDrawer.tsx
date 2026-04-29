@@ -10,7 +10,9 @@ import {
   Eye,
   EyeOff,
   Settings,
-  Plus as PlusIcon
+  Plus as PlusIcon,
+  List,
+  Palette
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { createClient } from "@/lib/supabase/client";
