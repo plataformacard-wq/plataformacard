@@ -13,6 +13,7 @@ const ReactQuill = nextDynamic(() => import("react-quill-new"), {
   loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
 });
 
+import Link from "next/link";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { 
   AlertCircle, 
@@ -35,12 +36,15 @@ import {
   Eye,
   Camera,
   CheckCircle2,
+  Palette,
   GripVertical,
   DollarSign,
   Bold,
   Italic,
-  Info
+  Info,
+  Plus as PlusIcon
 } from "lucide-react";
+import { HexColorPicker } from "react-colorful";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
 type Category = {
@@ -48,6 +52,10 @@ type Category = {
   name: string;
   description: string | null;
   sort_order: number | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
 };
 
 type Catalog = {
@@ -79,6 +87,10 @@ type ProductRow = {
   image_urls: string[] | null;
   is_active: boolean;
   is_in_stock: boolean;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
   created_at: string;
   sort_order: number | null;
   categories:
@@ -201,11 +213,42 @@ export default function CatalogoPage() {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ product: ProductRow, field: 'is_active' | 'is_in_stock' } | null>(null);
 
+  // Novos campos de Flexibilidade
+  const [showSpecs, setShowSpecs] = useState<boolean | null>(null);
+  const [showColors, setShowColors] = useState<boolean | null>(null);
+  const [specsTitle, setSpecsTitle] = useState("");
+  const [productColors, setProductColors] = useState<string[]>([]);
+  const [colorPickerValue, setColorPickerValue] = useState("#000000");
+  const [editingColorIdx, setEditingColorIdx] = useState<number | null>(null);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [userSlug, setUserSlug] = useState<string | null>(null);
+
   const stripHtml = (html: string) => {
     if (!html) return "";
     const tmp = document.createElement("DIV");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
+  };
+
+  const currentCategory = categories.find(c => c.id === selectedCategoryId);
+  const effectiveShowSpecs = showSpecs ?? currentCategory?.show_specs ?? true;
+  const effectiveShowColors = showColors ?? currentCategory?.show_colors ?? false;
+  const effectiveSpecsTitle = specsTitle || currentCategory?.specs_title || "Especificações Técnicas";
+
+  const addColor = (hex: string) => {
+    if (editingColorIdx !== null) {
+      const newColors = [...productColors];
+      newColors[editingColorIdx] = hex;
+      setProductColors(newColors);
+      setEditingColorIdx(null);
+      return;
+    }
+    if (productColors.length >= 4) return;
+    setProductColors([...productColors, hex]);
+  };
+
+  const removeColor = (idx: number) => {
+    setProductColors(productColors.filter((_, i) => i !== idx));
   };
 
   useEffect(() => {
@@ -224,7 +267,7 @@ export default function CatalogoPage() {
           
           if (cid) {
             setCatalogId(cid);
-            await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid)]);
+            await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid), fetchUserSlug(user.id)]);
           }
         }
       } catch (err) {
@@ -262,6 +305,41 @@ export default function CatalogoPage() {
     }
 
     return (profile?.organization_id as string) ?? null;
+  }
+
+  async function fetchUserSlug(userId: string) {
+    const supabase = createClient();
+    
+    // Tenta buscar o perfil (tentando id e user_id para garantir compatibilidade)
+    let { data: profile } = await supabase
+      .from("profiles")
+      .select("slug, organization_id")
+      .eq("id", userId)
+      .maybeSingle();
+      
+    if (!profile) {
+      const { data: profileByUid } = await supabase
+        .from("profiles")
+        .select("slug, organization_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      profile = profileByUid;
+    }
+    
+    if (profile?.slug) {
+      setUserSlug(profile.slug);
+    } else if (profile?.organization_id) {
+      // Fallback: busca o slug da organização se o perfil não tiver slug
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("slug")
+        .eq("id", profile.organization_id)
+        .maybeSingle();
+      
+      if (org?.slug) {
+        setUserSlug(org.slug);
+      }
+    }
   }
 
   async function fetchCatalog(orgId: string): Promise<string | null> {
@@ -596,6 +674,10 @@ export default function CatalogoPage() {
     setModalImages([]);
     setIsActive(true);
     setIsInStock(true);
+    setShowSpecs(null);
+    setShowColors(null);
+    setSpecsTitle("");
+    setProductColors([]);
     setShowModal(true);
   }
 
@@ -643,6 +725,10 @@ export default function CatalogoPage() {
     })));
     setIsActive(product.is_active ?? true);
     setIsInStock(product.is_in_stock ?? true);
+    setShowSpecs(product.show_specs ?? null);
+    setShowColors(product.show_colors ?? null);
+    setSpecsTitle(product.specs_title || "");
+    setProductColors(Array.isArray(product.colors) ? product.colors : []);
     setNameError("");
     setCategoryError("");
     setPriceError("");
@@ -996,6 +1082,10 @@ export default function CatalogoPage() {
       is_active: isActive,
       is_in_stock: isInStock,
       price_display_mode: priceDisplayMode,
+      show_specs: showSpecs,
+      show_colors: showColors,
+      specs_title: specsTitle.trim() || null,
+      colors: productColors,
     };
 
     if (editingProduct) {
@@ -1341,7 +1431,7 @@ export default function CatalogoPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-3">
-                            {product.price !== null && (
+                            {product.has_retail !== false && product.price !== null && (
                               <div className="flex flex-col items-end">
                                 {(product.has_wholesale || product.compare_at_price) && (
                                   <span className="text-[8px] font-black uppercase text-zinc-400 leading-none mb-0.5">Varejo</span>
@@ -1356,7 +1446,7 @@ export default function CatalogoPage() {
                                 </p>
                               </div>
                             )}
-                            {product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
+                            {product.has_retail !== false && product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
                               <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 self-end mb-1" />
                             )}
                             {product.has_wholesale && product.wholesale_price !== null && (
@@ -1398,6 +1488,29 @@ export default function CatalogoPage() {
                           </div>
 
                           <div className="flex items-center gap-1">
+                            {userSlug ? (
+                              <Link
+                                href={`/${userSlug}/catalogo#${product.id}`}
+                                target="_blank"
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                title="Ver no Catálogo Público"
+                              >
+                                <Eye size={14} />
+                              </Link>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  alert("Slug ainda não carregado. Tente novamente em um segundo.");
+                                }}
+                                className="p-2 rounded-lg bg-zinc-800 text-zinc-500 cursor-wait"
+                              >
+                                <Eye size={14} />
+                              </button>
+                            )}
+
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
@@ -1444,10 +1557,19 @@ export default function CatalogoPage() {
             <div className="relative px-10 py-8 border-b" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
               <div className="flex items-start justify-between">
                 <div>
+                <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mr-4">
                   <h2 className="text-3xl font-black flex items-center gap-3" style={{ color: "var(--dash-text-primary)" }}>
                     {isEditMode ? <EditIcon size={28} className="text-emerald-500" /> : <Plus size={28} className="text-emerald-500" />}
                     {isEditMode ? "Editar Produto" : "Novo Produto"}
                   </h2>
+                  {isEditMode && productName && (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-100 border border-zinc-200 max-w-[300px] shadow-sm">
+                      <span className="text-black text-sm font-black uppercase tracking-widest truncate">
+                        {productName}
+                      </span>
+                    </div>
+                  )}
+                </div>
                   <p className="mt-1 text-sm font-medium" style={{ color: "var(--dash-text-muted)" }}>
                     Gerencie os detalhes e a apresentação do seu item.
                   </p>
@@ -1658,6 +1780,26 @@ export default function CatalogoPage() {
                         input, textarea, [contenteditable], .ql-editor {
                           caret-color: #10b981 !important;
                         }
+                        .premium-picker-container .react-colorful {
+                          width: 100% !important;
+                          height: 160px !important;
+                          border-radius: 20px !important;
+                        }
+                        .premium-picker-container .react-colorful__saturation {
+                          border-radius: 16px 16px 4px 4px !important;
+                          border-bottom: none !important;
+                        }
+                        .premium-picker-container .react-colorful__hue {
+                          height: 14px !important;
+                          border-radius: 10px !important;
+                          margin-top: 12px !important;
+                        }
+                        .premium-picker-container .react-colorful__pointer {
+                          width: 20px !important;
+                          height: 20px !important;
+                          border: 3px solid white !important;
+                          box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+                        }
                       `}</style>
                     </div>
                   </div>
@@ -1665,70 +1807,261 @@ export default function CatalogoPage() {
 
                 <div className="space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
-                    <Settings size={16} /> Especificações Técnicas
+                    <Settings size={16} /> Configurações de Exibição
                   </h3>
-                  
-                  <div className="p-6 rounded-[32px] border space-y-4" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
-                    {specs.length > 0 && (
-                      <Reorder.Group axis="y" values={specs} onReorder={setSpecs} className="space-y-1.5">
-                        {specs.map((s, index) => (
-                          <Reorder.Item
-                            key={`${s.chave}-${index}`}
-                            value={s}
-                            className="flex items-center justify-between gap-3 rounded-xl border px-4 py-1.5 text-sm shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
-                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                          >
-                            <div className="flex items-center gap-4 flex-1">
-                              <GripVertical size={14} className="text-zinc-300" />
-                              <div className="flex items-center gap-2">
-                                <span className="text-emerald-600 font-black uppercase text-[9px] tracking-widest">{s.chave}:</span>
-                                <span className="font-normal text-zinc-600">{s.valor}</span>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeSpec(index)}
-                              className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"
-                            >
-                              <TrashIcon size={16} />
-                            </button>
-                          </Reorder.Item>
-                        ))}
-                      </Reorder.Group>
-                    )}
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end p-6 rounded-3xl border border-dashed" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-                      <div className="flex-1">
-                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--dash-text-muted)" }}>Característica</label>
-                        <input
-                          type="text"
-                          value={specChaveDraft}
-                          onChange={(e) => setSpecChaveDraft(e.target.value)}
-                          placeholder="Ex: Peso"
-                          className="w-full rounded-2xl border px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 transition-all cursor-text"
-                          style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                        />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between p-4 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-2xl">
+                      <div className="flex items-center gap-2">
+                        <Package size={18} className="text-emerald-500" />
+                        <span className="text-xs font-bold uppercase tracking-wider">Especificações</span>
                       </div>
-                      <div className="flex-1">
-                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--dash-text-muted)" }}>Valor</label>
-                        <input
-                          type="text"
-                          value={specValorDraft}
-                          onChange={(e) => setSpecValorDraft(e.target.value)}
-                          placeholder="Ex: 500g"
-                          className="w-full rounded-2xl border px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 transition-all cursor-text"
-                          style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                        />
-                      </div>
-                      <button
+                      <button 
                         type="button"
-                        onClick={addSpec}
-                        className="px-6 py-3 bg-primary text-white rounded-2xl text-xs font-black hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                        onClick={() => setShowSpecs(showSpecs === null ? !effectiveShowSpecs : !showSpecs)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${effectiveShowSpecs ? 'bg-emerald-500' : 'bg-zinc-600'}`}
                       >
-                        ADICIONAR
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowSpecs ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-2xl">
+                      <div className="flex items-center gap-2">
+                        <Palette size={18} className="text-emerald-500" />
+                        <span className="text-xs font-bold uppercase tracking-wider">Cores do Produto</span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setShowColors(showColors === null ? !effectiveShowColors : !showColors)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${effectiveShowColors ? 'bg-emerald-500' : 'bg-zinc-600'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowColors ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
                   </div>
+
+                  {effectiveShowColors && (
+                    <div className="p-6 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-[32px] space-y-6">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                          <Palette size={14} /> Adicione suas cores
+                        </label>
+                        <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-lg">
+                          {productColors.length}/4 CORES
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-4">
+                        {productColors.map((color, idx) => (
+                          <div key={idx} className="relative group">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingColorIdx(idx);
+                                setColorPickerValue(color);
+                                setIsPickerOpen(true);
+                              }}
+                              className={`h-14 w-14 rounded-2xl border-4 shadow-xl transition-all hover:scale-105 active:scale-95 ${editingColorIdx === idx ? 'border-emerald-500 ring-4 ring-emerald-500/20' : 'border-white'}`}
+                              style={{ backgroundColor: color }}
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                removeColor(idx);
+                                if (editingColorIdx === idx) {
+                                  setEditingColorIdx(null);
+                                  setIsPickerOpen(false);
+                                }
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600 z-10"
+                            >
+                              <XIcon size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        <div className="relative">
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if (productColors.length < 4) {
+                                setEditingColorIdx(null);
+                                setColorPickerValue("#000000");
+                                setIsPickerOpen(!isPickerOpen);
+                              }
+                            }}
+                            className="h-14 w-14 rounded-2xl border-4 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all relative"
+                            style={{ background: "linear-gradient(to bottom, #ff0000 0%, #ff00ff 17%, #0000ff 33%, #00ffff 50%, #00ff00 67%, #ffff00 83%, #ff0000 100%)" }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/5 hover:bg-transparent transition-colors">
+                              <PlusIcon size={18} className="text-white drop-shadow-md" />
+                            </div>
+                          </button>
+
+                          <AnimatePresence>
+                            {isPickerOpen && (
+                              <>
+                                <div className="fixed inset-0 z-[60]" onClick={() => setIsPickerOpen(false)} />
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  className="absolute left-0 bottom-full mb-4 z-[70] p-6 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.5)] border min-w-[280px]"
+                                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                                >
+                                  <div className="space-y-5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>
+                                        {editingColorIdx !== null ? "Ajustar Cor" : "Nova Escolha"}
+                                      </span>
+                                      <button onClick={() => setIsPickerOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                                        <XIcon size={14} style={{ color: "var(--dash-text-muted)" }} />
+                                      </button>
+                                    </div>
+
+                                    <div className="premium-picker-container">
+                                      <HexColorPicker color={colorPickerValue} onChange={setColorPickerValue} />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Sugestões</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {['#FF0000', '#0000FF', '#FFFF00', '#000000', '#FFFFFF', '#008000', '#808080', '#FFA500'].map(preset => (
+                                          <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => {
+                                              setColorPickerValue(preset);
+                                            }}
+                                            className="h-7 w-7 rounded-lg border shadow-sm hover:scale-110 transition-transform active:scale-90"
+                                            style={{ backgroundColor: preset, borderColor: "var(--dash-border)" }}
+                                            title={preset}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 p-4 rounded-2xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                                      <div className="h-10 w-10 rounded-xl border shadow-inner shrink-0" style={{ backgroundColor: colorPickerValue, borderColor: "var(--dash-border)" }} />
+                                      <div className="flex-1">
+                                        <p className="text-[9px] font-black uppercase tracking-widest mb-0.5" style={{ color: "var(--dash-text-muted)" }}>[Cor Personalizada]</p>
+                                        <p className="text-xs font-mono font-bold" style={{ color: "var(--dash-text-primary)" }}>{colorPickerValue.toUpperCase()}</p>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setIsPickerOpen(false);
+                                          setEditingColorIdx(null);
+                                        }}
+                                        className="px-4 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                                        style={{ background: "var(--dash-surface-secondary)", color: "var(--dash-text-muted)", borderColor: "var(--dash-border)" }}
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          addColor(colorPickerValue);
+                                          setIsPickerOpen(false);
+                                        }}
+                                        className="px-4 py-3.5 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
+                                      >
+                                        {editingColorIdx !== null ? "Atualizar" : "Confirmar"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {effectiveShowSpecs && (
+                    <>
+                      <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                        <Settings size={16} /> Especificações Técnicas
+                      </h3>
+                      
+                      <div className="p-6 rounded-[32px] border space-y-4" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                        <div className="mb-4">
+                          <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-400">Título da Seção</label>
+                          <input
+                            type="text"
+                            value={specsTitle}
+                            onChange={(e) => setSpecsTitle(e.target.value)}
+                            placeholder={effectiveSpecsTitle}
+                            className="w-full rounded-2xl border px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 transition-all cursor-text placeholder:opacity-50"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
+                        {specs.length > 0 && (
+                          <Reorder.Group axis="y" values={specs} onReorder={setSpecs} className="space-y-1.5">
+                            {specs.map((s, index) => (
+                              <Reorder.Item
+                                key={`${s.chave}-${index}`}
+                                value={s}
+                                className="flex items-center justify-between gap-3 rounded-xl border px-4 py-1.5 text-sm shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
+                                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                              >
+                                <div className="flex items-center gap-4 flex-1">
+                                  <GripVertical size={14} className="text-zinc-300" />
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-emerald-600 font-black uppercase text-[9px] tracking-widest">{s.chave}:</span>
+                                    <span className="font-normal text-zinc-600">{s.valor}</span>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeSpec(index)}
+                                  className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"
+                                >
+                                  <TrashIcon size={16} />
+                                </button>
+                              </Reorder.Item>
+                            ))}
+                          </Reorder.Group>
+                        )}
+
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end p-6 rounded-3xl border border-dashed" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                          <div className="flex-1">
+                            <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--dash-text-muted)" }}>Característica</label>
+                            <input
+                              type="text"
+                              value={specChaveDraft}
+                              onChange={(e) => setSpecChaveDraft(e.target.value)}
+                              placeholder="Ex: Peso"
+                              className="w-full rounded-2xl border px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 transition-all cursor-text"
+                              style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--dash-text-muted)" }}>Valor</label>
+                            <input
+                              type="text"
+                              value={specValorDraft}
+                              onChange={(e) => setSpecValorDraft(e.target.value)}
+                              placeholder="Ex: 80kg"
+                              className="w-full rounded-2xl border px-4 py-3 text-sm font-normal outline-none focus:border-emerald-500 transition-all cursor-text"
+                              style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={addSpec}
+                            className="flex items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-white shadow-lg hover:bg-black transition-all active:scale-95"
+                          >
+                            <Plus size={16} /> Adicionar
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Seção 3: Preços e Exibição */}

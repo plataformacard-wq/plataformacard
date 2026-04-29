@@ -81,6 +81,7 @@ export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, set
         subItems: [
           { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
           { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
+          { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
         ]
       } as any);
 

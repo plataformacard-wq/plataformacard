@@ -162,8 +162,7 @@ export default async function Page(props: PageProps) {
     const { data: org } = await supabase
       .from("organizations")
       .select("id, slug, business_model")
-      .eq("slug", slug)
-      .eq("business_model", "CaaS")
+      .ilike("slug", slug)
       .maybeSingle();
 
     if (org) {

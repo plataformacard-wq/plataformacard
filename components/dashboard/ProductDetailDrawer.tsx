@@ -5,9 +5,14 @@ import {
   X, 
   PlusCircle, 
   ExternalLink, 
-  Image as ImageIcon, 
-  Loader2 
+  Image as  ImageIcon, 
+  Loader2,
+  Eye,
+  EyeOff,
+  Settings,
+  Plus as PlusIcon
 } from "lucide-react";
+import { HexColorPicker } from "react-colorful";
 import { createClient } from "@/lib/supabase/client";
 
 export interface ProductRow {
@@ -26,6 +31,10 @@ export interface ProductRow {
 interface Category {
   id: string;
   name: string;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
 }
 
 interface ProductDetailDrawerProps {
@@ -48,6 +57,12 @@ export default function ProductDetailDrawer({
   const [specs, setSpecs] = useState<any[]>(
     Array.isArray(product.specs) ? product.specs : []
   );
+  const [colors, setColors] = useState<string[]>(
+    Array.isArray(product.colors) ? product.colors : []
+  );
+  const [colorPickerValue, setColorPickerValue] = useState("#000000");
+  const [editingColorIdx, setEditingColorIdx] = useState<number | null>(null);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   // Adiciona uma nova especificação técnica (chave/valor)
   const addSpec = () => {
@@ -70,6 +85,35 @@ export default function ProductDetailDrawer({
     setSpecs(newSpecs);
     updateData(rowIndex, "specs", newSpecs);
   };
+
+  // Gerencia cores (max 4)
+  const addColor = (hex: string) => {
+    if (editingColorIdx !== null) {
+      const newColors = [...colors];
+      newColors[editingColorIdx] = hex;
+      setColors(newColors);
+      updateData(rowIndex, "colors", newColors);
+      setEditingColorIdx(null);
+      return;
+    }
+    if (colors.length >= 4) return;
+    const newColors = [...colors, hex];
+    setColors(newColors);
+    updateData(rowIndex, "colors", newColors);
+  };
+
+  const removeColor = (idx: number) => {
+    const newColors = colors.filter((_, i) => i !== idx);
+    setColors(newColors);
+    updateData(rowIndex, "colors", newColors);
+  };
+
+  const currentCategory = categories.find(c => c.id === product.category_id);
+  
+  // Valores efetivos (considerando herança)
+  const effectiveShowSpecs = product.show_specs ?? currentCategory?.show_specs ?? true;
+  const effectiveShowColors = product.show_colors ?? currentCategory?.show_colors ?? false;
+  const effectiveSpecsTitle = product.specs_title || currentCategory?.specs_title || "Especificações Técnicas";
 
   // Gerencia o upload de imagens para o Supabase Storage
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGallery: boolean = false) => {
@@ -222,6 +266,185 @@ export default function ProductDetailDrawer({
             </div>
           </section>
 
+          {/* Sessão: Configurações de Exibição */}
+          <section className="space-y-4">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+              <Settings size={16} /> Configurações de Exibição
+            </h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+                <div className="flex items-center gap-2">
+                  <List size={18} className="text-[var(--dash-text-muted)]" />
+                  <span className="text-sm font-medium">Especificações</span>
+                </div>
+                <button 
+                  onClick={() => updateData(rowIndex, "show_specs", !effectiveShowSpecs)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${effectiveShowSpecs ? 'bg-primary' : 'bg-zinc-600'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowSpecs ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+                <div className="flex items-center gap-2">
+                  <Palette size={18} className="text-[var(--dash-text-muted)]" />
+                  <span className="text-sm font-medium">Cores do Produto</span>
+                </div>
+                <button 
+                  onClick={() => updateData(rowIndex, "show_colors", !effectiveShowColors)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${effectiveShowColors ? 'bg-primary' : 'bg-zinc-600'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowColors ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            </div>
+
+            {effectiveShowColors && (
+              <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
+                    <Palette size={14} /> Adicione suas cores
+                  </label>
+                  <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-lg">
+                    {colors.length}/4 CORES
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-4 items-end">
+                  {colors.map((color, idx) => (
+                    <div key={idx} className="relative group">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingColorIdx(idx);
+                          setColorPickerValue(color);
+                          setIsPickerOpen(true);
+                        }}
+                        className={`h-14 w-14 rounded-2xl border-4 shadow-xl transition-all hover:scale-105 active:scale-95 ${editingColorIdx === idx ? 'border-primary ring-4 ring-primary/20' : 'border-white'}`}
+                        style={{ backgroundColor: color }}
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const newColors = colors.filter((_, i) => i !== idx);
+                          setColors(newColors);
+                          updateData(rowIndex, "colors", newColors);
+                          if (editingColorIdx === idx) {
+                            setEditingColorIdx(null);
+                            setIsPickerOpen(false);
+                          }
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600 z-10"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  <div className="relative">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        if (colors.length < 4) {
+                          setEditingColorIdx(null);
+                          setColorPickerValue("#000000");
+                          setIsPickerOpen(!isPickerOpen);
+                        }
+                      }}
+                      className="h-14 w-14 rounded-2xl border-4 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all relative"
+                      style={{ background: "linear-gradient(to bottom, #ff0000 0%, #ff00ff 17%, #0000ff 33%, #00ffff 50%, #00ff00 67%, #ffff00 83%, #ff0000 100%)" }}
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/5 hover:bg-transparent transition-colors">
+                        <PlusIcon size={18} className="text-white drop-shadow-md" />
+                      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isPickerOpen && (
+                        <>
+                          <div className="fixed inset-0 z-[60]" onClick={() => setIsPickerOpen(false)} />
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className="absolute right-0 bottom-full mb-4 z-[70] p-6 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.5)] border min-w-[280px]"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                          >
+                            <div className="space-y-5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>
+                                  {editingColorIdx !== null ? "Ajustar Cor" : "Nova Escolha"}
+                                </span>
+                                <button onClick={() => setIsPickerOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                                  <X size={14} style={{ color: "var(--dash-text-muted)" }} />
+                                </button>
+                              </div>
+
+                              <div className="premium-picker-wrapper">
+                                <HexColorPicker color={colorPickerValue} onChange={setColorPickerValue} />
+                              </div>
+
+                              <div className="space-y-2">
+                                <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Sugestões</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {['#FF0000', '#0000FF', '#FFFF00', '#000000', '#FFFFFF', '#008000', '#808080', '#FFA500'].map(preset => (
+                                    <button
+                                      key={preset}
+                                      type="button"
+                                      onClick={() => {
+                                        setColorPickerValue(preset);
+                                      }}
+                                      className="h-7 w-7 rounded-lg border shadow-sm hover:scale-110 transition-transform active:scale-90"
+                                      style={{ backgroundColor: preset, borderColor: "var(--dash-border)" }}
+                                      title={preset}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-4 p-4 rounded-2xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                                <div className="h-10 w-10 rounded-xl border shadow-inner shrink-0" style={{ backgroundColor: colorPickerValue, borderColor: "var(--dash-border)" }} />
+                                <div className="flex-1">
+                                  <p className="text-[9px] font-black uppercase tracking-widest mb-0.5" style={{ color: "var(--dash-text-muted)" }}>[Cor Personalizada]</p>
+                                  <p className="text-xs font-mono font-bold" style={{ color: "var(--dash-text-primary)" }}>{colorPickerValue.toUpperCase()}</p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsPickerOpen(false);
+                                    setEditingColorIdx(null);
+                                  }}
+                                  className="px-4 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                                  style={{ background: "var(--dash-surface-secondary)", color: "var(--dash-text-muted)", borderColor: "var(--dash-border)" }}
+                                >
+                                  Cancelar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    addColor(colorPickerValue);
+                                    setIsPickerOpen(false);
+                                  }}
+                                  className="px-4 py-3.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-95 border-none"
+                                >
+                                  {editingColorIdx !== null ? "Atualizar" : "Confirmar"}
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
           {/* Sessão: Informações Básicas */}
           <section className="space-y-4">
             <h4 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
@@ -278,45 +501,54 @@ export default function ProductDetailDrawer({
           </section>
 
           {/* Sessão: Especificações Técnicas */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold uppercase tracking-wider text-primary">Especificações Técnicas</h4>
-              <button 
-                onClick={addSpec}
-                className="text-xs font-bold text-primary hover:underline"
-              >
-                + Adicionar Campo
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {specs.map((spec, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+          {effectiveShowSpecs && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 mr-4">
                   <input 
-                    placeholder="Título (ex: Material)"
-                    value={spec.label}
-                    onChange={(e) => updateSpec(idx, "label", e.target.value)}
-                    className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
+                    value={product.specs_title || ""}
+                    onChange={(e) => updateData(rowIndex, "specs_title", e.target.value)}
+                    placeholder={effectiveSpecsTitle}
+                    className="text-sm font-bold uppercase tracking-wider text-primary bg-transparent border-none focus:ring-0 w-full p-0 placeholder:opacity-50"
                   />
-                  <input 
-                    placeholder="Valor (ex: Alumínio)"
-                    value={spec.value}
-                    onChange={(e) => updateSpec(idx, "value", e.target.value)}
-                    className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
-                  />
-                  <button 
-                    onClick={() => removeSpec(idx)}
-                    className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"
-                  >
-                    <X size={14} />
-                  </button>
                 </div>
-              ))}
-              {specs.length === 0 && (
-                <p className="text-xs text-[var(--dash-text-muted)] italic">Nenhuma especificação técnica adicionada.</p>
-              )}
-            </div>
-          </section>
+                <button 
+                  onClick={addSpec}
+                  className="text-xs font-bold text-primary hover:underline flex-shrink-0"
+                >
+                  + Adicionar Campo
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {specs.map((spec, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input 
+                      placeholder="Título (ex: Material)"
+                      value={spec.label}
+                      onChange={(e) => updateSpec(idx, "label", e.target.value)}
+                      className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
+                    />
+                    <input 
+                      placeholder="Valor (ex: Alumínio)"
+                      value={spec.value}
+                      onChange={(e) => updateSpec(idx, "value", e.target.value)}
+                      className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
+                    />
+                    <button 
+                      onClick={() => removeSpec(idx)}
+                      className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                {specs.length === 0 && (
+                  <p className="text-xs text-[var(--dash-text-muted)] italic">Nenhuma especificação técnica adicionada.</p>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Rodapé da Gaveta */}
           <div className="sticky bottom-0 left-0 right-0 p-6 bg-[var(--dash-surface)] border-t border-[var(--dash-border)] flex gap-4">
@@ -329,6 +561,28 @@ export default function ProductDetailDrawer({
           </div>
         </div>
       </motion.div>
+
+      <style jsx global>{`
+        .premium-picker-wrapper .react-colorful {
+          width: 100% !important;
+          height: 180px !important;
+          border-radius: 24px !important;
+        }
+        .premium-picker-wrapper .react-colorful__saturation {
+          border-radius: 20px 20px 6px 6px !important;
+        }
+        .premium-picker-wrapper .react-colorful__hue {
+          height: 16px !important;
+          border-radius: 10px !important;
+          margin-top: 14px !important;
+        }
+        .premium-picker-wrapper .react-colorful__pointer {
+          width: 22px !important;
+          height: 22px !important;
+          border: 3px solid white !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        }
+      `}</style>
     </div>
   );
 }

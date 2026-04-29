@@ -57,6 +57,10 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 type Category = {
   id: string;
   name: string;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
 };
 
 
@@ -236,7 +240,7 @@ export default function BulkGridEditor() {
           setCatalogId(orgCatalog.catalog_id);
           const { data: cats } = await supabase
             .from("categories")
-            .select("id, name")
+            .select("id, name, specs_title, show_specs, show_colors, colors")
             .eq("catalog_id", orgCatalog.catalog_id);
           
           console.log(`[BulkEditor] Categorias carregadas: ${cats?.length || 0}`, cats);

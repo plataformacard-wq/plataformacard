@@ -15,7 +15,8 @@ import {
   Maximize2,
   Package,
   Tag,
-  Layers
+  Layers,
+  Check
 } from "lucide-react";
 
 // WhatsApp Icon Component
@@ -57,6 +58,10 @@ type Product = {
   sort_order: number | null;
   is_active?: boolean | null;
   is_in_stock?: boolean | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -101,6 +106,7 @@ export default function ProductCatalogClient({
   const [searchQuery, setSearchQuery] = useState("");
   const hasTrackedCatalogViewRef = useRef(false);
   const [lastViewTimestamp, setLastViewTimestamp] = useState<number | null>(null);
+  const [priceMode, setPriceMode] = useState<"retail" | "wholesale">("retail");
 
   useEffect(() => {
     if (!catalogId) return;
@@ -116,8 +122,19 @@ export default function ProductCatalogClient({
   }, [catalogId]);
 
   const selectedProduct = useMemo(() => {
-    return products.find((p) => p.id === selectedProductId) ?? null;
-  }, [products, selectedProductId]);
+    const product = products.find((p) => p.id === selectedProductId);
+    if (!product) return null;
+
+    const category = categories.find(c => c.id === product.category_id);
+    
+    return {
+      ...product,
+      show_specs: product.show_specs ?? category?.show_specs ?? true,
+      show_colors: product.show_colors ?? category?.show_colors ?? false,
+      specs_title: product.specs_title || category?.specs_title || "Especificações Técnicas",
+      colors: product.colors || category?.colors || [],
+    };
+  }, [products, selectedProductId, categories]);
 
   const selectedProductGallery = useMemo(() => {
     if (!selectedProduct) return [];
@@ -151,16 +168,48 @@ export default function ProductCatalogClient({
   }, [selectedProductId]);
 
   useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.length > 1) {
+        const possibleId = hash.substring(1);
+        // Verifica se o ID pertence a algum produto carregado
+        if (products.some(p => p.id === possibleId)) {
+          setSelectedProductId(possibleId);
+        }
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [products]);
+
+  useEffect(() => {
     setSelectedImageIndex(0);
     setIsZoomed(false);
-  }, [selectedProductId]);
+    // Reset price mode when opening a new product
+    if (selectedProduct) {
+      if (selectedProduct.has_retail !== false) {
+        setPriceMode("retail");
+      } else if (selectedProduct.has_wholesale) {
+        setPriceMode("wholesale");
+      }
+    }
+  }, [selectedProductId, selectedProduct]);
 
   const whatsappUrl = useMemo(() => {
     if (!whatsapp || !selectedProduct) return null;
     const cleanNumber = whatsapp.replace(/\D/g, "");
-    const message = `Olá! Tenho interesse no produto ${selectedProduct.name}${selectedProduct.sku ? ` (Ref: ${selectedProduct.sku})` : ""}.`;
+    
+    const modeText = priceMode === "wholesale" ? "Atacado" : "Varejo";
+    const priceText = priceMode === "wholesale" 
+      ? formatPrice(selectedProduct.wholesale_price) 
+      : formatPrice(selectedProduct.price);
+
+    const message = `Olá! Tenho interesse no produto *${selectedProduct.name}* para compra em *${modeText}*${priceText ? ` (${priceText})` : ""}.${selectedProduct.sku ? `\nReferência: ${selectedProduct.sku}` : ""}`;
+    
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
-  }, [whatsapp, selectedProduct]);
+  }, [whatsapp, selectedProduct, priceMode]);
 
   const handleImageZoomMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -182,7 +231,7 @@ export default function ProductCatalogClient({
   };
 
   const filteredCategories = useMemo(() => {
-    return categories.map(cat => ({
+    const categorized = categories.map(cat => ({
       ...cat,
       products: products.filter(p => 
         p.category_id === cat.id && 
@@ -190,7 +239,25 @@ export default function ProductCatalogClient({
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     })).filter(cat => cat.products.length > 0);
-  }, [categories, products, searchQuery]);
+
+    const uncategorized = products.filter(p => 
+      (!p.category_id || !categories.some(c => c.id === p.category_id)) && 
+      p.is_active !== false &&
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (uncategorized.length > 0) {
+      categorized.push({
+        id: "uncategorized",
+        catalog_id: catalogId || "",
+        name: "Outros itens",
+        description: "Produtos sem categoria definida",
+        products: uncategorized
+      } as any);
+    }
+
+    return categorized;
+  }, [categories, products, searchQuery, catalogId]);
   return (
     <div 
       className="min-h-screen text-slate-100 pb-20 selection:bg-emerald-500/30 public-theme-invert"
@@ -300,6 +367,7 @@ export default function ProductCatalogClient({
                     <motion.div
                       layout
                       key={product.id}
+                      id={product.id}
                       onClick={() => handleOpenProduct(product)}
                       whileHover={{ y: -8 }}
                       className="group relative bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-emerald-500/30 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)]"
@@ -504,23 +572,47 @@ export default function ProductCatalogClient({
 
               {/* Details Section */}
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="sticky top-0 z-20 px-6 sm:px-8 py-3 bg-zinc-950/80 backdrop-blur-md border-b border-white/5 flex items-center gap-4 flex-wrap">
-                  <h2 className="inline-block text-2xl font-black text-white bg-white/5 border border-white/10 px-4 py-2 rounded-2xl shadow-sm leading-tight">
-                    {selectedProduct.name}
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
-                      selectedProduct.is_in_stock !== false 
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
-                        : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                    }`}>
-                      {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
-                    </span>
-                    {selectedProduct.sku && (
-                      <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 border border-white/5 text-[9px] font-black !text-white uppercase tracking-widest">
-                        REF: {selectedProduct.sku}
-                      </span>
-                    )}
+                <div className="sticky top-0 z-20 px-6 sm:px-8 py-5 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
+                  <div className="flex flex-col gap-4">
+                    {/* Linha 1: Título */}
+                    <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+                      {selectedProduct.name}
+                    </h2>
+
+                    {/* Linha 2: Badges e Cores */}
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                          selectedProduct.is_in_stock !== false 
+                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                            : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                        }`}>
+                          {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
+                        </span>
+                        {selectedProduct.sku && (
+                          <span className="px-2 py-1 rounded-lg bg-zinc-800 border border-white/5 text-[10px] font-black !text-white uppercase tracking-widest">
+                            REF: {selectedProduct.sku}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Cores integradas na mesma linha (alinhadas à direita se houver espaço) */}
+                      {selectedProduct.show_colors && selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                        <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cores disponíveis</span>
+                          <div className="flex items-center gap-1.5">
+                            {selectedProduct.colors.map((color, i) => (
+                              <div 
+                                key={i} 
+                                className="h-4 w-4 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125"
+                                style={{ backgroundColor: color }}
+                                title="Cor disponível"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -536,10 +628,20 @@ export default function ProductCatalogClient({
                       <div className="space-y-6">
                         {/* Seção Varejo */}
                         {selectedProduct.has_retail !== false && (
-                          <div className={selectedProduct.has_wholesale ? "pb-6 border-b border-white/5" : ""}>
-                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
-                              <Tag size={12} /> Preço de Varejo
-                            </p>
+                          <div 
+                            onClick={() => setPriceMode("retail")}
+                            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                              priceMode === "retail" 
+                                ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" 
+                                : "bg-white/5 border-white/5 opacity-60 hover:opacity-100"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Tag size={12} /> Preço de Varejo
+                              </p>
+                              {priceMode === "retail" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
+                            </div>
                             <div className="flex flex-col gap-1">
                               {selectedProduct.compare_at_price && (
                                 <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
@@ -549,7 +651,7 @@ export default function ProductCatalogClient({
                               )}
                               <div className="flex items-center gap-2">
                                 {selectedProduct.compare_at_price && <span className="text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
-                                <p className="text-3xl font-black text-emerald-400">
+                                <p className="text-2xl font-black text-emerald-400">
                                   {formatPrice(selectedProduct.price) || "Consulte"}
                                 </p>
                               </div>
@@ -559,16 +661,26 @@ export default function ProductCatalogClient({
 
                         {/* Seção Atacado */}
                         {selectedProduct.has_wholesale && (
-                          <div className={selectedProduct.has_retail !== false ? "pt-2" : ""}>
-                            <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
-                              <Layers size={12} /> Preço de Atacado
-                            </p>
-                            <p className="text-3xl font-black text-emerald-400">
+                          <div 
+                            onClick={() => setPriceMode("wholesale")}
+                            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                              priceMode === "wholesale" 
+                                ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" 
+                                : "bg-white/5 border-white/5 opacity-60 hover:opacity-100"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Layers size={12} /> Preço de Atacado
+                              </p>
+                              {priceMode === "wholesale" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
+                            </div>
+                            <p className="text-2xl font-black text-emerald-400">
                               {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
                             </p>
                             {selectedProduct.wholesale_min_quantity && (
-                              <div className="mt-3">
-                                <span className="inline-block bg-emerald-500 !text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
+                              <div className="mt-2">
+                                <span className="inline-block bg-emerald-500 !text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
                                   Mínimo de {selectedProduct.wholesale_min_quantity} unidades
                                 </span>
                               </div>
@@ -594,11 +706,11 @@ export default function ProductCatalogClient({
                     </div>
                   )}
 
-                  {selectedProduct.specs && selectedProduct.specs.length > 0 && (
+                  {selectedProduct.show_specs !== false && selectedProduct.specs && selectedProduct.specs.length > 0 && (
                     <div>
                       <h4 className="flex items-center gap-2 text-white font-bold text-sm mb-3">
                         <Package size={16} className="text-emerald-500" />
-                        Especificações Técnicas
+                        {selectedProduct.specs_title || "Especificações Técnicas"}
                       </h4>
                       <div className="grid gap-1.5">
                         {selectedProduct.specs.map((spec, i) => (

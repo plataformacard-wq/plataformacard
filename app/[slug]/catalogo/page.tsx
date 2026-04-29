@@ -24,6 +24,7 @@ type Organization = {
   name: string;
   favicon_url: string | null;
   business_model: string;
+  whatsapp?: string | null;
 };
 
 type Catalog = {
@@ -39,6 +40,10 @@ type Category = {
   name: string;
   description: string | null;
   sort_order: number | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
 };
 
 type Spec = {
@@ -64,6 +69,10 @@ type Product = {
   is_extra: boolean | null;
   sort_order: number | null;
   is_in_stock: boolean | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -76,7 +85,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, bio")
-    .eq("slug", slug)
+    .ilike("slug", slug)
     .maybeSingle();
 
   if (profile) {
@@ -94,8 +103,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { data: org } = await supabase
     .from("organizations")
     .select("name, meta_title, meta_description")
-    .eq("slug", slug)
-    .eq("business_model", "CaaS")
+    .ilike("slug", slug)
     .maybeSingle();
 
   if (org) {
@@ -123,17 +131,25 @@ export default async function Page(props: PageProps) {
   const { data: profileData } = await supabase
     .from("profiles")
     .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
-    .eq("slug", slug)
+    .ilike("slug", slug)
     .maybeSingle();
 
   if (profileData) {
     profile = profileData as Profile;
+    // Se o perfil existe, também precisamos dos dados da organização vinculada (para o WhatsApp, por exemplo)
+    if (profile.organization_id) {
+      const { data: orgRaw } = await supabase
+        .from("organizations")
+        .select("id, slug, name, favicon_url, business_model, whatsapp")
+        .eq("id", profile.organization_id)
+        .maybeSingle();
+      if (orgRaw) orgData = orgRaw as Organization;
+    }
   } else {
     const { data: orgRaw } = await supabase
       .from("organizations")
-      .select("id, slug, name, favicon_url, business_model")
-      .eq("slug", slug)
-      .eq("business_model", "CaaS")
+      .select("id, slug, name, favicon_url, business_model, whatsapp")
+      .ilike("slug", slug)
       .maybeSingle();
       
     if (orgRaw) {
@@ -144,7 +160,7 @@ export default async function Page(props: PageProps) {
   }
 
   const trackingProfileId = profile?.id || ("caas-org-" + orgData?.id);
-  const targetOrgId = profile?.organization_id || orgData?.id;
+  const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
   let catalogId: string | null = null;
 
@@ -193,51 +209,69 @@ export default async function Page(props: PageProps) {
     catalogId = anyCatalog?.catalog_id ?? null;
   }
 
+  // Fallback de Segurança Máxima: Busca direta na tabela catalogs pelo owner_id
+  if (!catalogId && targetOrgId) {
+    const { data: directCatalog } = await supabase
+      .from("catalogs")
+      .select("id")
+      .eq("owner_id", targetOrgId)
+      .limit(1)
+      .maybeSingle();
+
+    catalogId = directCatalog?.id ?? null;
+  }
+
   if (!catalogId) {
     return notFound();
   }
 
-  const { data: catalogData, error: catalogError } = await supabase
+  const { data: catalogData } = await supabase
     .from("catalogs")
     .select("id, name, description, catalog_type")
     .eq("id", catalogId)
     .maybeSingle();
 
-  if (catalogError || !catalogData) {
-    return notFound();
-  }
+  const catalog = (catalogData as Catalog) || { id: catalogId, name: "Catálogo", description: "" };
 
-  const catalog = catalogData as Catalog;
-
-  const { data: categoriesData, error: categoriesError } = await supabase
+  const { data: categoriesData } = await supabase
     .from("categories")
-    .select("id, catalog_id, name, description, sort_order")
+    .select("id, catalog_id, name, description, sort_order, specs_title, show_specs, show_colors, colors")
     .eq("catalog_id", catalogId)
     .order("sort_order", { ascending: true });
 
-  if (categoriesError || !categoriesData) {
-    return notFound();
-  }
-
   const categories = (categoriesData ?? []) as Category[];
-  const categoryIds = categories.map((category) => category.id);
 
   let products: Product[] = [];
 
-  if (categoryIds.length > 0) {
-    const { data: productsData, error: productsError } = await supabase
+  if (targetOrgId) {
+    const { data: productsData } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock"
+        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, specs_title, show_specs, show_colors, colors"
       )
-      .in("category_id", categoryIds)
+      .eq("organization_id", targetOrgId)
+      .is("deleted_at", null)
       .order("sort_order", { ascending: true });
 
-    if (productsError) {
-      return notFound();
-    }
-
     products = (productsData ?? []) as Product[];
+  }
+
+  // Triple-check fallback para o WhatsApp
+  let finalWhatsapp = profile?.whatsapp || (orgData as any)?.whatsapp || null;
+
+  if (!finalWhatsapp && targetOrgId) {
+    // Busca o WhatsApp de qualquer admin dessa organização
+    const { data: adminProfile } = await supabase
+      .from("profiles")
+      .select("whatsapp")
+      .eq("organization_id", targetOrgId)
+      .not("whatsapp", "is", null)
+      .limit(1)
+      .maybeSingle();
+    
+    if (adminProfile?.whatsapp) {
+      finalWhatsapp = adminProfile.whatsapp;
+    }
   }
 
   return (
@@ -253,7 +287,7 @@ export default async function Page(props: PageProps) {
         catalogDescription={catalog.description}
         categories={categories}
         products={products}
-        whatsapp={profile?.whatsapp || null}
+        whatsapp={finalWhatsapp}
       />
     </>
   );
