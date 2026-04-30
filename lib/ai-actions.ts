@@ -20,36 +20,46 @@ export async function generateSEOWithAI(orgName: string, businessType: string = 
   `;
 
   try {
-    console.log("Iniciando chamada ao Gemini v1...");
+    console.log("Iniciando chamada ao Gemini v1beta...");
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            response_mime_type: "application/json",
+          }
         }),
-        // Adicionando um sinal de aborto/timeout se necessário no futuro
       }
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("RESPOSTA HTTP NÃO OK:", response.status, errorData);
+      console.error("RESPOSTA HTTP NÃO OK:", response.status, JSON.stringify(errorData, null, 2));
       return { error: `Google API retornou erro ${response.status}: ${errorData.error?.message || 'Falha desconhecida'}` };
     }
 
     const data = await response.json();
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    if (!resultText) throw new Error("Resposta sem texto do Google");
+    if (!resultText) {
+      console.error("RESPOSTA SEM TEXTO:", JSON.stringify(data, null, 2));
+      throw new Error("Resposta sem texto do Google");
+    }
 
-    // Tenta limpar o texto caso a IA tenha colocado crases de markdown
-    const jsonStr = resultText.replace(/```json|```/g, "").trim();
-    return { success: true, data: JSON.parse(jsonStr) };
+    try {
+      const parsedData = JSON.parse(resultText);
+      return { success: true, data: parsedData };
+    } catch (parseError) {
+      console.error("ERRO AO PARSEAR JSON DA IA:", resultText);
+      return { error: "A IA retornou um formato inválido. Tente novamente." };
+    }
 
   } catch (error: any) {
     console.error("ERRO FATAL NA CHAMADA IA:", error);
-    return { error: `Erro de conexão: ${error.message}. Verifique sua internet ou se o Google está acessível.` };
+    // Se for um erro de rede/conexão, pode ser o 'fetch failed' que o usuário relatou
+    return { error: `Erro de conexão (${error.name}): ${error.message}. Verifique se o servidor tem acesso à API do Google.` };
   }
 }

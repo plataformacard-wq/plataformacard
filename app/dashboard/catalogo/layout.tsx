@@ -11,12 +11,12 @@ export default async function CatalogoLayout({ children }: { children: React.Rea
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, dash_access_catalog")
     .eq("user_id", user.id)
     .single();
 
-  // Sellers não podem acessar a edição do catálogo mestre.
-  if (profile?.role === "seller") {
+  // Sellers só podem acessar se tiverem a permissão delegada.
+  if (profile?.role === "seller" && !profile?.dash_access_catalog) {
     redirect("/dashboard/perfil");
   }
 

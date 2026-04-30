@@ -9,6 +9,9 @@ export async function createSeller(formData: FormData) {
   const bio = formData.get("bio") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const avatarUrl = formData.get("avatarUrl") as string;
+  const dashAccessCatalog = formData.get("dashAccessCatalog") === "true";
+  const dashAccessAnalytics = formData.get("dashAccessAnalytics") === "true";
+  const dashAccessCompany = formData.get("dashAccessCompany") === "true";
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -89,7 +92,10 @@ export async function createSeller(formData: FormData) {
       whatsapp: whatsapp,
       avatar_url: avatarUrl,
       organization_id: profileManager.organization_id,
-      role: "seller"
+      role: "seller",
+      dash_access_catalog: dashAccessCatalog,
+      dash_access_analytics: dashAccessAnalytics,
+      dash_access_company: dashAccessCompany
     };
 
     const { error: insertError } = await adminAuthClient

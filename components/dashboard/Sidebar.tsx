@@ -16,20 +16,27 @@ import {
   X,
   ChevronDown,
   Clock,
-  Info
+  Info,
+  Globe
 } from "lucide-react";
 
 interface SidebarProps {
   role: "superadmin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
   businessModel: "B2B" | "B2C" | "CaaS";
+  planId?: string | null;
   isOpen: boolean;
   onClose: () => void;
   isCollapsed: boolean;
   setIsCollapsed: (val: boolean) => void;
   isShadowMode?: boolean;
+  permissions?: {
+    dash_access_catalog: boolean;
+    dash_access_analytics: boolean;
+    dash_access_company: boolean;
+  };
 }
 
-export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode }: SidebarProps) {
+export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, permissions }: SidebarProps) {
   const pathname = usePathname();
   const [currentHash, setCurrentHash] = useState("");
 
@@ -82,6 +89,9 @@ export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, set
           { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
           { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
           { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
+          ...(planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26" || role === "superadmin" ? [
+            { href: "/dashboard/catalogo/implementar", label: "Implementar Catálogo", icon: Globe }
+          ] : []),
         ]
       } as any);
 
@@ -95,10 +105,50 @@ export function Sidebar({ role, businessModel, isOpen, onClose, isCollapsed, set
       if (isB2C) {
         navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
       }
+    } else if (role === "seller") {
+      // PERMISSÕES DELEGADAS PARA VENDEDORES
+      const canAccessCatalog = permissions?.dash_access_catalog;
+      const canAccessAnalytics = permissions?.dash_access_analytics;
+      const canAccessCompany = permissions?.dash_access_company;
+
+      if (canAccessCompany) {
+        const isB2B = businessModel === "B2B";
+        navLinks.push({ 
+          label: "Empresa", 
+          icon: Building2,
+          subItems: [
+            ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
+            { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
+          ]
+        } as any);
+      }
+
+      if (canAccessCatalog) {
+        navLinks.push({ 
+          label: "Catálogo", 
+          icon: BookOpen,
+          subItems: [
+            { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
+            { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
+            { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
+            ...(planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26" || role === "superadmin" ? [
+              { href: "/dashboard/catalogo/implementar", label: "Implementar Catálogo", icon: Globe }
+            ] : []),
+          ]
+        } as any);
+      }
+
+      if (canAccessAnalytics) {
+        navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+      }
     }
 
     navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
-    navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+    
+    // Analytics é visível para todos por padrão (admins), mas para sellers depende da flag acima.
+    if (role !== "seller" && !navLinks.some(link => link.label === "Analytics")) {
+      navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+    }
   }
 
   return (

@@ -78,6 +78,17 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  input, textarea, [contenteditable] {
+    caret-color: #000000 !important;
+    color-scheme: light;
+  }
+}
+
+[data-theme="dark"] input, 
+[data-theme="dark"] textarea, 
+[data-theme="dark"] [contenteditable] {
+  color-scheme: dark;
 }
 
 @layer utilities {

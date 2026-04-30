@@ -974,6 +974,20 @@ export default function CatalogoPage() {
     return valid;
   }
 
+  function editSpec(index: number) {
+    const spec = specs[index];
+    if (!spec) return;
+    
+    // Remove do array e coloca de volta no rascunho para edição
+    setSpecChaveDraft(spec.chave);
+    setSpecValorDraft(spec.valor);
+    removeSpec(index);
+    
+    // Focar no primeiro input
+    const firstInput = document.querySelector('input[placeholder="Ex: Peso"]') as HTMLInputElement;
+    if (firstInput) firstInput.focus();
+  }
+
   function removeSpec(index: number) {
     setSpecs((prev) => prev.filter((_, i) => i !== index));
   }
@@ -1134,7 +1148,7 @@ export default function CatalogoPage() {
         image_url: null,
         image_urls: [],
         is_extra: false,
-        sort_order: 0,
+        sort_order: products.length,
         organization_id: orgId,
       })
       .select("id")
@@ -1396,7 +1410,7 @@ export default function CatalogoPage() {
                       <div className="relative flex-shrink-0">
                         {product.is_in_stock === false && (
                           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-2xl">
-                            <span className="bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
+                            <span className="bg-rose-600 !text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
                           </div>
                         )}
                         {product.image_urls?.[0] || product.image_url ? (
@@ -1431,7 +1445,7 @@ export default function CatalogoPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-3">
-                            {product.has_retail !== false && product.price !== null && (
+                            {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
                               <div className="flex flex-col items-end">
                                 {(product.has_wholesale || product.compare_at_price) && (
                                   <span className="text-[8px] font-black uppercase text-zinc-400 leading-none mb-0.5">Varejo</span>
@@ -1446,10 +1460,10 @@ export default function CatalogoPage() {
                                 </p>
                               </div>
                             )}
-                            {product.has_retail !== false && product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
+                            {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
                               <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 self-end mb-1" />
                             )}
-                            {product.has_wholesale && product.wholesale_price !== null && (
+                            {product.is_in_stock !== false && product.has_wholesale && product.wholesale_price !== null && (
                               <div className="flex flex-col items-end">
                                 <span className="text-[8px] font-black uppercase text-emerald-600 leading-none mb-0.5">Atacado</span>
                                 <p className="text-lg font-black text-emerald-600">
@@ -1777,8 +1791,31 @@ export default function CatalogoPage() {
                           stroke-width: 3px;
                         }
                         /* Global Caret Fix */
-                        input, textarea, [contenteditable], .ql-editor {
-                          caret-color: #10b981 !important;
+                        input, textarea, [contenteditable], .ql-editor, .rich-text-editor-container {
+                          caret-color: #000000 !important;
+                          cursor: text !important;
+                          color: #000000 !important;
+                          color-scheme: light !important;
+                          background-color: #ffffff !important;
+                        }
+                        
+                        .fixed.inset-0.z-50 * {
+                          cursor: auto;
+                        }
+                        
+                        .fixed.inset-0.z-50 {
+                          color-scheme: light !important;
+                          background-color: rgba(0, 0, 0, 0.4) !important; /* Slightly lighter overlay */
+                        }
+                        
+                        .fixed.inset-0.z-50 input, 
+                        .fixed.inset-0.z-50 textarea, 
+                        .fixed.inset-0.z-50 [contenteditable] {
+                          cursor: text !important;
+                          caret-color: #000000 !important;
+                          color: #000000 !important;
+                          color-scheme: light !important;
+                          background-color: #ffffff !important;
                         }
                         .premium-picker-container .react-colorful {
                           width: 100% !important;
@@ -2016,13 +2053,24 @@ export default function CatalogoPage() {
                                     <span className="font-normal text-zinc-600">{s.valor}</span>
                                   </div>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeSpec(index)}
-                                  className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"
-                                >
-                                  <TrashIcon size={16} />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => editSpec(index)}
+                                    className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition-all"
+                                    title="Editar"
+                                  >
+                                    <EditIcon size={16} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSpec(index)}
+                                    className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"
+                                    title="Remover"
+                                  >
+                                    <TrashIcon size={16} />
+                                  </button>
+                                </div>
                               </Reorder.Item>
                             ))}
                           </Reorder.Group>

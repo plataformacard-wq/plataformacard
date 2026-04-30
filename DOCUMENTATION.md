@@ -17,7 +17,8 @@ O projeto encontra-se na fase de **Consolidação e Refinamento de UX/UI**. Apó
     - **B2B (Gestão de Vendas)**: Foco em times de vendas e hierarquia organizacional.
         - **Conceito "Mini-site por Vendedor"**: Cada vendedor possui sua URL única (`/josegabriel`) como ferramenta de fechamento e pós-venda.
         - **Descentralização**: O Admin orquestra o catálogo, mas o vendedor é o protagonista da interação na ponta.
-    - **CaaS (Catalog as a Service)**: Modo catálogo puro para vitrines digitais de empresas.
+        - **Acesso Delegado**: Capacidade de conceder acesso parcial ao dashboard para vendedores (Gestão de Catálogo, Analytics, etc).
+    - **CaaS (Catalog as a Service)**: Modo catálogo puro para vitrines digitais. No plano Master, permite a implementação via iframe em sites externos.
 - **Multi-tenancy**: Separação completa de dados por conta/empresa.
 - **RBAC (Controle de Acesso)**: Papéis de Super Admin, Gestor, Vendedor e `caas_admin`.
 - **Blindagem**: Sistema de proteção e integridade para catálogos e acessos.
@@ -67,12 +68,15 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 4.  **Otimização de Performance**: Lazy loading mais agressivo no Bulk Editor para catálogos com +500 itens.
 5.  **Notificações em Tempo Real**: Implementar via Supabase Realtime alertas para novos acessos ou atualizações do sistema.
 6.  **Gestão de Domínios (White-label)**: Implementar lógica técnica para suportar domínios customizados (ex: `anotameucontato.com.br`) via proxy ou CNAME.
+7.  **Implementação de Níveis de Acesso (B2B)**: Adicionar controles de permissão no card de vendedor para delegar gestão de catálogo, analytics e configurações da empresa.
+8.  **Validação CaaS (Maj Mobilidade)**: Testar a implementação real via iFrame no site oficial após o cadastro completo do catálogo de produtos.
 
 ---
 
 ## 5. Plano de Implementação em Andamento
 
 ### 🚀 Curto Prazo (Próximos Dias)
+- **Implementação do Fluxo CaaS**: Refinar o onboarding e dashboard específico para o modo catálogo (foco em Logo/Vitrine).
 - **Finalização do Onboarding**: Garantir que 100% dos novos usuários completem o perfil antes de acessar o dashboard.
 - **Estabilização da Gestão de Limites**: Bloqueio automático de criação de produtos ao atingir o limite do plano.
 - **Ajustes de UI**: Padronização final de modais e botões seguindo o novo `PanelLayout`.
@@ -92,11 +96,12 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 
 ### 💎 Tabela de Planos Sugerida
 
-| Recurso | **Essential (B2C)** | **Pro Business (B2B)** | **Enterprise Maj (B2B+)** |
+| Recurso | **Essential (B2C)** | **Pro Business (B2B)** | **Master (B2B+ / CaaS)** |
 | :--- | :--- | :--- | :--- |
 | **Vendedores** | 1 (Titular) | Até 10 Vendedores | Ilimitado |
 | **Produtos** | Até 30 produtos | Até 150 produtos | Ilimitado |
 | **Domínio** | `anotameucontato.com.br/slug` | Subdomínio Customizado ✅ | Subdomínio Customizado ✅ |
+| **CaaS (Embed)** | ❌ | ❌ | ✅ Iframe para Site Externo |
 | **Destaque** | Cartão Pessoal | Gestão de Pequena Equipe | Consultoria e Escala |
 | **Suporte** | E-mail | WhatsApp Prioritário | Gerente de Conta VIP |
 
@@ -138,6 +143,8 @@ A plataforma utiliza um sistema unificado de temas com duas identidades visuais 
 | 2026-04-25 | Evolução B2B: Refatoração da listagem de vendedores para cards retangulares com toggle de status e analytics. | Antigravity |
 | 2026-04-25 | Estratégia: Definição do rascunho inicial de Planos, Limites e Serviços (Gerente de Conta). | Antigravity |
 | 2026-04-27 | UI/UX: Unificação do Design System (Modo Claro/Escuro), Integração CaaS e refatoração do `globals.css` com suporte a `public-theme-invert`. | Antigravity |
+| 2026-04-29 | Escopo: Adição da funcionalidade de Acesso Delegado ao Dashboard para Vendedores (B2B). | Antigravity |
+| 2026-04-29 | Arquitetura: Reestruturação do CaaS como extensão do plano Master com suporte a iFrame Embed. | Antigravity |
 
 ---
 

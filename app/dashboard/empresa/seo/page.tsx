@@ -33,9 +33,13 @@ export default function SEOPage() {
     meta_title: "",
     meta_description: "",
     meta_keywords: "",
-    favicon_url: ""
+    favicon_url: "",
+    logo_url: "",
+    accent_color: "#25D366"
   });
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [activeUploadType, setActiveUploadType] = useState<"favicon" | "logo">("favicon");
   const [showImageEditor, setShowImageEditor] = useState(false);
 
   useEffect(() => {
@@ -64,7 +68,9 @@ export default function SEOPage() {
             meta_title: org.meta_title || "",
             meta_description: org.meta_description || "",
             meta_keywords: org.meta_keywords || "",
-            favicon_url: org.favicon_url || ""
+            favicon_url: org.favicon_url || "",
+            logo_url: org.logo_url || "",
+            accent_color: org.accent_color || "#25D366"
           });
         }
       }
@@ -122,21 +128,47 @@ export default function SEOPage() {
       newFaviconUrl = urlData.publicUrl;
     }
 
+    let newLogoUrl = formData.logo_url;
+
+    if (logoFile) {
+      const fileExt = logoFile.name.split(".").pop();
+      const filePath = `orgs/${orgId}/logo.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, logoFile, { upsert: true });
+
+      if (uploadError) {
+        setMessage("Erro ao fazer upload do logotipo. Tente novamente.");
+        setSaving(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      newLogoUrl = urlData.publicUrl;
+    }
+
     const { error } = await supabase
       .from("organizations")
       .update({
         meta_title: formData.meta_title,
         meta_description: formData.meta_description,
         meta_keywords: formData.meta_keywords,
-        favicon_url: newFaviconUrl
+        favicon_url: newFaviconUrl,
+        logo_url: newLogoUrl,
+        accent_color: formData.accent_color
       })
       .eq("id", orgId);
 
     if (error) {
       setMessage("Erro ao salvar informações.");
     } else {
-      setFormData({ ...formData, favicon_url: newFaviconUrl });
+      setFormData({ ...formData, favicon_url: newFaviconUrl, logo_url: newLogoUrl });
       setFaviconFile(null);
+      setLogoFile(null);
       setMessage("Configurações salvas com sucesso!");
       setTimeout(() => setMessage(""), 3000);
     }
@@ -144,8 +176,13 @@ export default function SEOPage() {
   }
 
   function onImageEditorConfirm(file: File) {
-    setFaviconFile(file);
-    setFormData({ ...formData, favicon_url: URL.createObjectURL(file) });
+    if (activeUploadType === "favicon") {
+      setFaviconFile(file);
+      setFormData({ ...formData, favicon_url: URL.createObjectURL(file) });
+    } else {
+      setLogoFile(file);
+      setFormData({ ...formData, logo_url: URL.createObjectURL(file) });
+    }
   }
 
   if (loading) {
@@ -168,21 +205,25 @@ export default function SEOPage() {
 
       <div className="p-6 space-y-8">
         {/* IA Generator Section */}
-        <div className="bg-zinc-50/50 border rounded-2xl p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sparkles size={20} className="text-zinc-900" />
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-zinc-900">Gerar SEO automaticamente com IA</span>
-              <Info size={14} className="text-zinc-300" />
+        <div className="bg-zinc-50/50 border rounded-2xl p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Sparkles size={20} className="text-zinc-900" />
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-medium text-zinc-900">Gerar SEO automaticamente com IA</span>
+                <Info size={14} className="text-zinc-300" />
+              </div>
             </div>
+            <button 
+              onClick={handleGenerateAI}
+              disabled={generating}
+              className="px-6 py-2 bg-zinc-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {generating ? <Loader2 size={16} className="animate-spin" /> : "Gerar"}
+            </button>
           </div>
-          <button 
-            onClick={handleGenerateAI}
-            disabled={generating}
-            className="px-6 py-2 bg-zinc-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 disabled:opacity-50"
-          >
-            {generating ? <Loader2 size={16} className="animate-spin" /> : "Gerar"}
-          </button>
+          
+
         </div>
 
         {/* Favicon Section */}
@@ -216,10 +257,13 @@ export default function SEOPage() {
               </p>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => setShowImageEditor(true)}
+                  onClick={() => {
+                    setActiveUploadType("favicon");
+                    setShowImageEditor(true);
+                  }}
                   className="flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold text-zinc-700 hover:bg-zinc-50 transition-all"
                 >
-                  <Upload size={16} /> Alterar logo
+                  <Upload size={16} /> Alterar favicon
                 </button>
                 <button 
                   onClick={() => {
@@ -230,6 +274,94 @@ export default function SEOPage() {
                 >
                   <Trash2 size={18} />
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Logotipo Section */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-bold text-zinc-900">Logotipo</h2>
+          <div className="flex items-start gap-6">
+            <div className="w-48 h-28 bg-zinc-50 border rounded-xl relative overflow-hidden flex items-center justify-center p-4">
+               {formData.logo_url ? (
+                 <img src={formData.logo_url} className="max-w-full max-h-full object-contain" />
+               ) : (
+                 <div className="flex flex-col items-center gap-2 text-zinc-300">
+                   <Upload size={24} />
+                   <span className="text-[10px] font-bold">SEM LOGO</span>
+                 </div>
+               )}
+            </div>
+
+            <div className="flex-1 space-y-3">
+              <p className="text-xs text-zinc-500 font-medium">
+                Logotipo da sua marca <br />
+                <span className="font-bold text-zinc-900">(Horizontal recomendado) .PNG .JPEG</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    setActiveUploadType("logo");
+                    setShowImageEditor(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold text-zinc-700 hover:bg-zinc-50 transition-all"
+                >
+                  <Upload size={16} /> Alterar logo
+                </button>
+                <button 
+                  onClick={() => {
+                    setLogoFile(null);
+                    setFormData({ ...formData, logo_url: "" });
+                  }}
+                  className="p-2.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cores e Identidade Section */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-bold text-zinc-900">Identidade Visual</h2>
+          <div className="bg-zinc-50/50 border rounded-2xl p-6 space-y-6">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-bold text-zinc-900">Cor de Destaque</p>
+                  <p className="text-xs text-zinc-500">Esta cor será aplicada em botões, badges e detalhes do catálogo.</p>
+                </div>
+                <input 
+                  type="color" 
+                  value={formData.accent_color}
+                  onChange={(e) => setFormData({ ...formData, accent_color: e.target.value })}
+                  className="w-12 h-12 rounded-xl border-4 border-white shadow-sm cursor-pointer"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { name: "Maj Orange", color: "#F37021" },
+                  { name: "Standard Green", color: "#25D366" },
+                  { name: "Deep Blue", color: "#2563EB" },
+                  { name: "Royal Purple", color: "#8B5CF6" },
+                  { name: "Classic Black", color: "#000000" }
+                ].map((preset) => (
+                  <button
+                    key={preset.color}
+                    onClick={() => setFormData({ ...formData, accent_color: preset.color })}
+                    className={`group flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
+                      formData.accent_color === preset.color 
+                        ? "border-zinc-900 bg-zinc-900 text-white" 
+                        : "border-zinc-200 bg-white hover:border-zinc-300"
+                    }`}
+                  >
+                    <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.color }} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">{preset.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
@@ -140,20 +143,20 @@ export default async function Page(props: PageProps) {
     if (profile.organization_id) {
       const { data: orgRaw } = await supabase
         .from("organizations")
-        .select("id, slug, name, favicon_url, business_model, whatsapp")
+        .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color")
         .eq("id", profile.organization_id)
         .maybeSingle();
-      if (orgRaw) orgData = orgRaw as Organization;
+      if (orgRaw) orgData = orgRaw as any;
     }
   } else {
     const { data: orgRaw } = await supabase
       .from("organizations")
-      .select("id, slug, name, favicon_url, business_model, whatsapp")
+      .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color")
       .ilike("slug", slug)
       .maybeSingle();
       
     if (orgRaw) {
-      orgData = orgRaw as Organization;
+      orgData = orgRaw as any;
     } else {
       return notFound();
     }
@@ -247,9 +250,10 @@ export default async function Page(props: PageProps) {
     const { data: productsData } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, specs_title, show_specs, show_colors, colors"
+        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors"
       )
       .eq("organization_id", targetOrgId)
+      .eq("is_active", true)
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });
 
@@ -283,6 +287,9 @@ export default async function Page(props: PageProps) {
         slug={slug}
         fullName={profile?.full_name || orgData?.name}
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
+        logoUrl={(orgData as any)?.logo_url}
+        isPureCatalog={(orgData as any)?.business_model === "CaaS"}
+        accentColor={(orgData as any)?.accent_color}
         catalogName={catalog.name}
         catalogDescription={catalog.description}
         categories={categories}

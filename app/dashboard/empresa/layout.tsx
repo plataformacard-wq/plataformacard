@@ -11,12 +11,12 @@ export default async function EmpresaLayout({ children }: { children: React.Reac
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, dash_access_company")
     .eq("user_id", user.id)
     .single();
 
-  // Sellers não podem acessar a página da Empresa.
-  if (profile?.role === "seller") {
+  // Sellers só podem acessar se tiverem a permissão delegada.
+  if (profile?.role === "seller" && !profile?.dash_access_company) {
     redirect("/dashboard/perfil");
   }
 

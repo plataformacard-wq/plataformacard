@@ -217,7 +217,7 @@ export default function ImageEditorModal({
                     step={0.1}
                     aria-labelledby="Zoom"
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-black/5 dark:bg-white/10 accent-emerald-500 border border-black/5 dark:border-white/5"
+                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-200 dark:bg-white/10 accent-emerald-500 border border-zinc-300 dark:border-white/5"
                   />
                   <Plus size={16} className="text-zinc-500" />
                   <button 

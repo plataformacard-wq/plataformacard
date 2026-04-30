@@ -16,7 +16,12 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  LayoutDashboard,
+  BarChart3,
+  Settings,
+  ShieldCheck,
+  Package
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +40,9 @@ type Seller = {
   is_available: boolean | null;
   custom_business_hours: any;
   role: string;
+  dash_access_catalog: boolean | null;
+  dash_access_analytics: boolean | null;
+  dash_access_company: boolean | null;
 };
 
 const defaultBusinessHours: BusinessHours = {
@@ -86,6 +94,9 @@ export default function VendedoresClient() {
   const [formAvatar, setFormAvatar] = useState<string | null>(null);
   const [formAvatarFile, setFormAvatarFile] = useState<File | null>(null);
   const [formCanCustomize, setFormCanCustomize] = useState(false);
+  const [formAccessCatalog, setFormAccessCatalog] = useState(false);
+  const [formAccessAnalytics, setFormAccessAnalytics] = useState(false);
+  const [formAccessCompany, setFormAccessCompany] = useState(false);
   const [formHours, setFormHours] = useState<BusinessHours>(defaultBusinessHours);
   const [showImageEditor, setShowImageEditor] = useState(false);
   
@@ -177,6 +188,9 @@ export default function VendedoresClient() {
       setFormSlug(seller.slug || "");
       setFormAvatar(seller.avatar_url || null);
       setFormCanCustomize(seller.can_customize_hours || false);
+      setFormAccessCatalog(seller.dash_access_catalog || false);
+      setFormAccessAnalytics(seller.dash_access_analytics || false);
+      setFormAccessCompany(seller.dash_access_company || false);
       setFormHours(seller.custom_business_hours || defaultBusinessHours);
     } else {
       setSelectedSeller(null);
@@ -188,6 +202,9 @@ export default function VendedoresClient() {
       setFormSlug("");
       setFormAvatar(null);
       setFormCanCustomize(false);
+      setFormAccessCatalog(false);
+      setFormAccessAnalytics(false);
+      setFormAccessCompany(false);
       setFormHours(defaultBusinessHours);
     }
     setView('form');
@@ -212,6 +229,9 @@ export default function VendedoresClient() {
       formData.append("bio", formBio);
       formData.append("whatsapp", formWhatsapp.replace(/\D/g, ""));
       formData.append("avatarUrl", formAvatar || ""); // Envia a foto se houver (mesmo blob)
+      formData.append("dashAccessCatalog", String(formAccessCatalog));
+      formData.append("dashAccessAnalytics", String(formAccessAnalytics));
+      formData.append("dashAccessCompany", String(formAccessCompany));
 
       const result = await createSeller(formData);
       
@@ -260,6 +280,9 @@ export default function VendedoresClient() {
         avatar_url: finalAvatarUrl,
         can_customize_hours: formCanCustomize,
         custom_business_hours: formHours,
+        dash_access_catalog: formAccessCatalog,
+        dash_access_analytics: formAccessAnalytics,
+        dash_access_company: formAccessCompany,
       };
 
       // USA SERVER ACTION para ignorar RLS
@@ -577,7 +600,7 @@ export default function VendedoresClient() {
                   className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 transition-colors"
                 >
                   <h3 className="font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
-                    <Clock size={18} className="text-primary" /> Horário e Permissões
+                    <ShieldCheck size={18} className="text-primary" /> Nível de Acesso e Horário
                   </h3>
                   <ChevronDown size={20} className={`text-zinc-400 transition-transform ${showHoursConfig ? 'rotate-180' : ''}`} />
                 </button>
@@ -590,8 +613,65 @@ export default function VendedoresClient() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="p-6 pt-0 space-y-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
-                        <div className="pt-4 space-y-4">
+                      <div className="p-6 pt-0 space-y-6 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                        {/* Gestão de Permissões (Delegated Access) */}
+                        <div className="pt-6 space-y-4">
+                          <p className="text-xs font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-4">Módulos que este vendedor pode acessar:</p>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <label 
+                              className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${formAccessCatalog ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}
+                            >
+                              <div className="mt-0.5">
+                                <input type="checkbox" checked={formAccessCatalog} onChange={e => setFormAccessCatalog(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Package size={14} className={formAccessCatalog ? 'text-primary' : 'text-zinc-400'} />
+                                  <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Catálogo</span>
+                                </div>
+                                <p className="text-[10px] leading-tight text-[var(--dash-text-muted)]">Pode gerenciar produtos, categorias e preços.</p>
+                              </div>
+                            </label>
+
+                            <label 
+                              className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${formAccessAnalytics ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}
+                            >
+                              <div className="mt-0.5">
+                                <input type="checkbox" checked={formAccessAnalytics} onChange={e => setFormAccessAnalytics(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <BarChart3 size={14} className={formAccessAnalytics ? 'text-primary' : 'text-zinc-400'} />
+                                  <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Analytics</span>
+                                </div>
+                                <p className="text-[10px] leading-tight text-[var(--dash-text-muted)]">Ver métricas de acessos e performance da empresa.</p>
+                              </div>
+                            </label>
+
+                            <label 
+                              className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${formAccessCompany ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}
+                            >
+                              <div className="mt-0.5">
+                                <input type="checkbox" checked={formAccessCompany} onChange={e => setFormAccessCompany(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Settings size={14} className={formAccessCompany ? 'text-primary' : 'text-zinc-400'} />
+                                  <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Empresa</span>
+                                </div>
+                                <p className="text-[10px] leading-tight text-[var(--dash-text-muted)]">Editar logotipo, cores e dados corporativos.</p>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 space-y-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                          <p className="text-xs font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Horário de Atendimento:</p>
+                          <div className="flex items-center gap-2 mb-4">
+                            <input type="checkbox" checked={formCanCustomize} onChange={e => setFormCanCustomize(e.target.checked)} id="can_customize" className="h-4 w-4" />
+                            <label htmlFor="can_customize" className="text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>Permitir que este vendedor personalize seu próprio horário</label>
+                          </div>
                           {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
                             const dayData = formHours.schedule[day];
                             return (

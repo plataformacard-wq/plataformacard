@@ -36,7 +36,7 @@ export default function EmpresaPage() {
   const [orgId, setOrgId] = useState<string | null>(null);
   
   const [businessHours, setBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
 
   useEffect(() => {
     async function loadData() {
@@ -62,7 +62,7 @@ export default function EmpresaPage() {
         
         if (org) {
           if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
-          if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C");
+          if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
         }
       }
       setLoading(false);
@@ -145,6 +145,7 @@ export default function EmpresaPage() {
       .from("organizations")
       .update({ 
         business_hours: businessHours as any,
+        business_model: businessModel
       })
       .eq("id", orgId);
 
@@ -168,8 +169,38 @@ export default function EmpresaPage() {
           Empresa
         </h1>
         <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-          Configure o horário de funcionamento padrão que será aplicado a todos os cartões.
+          Configure as informações básicas e operacionais da sua empresa.
         </p>
+      </div>
+
+      {/* Modelo de Negócio */}
+      <div
+        className="rounded-2xl border p-6 shadow-sm"
+        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+      >
+        <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>
+          Modelo de Negócio
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { id: "B2C", title: "Cartão Pessoal (B2C)", desc: "Foco em networking e perfis individuais." },
+            { id: "B2B", title: "Gestão de Vendas (B2B)", desc: "Foco em times de vendas e catálogos." },
+            { id: "CaaS", title: "Catálogo Puro (CaaS)", desc: "Vitrine digital centralizada da marca." }
+          ].map((model) => (
+            <button
+              key={model.id}
+              onClick={() => setBusinessModel(model.id as any)}
+              className={`p-4 rounded-xl border text-left transition-all ${
+                businessModel === model.id 
+                  ? "border-emerald-500 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                  : "border-zinc-200 bg-zinc-50/30 opacity-60 hover:opacity-100"
+              }`}
+            >
+              <p className="text-sm font-bold text-zinc-900 mb-1">{model.title}</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">{model.desc}</p>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div

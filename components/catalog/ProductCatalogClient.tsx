@@ -81,6 +81,10 @@ type ProductCatalogClientProps = {
   categories: Category[];
   products: Product[];
   whatsapp: string | null;
+  logoUrl?: string | null;
+  isPureCatalog?: boolean;
+  isEmbed?: boolean;
+  accentColor?: string | null;
 };
 
 const formatPrice = (price: number | null | undefined) => {
@@ -102,7 +106,12 @@ export default function ProductCatalogClient({
   categories,
   products,
   whatsapp,
+  logoUrl,
+  isPureCatalog,
+  isEmbed,
+  accentColor
 }: ProductCatalogClientProps) {
+  const primaryColor = accentColor || "#25D366";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -265,7 +274,10 @@ export default function ProductCatalogClient({
   return (
     <div 
       className="min-h-screen text-slate-100 pb-20 selection:bg-emerald-500/30 public-theme-invert"
-      style={{ background: "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)" }}
+      style={{ 
+        background: isEmbed ? "white" : "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)",
+        "--primary-color": primaryColor
+      } as any}
     >
       {/* Dynamic Background Effect */}
       <div className="fixed inset-0 pointer-events-none">
@@ -273,34 +285,42 @@ export default function ProductCatalogClient({
       </div>
 
       {/* Premium Header */}
-      <motion.header 
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 glass-dark border-b border-white/5 px-6 py-4 backdrop-blur-xl"
-      >
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href={`/${slug}`} className="flex items-center gap-2 group text-slate-400 hover:text-white transition-colors">
-            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Voltar</span>
-          </Link>
+      {!isEmbed && (
+        <motion.header 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="sticky top-0 z-40 glass-dark border-b border-white/5 px-6 py-4 backdrop-blur-xl"
+        >
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
+            <Link href={`/${slug}`} className="flex items-center gap-2 group text-slate-400 hover:text-white transition-colors">
+              <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Voltar</span>
+            </Link>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-white leading-none">{fullName}</p>
-              <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-widest mt-1">Catálogo Digital</p>
+            <div className="flex items-center gap-3">
+              {isPureCatalog && logoUrl ? (
+                <img src={logoUrl} alt={fullName ?? ""} className="h-8 w-auto object-contain" />
+              ) : (
+                <>
+                  <div className="text-right hidden sm:block">
+                    <p className="text-xs font-bold text-white leading-none">{fullName}</p>
+                    <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-widest mt-1">Catálogo Digital</p>
+                  </div>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={fullName ?? ""} className="h-9 w-9 rounded-full object-cover border border-white/10" style={{ borderColor: isEmbed ? `${primaryColor}33` : undefined }} />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 border border-white/5" style={{ color: primaryColor }}>
+                      {fullName?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={fullName ?? ""} className="h-9 w-9 rounded-full object-cover border border-white/10" />
-            ) : (
-              <div className="h-9 w-9 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 border border-white/5">
-                {fullName?.charAt(0).toUpperCase()}
-              </div>
-            )}
           </div>
-        </div>
-      </motion.header>
+        </motion.header>
+      )}
 
-      <main className="max-w-5xl mx-auto px-6 pt-12">
+      <main className={`max-w-5xl mx-auto px-6 ${isEmbed ? 'pt-6' : 'pt-12'}`}>
         {/* Intro Section */}
         <section className="mb-12">
           <motion.h1 
@@ -366,7 +386,7 @@ export default function ProductCatalogClient({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"}`}>
                   {category.products.map((product) => (
                     <motion.div
                       layout
@@ -379,7 +399,7 @@ export default function ProductCatalogClient({
                       <div className="aspect-square relative overflow-hidden bg-white flex items-center justify-center p-0">
                         {!product.is_in_stock && (
                           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-                            <span className="bg-rose-600 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-2xl border border-rose-500">
+                            <span className="bg-rose-600 !text-white text-[10px] font-black px-4 py-2 rounded-full shadow-2xl border border-rose-500">
                               ESGOTADO
                             </span>
                           </div>
@@ -399,7 +419,7 @@ export default function ProductCatalogClient({
                         {lastViewTimestamp !== null && (
                           <div className="absolute top-4 left-4 flex flex-col gap-2">
                             {new Date(product.created_at).getTime() > lastViewTimestamp && (
-                              <span className="bg-emerald-500 text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-emerald-400">
+                              <span className="text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg border" style={{ backgroundColor: primaryColor, borderColor: `${primaryColor}aa` }}>
                                 NOVO
                               </span>
                             )}
@@ -431,7 +451,7 @@ export default function ProductCatalogClient({
                           />
                         )}
                         <div className="flex flex-col items-start mt-auto">
-                          {product.has_retail !== false && product.price !== null && (
+                          {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
                             <div className="flex flex-col gap-0.5">
                               {product.compare_at_price && (
                                 <div className="text-sm font-semibold text-slate-400 flex items-center gap-1.5">
@@ -447,7 +467,7 @@ export default function ProductCatalogClient({
                               </div>
                             </div>
                           )}
-                          {product.has_retail === false && product.has_wholesale && product.wholesale_price && (
+                          {product.is_in_stock !== false && product.has_retail === false && product.has_wholesale && product.wholesale_price && (
                             <div className="flex flex-col">
                               <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mb-0.5">A partir de (Atacado)</span>
                               <p className="text-xl font-black text-emerald-400">
@@ -479,13 +499,15 @@ export default function ProductCatalogClient({
         </div>
       </main>
 
-      <footer className="mt-32 pb-20 text-center">
-        <div className="flex items-center justify-center gap-3 text-slate-600 text-xs font-bold uppercase tracking-[0.2em]">
-          <span className="w-8 h-px bg-slate-800" />
-          PlataformaCard
-          <span className="w-8 h-px bg-slate-800" />
-        </div>
-      </footer>
+      {!isEmbed && (
+        <footer className="mt-32 pb-20 text-center">
+          <div className="flex items-center justify-center gap-3 text-slate-600 text-xs font-bold uppercase tracking-[0.2em]">
+            <span className="w-8 h-px bg-slate-800" />
+            PlataformaCard
+            <span className="w-8 h-px bg-slate-800" />
+          </div>
+        </footer>
+      )}
 
       {/* Premium Product Modal */}
       <AnimatePresence>
@@ -588,7 +610,7 @@ export default function ProductCatalogClient({
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
                           selectedProduct.is_in_stock !== false 
-                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                            ? 'bg-[var(--primary-color)]/10 text-[var(--primary-color)] border-[var(--primary-color)]/20' 
                             : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                         }`}>
                           {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
@@ -631,7 +653,7 @@ export default function ProductCatalogClient({
                     <div className="bg-white/5 border border-white/5 rounded-2xl p-6">
                       <div className="space-y-6">
                         {/* Seção Varejo */}
-                        {selectedProduct.has_retail !== false && (
+                        {selectedProduct.is_in_stock !== false && selectedProduct.has_retail !== false && (
                           <div 
                             onClick={() => setPriceMode("retail")}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -664,7 +686,7 @@ export default function ProductCatalogClient({
                         )}
 
                         {/* Seção Atacado */}
-                        {selectedProduct.has_wholesale && (
+                        {selectedProduct.is_in_stock !== false && selectedProduct.has_wholesale && (
                           <div 
                             onClick={() => setPriceMode("wholesale")}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -730,17 +752,25 @@ export default function ProductCatalogClient({
 
                 {whatsappUrl && (
                   <div className="mt-10 sticky bottom-0 pt-4 bg-zinc-950/80 backdrop-blur-md pb-2">
-                    <motion.a
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:bg-[#128C7E] text-white font-black rounded-2xl shadow-xl shadow-emerald-500/20 transition-all text-sm uppercase tracking-wider"
-                    >
-                      <MessageCircle size={20} />
-                      Fazer Pedido via WhatsApp
-                    </motion.a>
+                    {selectedProduct.is_in_stock !== false ? (
+                      <motion.a
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--primary-color)] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
+                        style={{ boxShadow: `0 10px 30px ${primaryColor}33` }}
+                      >
+                        <MessageCircle size={20} />
+                        Fazer Pedido via WhatsApp
+                      </motion.a>
+                    ) : (
+                      <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-zinc-800 text-zinc-500 font-black rounded-2xl border border-white/5 transition-all text-sm uppercase tracking-wider cursor-not-allowed">
+                        <Package size={20} />
+                        Produto Indisponível
+                      </div>
+                    )}
                   </div>
                 )}
                 </div>

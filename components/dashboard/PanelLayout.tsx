@@ -21,10 +21,16 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [role, setRole] = useState("admin");
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | null>(null);
+  const [planId, setPlanId] = useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [permissions, setPermissions] = useState({
+    dash_access_catalog: false,
+    dash_access_analytics: false,
+    dash_access_company: false,
+  });
   const [isReady, setIsReady] = useState(false);
 
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
@@ -82,15 +88,23 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         setNome(profile.full_name || "Admin");
         setAvatar(profile.avatar_url || null);
         setSlug(profile.slug || null);
+        
+        setPermissions({
+          dash_access_catalog: !!profile.dash_access_catalog,
+          dash_access_analytics: !!profile.dash_access_analytics,
+          dash_access_company: !!profile.dash_access_company,
+        });
 
         // Busca organização
         if (profile.organization_id) {
           try {
             const org = await getOrganizationById(profile.organization_id);
             setBusinessModel(org?.business_model as any || "B2B");
+            setPlanId(org?.plan_id || null);
           } catch (oErr) {
             console.error("Erro ao buscar organização:", oErr);
             setBusinessModel("B2B");
+            setPlanId(null);
           }
         } else {
           // Se não tem org mas tem perfil, pode ser um admin em transição ou superadmin
@@ -142,6 +156,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
       <Sidebar 
         role={role} 
         businessModel={businessModel}
+        planId={planId}
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
         isCollapsed={isSidebarCollapsed}
@@ -149,6 +164,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           setIsSidebarCollapsed(val);
           localStorage.setItem("dash-sidebar-collapsed", String(val));
         }}
+        permissions={permissions}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
