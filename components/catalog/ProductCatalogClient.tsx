@@ -462,7 +462,7 @@ export default function ProductCatalogClient({
                               <div className="flex items-center gap-1.5">
                                 {product.compare_at_price && <span className="text-[10px] uppercase tracking-wider text-emerald-500/80 font-bold">Por</span>}
                                 <p className="text-xl font-black text-emerald-400">
-                                  {product.is_in_stock !== false ? formatPrice(product.price) : ""}
+                                  {formatPrice(product.price)}
                                 </p>
                               </div>
                             </div>
@@ -471,7 +471,7 @@ export default function ProductCatalogClient({
                             <div className="flex flex-col">
                               <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mb-0.5">A partir de (Atacado)</span>
                               <p className="text-xl font-black text-emerald-400">
-                                {product.is_in_stock !== false ? formatPrice(product.wholesale_price) : ""}
+                                {formatPrice(product.wholesale_price)}
                               </p>
                             </div>
                           )}
