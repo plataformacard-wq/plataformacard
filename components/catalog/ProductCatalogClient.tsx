@@ -653,7 +653,7 @@ export default function ProductCatalogClient({
                     <div className="bg-white/5 border border-white/5 rounded-2xl p-6">
                       <div className="space-y-6">
                         {/* Seção Varejo */}
-                        {selectedProduct.is_in_stock !== false && selectedProduct.has_retail !== false && (
+                        {selectedProduct.has_retail !== false && (
                           <div 
                             onClick={() => setPriceMode("retail")}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -686,7 +686,7 @@ export default function ProductCatalogClient({
                         )}
 
                         {/* Seção Atacado */}
-                        {selectedProduct.is_in_stock !== false && selectedProduct.has_wholesale && (
+                        {selectedProduct.has_wholesale && (
                           <div 
                             onClick={() => setPriceMode("wholesale")}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${
