@@ -131,7 +131,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
             { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
             { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
             { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
-            ...(planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26" || role === "superadmin" ? [
+            ...(planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26" || (role as any) === "superadmin" ? [
               { href: "/dashboard/catalogo/implementar", label: "Implementar Catálogo", icon: Globe }
             ] : []),
           ]
