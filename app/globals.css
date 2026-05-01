@@ -80,8 +80,7 @@
   }
   
   input, textarea, [contenteditable] {
-    caret-color: #000000 !important;
-    color-scheme: light;
+    caret-color: currentColor;
   }
 }
 

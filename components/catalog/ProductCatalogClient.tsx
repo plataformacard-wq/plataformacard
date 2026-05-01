@@ -113,7 +113,12 @@ export default function ProductCatalogClient({
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "#25D366";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState("center center");
   const [searchQuery, setSearchQuery] = useState("");
@@ -524,7 +529,7 @@ export default function ProductCatalogClient({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-2xl bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] public-modal-content"
+              className="relative w-[95%] sm:w-full max-w-2xl bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] public-modal-content"
             >
               <button 
                 onClick={() => setSelectedProductId(null)}
@@ -597,11 +602,11 @@ export default function ProductCatalogClient({
               </div>
 
               {/* Details Section */}
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="sticky top-0 z-20 px-6 sm:px-8 py-5 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
+              <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                <div className="sticky top-0 z-20 px-6 sm:px-8 py-5 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-b border-slate-100 dark:border-white/10">
                   <div className="flex flex-col gap-4">
                     {/* Linha 1: Título */}
-                    <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+                    <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
                       {selectedProduct.name}
                     </h2>
 
@@ -616,7 +621,7 @@ export default function ProductCatalogClient({
                           {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
                         </span>
                         {selectedProduct.sku && (
-                          <span className="px-2 py-1 rounded-lg bg-zinc-800 border border-white/5 text-[10px] font-black !text-white uppercase tracking-widest">
+                          <span className="px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-black !text-slate-900 uppercase tracking-widest">
                             REF: {selectedProduct.sku}
                           </span>
                         )}
@@ -624,7 +629,7 @@ export default function ProductCatalogClient({
 
                       {/* Cores integradas na mesma linha (alinhadas à direita se houver espaço) */}
                       {selectedProduct.show_colors && selectedProduct.colors && selectedProduct.colors.length > 0 && (
-                        <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
                           <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cores disponíveis</span>
                           <div className="flex items-center gap-1.5">
                             {selectedProduct.colors.map((color, i) => (
@@ -642,15 +647,11 @@ export default function ProductCatalogClient({
                   </div>
                 </div>
 
-                <div className="flex-1 p-5 sm:p-6 overflow-y-auto custom-scrollbar">
-
-
-
-
+                <div className="flex-1 px-6 sm:px-10 py-8 overflow-y-auto custom-scrollbar pb-12 min-w-0">
 
                 {selectedProduct.is_in_stock !== false && (
                   <div className="space-y-6 mb-8">
-                    <div className="bg-white/5 border border-white/5 rounded-2xl p-6">
+                    <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl p-6">
                       <div className="space-y-6">
                         {/* Seção Varejo */}
                         {selectedProduct.has_retail !== false && (
@@ -659,7 +660,7 @@ export default function ProductCatalogClient({
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                               priceMode === "retail" 
                                 ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" 
-                                : "bg-white/5 border-white/5 opacity-60 hover:opacity-100"
+                                : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 opacity-60 hover:opacity-100"
                             }`}
                           >
                             <div className="flex items-center justify-between mb-2">
@@ -689,10 +690,10 @@ export default function ProductCatalogClient({
                         {selectedProduct.has_wholesale && (
                           <div 
                             onClick={() => setPriceMode("wholesale")}
-                            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                            className={`p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${
                               priceMode === "wholesale" 
-                                ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" 
-                                : "bg-white/5 border-white/5 opacity-60 hover:opacity-100"
+                                ? "bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-500 shadow-lg shadow-emerald-500/10" 
+                                : "bg-white dark:bg-white/5 border-slate-100 dark:border-white/10 opacity-60 hover:opacity-100"
                             }`}
                           >
                             <div className="flex items-center justify-between mb-2">
@@ -721,60 +722,89 @@ export default function ProductCatalogClient({
                 <div className="space-y-8">
                   {selectedProduct.description && (
                     <div>
-                      <h4 className="flex items-center gap-2 text-white font-bold text-sm mb-3">
-                        <Info size={16} className="text-emerald-500" />
+                      <h4 className="flex items-center gap-2 text-slate-900 dark:text-white font-black text-lg mb-4">
+                        <Info size={20} className="text-emerald-500" />
                         Descrição do Produto
                       </h4>
-                      <div 
-                        className="text-slate-400 text-sm leading-relaxed ql-editor-display"
-                        dangerouslySetInnerHTML={{ __html: selectedProduct.description }}
-                      />
+                      {(() => {
+                        const cleanHTML = (html: string) => {
+                          if (!html) return '';
+                          return html
+                            .replace(/\u00a0/g, ' ')  // Remove espaços não-separáveis (\u00a0)
+                            .replace(/\u00ad/g, '')   // Remove hifens opcionais invisíveis (\u00ad)
+                            .replace(/&nbsp;/g, ' ')   // Remove entidades HTML de espaço
+                            .replace(/&shy;/g, '');    // Remove entidades HTML de hífen
+                        };
+
+                        return (
+                          <div className="w-full block overflow-hidden">
+                            <div 
+                              className="text-sm leading-relaxed ql-description-content"
+                              style={{ 
+                                width: '100%',
+                                wordBreak: 'normal', 
+                                overflowWrap: 'break-word', 
+                                hyphens: 'none',
+                                WebkitHyphens: 'none',
+                                whiteSpace: 'pre-wrap',
+                                boxSizing: 'border-box'
+                              }}
+                              dangerouslySetInnerHTML={{ __html: hasMounted ? cleanHTML(selectedProduct.description) : selectedProduct.description }}
+                            />
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 
                   {selectedProduct.show_specs !== false && selectedProduct.specs && selectedProduct.specs.length > 0 && (
                     <div>
-                      <h4 className="flex items-center gap-2 text-white font-bold text-sm mb-3">
-                        <Package size={16} className="text-emerald-500" />
+                      <h4 className="flex items-center gap-2 text-slate-900 dark:text-white font-black text-lg mb-4">
+                        <Package size={20} className="text-emerald-500" />
                         {selectedProduct.specs_title || "Especificações Técnicas"}
                       </h4>
-                      <div className="grid gap-1.5">
+                      <div className="grid gap-2">
                         {selectedProduct.specs.map((spec, i) => (
-                          <div key={i} className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-2xl px-4 py-2.5">
-                            <span className="text-sm text-slate-400 font-bold">{spec.chave}</span>
-                            <span className="text-base text-white font-black">{spec.valor}</span>
+                          <div key={i} className="flex items-center justify-between bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800 rounded-2xl px-4 py-3">
+                            <span className="text-sm text-slate-400 dark:text-slate-500 font-bold">{spec.chave}</span>
+                            <span className="text-base text-slate-900 dark:text-white font-black">{spec.valor}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
+              </div>
 
                 {whatsappUrl && (
-                  <div className="mt-10 sticky bottom-0 pt-4 bg-zinc-950/80 backdrop-blur-md pb-2">
-                    {selectedProduct.is_in_stock !== false ? (
-                      <motion.a
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--primary-color)] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
-                        style={{ boxShadow: `0 10px 30px ${primaryColor}33` }}
-                      >
-                        <MessageCircle size={20} />
-                        Fazer Pedido via WhatsApp
-                      </motion.a>
-                    ) : (
-                      <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-zinc-800 text-zinc-500 font-black rounded-2xl border border-white/5 transition-all text-sm uppercase tracking-wider cursor-not-allowed">
-                        <Package size={20} />
-                        Produto Indisponível
-                      </div>
-                    )}
+                  <div className="relative px-6 sm:px-8 py-5 border-t border-slate-100 dark:border-white/10 z-30 shrink-0 public-footer-sticky">
+                    {/* Gradient Fade Top */}
+                    <div className="absolute inset-x-0 -top-12 h-12 pointer-events-none public-footer-fade" />
+                    
+                    <div className="relative">
+                      {selectedProduct.is_in_stock !== false ? (
+                        <motion.a
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--primary-color)] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
+                          style={{ boxShadow: `0 10px 30px ${primaryColor}33` }}
+                        >
+                          <MessageCircle size={20} />
+                          Fazer Pedido via WhatsApp
+                        </motion.a>
+                      ) : (
+                        <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-slate-100 text-slate-500 font-black rounded-2xl border border-slate-200 transition-all text-sm uppercase tracking-wider cursor-not-allowed">
+                          <Package size={20} />
+                          Produto Indisponível
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 </div>
-              </div>
             </motion.div>
           </div>
         )}
@@ -785,12 +815,36 @@ export default function ProductCatalogClient({
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        .ql-editor-display p { margin-bottom: 0.5rem; word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap !important; }
-        .ql-editor-display b, .ql-editor-display strong { font-weight: 900; }
+        /* Descrição */
+        .ql-description-content { line-height: 1.8; font-size: 0.95rem; color: #475569; width: 100% !important; max-width: 100% !important; }
+        :global([data-theme="dark"]) .ql-description-content { color: rgba(255, 255, 255, 0.9) !important; }
+        
+        .ql-description-content * { 
+          word-break: normal !important; 
+          overflow-wrap: break-word !important; 
+          hyphens: none !important; 
+          -webkit-hyphens: none !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          white-space: pre-wrap !important;
+        }
+
+        .ql-description-content p { margin-bottom: 1.25rem; }
+        .ql-description-content b, .ql-description-content strong { font-weight: 900; color: #000; }
+        :global([data-theme="dark"]) .ql-description-content b, 
+        :global([data-theme="dark"]) .ql-description-content strong { color: #fff !important; }
+        .ql-viewer-standard h1, .ql-viewer-standard h2, .ql-viewer-standard h3 { font-weight: 900 !important; color: #000 !important; margin-top: 2rem !important; margin-bottom: 1rem !important; line-height: 1.3 !important; }
+        .ql-viewer-standard ul, .ql-viewer-standard ol { padding-left: 1.5rem !important; margin-bottom: 1.5rem !important; }
+        .ql-viewer-standard li { margin-bottom: 0.5rem !important; }
+
+        /* Rodapé e Fade Sincronizados */
+        .public-footer-sticky { background-color: white !important; }
+        .public-footer-fade { background-image: linear-gradient(to top, white, transparent) !important; }
+
+        :global([data-theme="dark"]) .public-footer-sticky { background-color: #0a0a0a !important; }
+        :global([data-theme="dark"]) .public-footer-fade { background-image: linear-gradient(to top, #0a0a0a, transparent) !important; }
         html:not([data-theme="dark"]) .public-theme-invert .ql-editor-display b, 
-        html:not([data-theme="dark"]) .public-theme-invert .ql-editor-display strong { color: #000; }
-        [data-theme="dark"] .ql-editor-display b, [data-theme="dark"] .ql-editor-display strong { color: #fff; }
+        html:not([data-theme="dark"]) .public-theme-invert .ql-editor-display strong { color: #000 !important; }
       `}</style>
     </div>
   );

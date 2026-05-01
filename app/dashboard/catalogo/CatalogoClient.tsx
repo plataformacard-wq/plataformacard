@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
+import { AiAssistButton } from "@/components/dashboard/AiAssistButton";
 
 type Category = {
   id: string;
@@ -109,6 +110,24 @@ function getProductCategoryId(product: ProductRow): string {
   const c = product.categories;
   if (Array.isArray(c)) return c[0]?.id ?? "";
   return c?.id ?? "";
+}
+
+function getProductImage(product: ProductRow): string {
+  // Se image_urls for string, tenta fazer o parse
+  let urls = product.image_urls;
+  if (typeof urls === 'string') {
+    try {
+      urls = JSON.parse(urls);
+    } catch (e) {
+      urls = [];
+    }
+  }
+  
+  if (Array.isArray(urls) && urls.length > 0) {
+    return urls[0];
+  }
+  
+  return product.image_url || "";
 }
 
 function formatPriceForInput(value: number | null): string {
@@ -218,6 +237,7 @@ export default function CatalogoPage() {
   const [showColors, setShowColors] = useState<boolean | null>(null);
   const [specsTitle, setSpecsTitle] = useState("");
   const [productColors, setProductColors] = useState<string[]>([]);
+  const [lastDescription, setLastDescription] = useState<string | null>(null);
   const [colorPickerValue, setColorPickerValue] = useState("#000000");
   const [editingColorIdx, setEditingColorIdx] = useState<number | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -229,6 +249,29 @@ export default function CatalogoPage() {
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
   };
+
+  // --- AI ASSISTANT LOGIC ---
+  const canActivateAiAssist = useCallback((data: any) => {
+    const hasMinDesc = data.description && data.description.replace(/<[^>]*>/g, '').length >= 30;
+    const hasPrice = data.price && parseFloat(data.price.replace(/[^\d]/g, '')) > 0;
+    return !!(hasMinDesc || hasPrice);
+  }, []);
+
+  const handleApplyAiSuggestions = useCallback((suggestions: any) => {
+    if (suggestions.description) {
+      setLastDescription(productDescription);
+      setProductDescription(suggestions.description);
+    }
+    if (suggestions.specs && Array.isArray(suggestions.specs)) setSpecs(suggestions.specs);
+    if (suggestions.colors && Array.isArray(suggestions.colors)) setProductColors(suggestions.colors);
+  }, [productDescription]);
+
+  const handleUndoAi = useCallback(() => {
+    if (lastDescription !== null) {
+      setProductDescription(lastDescription);
+      setLastDescription(null);
+    }
+  }, [lastDescription]);
 
   const currentCategory = categories.find(c => c.id === selectedCategoryId);
   const effectiveShowSpecs = showSpecs ?? currentCategory?.show_specs ?? true;
@@ -1413,9 +1456,9 @@ export default function CatalogoPage() {
                             <span className="bg-rose-600 !text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
                           </div>
                         )}
-                        {product.image_urls?.[0] || product.image_url ? (
+                        {getProductImage(product) ? (
                           <img 
-                            src={product.image_urls?.[0] || product.image_url || ""} 
+                            src={getProductImage(product)} 
                             className={`h-16 w-16 rounded-2xl object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
                           />
                         ) : (
@@ -1729,6 +1772,20 @@ export default function CatalogoPage() {
                         <label className="flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
                           <FileText size={16} className="text-emerald-500" /> Descrição Completa
                         </label>
+                        <AiAssistButton
+                          formData={{
+                            name: productName,
+                            description: productDescription,
+                            price: productPrice,
+                            sku: sku,
+                            specs: specs,
+                            colors: productColors
+                          }}
+                          onApply={handleApplyAiSuggestions}
+                          canActivate={canActivateAiAssist}
+                          onUndo={handleUndoAi}
+                          canUndo={lastDescription !== null}
+                        />
                       </div>
                       <div className="rich-text-editor-container">
                         <ReactQuill
@@ -1755,14 +1812,13 @@ export default function CatalogoPage() {
                           background: var(--dash-surface-secondary);
                         }
                         .quill-premium .ql-container {
-                          border-bottom-left-radius: 1rem;
-                          border-bottom-right-radius: 1rem;
+                          border-bottom-left-radius: 1.5rem;
+                          border-bottom-right-radius: 1.5rem;
                           border: 1px solid var(--dash-border) !important;
                           background: var(--dash-surface);
                           color: var(--dash-text-primary);
-                          min-height: 120px;
+                          min-height: 250px;
                           font-family: inherit;
-                          font-size: 0.875rem;
                         }
                         .quill-premium .ql-stroke {
                           stroke: var(--dash-text-primary) !important;
@@ -1774,7 +1830,18 @@ export default function CatalogoPage() {
                           color: var(--dash-text-primary) !important;
                         }
                         .quill-premium .ql-editor {
-                          min-height: 120px;
+                          padding: 2rem !important;
+                          line-height: 1.8;
+                          font-size: 0.95rem;
+                          color: var(--dash-text-primary);
+                        }
+                        .quill-premium .ql-editor p {
+                          margin-bottom: 1.25rem;
+                        }
+                        .quill-premium .ql-editor strong,
+                        .quill-premium .ql-editor b {
+                          font-weight: 900;
+                          color: #000;
                         }
                         .quill-premium .ql-editor.ql-blank::before {
                           font-style: normal;
@@ -1790,13 +1857,10 @@ export default function CatalogoPage() {
                         .ql-snow.ql-toolbar button.ql-bold svg rect {
                           stroke-width: 3px;
                         }
-                        /* Global Caret Fix */
-                        input, textarea, [contenteditable], .ql-editor, .rich-text-editor-container {
-                          caret-color: #000000 !important;
+                        /* Global Caret Fix - Agora dinâmico para respeitar o tema */
+                        input, textarea, [contenteditable], .ql-editor {
+                          caret-color: var(--dash-text-primary) !important;
                           cursor: text !important;
-                          color: #000000 !important;
-                          color-scheme: light !important;
-                          background-color: #ffffff !important;
                         }
                         
                         .fixed.inset-0.z-50 * {

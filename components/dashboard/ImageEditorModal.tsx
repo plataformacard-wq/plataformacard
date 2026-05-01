@@ -26,6 +26,10 @@ interface ImageEditorModalProps {
   minHeight?: number;
   maxFiles?: number;
   initialFile?: File | null;
+  title?: string;
+  description?: string;
+  targetWidth?: number;
+  targetHeight?: number;
 }
 
 export default function ImageEditorModal({
@@ -36,6 +40,10 @@ export default function ImageEditorModal({
   minWidth = 600,
   minHeight = 600,
   initialFile = null,
+  title = "Editar Imagem",
+  description = "Ajuste o enquadramento da sua imagem para obter o melhor resultado.",
+  targetWidth,
+  targetHeight,
 }: ImageEditorModalProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
@@ -154,7 +162,7 @@ export default function ImageEditorModal({
                 <Crop size={20} />
               </div>
               <h3 className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                Editar Imagem
+                {title}
               </h3>
             </div>
             <button
@@ -236,11 +244,21 @@ export default function ImageEditorModal({
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                        Dicas para uma imagem premium:
+                        {targetWidth && targetHeight ? (
+                          <>Dimensões sugeridas: <span className="text-emerald-500">{targetWidth} x {targetHeight} pixels</span></>
+                        ) : (
+                          "Dicas para uma imagem premium:"
+                        )}
                       </p>
                       <ul className="list-inside list-disc text-xs space-y-1" style={{ color: "var(--dash-text-muted)" }}>
-                        <li>Fundos claros (branco ou cinza) valorizam o produto.</li>
-                        <li>Centralize bem o item principal no enquadramento.</li>
+                        {description ? (
+                          <li>{description}</li>
+                        ) : (
+                          <>
+                            <li>Fundos claros (branco ou cinza) valorizam o produto.</li>
+                            <li>Centralize bem o item principal no enquadramento.</li>
+                          </>
+                        )}
                         <li>Imagens serão otimizadas automaticamente para carregamento rápido.</li>
                       </ul>
                     </div>

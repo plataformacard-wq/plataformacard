@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -10,6 +11,55 @@ import PublicThemeToggle from "@/components/PublicThemeToggle";
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+// SEO Metadata Generation
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const { slug } = await props.params;
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, bio, organization_id")
+    .ilike("slug", slug)
+    .maybeSingle();
+
+  let orgData = null;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name, meta_title, meta_description, favicon_url")
+      .eq("id", profile.organization_id)
+      .maybeSingle();
+    orgData = org;
+  } else {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name, meta_title, meta_description, favicon_url")
+      .ilike("slug", slug)
+      .maybeSingle();
+    orgData = org;
+  }
+
+  const title = orgData?.meta_title || (profile ? profile.full_name : (orgData ? orgData.name : "Perfil")) + " | PlataformaCard";
+  const description = orgData?.meta_description || (profile?.bio) || "Confira meu perfil e catálogo digital.";
+  const iconBase = orgData?.favicon_url || "/favicon.ico";
+  const icon = `${iconBase}${iconBase.includes('?') ? '&' : '?'}t=${Date.now()}`;
+
+  return {
+    title,
+    description,
+    icons: {
+      icon: icon,
+      shortcut: icon,
+      apple: icon,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
+}
 
 type ProfileRow = {
   id: string;

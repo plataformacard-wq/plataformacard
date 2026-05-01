@@ -31,6 +31,14 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 3. **Refatoração Preventiva**: Antes de cada grande mudança, avaliamos a saúde do arquivo. Se houver dívida técnica ou desorganização, a limpeza precede a nova funcionalidade.
 4. **Segurança no Banco (RLS)**: Toda lógica de visibilidade deve ser espelhada nas políticas de Row Level Security do Supabase, garantindo que o front-end seja apenas um reflexo da segurança do back-end.
 
+## 🛡️ Diretrizes de Interação com o Agente (IA)
+Para garantir a eficiência e o controle do desenvolvedor sobre o ambiente, o agente deve seguir as seguintes premissas:
+
+1.  **Uso do Navegador**: Sem demonstrações automáticas no navegador, a não ser que seja extremamente necessário para a resolução de um problema técnico que não possa ser diagnosticado via código ou logs.
+2.  **Prioridade de Código**: O diagnóstico deve sempre priorizar a análise estática de arquivos e logs do terminal antes de recorrer à interface visual.
+
+---
+
 ### 📊 Dashboard do Usuário (Gestor/Vendedor)
 - **Catálogo Inteligente**: Edição em massa de produtos (Bulk Editor) via interface tipo planilha.
 - **Gestão de Imagens**: Sistema de upload com crop automático e compressão no cliente para otimização de storage.
@@ -70,6 +78,7 @@ Para garantir que o projeto seja sustentável para um desenvolvedor solo, seguim
 6.  **Gestão de Domínios (White-label)**: Implementar lógica técnica para suportar domínios customizados (ex: `anotameucontato.com.br`) via proxy ou CNAME.
 7.  **Implementação de Níveis de Acesso (B2B)**: Adicionar controles de permissão no card de vendedor para delegar gestão de catálogo, analytics e configurações da empresa.
 8.  **Validação CaaS (Maj Mobilidade)**: Testar a implementação real via iFrame no site oficial após o cadastro completo do catálogo de produtos.
+9.  **Ajuste de Favicon**: Resolver a persistência de cache agressivo de Favicon nos navegadores que impede a atualização visual imediata mesmo com timestamps.
 
 ---
 
@@ -145,6 +154,7 @@ A plataforma utiliza um sistema unificado de temas com duas identidades visuais 
 | 2026-04-27 | UI/UX: Unificação do Design System (Modo Claro/Escuro), Integração CaaS e refatoração do `globals.css` com suporte a `public-theme-invert`. | Antigravity |
 | 2026-04-29 | Escopo: Adição da funcionalidade de Acesso Delegado ao Dashboard para Vendedores (B2B). | Antigravity |
 | 2026-04-29 | Arquitetura: Reestruturação do CaaS como extensão do plano Master com suporte a iFrame Embed. | Antigravity |
+| 2026-05-01 | SEO & Branding: Refatoração da página de SEO, implementação de metadados dinâmicos e registro de pendência de cache de Favicon. | Antigravity |
 
 ---
 

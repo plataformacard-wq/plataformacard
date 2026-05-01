@@ -87,41 +87,46 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, bio")
+    .select("full_name, bio, organization_id")
     .ilike("slug", slug)
     .maybeSingle();
 
-  if (profile) {
-    return {
-      title: `Catálogo de ${profile.full_name} | PlataformaCard`,
-      description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
-      openGraph: {
-        title: `Catálogo de ${profile.full_name}`,
-        description: profile.bio || `Confira os produtos e ofertas exclusivas no catálogo digital de ${profile.full_name}.`,
-        type: "website",
-      },
-    };
+  let orgData = null;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name, meta_title, meta_description, favicon_url")
+      .eq("id", profile.organization_id)
+      .maybeSingle();
+    orgData = org;
+  } else {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name, meta_title, meta_description, favicon_url")
+      .ilike("slug", slug)
+      .maybeSingle();
+    orgData = org;
   }
 
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("name, meta_title, meta_description")
-    .ilike("slug", slug)
-    .maybeSingle();
+  const title = orgData?.meta_title || (profile ? `Catálogo de ${profile.full_name}` : (orgData ? `Catálogo de ${orgData.name}` : "Catálogo")) + " | PlataformaCard";
+  const description = orgData?.meta_description || (profile?.bio) || "Confira nossos produtos e ofertas exclusivas.";
+  const iconBase = orgData?.favicon_url || "/favicon.ico";
+  const icon = `${iconBase}${iconBase.includes('?') ? '&' : '?'}t=${Date.now()}`;
 
-  if (org) {
-    return {
-      title: org.meta_title || `Catálogo de ${org.name} | PlataformaCard`,
-      description: org.meta_description || `Confira os produtos e ofertas exclusivas no catálogo digital de ${org.name}.`,
-      openGraph: {
-        title: org.meta_title || `Catálogo de ${org.name}`,
-        description: org.meta_description || `Confira os produtos e ofertas exclusivas no catálogo digital de ${org.name}.`,
-        type: "website",
-      },
-    };
-  }
-
-  return { title: "Catálogo não encontrado" };
+  return {
+    title,
+    description,
+    icons: {
+      icon: icon,
+      shortcut: icon,
+      apple: icon,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
 }
 
 export default async function Page(props: PageProps) {
