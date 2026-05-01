@@ -387,8 +387,8 @@ export default function SEOPage() {
                   style={{ 
                     borderColor: formData.accent_color === preset.color ? "var(--dash-text-primary)" : "var(--dash-border)",
                     background: "var(--dash-surface)",
-                    ringColor: preset.color
-                  }}
+                    "--tw-ring-color": preset.color
+                  } as React.CSSProperties}
                 >
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: preset.color }} />
                   <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-primary)" }}>{preset.name.split(' ')[1] || preset.name}</span>
