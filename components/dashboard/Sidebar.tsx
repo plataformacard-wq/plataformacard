@@ -29,6 +29,7 @@ interface SidebarProps {
   isCollapsed: boolean;
   setIsCollapsed: (val: boolean) => void;
   isShadowMode?: boolean;
+  isReady?: boolean;
   permissions?: {
     dash_access_catalog: boolean;
     dash_access_analytics: boolean;
@@ -36,7 +37,7 @@ interface SidebarProps {
   };
 }
 
-export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, permissions }: SidebarProps) {
+export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, isReady, permissions }: SidebarProps) {
   const pathname = usePathname();
   const [currentHash, setCurrentHash] = useState("");
 
@@ -54,24 +55,49 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
     );
   };
 
+  // DETERMINAÇÃO DO MENU (QG vs CLIENTE)
+  const isAdminPath = pathname.startsWith("/admin");
   let navLinks: any[] = [];
+  const isActuallySuperAdmin = role === "superadmin";
 
-  if (role === "superadmin" && !isShadowMode) {
-    // Menu exclusivo do Super Admin (QG)
+  if (isAdminPath && !isShadowMode) {
+    // Menu exclusivo do Super Admin (QG) - Centro de Inteligência
     navLinks = [
-      { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/admin/catalogos", label: "Análise de Catálogos", icon: BookOpen },
-      { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
-      { href: "/admin/analytics", label: "Analytics Global", icon: BarChart3 },
-      { href: "/admin/settings", label: "Admin Settings", icon: ShieldCheck },
+      { href: "/admin", label: "Dashboard (QG)", icon: LayoutDashboard },
+      { 
+        label: "BI & Analytics", 
+        icon: BarChart3,
+        subItems: [
+          { href: "/admin/analytics?tab=b2b", label: "Desempenho B2B", icon: Building2 },
+          { href: "/admin/analytics?tab=b2c", label: "Métricas B2C", icon: Users },
+          { href: "/admin/analytics?tab=caas", label: "Gestão CaaS", icon: Globe },
+        ]
+      },
+      { 
+        label: "Gestão SaaS", 
+        icon: Building2,
+        subItems: [
+          { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
+          { href: "/admin/catalogos", label: "Análise de Vitrines", icon: BookOpen },
+          { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
+        ]
+      },
+      { 
+        label: "Configurações", 
+        icon: ShieldCheck,
+        subItems: [
+          { href: "/admin/settings", label: "Geral & Planos", icon: Settings },
+          { href: "/admin/maintenance", label: "Manutenção Global", icon: Info },
+        ]
+      },
     ];
   } else {
-    // Menu padrão para outros usuários (B2B/B2C)
+    // Menu padrão para outros usuários (B2B/B2C) ou Admin em modo simulação
     navLinks = [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
     ];
 
-    if (role === "admin" || role === "b2b_admin" || role === "superadmin") {
+    if (role === "admin" || role === "b2b_admin" || (isActuallySuperAdmin && isShadowMode)) {
       const isB2B = businessModel === "B2B";
 
       navLinks.push({ 
@@ -182,7 +208,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
           {/* Logo Area */}
           <div className={`mb-10 flex items-center px-4 ${isCollapsed ? "justify-center" : "justify-between"}`}>
-            <Link href="/dashboard" className="flex items-center gap-2 group">
+            <Link href={isAdminPath ? "/admin" : "/dashboard"} className="flex items-center gap-2 group">
               <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
                 <span className="text-white font-bold text-sm">P</span>
               </div>
@@ -190,7 +216,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                 <div className="flex flex-col overflow-hidden whitespace-nowrap transition-all">
                   <span className="text-base font-bold tracking-tight leading-none text-white">PlataformaCard</span>
                   <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider">
-                    {isShadowMode ? "Modo Simulação" : (role === "superadmin" ? "Centro de Inteligência" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor"))}
+                    {isAdminPath ? "CENTRO DE INTELIGÊNCIA (QG)" : (isShadowMode ? "Modo Simulação" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor"))}
                   </span>
                 </div>
               )}

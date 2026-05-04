@@ -95,19 +95,32 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           dash_access_company: !!profile.dash_access_company,
         });
 
-        // Busca organização
-        if (profile.organization_id) {
+        // Lógica de Organização (com suporte a Shadow Mode para Super Admin)
+        const shadowOrgId = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("shadow_org_id="))
+          ?.split("=")[1];
+
+        const targetOrgId = (userRole === "superadmin" && shadowOrgId) 
+          ? shadowOrgId 
+          : profile.organization_id;
+
+        if (targetOrgId) {
           try {
-            const org = await getOrganizationById(profile.organization_id);
+            const org = await getOrganizationById(targetOrgId);
             setBusinessModel(org?.business_model as any || "B2B");
             setPlanId(org?.plan_id || null);
+            
+            // Se estiver em shadow mode, podemos querer mostrar o nome da empresa em algum lugar
+            if (shadowOrgId && userRole === "superadmin") {
+              console.log(`Simulando acesso à organização: ${org?.name}`);
+            }
           } catch (oErr) {
             console.error("Erro ao buscar organização:", oErr);
             setBusinessModel("B2B");
             setPlanId(null);
           }
         } else {
-          // Se não tem org mas tem perfil, pode ser um admin em transição ou superadmin
           setBusinessModel("B2B");
         }
 
@@ -143,6 +156,12 @@ export function PanelLayout({ children }: PanelLayoutProps) {
     window.location.href = "/entrar";
   }
 
+  async function handleExitShadow() {
+    const { stopShadowAccess } = await import("@/lib/admin-actions");
+    await stopShadowAccess();
+    window.location.href = "/admin";
+  }
+
   if (businessModel === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
@@ -151,8 +170,31 @@ export function PanelLayout({ children }: PanelLayoutProps) {
     );
   }
 
+  const isAdminPath = pathname.startsWith("/admin");
+  const isShadowMode = pathname.startsWith("/dashboard") && role === "superadmin";
+
   return (
     <div className="flex min-h-screen bg-[var(--dash-bg)] text-[var(--dash-text-primary)] transition-colors duration-500">
+      {/* Banner de Simulação */}
+      {isShadowMode && (
+        <div className="fixed top-0 left-0 right-0 z-[999] bg-amber-500 text-white px-4 py-2 flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="h-6 w-6 rounded-lg bg-white/20 flex items-center justify-center">
+              <Clock size={14} className="animate-pulse" />
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest">
+              Modo Simulação Ativo: <span className="underline decoration-2 underline-offset-4">Você está vendo o painel como este cliente</span>
+            </p>
+          </div>
+          <button 
+            onClick={handleExitShadow}
+            className="px-4 py-1.5 rounded-xl bg-white text-amber-600 text-[10px] font-black uppercase hover:bg-amber-50 transition-all shadow-sm"
+          >
+            Sair e Voltar ao QG
+          </button>
+        </div>
+      )}
+
       <Sidebar 
         role={role} 
         businessModel={businessModel}
@@ -165,6 +207,8 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           localStorage.setItem("dash-sidebar-collapsed", String(val));
         }}
         permissions={permissions}
+        isReady={isReady}
+        isShadowMode={isShadowMode}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -176,6 +220,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           isReady={isReady}
           businessModel={businessModel}
           isDark={isDark}
+          isAdminPath={isAdminPath}
           toggleTheme={() => {
             const next = !isDark;
             setIsDark(next);

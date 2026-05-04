@@ -268,12 +268,10 @@ export default async function Page(props: PageProps) {
     <>
       <PublicThemeToggle />
       <main
-        className="public-theme-invert"
+        className="public-theme-container"
         style={{
           minHeight: "100vh",
-        background:
-          "radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%)",
-        display: "flex",
+          display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
@@ -335,15 +333,11 @@ export default async function Page(props: PageProps) {
 
       {/* Card */}
       <div
-        className="animate-stagger-1"
+        className="animate-stagger-1 public-card"
         style={{
           width: "100%",
           maxWidth: 400,
-          background: "rgba(255,255,255,0.035)",
-          border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: 32,
-          boxShadow:
-            "0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)",
           overflow: "hidden",
         }}
       >
@@ -386,14 +380,15 @@ export default async function Page(props: PageProps) {
                   borderRadius: "50%",
                   overflow: "hidden",
                   background: "#1c1c1c",
-                  border: "3px solid #0a0a0a",
+                  border: "3px solid var(--public-card-border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 30,
                   fontWeight: 700,
-                  color: "rgba(255,255,255,0.65)",
-                  letterSpacing: "-0.02em",
+                   color: "var(--public-text-main)",
+                   opacity: 0.65,
+                   letterSpacing: "-0.02em",
                 }}
               >
                 {safeProfile.avatar_url ? (
@@ -417,7 +412,7 @@ export default async function Page(props: PageProps) {
                 display: "flex",
                 alignItems: "center",
                 gap: 5,
-                background: "rgba(0,0,0,0.75)",
+                background: "var(--public-status-bg)",
                 border: `1px solid ${isAvailableNow ? "rgba(37,211,102,0.25)" : "rgba(156,163,175,0.25)"}`,
                 borderRadius: 999,
                 padding: "3px 10px",
@@ -437,7 +432,7 @@ export default async function Page(props: PageProps) {
                 className="public-text-status"
                 style={{
                   fontSize: 9,
-                  color: "rgba(255,255,255,0.5)",
+                  color: "var(--public-text-dim)",
                   fontWeight: 600,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
@@ -455,7 +450,7 @@ export default async function Page(props: PageProps) {
               style={{
                 fontSize: 30,
                 fontWeight: 700,
-                color: "#fff",
+                color: "var(--public-text-main)",
                 letterSpacing: "-0.025em",
                 lineHeight: 1.1,
                 margin: 0,
@@ -470,7 +465,7 @@ export default async function Page(props: PageProps) {
                 style={{
                   marginTop: 10,
                   fontSize: 14,
-                  color: "rgba(255,255,255,0.6)",
+                  color: "var(--public-text-dim)",
                   fontWeight: 400,
                   lineHeight: 1.55,
                 }}
@@ -511,12 +506,12 @@ export default async function Page(props: PageProps) {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.09)",
-                  borderRadius: 14,
-                  padding: "14px 20px",
-                  color: "rgba(255,255,255,0.9)",
-                  fontSize: 15,
+                   background: "var(--public-glass-bg)",
+                   border: "1px solid var(--public-card-border)",
+                   borderRadius: 14,
+                   padding: "14px 20px",
+                   color: "var(--public-text-main)",
+                   fontSize: 15,
                   fontWeight: 500,
                   textDecoration: "none",
                 }}
@@ -552,8 +547,8 @@ export default async function Page(props: PageProps) {
               marginTop: 28,
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--public-glass-bg)",
+              border: "1px solid var(--public-card-border)",
               borderRadius: 18,
               overflow: "hidden",
             }}
@@ -570,7 +565,7 @@ export default async function Page(props: PageProps) {
                   padding: "18px 8px",
                   textAlign: "center",
                   borderRight:
-                    i < 2 ? "1px solid rgba(255,255,255,0.06)" : undefined,
+                    i < 2 ? "1px solid var(--public-card-border)" : undefined,
                 }}
               >
                 <p
@@ -578,7 +573,7 @@ export default async function Page(props: PageProps) {
                   style={{
                     fontSize: 24,
                     fontWeight: 700,
-                    color: "#fff",
+                    color: "var(--public-text-main)",
                     letterSpacing: "-0.03em",
                     margin: 0,
                     fontVariantNumeric: "tabular-nums",
@@ -593,7 +588,7 @@ export default async function Page(props: PageProps) {
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    color: "rgba(255,255,255,0.28)",
+                    color: "var(--public-text-muted)",
                     margin: "5px 0 0",
                   }}
                 >
@@ -629,7 +624,7 @@ export default async function Page(props: PageProps) {
           className="public-text-footer"
           style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.22)",
+            color: "var(--public-text-muted)",
             letterSpacing: "0.05em",
           }}
         >

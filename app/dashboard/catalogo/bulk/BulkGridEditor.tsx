@@ -216,8 +216,8 @@ export default function BulkGridEditor() {
         const { data: prods, error: prodsError } = await supabase
           .from("products")
           .select(`
-            id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, 
-            category_id, updated_at, image_url, image_urls, specs, organization_id,
+            id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
+            category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock,
             categories (id, name)
           `)
           .eq("organization_id", profile.organization_id)
@@ -269,8 +269,8 @@ export default function BulkGridEditor() {
       const { data: prods, error: prodsError } = await supabase
         .from("products")
         .select(`
-          id, name, description, price, sku, has_wholesale, wholesale_price, wholesale_min_quantity, 
-          category_id, updated_at, image_url, image_urls, specs,
+          id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
+          category_id, updated_at, image_url, image_urls, specs, is_in_stock,
           categories (id, name)
         `)
         .eq("organization_id", orgId)
@@ -491,9 +491,35 @@ export default function BulkGridEditor() {
         size: 120,
       },
       {
+        accessorKey: "has_retail",
+        header: "Varejo?",
+        cell: (props) => <EditableCell {...props} updateData={updateData} type="checkbox" />,
+        size: 80,
+      },
+      {
+        accessorKey: "compare_at_price",
+        header: "Preço De (R$)",
+        cell: (props) => {
+          const hasRetail = props.row.original.has_retail;
+          return (
+            <div className={!hasRetail ? "opacity-30 pointer-events-none" : ""}>
+              <EditableCell {...props} updateData={updateData} type="number" />
+            </div>
+          );
+        },
+        size: 120,
+      },
+      {
         accessorKey: "price",
-        header: "Preço (R$)",
-        cell: (props) => <EditableCell {...props} updateData={updateData} type="number" />,
+        header: "Preço Por (R$)",
+        cell: (props) => {
+          const hasRetail = props.row.original.has_retail;
+          return (
+            <div className={!hasRetail ? "opacity-30 pointer-events-none" : ""}>
+              <EditableCell {...props} updateData={updateData} type="number" />
+            </div>
+          );
+        },
         size: 120,
       },
       {
@@ -527,6 +553,12 @@ export default function BulkGridEditor() {
           );
         },
         size: 120,
+      },
+      {
+        accessorKey: "is_in_stock",
+        header: "Em Estoque?",
+        cell: (props) => <EditableCell {...props} updateData={updateData} type="checkbox" />,
+        size: 100,
       },
       {
         id: "actions",

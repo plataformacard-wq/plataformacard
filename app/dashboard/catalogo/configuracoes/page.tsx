@@ -32,11 +32,23 @@ export default async function ConfiguracoesPage() {
     return <div>Nenhum catálogo ativo encontrado.</div>;
   }
 
-  const { data: catalog } = await supabase
+  const { data: catalogData } = await supabase
     .from("catalogs")
     .select("*")
     .eq("id", orgCatalog.catalog_id)
     .single();
+
+  const { data: orgData } = await supabase
+    .from("organizations")
+    .select("accent_color, business_model")
+    .eq("id", profile.organization_id)
+    .single();
+
+  const catalog = {
+    ...catalogData,
+    accent_color: orgData?.accent_color,
+    business_model: orgData?.business_model,
+  };
 
   return <ConfiguracoesClient catalog={catalog} />;
 }

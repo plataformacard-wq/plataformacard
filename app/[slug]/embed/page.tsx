@@ -45,7 +45,7 @@ export default async function EmbedPage(props: PageProps) {
       .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color")
       .ilike("slug", slug)
       .maybeSingle();
-      
+
     if (orgRaw) {
       orgData = orgRaw;
     } else {
@@ -107,10 +107,10 @@ export default async function EmbedPage(props: PageProps) {
 
   return (
     <div className="min-h-screen bg-white public-theme-invert">
-      <script 
-        dangerouslySetInnerHTML={{ 
-          __html: `document.documentElement.removeAttribute('data-theme');` 
-        }} 
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.removeAttribute('data-theme');`
+        }}
       />
       <ProductCatalogClient
         profileId={trackingProfileId}

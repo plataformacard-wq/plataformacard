@@ -25,6 +25,7 @@ interface TopHeaderProps {
   slug?: string | null;
   isReady: boolean;
   businessModel: "B2B" | "B2C" | "CaaS";
+  isAdminPath?: boolean;
 }
 
 export function TopHeader({ 
@@ -37,7 +38,8 @@ export function TopHeader({
   onMenuClick,
   slug,
   isReady,
-  businessModel
+  businessModel,
+  isAdminPath
 }: TopHeaderProps) {
   const isB2B = businessModel === "B2B";
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -91,7 +93,7 @@ export function TopHeader({
         </button>
 
 
-        {!isB2B && slug && (
+        {!isAdminPath && !isB2B && slug && (
           <Link
             href={`/${slug}`}
             target="_blank"

@@ -1124,12 +1124,23 @@ export default function CatalogoPage() {
     }
 
     const orgId = profile.organization_id;
+
+    // Validação extra para atacado
+    if (hasWholesale) {
+      const pWholesale = parsePrice(wholesalePrice);
+      if (pWholesale === null) {
+        setPriceError("O preço de atacado é obrigatório quando o atacado está ativo.");
+        setSaving(false);
+        return;
+      }
+    }
+
     const basePayload = {
       category_id: selectedCategoryId,
       name: productName.trim(),
       description: productDescription.trim(),
       specs,
-      price: parsedPrice,
+      price: parsedPrice ?? 0,
       compare_at_price: parsedCompareAtPrice,
       sku: sku.trim() || null,
       has_retail: hasRetail,
@@ -1351,7 +1362,7 @@ export default function CatalogoPage() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="h-8 w-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 border flex items-center justify-center text-xs font-mono text-[var(--dash-text-muted)]">
-                        {idx + 1}
+                        <Layers size={14} />
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                          <button

@@ -431,6 +431,18 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             {/* Actions */}
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={async () => {
+                    const res = await startShadowAccess(organization.id);
+                    if (res.success) {
+                      window.location.href = "/dashboard";
+                    }
+                  }}
+                  className="flex-1 py-4 rounded-2xl bg-primary text-white font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                >
+                  <Globe size={18} />
+                  ACESSAR DASHBOARD (SIMULAR)
+                </button>
                 <button className="flex-1 py-4 rounded-2xl border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
                   <ShieldAlert size={18} />
                   Suspender Conta

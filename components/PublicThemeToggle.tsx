@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
-export default function PublicThemeToggle() {
+export default function PublicThemeToggle({ className }: { className?: string }) {
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -34,7 +34,7 @@ export default function PublicThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed top-4 right-4 z-50 h-10 w-10 rounded-full flex items-center justify-center glass hover:scale-105 transition-all text-foreground"
+      className={className || "fixed top-4 right-4 z-50 h-10 w-10 rounded-full flex items-center justify-center bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] backdrop-blur-md hover:scale-105 transition-all text-[var(--public-text-main)] shadow-sm"}
       aria-label="Toggle Theme"
       title={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}
     >

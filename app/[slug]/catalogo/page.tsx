@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import PublicThemeToggle from "@/components/PublicThemeToggle";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +15,11 @@ type Profile = {
   slug: string;
   organization_id: string;
   full_name: string | null;
-  bio: string | null;
   avatar_url: string | null;
   whatsapp: string | null;
+  bio: string | null;
+  is_available: boolean | null;
+  custom_business_hours: any;
 };
 
 type Organization = {
@@ -28,6 +29,9 @@ type Organization = {
   favicon_url: string | null;
   business_model: string;
   whatsapp?: string | null;
+  accent_color?: string | null;
+  secondary_color?: string | null;
+  business_hours?: any;
 };
 
 type Catalog = {
@@ -83,7 +87,18 @@ type Product = {
 // SEO Metadata Generation
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
+  const searchParams = await props.searchParams;
+  const isEmbed = searchParams.embed === "true";
+  
   const supabase = await createClient();
+
+  // Se for embed, evitamos indexação pesada ou títulos genéricos
+  if (isEmbed) {
+    return {
+      title: "Catálogo Digital",
+      robots: "noindex, nofollow"
+    };
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -130,6 +145,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function Page(props: PageProps) {
+  const admin = (await import("@/lib/supabase/admin")).createAdminClient();
   const supabase = await createClient();
   const { slug } = await props.params;
 
@@ -138,30 +154,40 @@ export default async function Page(props: PageProps) {
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours")
     .ilike("slug", slug)
     .maybeSingle();
 
   if (profileData) {
     profile = profileData as Profile;
-    // Se o perfil existe, também precisamos dos dados da organização vinculada (para o WhatsApp, por exemplo)
     if (profile.organization_id) {
-      const { data: orgRaw } = await supabase
+      const { data: brandingData } = await admin
         .from("organizations")
-        .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color")
+        .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color, secondary_color, business_hours")
         .eq("id", profile.organization_id)
         .maybeSingle();
-      if (orgRaw) orgData = orgRaw as any;
+      if (brandingData) {
+        orgData = brandingData as any;
+        console.log(`[DEBUG SERVER] Org found for ${slug}:`, { 
+          id: orgData?.id, 
+          accent: orgData?.accent_color,
+          raw: brandingData.accent_color 
+        });
+      }
     }
   } else {
-    const { data: orgRaw } = await supabase
+    const { data: brandingData } = await admin
       .from("organizations")
-      .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color")
+      .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color, secondary_color, business_hours")
       .ilike("slug", slug)
       .maybeSingle();
       
-    if (orgRaw) {
-      orgData = orgRaw as any;
+    if (brandingData) {
+      orgData = brandingData as any;
+      console.log(`[DEBUG SERVER] Org found directly for slug ${slug}:`, { 
+        id: orgData?.id, 
+        accent: orgData?.accent_color 
+      });
     } else {
       return notFound();
     }
@@ -233,7 +259,9 @@ export default async function Page(props: PageProps) {
     return notFound();
   }
 
-  const { data: catalogData } = await supabase
+
+
+  const { data: catalogData } = await admin
     .from("catalogs")
     .select("id, name, description, catalog_type")
     .eq("id", catalogId)
@@ -241,9 +269,9 @@ export default async function Page(props: PageProps) {
 
   const catalog = (catalogData as Catalog) || { id: catalogId, name: "Catálogo", description: "" };
 
-  const { data: categoriesData } = await supabase
+  const { data: categoriesData, error: catError } = await admin
     .from("categories")
-    .select("id, catalog_id, name, description, sort_order, specs_title, show_specs, show_colors, colors")
+    .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
     .eq("catalog_id", catalogId)
     .order("sort_order", { ascending: true });
 
@@ -252,7 +280,7 @@ export default async function Page(props: PageProps) {
   let products: Product[] = [];
 
   if (targetOrgId) {
-    const { data: productsData } = await supabase
+    const { data: productsData } = await admin
       .from("products")
       .select(
         "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors"
@@ -283,9 +311,11 @@ export default async function Page(props: PageProps) {
     }
   }
 
+  const searchParams = await props.searchParams;
+  const isEmbed = searchParams.embed === "true";
+
   return (
     <>
-      <PublicThemeToggle />
       <ProductCatalogClient
         profileId={trackingProfileId}
         catalogId={catalog.id}
@@ -294,12 +324,18 @@ export default async function Page(props: PageProps) {
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
         logoUrl={(orgData as any)?.logo_url}
         isPureCatalog={(orgData as any)?.business_model === "CaaS"}
-        accentColor={(orgData as any)?.accent_color}
+        isEmbed={isEmbed}
+        accentColor={orgData?.accent_color || (orgData as any)?.accent_color}
+        secondaryColor={orgData?.secondary_color || (orgData as any)?.secondary_color}
         catalogName={catalog.name}
         catalogDescription={catalog.description}
         categories={categories}
         products={products}
         whatsapp={finalWhatsapp}
+        bio={profile?.bio}
+        isAvailable={profile?.is_available}
+        businessHours={orgData?.business_hours}
+        customBusinessHours={profile?.custom_business_hours}
       />
     </>
   );

@@ -37,7 +37,6 @@ export default function SEOPage() {
     favicon_url: "",
     logo_url: "",
     og_image_url: "",
-    accent_color: "#25D366"
   });
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -75,7 +74,6 @@ export default function SEOPage() {
               favicon_url: org.favicon_url || "",
               logo_url: org.logo_url || "",
               og_image_url: org.og_image_url || "",
-              accent_color: org.accent_color || "#25D366"
             });
           }
         }
@@ -182,7 +180,6 @@ export default function SEOPage() {
         favicon_url: newFaviconUrl,
         logo_url: newLogoUrl,
         og_image_url: newOgImageUrl,
-        accent_color: formData.accent_color
       })
       .eq("id", orgId);
 
@@ -244,7 +241,7 @@ export default function SEOPage() {
 
       <div className="p-6 space-y-10">
         
-        {/* 01 - IA Generator (NOW FIRST) */}
+        {/* 01 - IA Generator */}
         <section className="space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>Assistente Inteligente</h2>
           <div className="border rounded-2xl p-5 space-y-4" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
@@ -267,35 +264,17 @@ export default function SEOPage() {
                 {generating ? <Loader2 size={16} className="animate-spin" /> : <><Sparkles size={14} /> Gerar Sugestões</>}
               </button>
             </div>
-            
-            <AnimatePresence>
-              {message && (message.type === "success" || message.type === "error") && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className={`pt-2 border-t flex items-center gap-2 text-xs font-bold ${
-                    message.type === "success" ? "text-emerald-500" : "text-red-500"
-                  }`}
-                  style={{ borderColor: "var(--dash-border)" }}
-                >
-                  {message.type === "success" ? <CheckCircle2 size={14} /> : <X size={14} />}
-                  {message.text}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </section>
 
-        {/* 02 - Informações Gerais */}
+        {/* 02 - Conteúdo SEO */}
         <section className="space-y-6">
           <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>01. Conteúdo da Página</h2>
           
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
-                Título da página <span className="text-red-500">*</span>
-                <Info size={14} style={{ color: "var(--dash-text-muted)" }} />
+                Título da página (Google) <span className="text-red-500">*</span>
               </label>
               <input 
                 type="text" 
@@ -309,27 +288,20 @@ export default function SEOPage() {
 
             <div>
               <label className="text-xs font-medium mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
-                Descrição da página
-                <Info size={14} style={{ color: "var(--dash-text-muted)" }} />
+                Descrição SEO
               </label>
               <textarea 
                 value={formData.meta_description}
                 onChange={e => setFormData({ ...formData, meta_description: e.target.value.slice(0, 320) })}
-                placeholder="Descreva seu negócio para o Google..."
-                rows={4}
+                placeholder="Descreva seu negócio para os resultados de busca..."
+                rows={3}
                 className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all resize-none"
                 style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
-              <div className="flex justify-end mt-1">
-                <span className="text-[10px] font-medium" style={{ color: "var(--dash-text-muted)" }}>{formData.meta_description.length}/320</span>
-              </div>
             </div>
 
             <div>
-              <label className="text-xs font-medium mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
-                Palavras-chave
-                <Info size={14} style={{ color: "var(--dash-text-muted)" }} />
-              </label>
+              <label className="text-xs font-medium mb-1.5" style={{ color: "var(--dash-text-secondary)" }}>Palavras-chave (Tags)</label>
               <input 
                 type="text" 
                 value={formData.meta_keywords}
@@ -342,66 +314,14 @@ export default function SEOPage() {
           </div>
         </section>
 
-        {/* 03 - Identidade Visual (Cores) */}
+        {/* 03 - Ativos de Marca */}
         <section className="space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>02. Marca e Cores</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>02. Identidade e Logos</h2>
           
-          <div className="border rounded-2xl p-6 space-y-6" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Cor de Destaque</p>
-                <p className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>Cor principal do seu catálogo e cartões.</p>
-              </div>
-              <div className="relative group">
-                <div 
-                  className="absolute inset-0 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity"
-                  style={{ background: "conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)" }}
-                />
-                <input 
-                  type="color" 
-                  value={formData.accent_color}
-                  onChange={(e) => setFormData({ ...formData, accent_color: e.target.value })}
-                  className="w-14 h-14 rounded-full border-4 shadow-xl cursor-pointer overflow-hidden p-0 relative z-10 appearance-none bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-full"
-                  style={{ 
-                    borderColor: "var(--dash-surface)", 
-                    background: "conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)" 
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              {[
-                { name: "Maj Orange", color: "#F37021" },
-                { name: "Standard Green", color: "#25D366" },
-                { name: "Royal Purple", color: "#8B5CF6" }
-              ].map((preset) => (
-                <button
-                  key={preset.color}
-                  onClick={() => setFormData({ ...formData, accent_color: preset.color })}
-                  className={`flex-1 group flex items-center justify-center gap-2 px-3 py-3 rounded-xl border transition-all ${
-                    formData.accent_color === preset.color 
-                      ? "ring-2 ring-offset-2 ring-offset-[var(--dash-surface)]" 
-                      : "hover:border-[var(--dash-text-muted)]"
-                  }`}
-                  style={{ 
-                    borderColor: formData.accent_color === preset.color ? "var(--dash-text-primary)" : "var(--dash-border)",
-                    background: "var(--dash-surface)",
-                    "--tw-ring-color": preset.color
-                  } as React.CSSProperties}
-                >
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: preset.color }} />
-                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-primary)" }}>{preset.name.split(' ')[1] || preset.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ativos Visuais (Favicon, Logo, Banner) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Favicon */}
             <div className="space-y-3">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Favicon</label>
+              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Favicon (Ícone da Aba)</label>
               <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5"
                    style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                    onClick={() => { setActiveUploadType("favicon"); setShowImageEditor(true); }}>
@@ -410,7 +330,6 @@ export default function SEOPage() {
                 ) : (
                   <Globe size={24} style={{ color: "var(--dash-text-muted)" }} />
                 )}
-                <span className="text-[10px] font-bold" style={{ color: "var(--dash-text-muted)" }}>64 x 64 px</span>
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-2xl transition-opacity">
                   <Upload size={20} className="text-white" />
                 </div>
@@ -419,7 +338,7 @@ export default function SEOPage() {
 
             {/* Logo */}
             <div className="space-y-3">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Logotipo</label>
+              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Logotipo Principal</label>
               <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5"
                    style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                    onClick={() => { setActiveUploadType("logo"); setShowImageEditor(true); }}>
@@ -428,7 +347,6 @@ export default function SEOPage() {
                 ) : (
                   <Upload size={24} style={{ color: "var(--dash-text-muted)" }} />
                 )}
-                <span className="text-[10px] font-bold" style={{ color: "var(--dash-text-muted)" }}>400 x 200 px</span>
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-2xl transition-opacity">
                   <Upload size={20} className="text-white" />
                 </div>
@@ -438,8 +356,8 @@ export default function SEOPage() {
 
           {/* Banner SEO */}
           <div className="space-y-3">
-            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner de Compartilhamento (SEO)</label>
-            <div className="h-44 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
+            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner de Compartilhamento (Redes Sociais)</label>
+            <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
                  style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                  onClick={() => { setActiveUploadType("banner"); setShowImageEditor(true); }}>
               {formData.og_image_url ? (
@@ -450,7 +368,6 @@ export default function SEOPage() {
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                 <Upload size={24} className="text-white" />
               </div>
-              <div className="absolute bottom-3 right-3 bg-black/60 px-2 py-1 rounded text-[10px] text-white font-bold backdrop-blur-md">1200 x 630 px</div>
             </div>
           </div>
         </section>
@@ -465,10 +382,10 @@ export default function SEOPage() {
               </div>
               <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>{orgSlug}.com</p>
             </div>
-            <h3 className="text-xl font-medium leading-tight hover:underline cursor-pointer" style={{ color: "#1a0dab" }}>
+            <h3 className="text-xl font-medium leading-tight" style={{ color: "#1a0dab" }}>
               {formData.meta_title || "Título da sua empresa"}
             </h3>
-            <p className="text-sm leading-relaxed line-clamp-3" style={{ color: "#4d5156" }}>
+            <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "#4d5156" }}>
               {formData.meta_description || "A descrição que aparecerá nos resultados de busca do Google..."}
             </p>
           </div>
@@ -477,43 +394,16 @@ export default function SEOPage() {
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t flex items-center justify-between" style={{ background: "rgba(0,0,0,0.02)", borderColor: "var(--dash-border)" }}>
+      <div className="p-6 border-t flex items-center justify-end gap-4" style={{ background: "rgba(0,0,0,0.02)", borderColor: "var(--dash-border)" }}>
         <button 
-          className="px-6 py-2.5 border rounded-xl text-sm font-bold transition-all hover:bg-zinc-500/5"
-          style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+          onClick={handleSave}
+          disabled={saving}
+          className="px-10 py-3 rounded-xl text-sm font-black transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+          style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
         >
-          Cancelar
+          {saving ? <Loader2 size={18} className="animate-spin" /> : "Salvar Configurações"}
         </button>
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={handleSave}
-            disabled={saving}
-            className="px-10 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
-            style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : "Salvar Alterações"}
-          </button>
-        </div>
       </div>
-
-      {/* Floating Message */}
-      <AnimatePresence>
-        {message && (message.type === "success" || message.type === "error") && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-10 right-10 z-[100]"
-          >
-            <div className={`px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 font-bold text-sm ${
-              message.type === "success" ? "bg-emerald-500 text-white border-emerald-400" : "bg-red-500 text-white border-red-400"
-            }`}>
-              {message.type === "success" ? <CheckCircle2 size={20} /> : <X size={20} />}
-              {message.text}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <ImageEditorModal
         isOpen={showImageEditor}
@@ -530,14 +420,12 @@ export default function SEOPage() {
           "Editar Banner de SEO"
         }
         description={
-          activeUploadType === "favicon" ? "O favicon é o ícone que aparece na aba do navegador." : 
-          activeUploadType === "logo" ? "O logotipo será exibido no topo do seu catálogo." : 
-          "Este banner aparece quando você compartilha seu link nas redes sociais."
+          activeUploadType === "favicon" ? "Ícone que aparece na aba do navegador." : 
+          activeUploadType === "logo" ? "Logotipo exibido no topo do catálogo." : 
+          "Banner para redes sociais."
         }
         targetWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 400 : 1200}
         targetHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : 630}
-        minWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : 600}
-        minHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 100 : 315}
       />
     </div>
   );
