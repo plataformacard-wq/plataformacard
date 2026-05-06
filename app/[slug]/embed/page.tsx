@@ -55,7 +55,7 @@ export default async function EmbedPage(props: PageProps) {
     }
   }
 
-  const trackingProfileId = profile?.id || orgData?.id;
+  const trackingProfileId = (profile?.id || orgData?.id) || "";
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
   let catalogId: string | null = null;
@@ -126,7 +126,7 @@ export default async function EmbedPage(props: PageProps) {
       />
       <ProductCatalogClient
         profileId={trackingProfileId}
-        catalogId={catalogId}
+        catalogId={catalogId || ""}
         slug={slug}
         fullName={profile?.full_name || orgData?.name}
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}

@@ -196,7 +196,7 @@ export default async function Page(props: PageProps) {
     }
   }
 
-  const trackingProfileId = profile?.id || orgData?.id;
+  const trackingProfileId = (profile?.id || orgData?.id) || "";
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
   let catalogId: string | null = null;
@@ -323,7 +323,7 @@ export default async function Page(props: PageProps) {
     <>
       <ProductCatalogClient
         profileId={trackingProfileId}
-        catalogId={catalog.id}
+        catalogId={catalog.id || ""}
         slug={slug}
         fullName={profile?.full_name || orgData?.name}
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
