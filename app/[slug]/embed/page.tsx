@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 
 type PageProps = {
@@ -17,6 +18,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function EmbedPage(props: PageProps) {
+  const admin = createAdminClient();
   const supabase = await createClient();
   const { slug } = await props.params;
 
@@ -34,7 +36,7 @@ export default async function EmbedPage(props: PageProps) {
     if (profile.organization_id) {
       const { data: orgRaw } = await supabase
         .from("organizations")
-        .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, accent_color")
+        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color")
         .eq("id", profile.organization_id)
         .maybeSingle();
       if (orgRaw) orgData = orgRaw;
@@ -42,7 +44,7 @@ export default async function EmbedPage(props: PageProps) {
   } else {
     const { data: orgRaw } = await supabase
       .from("organizations")
-      .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color")
+      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color")
       .ilike("slug", slug)
       .maybeSingle();
 
@@ -53,7 +55,7 @@ export default async function EmbedPage(props: PageProps) {
     }
   }
 
-  const trackingProfileId = profile?.id || ("caas-org-" + orgData?.id);
+  const trackingProfileId = profile?.id || orgData?.id;
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
   let catalogId: string | null = null;
@@ -89,24 +91,34 @@ export default async function EmbedPage(props: PageProps) {
     .eq("id", catalogId)
     .maybeSingle();
 
-  const { data: categoriesData } = await supabase
+  const { data: categoriesData } = await admin
     .from("categories")
-    .select("id, catalog_id, name, description, sort_order, specs_title, show_specs, show_colors, colors")
+    .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
     .eq("catalog_id", catalogId)
     .order("sort_order", { ascending: true });
 
-  const { data: productsData } = await supabase
-    .from("products")
-    .select("*")
-    .eq("organization_id", targetOrgId)
-    .eq("is_active", true)
-    .is("deleted_at", null)
-    .order("sort_order", { ascending: true });
+  let productsData: any[] = [];
+  if (categoriesData && categoriesData.length > 0) {
+    const categoryIds = categoriesData.map(c => c.id);
+    const { data: prods } = await admin
+      .from("products")
+      .select("*")
+      .in("category_id", categoryIds)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .order("sort_order", { ascending: true });
+    productsData = prods || [];
+  }
 
   let finalWhatsapp = profile?.whatsapp || orgData?.whatsapp || null;
 
   return (
-    <div className="min-h-screen bg-white public-theme-invert">
+    <div className="w-full min-h-screen bg-white overflow-x-hidden">
+      <style dangerouslySetInnerHTML={{ __html: `
+        main { max-width: 100% !important; width: 100% !important; margin: 0 !important; padding-left: 12px !important; padding-right: 12px !important; }
+        .max-w-5xl, .max-w-6xl, .max-w-2xl, .max-w-xl { max-width: 100% !important; width: 100% !important; }
+        .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+      ` }} />
       <script
         dangerouslySetInnerHTML={{
           __html: `document.documentElement.removeAttribute('data-theme');`

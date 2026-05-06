@@ -36,6 +36,27 @@ Para garantir a eficiência e o controle do desenvolvedor sobre o ambiente, o ag
 
 1.  **Uso do Navegador**: Sem demonstrações automáticas no navegador, a não ser que seja extremamente necessário para a resolução de um problema técnico que não possa ser diagnosticado via código ou logs.
 2.  **Prioridade de Código**: O diagnóstico deve sempre priorizar a análise estática de arquivos e logs do terminal antes de recorrer à interface visual.
+3.  **Esquema de Banco (organizations)**: A tabela `organizations` **NÃO** possui atualmente as colunas `whatsapp`, `is_pure_catalog` ou `business_hours`. Estas informações residem nos `profiles` dos administradores ou são calculadas em tempo de execução.
+
+## 🏛️ Arquitetura de Distribuição e Guardrails (CaaS)
+
+### 1. Catálogo Master (Single Source of Truth)
+Para garantir a consistência de marca em larga escala, o sistema suporta o modelo de **Catálogo Master**. 
+- **Refatoração de Queries:** As páginas `/catalogo` e `/embed` agora buscam produtos baseados nas categorias vinculadas ao Catálogo ID, em vez de filtrar estritamente por Organização. Isso permite que múltiplos vendedores compartilhem o mesmo estoque centralizado (Master).
+- **Isolamento de Contato:** Mesmo usando um catálogo compartilhado, o WhatsApp de contato e o identificador do vendedor permanecem únicos para cada instância.
+
+### 2. Hierarquia de Delegação e Segurança
+- **Super Admin (QG):** Possui autoridade transversal. É o único capaz de autorizar o uso de um Catálogo Master por uma nova Organização B2B.
+- **Admin B2B (Cliente):** Possui autoridade organizacional. Pode delegar o catálogo master **apenas para seus próprios vendedores** cadastrados sob seu ID.
+- **Guardrail Estratégico:** O sistema impede tecnicamente que um Admin B2B distribua ou aponte catálogos para entidades fora de sua hierarquia, protegendo o modelo de licenciamento da plataforma.
+
+### 3. Integração de Leads (CRM KIMMO)
+- **Roteamento Inteligente:** O link de WhatsApp agora inclui automaticamente o `Identificador: [slug]` do vendedor.
+- **Identificação no CRM:** Injeção da tag `Identificador: [slug]` na mensagem predefinida do WhatsApp para que o CRM centralizado (ex: Kimmo) realize o transbordo para o vendedor correto instantaneamente.
+
+### 4. Vitrine Pura (Padrão de Design Premium)
+- **Tipografia:** Uso obrigatório de pesos `font-black` e `tracking-tighter` para títulos de produtos e categorias, seguindo a estética "Apple-like".
+- **Embed 100%:** O modo iFrame é configurado para ocupar 100% da largura do container pai, removendo bordas de depuração e margens excessivas.
 
 ---
 
@@ -65,12 +86,16 @@ Para garantir a eficiência e o controle do desenvolvedor sobre o ambiente, o ag
 | **Gerenciamento de Estado** | React Hooks / Supabase Context |
 | **Manipulação de Imagens** | react-easy-crop / browser-image-compression |
 | **Tabelas** | TanStack Table (v8) |
+| **Configuração** | `next.config.ts` com transpile de `framer-motion` para compatibilidade v15/16. |
 
 ---
 
 ## 4. Pendências de Programação (Backlog Técnico)
 
-1.  **Refinamento de RBAC**: Garantir que o `AccessManager` bloqueie dinamicamente ações baseadas no plano contratado.
+1.  **Auditoria e Refinamento CaaS (Prioridade Máxima)**:
+    *   **Correção de Quebra de Palavras**: Ajustar o `word-break` e `overflow` nos cards externos para evitar quebras estranhas em títulos longos.
+    *   **Sincronização do Modal de Detalhes**: Resolver inconsistências visuais e de lógica entre o modal do CaaS e o catálogo padrão B2B.
+2.  **Refinamento de RBAC**: Garantir que o `AccessManager` bloqueie dinamicamente ações baseadas no plano contratado.
 2.  **Sincronização de Sidebar**: Pequenos ajustes na indicação de item ativo quando há mudanças via hash da URL.
 3.  **Logs de Auditoria**: Implementar rastreamento de alterações críticas feitas por vendedores/gestores.
 4.  **Otimização de Performance**: Lazy loading mais agressivo no Bulk Editor para catálogos com +500 itens.
@@ -155,6 +180,10 @@ A plataforma utiliza um sistema unificado de temas com duas identidades visuais 
 | 2026-04-29 | Escopo: Adição da funcionalidade de Acesso Delegado ao Dashboard para Vendedores (B2B). | Antigravity |
 | 2026-04-29 | Arquitetura: Reestruturação do CaaS como extensão do plano Master com suporte a iFrame Embed. | Antigravity |
 | 2026-05-01 | SEO & Branding: Refatoração da página de SEO, implementação de metadados dinâmicos e registro de pendência de cache de Favicon. | Antigravity |
+| 2026-05-02 | Segurança: Restauração da autoridade de Super Admin e implementação do **Modo Simulação (Shadow Mode)** com banner de alerta. | Antigravity |
+| 2026-05-04 | Reorganização: Remoção do seletor de Modelo de Negócio da página de configurações do catálogo e refatoração da UI de Identidade Visual (Premium). | Antigravity- **Sessão 3 (04/05/2026):** Unificação das páginas de Configuração e Implementação. Implementação do sistema de **Auto-Height (V5)** via `postMessage`. Ocultação da sessão de Identidade Visual para redefinição estratégica. Definição da arquitetura de **Catálogo Master**.|
+| 2026-05-04 | UX: Ocultação da sessão de Branding no catálogo para reestruturação estratégica e centralização de configurações de negócio. | Antigravity |
+| 2026-05-05 | **Sessão 4:** Implementação da Arquitetura Master (CaaS), Refinamento Visual "Vitrine Pura" e Integração CRM Kimmo. Fix de 404 por colunas inexistentes na tabela `organizations`. | Antigravity |
 
 ---
 

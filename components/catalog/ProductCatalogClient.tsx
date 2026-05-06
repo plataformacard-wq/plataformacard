@@ -133,12 +133,27 @@ export default function ProductCatalogClient({
   const whatsappUrl = useMemo(() => {
     if (!whatsapp) return null;
     const clean = whatsapp.replace(/\D/g, "");
-    return `https://wa.me/${clean}`;
-  }, [whatsapp]);
+    const message = `Olá! Gostaria de mais informações sobre seus produtos.\n\nIdentificador: ${slug}`;
+    return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+  }, [whatsapp, slug]);
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
+    
+    // Auto-Height for Embed Mode
+    if (isEmbed) {
+      const sendHeight = () => {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ type: 'plataformacard-height', height }, '*');
+      };
+
+      // Envia a altura inicial e monitora mudanças
+      const observer = new ResizeObserver(() => sendHeight());
+      observer.observe(document.body);
+      
+      return () => observer.disconnect();
+    }
+  }, [isEmbed]);
 
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState("center center");
@@ -241,7 +256,7 @@ export default function ProductCatalogClient({
       ? formatPrice(selectedProduct.wholesale_price) 
       : formatPrice(selectedProduct.price);
 
-    const message = `Olá! Tenho interesse no produto *${selectedProduct.name}* para compra em *${modeText}*${priceText ? ` (${priceText})` : ""}.${selectedProduct.sku ? `\nReferência: ${selectedProduct.sku}` : ""}`;
+    const message = `Olá! Tenho interesse no produto *${selectedProduct.name}* para compra em *${modeText}*${priceText ? ` (${priceText})` : ""}.${selectedProduct.sku ? `\nReferência: ${selectedProduct.sku}` : ""}\n\nIdentificador: ${slug}`;
     
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
   }, [whatsapp, selectedProduct, priceMode]);
@@ -296,9 +311,11 @@ export default function ProductCatalogClient({
 
   return (
     <div 
-      className="min-h-screen public-theme-container pb-20 selection:bg-emerald-500/30"
+      className="w-full min-h-screen public-theme-container pb-20 selection:bg-emerald-500/30 !max-w-none !mx-0"
       style={{ 
-        "--primary-color": primaryColor
+        "--primary-color": primaryColor,
+        width: '100%',
+        maxWidth: 'none'
       } as any}
     >
       {/* Background decoration - subtle in light, glowing in dark */}
@@ -361,6 +378,15 @@ export default function ProductCatalogClient({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    void trackAnalyticsEvent({
+                      profileId,
+                      catalogId,
+                      eventType: "whatsapp_click",
+                      pageType: "catalog_header",
+                      metadata: { slug }
+                    });
+                  }}
                   className="hidden sm:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"
                 >
                   <MessageCircle size={14} />
@@ -373,12 +399,12 @@ export default function ProductCatalogClient({
         </motion.header>
       )}
 
-      <main className={`max-w-5xl mx-auto px-6 ${isEmbed ? 'pt-6' : 'pt-12'}`}>
+      <main className={`${isEmbed ? 'w-full px-4' : 'max-w-5xl mx-auto px-6'} ${isEmbed ? 'pt-6' : 'pt-12'}`}>
         <section className="mb-12">
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-3xl md:text-4xl font-extrabold tracking-tight text-[var(--public-text-main)] mb-4"
+            className="text-4xl md:text-5xl font-black tracking-tighter text-[var(--public-text-main)] mb-4"
           >
             {catalogName || "Catálogo"}
           </motion.h1>
@@ -387,7 +413,7 @@ export default function ProductCatalogClient({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-[var(--public-text-dim)] text-lg max-w-2xl leading-relaxed"
+              className={`text-[var(--public-text-dim)] text-lg leading-relaxed ${isEmbed ? 'w-full' : 'max-w-2xl'}`}
             >
               {catalogDescription}
             </motion.p>
@@ -397,7 +423,7 @@ export default function ProductCatalogClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-8 relative max-w-xl"
+            className={`mt-8 relative ${isEmbed ? 'w-full' : 'max-w-xl'}`}
           >
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--public-text-muted)]">
               <Search size={20} />
@@ -424,8 +450,8 @@ export default function ProductCatalogClient({
               >
                 <div className="flex items-end gap-4 mb-8">
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-[var(--public-text-main)] flex items-center gap-3">
-                      <span className="w-2 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--public-text-main)] flex items-center gap-3">
+                      <span className="w-2 h-8 md:h-10 rounded-full" style={{ backgroundColor: primaryColor }} />
                       {category.name}
                     </h2>
                     {category.description && (
@@ -489,7 +515,7 @@ export default function ProductCatalogClient({
 
                       <div className="p-6">
                         <div className="mb-4">
-                          <h3 className="inline-block text-lg font-bold text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-3 py-1.5 rounded-2xl shadow-sm whitespace-pre-wrap">
+                          <h3 className="inline-block text-xl font-black tracking-tighter text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-4 py-2 rounded-2xl shadow-sm whitespace-pre-wrap">
                              {product.name}
                           </h3>
                         </div>
@@ -646,7 +672,7 @@ export default function ProductCatalogClient({
               <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <div className="sticky top-0 z-20 px-6 sm:px-8 py-5 bg-[var(--public-glass-bg)] backdrop-blur-md border-b border-[var(--public-card-border)]">
                   <div className="flex flex-col gap-4">
-                    <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--public-text-main)] leading-tight">
+                    <h2 className="text-3xl sm:text-4xl font-black tracking-tighter text-[var(--public-text-main)] leading-tight">
                       {selectedProduct.name}
                     </h2>
                     <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -800,6 +826,16 @@ export default function ProductCatalogClient({
                           href={productWhatsappUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => {
+                            void trackAnalyticsEvent({
+                              profileId,
+                              catalogId,
+                              productId: selectedProduct.id,
+                              eventType: "whatsapp_click",
+                              pageType: "product_modal",
+                              metadata: { slug, productName: selectedProduct.name, priceMode }
+                            });
+                          }}
                           className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--primary-color)] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
                           style={{ boxShadow: `0 10px 30px ${primaryColor}33` }}
                         >

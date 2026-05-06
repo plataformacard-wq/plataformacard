@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["framer-motion", "motion-dom"],
+  serverExternalPackages: ["@supabase/supabase-js"],
   async redirects() {
     return [
       {

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 
 export const dynamic = "force-dynamic";
@@ -146,8 +147,9 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function Page(props: PageProps) {
-  const admin = (await import("@/lib/supabase/admin")).createAdminClient();
+  const admin = createAdminClient();
   const supabase = await createClient();
+  
   const { slug } = await props.params;
 
   let profile: Profile | null = null;
@@ -164,7 +166,7 @@ export default async function Page(props: PageProps) {
     if (profile.organization_id) {
       const { data: brandingData } = await admin
         .from("organizations")
-        .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color, secondary_color, business_hours")
+        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color")
         .eq("id", profile.organization_id)
         .maybeSingle();
       if (brandingData) {
@@ -179,7 +181,7 @@ export default async function Page(props: PageProps) {
   } else {
     const { data: brandingData } = await admin
       .from("organizations")
-      .select("id, slug, name, favicon_url, logo_url, business_model, whatsapp, is_pure_catalog, accent_color, secondary_color, business_hours")
+      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color")
       .ilike("slug", slug)
       .maybeSingle();
       
@@ -194,7 +196,7 @@ export default async function Page(props: PageProps) {
     }
   }
 
-  const trackingProfileId = profile?.id || ("caas-org-" + orgData?.id);
+  const trackingProfileId = profile?.id || orgData?.id;
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
   let catalogId: string | null = null;
@@ -280,13 +282,15 @@ export default async function Page(props: PageProps) {
 
   let products: Product[] = [];
 
-  if (targetOrgId) {
+  if (categories.length > 0) {
+    const categoryIds = categories.map(c => c.id);
+    
     const { data: productsData } = await admin
       .from("products")
       .select(
         "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors"
       )
-      .eq("organization_id", targetOrgId)
+      .in("category_id", categoryIds)
       .eq("is_active", true)
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });

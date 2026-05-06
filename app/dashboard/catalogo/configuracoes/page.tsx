@@ -13,7 +13,7 @@ export default async function ConfiguracoesPage() {
   // Busca a organização e o catálogo vinculado
   const { data: profile } = await supabase
     .from("profiles")
-    .select("organization_id")
+    .select("organization_id, slug")
     .eq("id", user.id)
     .single();
 
@@ -50,5 +50,5 @@ export default async function ConfiguracoesPage() {
     business_model: orgData?.business_model,
   };
 
-  return <ConfiguracoesClient catalog={catalog} />;
+  return <ConfiguracoesClient catalog={catalog} slug={profile?.slug || ""} />;
 }
