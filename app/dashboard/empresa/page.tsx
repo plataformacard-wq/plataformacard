@@ -37,6 +37,7 @@ export default function EmpresaPage() {
   
   const [businessHours, setBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
+  const [centralizeLeads, setCentralizeLeads] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -56,13 +57,14 @@ export default function EmpresaPage() {
         setOrgId(profile.organization_id);
         const { data: org } = await supabase
           .from("organizations")
-          .select("business_hours, business_model")
+          .select("business_hours, business_model, centralize_leads")
           .eq("id", profile.organization_id)
           .maybeSingle();
         
         if (org) {
           if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
           if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
+          if (org.centralize_leads !== undefined) setCentralizeLeads(!!org.centralize_leads);
         }
       }
       setLoading(false);
@@ -141,11 +143,14 @@ export default function EmpresaPage() {
     setSaving(true);
     setSaveMessage("");
 
+    // IMPORTANTE: Se a coluna 'business_hours' não existir no banco, esta query falhará.
+    // Você deve executar: ALTER TABLE organizations ADD COLUMN IF NOT EXISTS business_hours jsonb;
     const { error } = await supabase
       .from("organizations")
       .update({ 
         business_hours: businessHours as any,
-        business_model: businessModel
+        business_model: businessModel,
+        centralize_leads: centralizeLeads
       })
       .eq("id", orgId);
 

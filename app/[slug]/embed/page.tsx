@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -25,7 +27,7 @@ export default async function EmbedPage(props: PageProps) {
   let profile: any = null;
   let orgData: any = null;
 
-  const { data: profileData } = await supabase
+  const { data: profileData } = await admin
     .from("profiles")
     .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
     .ilike("slug", slug)
@@ -34,17 +36,17 @@ export default async function EmbedPage(props: PageProps) {
   if (profileData) {
     profile = profileData;
     if (profile.organization_id) {
-      const { data: orgRaw } = await supabase
+      const { data: orgRaw } = await admin
         .from("organizations")
-        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color")
+        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads")
         .eq("id", profile.organization_id)
         .maybeSingle();
       if (orgRaw) orgData = orgRaw;
     }
   } else {
-    const { data: orgRaw } = await supabase
+    const { data: orgRaw } = await admin
       .from("organizations")
-      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color")
+      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads")
       .ilike("slug", slug)
       .maybeSingle();
 
@@ -61,20 +63,23 @@ export default async function EmbedPage(props: PageProps) {
   let catalogId: string | null = null;
 
   // Busca catálogo (mesma lógica do catalogo/page.tsx)
+  // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
   if (targetOrgId) {
-    const { data: enabledCatalog } = await supabase
+    const { data: enabledCatalog } = await admin
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", targetOrgId)
       .eq("is_enabled", true)
-      .limit(1)
       .maybeSingle();
 
-    catalogId = enabledCatalog?.catalog_id ?? null;
+    if (enabledCatalog?.catalog_id) {
+      catalogId = enabledCatalog.catalog_id;
+    }
   }
 
+  // FALLBACK 2: Busca direta por owner_id
   if (!catalogId && targetOrgId) {
-    const { data: directCatalog } = await supabase
+    const { data: directCatalog } = await admin
       .from("catalogs")
       .select("id")
       .eq("owner_id", targetOrgId)
@@ -85,7 +90,7 @@ export default async function EmbedPage(props: PageProps) {
 
   if (!catalogId) return notFound();
 
-  const { data: catalogData } = await supabase
+  const { data: catalogData } = await admin
     .from("catalogs")
     .select("id, name, description, catalog_type")
     .eq("id", catalogId)
@@ -110,7 +115,11 @@ export default async function EmbedPage(props: PageProps) {
     productsData = prods || [];
   }
 
+  // CRM KOMMO: Lógica de centralização de leads
   let finalWhatsapp = profile?.whatsapp || orgData?.whatsapp || null;
+  if (orgData?.centralize_leads) {
+    finalWhatsapp = orgData.whatsapp || profile?.whatsapp || null;
+  }
 
   return (
     <div className="w-full min-h-screen bg-white overflow-x-hidden">
@@ -139,6 +148,7 @@ export default async function EmbedPage(props: PageProps) {
         categories={(categoriesData ?? []) as any}
         products={(productsData ?? []) as any}
         whatsapp={finalWhatsapp}
+        businessHours={orgData?.business_hours}
       />
     </div>
   );

@@ -2,10 +2,19 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopHeader } from "@/components/dashboard/TopHeader";
-import { Clock } from "lucide-react";
+import { 
+  Bell, 
+  Menu, 
+  Search, 
+  LogOut, 
+  User, 
+  ChevronRight,
+  X,
+  Clock
+} from "lucide-react";
 import GlobalAlert from "@/components/dashboard/GlobalAlert";
 import { getMyProfile, getOrganizationById } from "@/lib/admin-actions";
 
@@ -34,6 +43,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [isReady, setIsReady] = useState(false);
 
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
+  const [newLead, setNewLead] = useState<{product_name: string, seller_name: string} | null>(null);
 
   useEffect(() => {
     // Tema
@@ -139,6 +149,36 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           console.error("Erro ao buscar configs:", cErr);
         }
 
+        // --- REALTIME LEADS LISTENER ---
+        if (targetOrgId) {
+          const channel = supabase
+            .channel(`leads-${targetOrgId}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'leads_tracking',
+                filter: `organization_id=eq.${targetOrgId}`
+              },
+              (payload) => {
+                const lead = payload.new as any;
+                setNewLead(lead);
+                // Auto-hide after 10 seconds
+                setTimeout(() => setNewLead(null), 10000);
+                
+                // Opcional: Tocar um som leve de notificação
+                try { new Audio('/sounds/notification.mp3').play().catch(() => {}); } catch(e) {}
+              }
+            )
+            .subscribe();
+          
+          setIsReady(true);
+          return () => {
+            supabase.removeChannel(channel);
+          };
+        }
+        
         setIsReady(true);
       } catch (err) {
         console.error("Erro crítico ao carregar painel:", err);
@@ -246,6 +286,42 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Notificação de Novo Lead (Realtime) */}
+      <AnimatePresence>
+        {newLead && (
+          <motion.div
+            initial={{ opacity: 0, x: 100, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 100, scale: 0.9 }}
+            className="fixed bottom-8 right-8 z-[9999] w-80 bg-white dark:bg-zinc-900 border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="bg-emerald-500 px-4 py-2 flex items-center justify-between">
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Novo Lead Detectado!</span>
+              <button onClick={() => setNewLead(null)} className="text-white hover:rotate-90 transition-transform">
+                <X size={14} />
+              </button>
+            </div>
+            <div className="p-4 flex gap-4">
+              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shrink-0">
+                <Clock size={24} className="animate-pulse" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-[var(--dash-text-primary)] truncate">
+                  {newLead.product_name}
+                </p>
+                <p className="text-[10px] text-[var(--dash-text-secondary)] mt-0.5">
+                  Vendedor: <span className="font-bold text-emerald-500">{newLead.seller_name}</span>
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="text-[9px] font-black uppercase text-emerald-500 tracking-tighter">Aguardando no WhatsApp...</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

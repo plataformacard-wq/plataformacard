@@ -12,6 +12,7 @@ export async function trackAnalyticsEvent({
   visitorId,
   catalogId = null,
   productId = null,
+  organizationId = null,
   referrer,
   userAgent,
   metadata = {},
@@ -22,6 +23,7 @@ export async function trackAnalyticsEvent({
   visitorId?: string;
   catalogId?: string | null;
   productId?: string | null;
+  organizationId?: string | null;
   referrer?: string | null;
   userAgent?: string | null;
   metadata?: Record<string, any>;
@@ -53,6 +55,7 @@ export async function trackAnalyticsEvent({
       visitor_id: safeVisitorId || "",
       catalog_id: catalogId ?? null,
       product_id: productId ?? null,
+      organization_id: organizationId ?? null,
       referrer: safeReferrer || "",
       user_agent: safeUserAgent || "",
       metadata: metadata ?? {},

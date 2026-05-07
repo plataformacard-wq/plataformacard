@@ -14,14 +14,17 @@ type TopProductRow = {
 
 export async function getTopProducts(
   profileId: string,
-  limit = 5
+  limit = 5,
+  organizationId?: string | null
 ): Promise<TopProduct[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.rpc("get_top_products", {
-    p_profile_id: profileId,
-    p_limit: limit,
-  });
+  const { data, error } = await supabase.rpc(
+    organizationId ? "get_organization_top_products" : "get_top_products",
+    organizationId 
+      ? { p_org_id: organizationId, p_limit: limit }
+      : { p_profile_id: profileId, p_limit: limit }
+  );
 
   if (error) {
     throw new Error(

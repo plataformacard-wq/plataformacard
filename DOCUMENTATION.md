@@ -38,6 +38,14 @@ Para garantir a eficiência e o controle do desenvolvedor sobre o ambiente, o ag
 2.  **Prioridade de Código**: O diagnóstico deve sempre priorizar a análise estática de arquivos e logs do terminal antes de recorrer à interface visual.
 3.  **Esquema de Banco (organizations)**: A tabela `organizations` **NÃO** possui atualmente as colunas `whatsapp`, `is_pure_catalog` ou `business_hours`. Estas informações residem nos `profiles` dos administradores ou são calculadas em tempo de execução.
 
+## 🛡️ Protocolo de Auditoria Pré-Push (Vercel Ready)
+Para garantir que cada deploy seja bem-sucedido e evitar erros de build em produção, adotamos o seguinte check-list obrigatório antes de qualquer `git push`:
+
+1.  **TypeScript Check (`npx tsc --noEmit`)**: Garante que não há erros de tipagem ou referências a variáveis inexistentes (evita 90% dos erros de build).
+2.  **Import Audit**: Verificar se todos os ícones (Lucide) e componentes usados foram devidamente importados.
+3.  **Case-Sensitivity**: Confirmar se o nome dos arquivos importados coincide exatamente com o sistema de arquivos (importante para deploy em Linux/Vercel).
+4.  **Cleanup**: Remover `console.log` de diagnóstico excessivos e garantir que blocos `try/catch` tenham tratamento mínimo.
+
 ## 🏛️ Arquitetura de Distribuição e Guardrails (CaaS)
 
 ### 1. Catálogo Master (Single Source of Truth)
@@ -50,9 +58,9 @@ Para garantir a consistência de marca em larga escala, o sistema suporta o mode
 - **Admin B2B (Cliente):** Possui autoridade organizacional. Pode delegar o catálogo master **apenas para seus próprios vendedores** cadastrados sob seu ID.
 - **Guardrail Estratégico:** O sistema impede tecnicamente que um Admin B2B distribua ou aponte catálogos para entidades fora de sua hierarquia, protegendo o modelo de licenciamento da plataforma.
 
-### 3. Integração de Leads (CRM KIMMO)
+### 3. Integração de Leads (CRM KOMMO)
 - **Roteamento Inteligente:** O link de WhatsApp agora inclui automaticamente o `Identificador: [slug]` do vendedor.
-- **Identificação no CRM:** Injeção da tag `Identificador: [slug]` na mensagem predefinida do WhatsApp para que o CRM centralizado (ex: Kimmo) realize o transbordo para o vendedor correto instantaneamente.
+- **Identificação no CRM:** Injeção da tag `Identificador: [slug]` na mensagem predefinida do WhatsApp para que o CRM centralizado (ex: Kommo) realize o transbordo para o vendedor correto instantaneamente.
 
 ### 4. Vitrine Pura (Padrão de Design Premium)
 - **Tipografia:** Uso obrigatório de pesos `font-black` e `tracking-tighter` para títulos de produtos e categorias, seguindo a estética "Apple-like".
@@ -148,6 +156,9 @@ Para garantir a consistência de marca em larga escala, o sistema suporta o mode
 
 ## 8. Design System e Padrões de Tema (Themes)
 
+- **Cores Dinâmicas:** Primária e Secundária são configuradas via Dashboard e refletem a identidade visual da marca do cliente.
+- **Verde WhatsApp Imutável:** Por regra de reconhecimento de marca e UX, todos os botões de ação do WhatsApp devem utilizar obrigatoriamente a cor `#25D366`, independentemente do tema configurado.
+
 A plataforma utiliza um sistema unificado de temas com duas identidades visuais distintas e marcantes. O controle global do tema é feito através de CSS puro (`globals.css`) integrado com as variáveis do TailwindCSS.
 
 ### Padrão Oficial (Modo Escuro / Premium)
@@ -183,7 +194,7 @@ A plataforma utiliza um sistema unificado de temas com duas identidades visuais 
 | 2026-05-02 | Segurança: Restauração da autoridade de Super Admin e implementação do **Modo Simulação (Shadow Mode)** com banner de alerta. | Antigravity |
 | 2026-05-04 | Reorganização: Remoção do seletor de Modelo de Negócio da página de configurações do catálogo e refatoração da UI de Identidade Visual (Premium). | Antigravity- **Sessão 3 (04/05/2026):** Unificação das páginas de Configuração e Implementação. Implementação do sistema de **Auto-Height (V5)** via `postMessage`. Ocultação da sessão de Identidade Visual para redefinição estratégica. Definição da arquitetura de **Catálogo Master**.|
 | 2026-05-04 | UX: Ocultação da sessão de Branding no catálogo para reestruturação estratégica e centralização de configurações de negócio. | Antigravity |
-| 2026-05-05 | **Sessão 4:** Implementação da Arquitetura Master (CaaS), Refinamento Visual "Vitrine Pura" e Integração CRM Kimmo. Fix de 404 por colunas inexistentes na tabela `organizations`. | Antigravity |
+| 2026-05-05 | **Sessão 4:** Implementação da Arquitetura Master (CaaS), Refinamento Visual "Vitrine Pura" e Integração CRM Kommo. Fix de 404 por colunas inexistentes na tabela `organizations`. | Antigravity |
 
 ---
 

@@ -33,7 +33,7 @@ export default async function AnalyticsPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, organization_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -42,9 +42,9 @@ export default async function AnalyticsPage() {
   }
 
   const [summary, topProducts, productConversion] = (await Promise.all([
-    getAnalyticsSummary(profile.id),
-    getTopProducts(profile.id, 5),
-    getProductConversion(profile.id),
+    getAnalyticsSummary(profile.id, profile.organization_id),
+    getTopProducts(profile.id, 5, profile.organization_id),
+    getProductConversion(profile.id, profile.organization_id),
   ])) as [any, any, any[]];
 
   const rateProfileToCatalog = pct(summary.catalogViews, summary.profileViews);

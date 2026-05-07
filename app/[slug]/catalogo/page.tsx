@@ -34,6 +34,7 @@ type Organization = {
   accent_color?: string | null;
   secondary_color?: string | null;
   business_hours?: any;
+  centralize_leads?: boolean | null;
 };
 
 type Catalog = {
@@ -92,7 +93,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const searchParams = await props.searchParams;
   const isEmbed = searchParams.embed === "true";
   
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
   // Se for embed, evitamos indexação pesada ou títulos genéricos
   if (isEmbed) {
@@ -102,7 +103,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     };
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from("profiles")
     .select("full_name, bio, organization_id")
     .ilike("slug", slug)
@@ -110,14 +111,14 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   let orgData = null;
   if (profile?.organization_id) {
-    const { data: org } = await supabase
+    const { data: org } = await admin
       .from("organizations")
       .select("name, meta_title, meta_description, favicon_url")
       .eq("id", profile.organization_id)
       .maybeSingle();
     orgData = org;
   } else {
-    const { data: org } = await supabase
+    const { data: org } = await admin
       .from("organizations")
       .select("name, meta_title, meta_description, favicon_url")
       .ilike("slug", slug)
@@ -155,7 +156,7 @@ export default async function Page(props: PageProps) {
   let profile: Profile | null = null;
   let orgData: Organization | null = null;
 
-  const { data: profileData } = await supabase
+  const { data: profileData } = await admin
     .from("profiles")
     .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours")
     .ilike("slug", slug)
@@ -166,7 +167,7 @@ export default async function Page(props: PageProps) {
     if (profile.organization_id) {
       const { data: brandingData } = await admin
         .from("organizations")
-        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color")
+        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color, business_hours, centralize_leads")
         .eq("id", profile.organization_id)
         .maybeSingle();
       if (brandingData) {
@@ -181,7 +182,7 @@ export default async function Page(props: PageProps) {
   } else {
     const { data: brandingData } = await admin
       .from("organizations")
-      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color")
+      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color, business_hours, centralize_leads")
       .ilike("slug", slug)
       .maybeSingle();
       
@@ -201,17 +202,31 @@ export default async function Page(props: PageProps) {
 
   let catalogId: string | null = null;
 
-  if (profile) {
-    const { data: profileCatalogData } = await supabase
+  // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
+  if (targetOrgId) {
+    const { data: enabledCatalog } = await admin
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", targetOrgId)
+      .eq("is_enabled", true)
+      .maybeSingle();
+
+    if (enabledCatalog?.catalog_id) {
+      catalogId = enabledCatalog.catalog_id;
+    }
+  }
+
+  // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja Master)
+  if (!catalogId && profile) {
+    const { data: profileCatalogData } = await admin
       .from("profile_catalogs")
       .select("organization_catalog_id")
       .eq("profile_id", profile.id)
       .eq("is_selected", true)
-      .limit(1)
       .maybeSingle();
 
     if (profileCatalogData?.organization_catalog_id) {
-      const { data: orgCatalogFromProfile } = await supabase
+      const { data: orgCatalogFromProfile } = await admin
         .from("organization_catalogs")
         .select("catalog_id")
         .eq("id", profileCatalogData.organization_catalog_id)
@@ -221,34 +236,9 @@ export default async function Page(props: PageProps) {
     }
   }
 
-  // Tenta primeiro catálogo habilitado
+  // FALLBACK 3: Busca direta por owner_id
   if (!catalogId && targetOrgId) {
-    const { data: enabledCatalog } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id")
-      .eq("organization_id", targetOrgId)
-      .eq("is_enabled", true)
-      .limit(1)
-      .maybeSingle();
-
-    catalogId = enabledCatalog?.catalog_id ?? null;
-  }
-
-  // Fallback B2B/CaaS: pega qualquer catálogo da organização
-  if (!catalogId && targetOrgId) {
-    const { data: anyCatalog } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id")
-      .eq("organization_id", targetOrgId)
-      .limit(1)
-      .maybeSingle();
-
-    catalogId = anyCatalog?.catalog_id ?? null;
-  }
-
-  // Fallback de Segurança Máxima: Busca direta na tabela catalogs pelo owner_id
-  if (!catalogId && targetOrgId) {
-    const { data: directCatalog } = await supabase
+    const { data: directCatalog } = await admin
       .from("catalogs")
       .select("id")
       .eq("owner_id", targetOrgId)
@@ -299,11 +289,17 @@ export default async function Page(props: PageProps) {
   }
 
   // Triple-check fallback para o WhatsApp
-  let finalWhatsapp = profile?.whatsapp || (orgData as any)?.whatsapp || null;
+  // CRM KOMMO: Lógica de centralização de leads
+  let finalWhatsapp = profile?.whatsapp || orgData?.whatsapp || null;
+  
+  if (orgData?.centralize_leads) {
+    // Se a centralização estiver ativa, forçamos o WhatsApp da Organização para transbordo
+    finalWhatsapp = orgData.whatsapp || profile?.whatsapp || null;
+  }
 
   if (!finalWhatsapp && targetOrgId) {
     // Busca o WhatsApp de qualquer admin dessa organização
-    const { data: adminProfile } = await supabase
+    const { data: adminProfile } = await admin
       .from("profiles")
       .select("whatsapp")
       .eq("organization_id", targetOrgId)
@@ -341,6 +337,7 @@ export default async function Page(props: PageProps) {
         isAvailable={profile?.is_available}
         businessHours={orgData?.business_hours}
         customBusinessHours={profile?.custom_business_hours}
+        organizationId={targetOrgId}
       />
     </>
   );

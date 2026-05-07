@@ -15,15 +15,14 @@ type AnalyticsSummaryRow = {
 };
 
 export async function getAnalyticsSummary(
-  profileId: string
+  profileId: string,
+  organizationId?: string | null
 ): Promise<AnalyticsSummary> {
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc(
-    "get_profile_analytics_summary",
-    {
-      p_profile_id: profileId,
-    }
+    organizationId ? "get_organization_analytics_summary" : "get_profile_analytics_summary",
+    organizationId ? { p_org_id: organizationId } : { p_profile_id: profileId }
   );
 
   if (error) {

@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+
+const supabase = createClient();
 import { 
   Search, 
   ChevronLeft, 
@@ -16,7 +19,8 @@ import {
   Package,
   Tag,
   Layers,
-  Check
+  Check,
+  Clock
 } from "lucide-react";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import { getBusinessStatus } from "@/lib/utils/time";
@@ -83,6 +87,7 @@ type ProductCatalogClientProps = {
   isAvailable?: boolean | null;
   businessHours?: any;
   customBusinessHours?: any;
+  organizationId?: string | null;
 };
 
 const cleanProductName = (name: string) => name.replace(/\s*-\s*EDITADO\s*$/gi, "").trim();
@@ -114,7 +119,8 @@ export default function ProductCatalogClient({
   bio,
   isAvailable,
   businessHours,
-  customBusinessHours
+  customBusinessHours,
+  organizationId
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "#25D366";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -143,15 +149,25 @@ export default function ProductCatalogClient({
     // Auto-Height for Embed Mode
     if (isEmbed) {
       const sendHeight = () => {
-        const height = document.body.scrollHeight;
+        // Use offsetHeight of documentElement for better accuracy in some browsers
+        const height = document.documentElement.offsetHeight || document.body.scrollHeight;
         window.parent.postMessage({ type: 'plataformacard-height', height }, '*');
       };
 
-      // Envia a altura inicial e monitora mudanças
+      // Envia a altura inicial e monitora mudanças de tamanho do corpo
       const observer = new ResizeObserver(() => sendHeight());
       observer.observe(document.body);
       
-      return () => observer.disconnect();
+      // Também monitora o carregamento de imagens (que mudam a altura após o render inicial)
+      window.addEventListener('load', sendHeight);
+      
+      // Envio inicial imediato
+      sendHeight();
+
+      return () => {
+        observer.disconnect();
+        window.removeEventListener('load', sendHeight);
+      };
     }
   }, [isEmbed]);
 
@@ -204,11 +220,12 @@ export default function ProductCatalogClient({
     void trackAnalyticsEvent({
       profileId,
       catalogId,
+      organizationId: organizationId,
       eventType: "catalog_view",
       pageType: "catalog",
       metadata: { slug, path: `/${slug}/catalogo` },
     });
-  }, [profileId, catalogId, slug]);
+  }, [profileId, catalogId, slug, organizationId]);
 
   useEffect(() => {
     if (selectedProductId) {
@@ -259,7 +276,23 @@ export default function ProductCatalogClient({
     const message = `Olá! Tenho interesse no produto *${selectedProduct.name}* para compra em *${modeText}*${priceText ? ` (${priceText})` : ""}.${selectedProduct.sku ? `\nReferência: ${selectedProduct.sku}` : ""}\n\nIdentificador: ${slug}`;
     
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
-  }, [whatsapp, selectedProduct, priceMode]);
+  }, [whatsapp, selectedProduct, priceMode, slug]);
+
+  const trackLead = async (productName?: string) => {
+    console.log("📍 trackLead iniciado para:", productName);
+    try {
+      const { error } = await supabase.from("leads_tracking").insert({
+        organization_id: organizationId,
+        profile_id: profileId,
+        product_name: productName || "Interesse Geral (Botão Topo)",
+        seller_name: fullName || "Vendedor"
+      });
+      if (error) console.error("❌ Lead Tracking Error:", error);
+      else console.log("✅ Lead Tracking Sucesso!");
+    } catch (err) {
+      console.error("🔥 Lead Tracking Catch:", err);
+    }
+  };
 
   const handleImageZoomMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -269,13 +302,16 @@ export default function ProductCatalogClient({
   };
 
   const handleOpenProduct = (product: Product) => {
+    console.log("📦 Abrindo produto:", product.name);
     setSelectedProductId(product.id);
+    
     void trackAnalyticsEvent({
       profileId,
       catalogId,
+      organizationId: organizationId,
       productId: product.id,
       eventType: "product_click",
-      pageType: "product",
+      pageType: "catalog",
       metadata: { slug, path: `/${slug}/catalogo`, productName: product.name },
     });
   };
@@ -374,29 +410,65 @@ export default function ProductCatalogClient({
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {whatsappUrl && (
-                <a 
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    void trackAnalyticsEvent({
-                      profileId,
-                      catalogId,
-                      eventType: "whatsapp_click",
-                      pageType: "catalog_header",
-                      metadata: { slug }
-                    });
-                  }}
-                  className="hidden sm:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"
-                >
-                  <MessageCircle size={14} />
-                  WhatsApp
-                </a>
+                businessStatus.isAvailableNow ? (
+                  <a 
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      console.log("🖱️ Clique WhatsApp Topo detectado");
+                      void trackLead();
+                      void trackAnalyticsEvent({
+                        profileId,
+                        catalogId,
+                        organizationId: organizationId,
+                        eventType: "whatsapp_click",
+                        pageType: "catalog_header",
+                        metadata: { slug }
+                      });
+                    }}
+                    className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg"
+                  >
+                    <MessageCircle size={14} />
+                    WhatsApp
+                  </a>
+                ) : (
+                  <div 
+                    onClick={() => {
+                      console.log("🖱️ Clique WhatsApp (FECHADO) Topo detectado");
+                      void trackAnalyticsEvent({
+                        profileId,
+                        catalogId,
+                        eventType: "whatsapp_click_closed",
+                        pageType: "catalog_header",
+                        metadata: { slug }
+                      });
+                    }}
+                    className="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-500 px-4 py-2 rounded-xl text-[10px] font-bold border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <Clock size={12} />
+                    Fechado
+                  </div>
+                )
               )}
               <PublicThemeToggle className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center bg-[var(--public-bg)] border border-[var(--public-card-border)] hover:bg-[var(--public-card-bg)] transition-colors text-[var(--public-text-main)] shadow-sm" />
             </div>
           </div>
         </motion.header>
+      )}
+      
+      {/* Floating Status Badge for Embed Mode */}
+      {isEmbed && (
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="fixed top-4 right-4 z-[60] flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] backdrop-blur-md shadow-lg"
+        >
+          <div className={`w-2 h-2 rounded-full ${businessStatus.isAvailableNow ? 'bg-emerald-500' : 'bg-slate-400'} animate-pulse`} />
+          <span className="text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-wider">
+            {businessStatus.statusMessage}
+          </span>
+        </motion.div>
       )}
 
       <main className={`${isEmbed ? 'w-full px-4' : 'max-w-5xl mx-auto px-6'} ${isEmbed ? 'pt-6' : 'pt-12'}`}>
@@ -404,7 +476,7 @@ export default function ProductCatalogClient({
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-4xl md:text-5xl font-black tracking-tighter text-[var(--public-text-main)] mb-4"
+            className="text-3xl md:text-4xl font-black tracking-tighter text-[var(--public-text-main)] mb-4"
           >
             {catalogName || "Catálogo"}
           </motion.h1>
@@ -820,30 +892,56 @@ export default function ProductCatalogClient({
                     <div className="absolute inset-x-0 -top-12 h-12 pointer-events-none public-footer-fade" />
                     <div className="relative">
                       {selectedProduct.is_in_stock !== false ? (
-                        <motion.a
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          href={productWhatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => {
-                            void trackAnalyticsEvent({
-                              profileId,
-                              catalogId,
-                              productId: selectedProduct.id,
-                              eventType: "whatsapp_click",
-                              pageType: "product_modal",
-                              metadata: { slug, productName: selectedProduct.name, priceMode }
-                            });
-                          }}
-                          className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--primary-color)] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
-                          style={{ boxShadow: `0 10px 30px ${primaryColor}33` }}
-                        >
-                          <MessageCircle size={20} />
-                          Fazer Pedido via WhatsApp
-                        </motion.a>
+                        businessStatus.isAvailableNow ? (
+                          <motion.a
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            href={productWhatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              console.log("🖱️ Clique WhatsApp Produto detectado:", selectedProduct.name);
+                              void trackLead(selectedProduct.name);
+                              void trackAnalyticsEvent({
+                                profileId,
+                                catalogId,
+                                organizationId: organizationId,
+                                productId: selectedProduct.id,
+                                eventType: "whatsapp_click",
+                                pageType: "product_modal",
+                                metadata: { slug, productName: selectedProduct.name, priceMode }
+                              });
+                            }}
+                            className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
+                            style={{ boxShadow: `0 10px 30px #25D36633` }}
+                          >
+                            <MessageCircle size={20} />
+                            Fazer Pedido via WhatsApp
+                          </motion.a>
+                        ) : (
+                          <div 
+                            onClick={() => {
+                              console.log("🖱️ Clique WhatsApp (FECHADO) Produto detectado:", selectedProduct.name);
+                              void trackAnalyticsEvent({
+                                profileId,
+                                catalogId,
+                                productId: selectedProduct.id,
+                                eventType: "whatsapp_click_closed",
+                                pageType: "product_modal",
+                                metadata: { slug, productName: selectedProduct.name, priceMode }
+                              });
+                            }}
+                            className="flex flex-col items-center justify-center gap-1 w-full py-3 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-2xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                          >
+                            <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
+                              <Clock size={16} />
+                              Estabelecimento Fechado
+                            </div>
+                            <span className="text-[10px] font-medium opacity-70">Clique para registrar interesse mesmo fechado</span>
+                          </div>
+                        )
                       ) : (
-                        <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-2xl border border-[var(--public-card-border)] transition-all text-sm uppercase tracking-wider cursor-not-allowed">
+                        <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-2xl border border-[var(--public-card-border)] transition-all text-sm uppercase tracking-wider cursor-not-allowed opacity-60">
                           <Package size={20} />
                           Produto Indisponível
                         </div>

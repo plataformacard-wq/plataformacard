@@ -1,11 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function getProductConversion(profileId: string) {
+export async function getProductConversion(
+  profileId: string,
+  organizationId?: string | null
+) {
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc(
-    "get_product_conversion",
-    { input_profile_id: profileId }
+    organizationId ? "get_organization_product_conversion" : "get_product_conversion",
+    organizationId ? { input_org_id: organizationId } : { input_profile_id: profileId }
   );
 
   if (error) {
