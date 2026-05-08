@@ -45,6 +45,7 @@ Para garantir que cada deploy seja bem-sucedido e evitar erros de build em produ
 2.  **Import Audit**: Verificar se todos os ícones (Lucide) e componentes usados foram devidamente importados.
 3.  **Case-Sensitivity**: Confirmar se o nome dos arquivos importados coincide exatamente com o sistema de arquivos (importante para deploy em Linux/Vercel).
 4.  **Cleanup**: Remover `console.log` de diagnóstico excessivos e garantir que blocos `try/catch` tenham tratamento mínimo.
+5.  **Suspense Check (CSR Bailout)**: Garantir que qualquer Client Component que utilize `useSearchParams()` esteja envolvido em um `<Suspense>` boundary. (Obrigatório para evitar erro de prerendering na Vercel).
 
 ## 🏛️ Arquitetura de Distribuição e Guardrails (CaaS)
 
@@ -194,7 +195,8 @@ A plataforma utiliza um sistema unificado de temas com duas identidades visuais 
 | 2026-05-02 | Segurança: Restauração da autoridade de Super Admin e implementação do **Modo Simulação (Shadow Mode)** com banner de alerta. | Antigravity |
 | 2026-05-04 | Reorganização: Remoção do seletor de Modelo de Negócio da página de configurações do catálogo e refatoração da UI de Identidade Visual (Premium). | Antigravity- **Sessão 3 (04/05/2026):** Unificação das páginas de Configuração e Implementação. Implementação do sistema de **Auto-Height (V5)** via `postMessage`. Ocultação da sessão de Identidade Visual para redefinição estratégica. Definição da arquitetura de **Catálogo Master**.|
 | 2026-05-04 | UX: Ocultação da sessão de Branding no catálogo para reestruturação estratégica e centralização de configurações de negócio. | Antigravity |
-| 2026-05-05 | **Sessão 4:** Implementação da Arquitetura Master (CaaS), Refinamento Visual "Vitrine Pura" e Integração CRM Kommo. Fix de 404 por colunas inexistentes na tabela `organizations`. | Antigravity |
+| 2026-05-07 | **Build Fix**: Implementação de Suspense boundaries na página de perfil para resolver erro de `useSearchParams` no deploy da Vercel. | Antigravity |
+| 2026-05-08 | **Unificação B2C**: Estabilização do modelo Essential, correção de fallbacks de acesso e limpeza de dados placeholder. | Antigravity |
 
 ---
 
