@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
@@ -57,7 +57,7 @@ function sanitizeSlug(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export default function PerfilPage() {
+function PerfilContent() {
   const supabase = createClient();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -756,5 +756,12 @@ export default function PerfilPage() {
         minHeight={400}
       />
     </div>
+  );
+}
+export default function PerfilPage() {
+  return (
+    <Suspense fallback={null}>
+      <PerfilContent />
+    </Suspense>
   );
 }
