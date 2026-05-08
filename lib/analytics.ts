@@ -72,3 +72,33 @@ export async function trackAnalyticsEvent({
     console.warn("Erro inesperado ao registrar analytics:", error);
   }
 }
+
+export async function createAnalyticsCheckpoint({
+  organizationId,
+  profileId,
+  name = "Reset manual",
+}: {
+  organizationId?: string | null;
+  profileId: string;
+  name?: string;
+}) {
+  try {
+    const { data, error } = await supabase
+      .from("analytics_checkpoints")
+      .insert({
+        organization_id: organizationId || null,
+        profile_id: profileId,
+        created_by: profileId,
+        name,
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erro ao criar checkpoint de analytics:", error);
+    return { data: null, error };
+  }
+}

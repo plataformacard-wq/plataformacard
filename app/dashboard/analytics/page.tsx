@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getAnalyticsSummary } from "@/lib/dashboard/getAnalyticsSummary";
 import { getTopProducts } from "@/lib/dashboard/getTopProducts";
 import { getProductConversion } from "@/lib/dashboard/getProductConversion";
+import AnalyticsControls from "@/components/dashboard/analytics/AnalyticsControls";
+import PrintReportButton from "@/components/dashboard/analytics/PrintReportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,12 @@ const card = {
   boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
 } as React.CSSProperties;
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage(props: {
+  searchParams: Promise<{ period?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const period = searchParams.period || "all";
+  
   const supabase = await createClient();
 
   const {
@@ -41,10 +48,39 @@ export default async function AnalyticsPage() {
     redirect("/entrar");
   }
 
+  // Busca dados da organização para o relatório
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("name")
+    .eq("id", profile.organization_id)
+    .single();
+
+  // Lógica de cálculo de datas baseada no período
+  let startDate: string | undefined;
+  let endDate: string | undefined;
+
+  const now = new Date();
+  if (period === "today") {
+    const start = new Date(now.setHours(0, 0, 0, 0));
+    startDate = start.toISOString();
+  } else if (period === "7d") {
+    const start = new Date(now.setDate(now.getDate() - 7));
+    startDate = start.toISOString();
+  } else if (period === "30d") {
+    const start = new Date(now.setDate(now.getDate() - 30));
+    startDate = start.toISOString();
+  } else if (period === "month") {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    startDate = start.toISOString();
+  } else if (period === "year") {
+    const start = new Date(now.getFullYear(), 0, 1);
+    startDate = start.toISOString();
+  }
+
   const [summary, topProducts, productConversion] = (await Promise.all([
-    getAnalyticsSummary(profile.id, profile.organization_id),
-    getTopProducts(profile.id, 5, profile.organization_id),
-    getProductConversion(profile.id, profile.organization_id),
+    getAnalyticsSummary(profile.id, profile.organization_id, startDate, endDate),
+    getTopProducts(profile.id, 5, profile.organization_id, startDate, endDate),
+    getProductConversion(profile.id, profile.organization_id, startDate, endDate),
   ])) as [any, any, any[]];
 
   const rateProfileToCatalog = pct(summary.catalogViews, summary.profileViews);
@@ -56,14 +92,36 @@ export default async function AnalyticsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
-          Analytics
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-          Métricas de visitas, cliques e conversões.
-        </p>
+      {/* Cabeçalho do Relatório (Apenas Impressão) */}
+      <div className="print-only mb-10 border-b-2 border-emerald-500 pb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-black text-black">Relatório de Desempenho</h1>
+            <p className="text-sm font-bold text-zinc-500 mt-1">{organization?.name || "PlataformaCard"}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Documento Oficial</p>
+            <p className="text-xs font-bold text-zinc-400 mt-1">{new Date().toLocaleDateString("pt-BR")}</p>
+          </div>
+        </div>
       </div>
+
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+            Analytics
+          </h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+            Métricas de visitas, cliques e conversões.
+          </p>
+        </div>
+        <PrintReportButton />
+      </div>
+
+      <AnalyticsControls 
+        organizationId={profile.organization_id} 
+        profileId={profile.id} 
+      />
 
       {/* KPIs */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

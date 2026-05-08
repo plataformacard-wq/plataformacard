@@ -99,7 +99,7 @@ export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C
       .eq('organization_id', orgId)
       .in('role', ['b2b_admin', 'b2c_admin', 'admin']);
 
-    revalidatePath("/admin");
+    // revalidatePath("/admin"); // Removido para evitar race condition no modal
     return { success: true };
   } catch (error: any) {
     console.error("Erro ao atualizar modelo de negócio:", error);
@@ -180,11 +180,64 @@ export async function getMyProfile() {
   if (!user) return null;
   
   const admin = createAdminClient();
-  const { data: profile } = await admin
+  let { data: profile } = await admin
     .from("profiles")
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  // Fallback: Se não achou pelo ID, tenta pelo e-mail (para casos de erro no trigger de cadastro)
+  if (!profile && user.email) {
+    console.log("Perfil não encontrado por ID, tentando por e-mail:", user.email);
+    const { data: profileByEmail } = await admin
+      .from("profiles")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
+    
+    if (profileByEmail) {
+      profile = profileByEmail;
+      // Aproveita e atualiza o user_id no banco para corrigir o erro permanentemente
+      await admin
+        .from("profiles")
+        .update({ user_id: user.id })
+        .eq("id", profileByEmail.id);
+    } else {
+      // ÚLTIMA INSTÂNCIA: Criar TUDO (Empresa + Perfil) se nada existir
+      console.log("Criando conta completa de emergência para:", user.email);
+      
+      // 1. Cria a Organização
+      const orgSlug = user.email?.split('@')[0] + "-" + Math.floor(Math.random() * 1000);
+      const { data: newOrg, error: orgError } = await admin
+        .from("organizations")
+        .insert({
+          name: "Minha Plataforma",
+          slug: orgSlug,
+          business_model: 'B2C',
+          plan_id: '32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0' // Plano Inicial
+        })
+        .select("*")
+        .single();
+
+      if (!orgError && newOrg) {
+        // 2. Cria o Perfil vinculado à nova Organização
+        const { data: newProfile, error: profError } = await admin
+          .from("profiles")
+          .insert({
+            user_id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+            role: 'b2c_admin',
+            slug: orgSlug,
+            organization_id: newOrg.id
+          })
+          .select("*")
+          .single();
+        
+        if (!profError) profile = newProfile;
+      }
+    }
+  }
     
   return profile;
 }

@@ -173,3 +173,87 @@ button, a, [role="button"] {
   box-shadow: var(--public-card-shadow);
 }
 
+/* Print Styles for Reports */
+@media print {
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 10pt;
+  }
+
+  /* Hide UI elements */
+  aside, 
+  header, 
+  .no-print,
+  button,
+  .sidebar-toggle,
+  nav,
+  .global-notice,
+  .revalidate-button {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .mx-auto {
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Cards adjustment */
+  section, .rounded-2xl {
+    break-inside: avoid;
+    border: 1px solid #eee !important;
+    box-shadow: none !important;
+    background: white !important;
+    margin-top: 1rem !important;
+  }
+
+  /* Tables adjustment */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  th, td {
+    border-bottom: 1px solid #eee !important;
+    padding: 8pt !important;
+  }
+
+  /* Text colors for readability on white background */
+  h1, h2, h3, p, span, td, th {
+    color: black !important;
+  }
+
+  .text-dash-text-secondary,
+  .text-dash-text-muted {
+    color: #555 !important;
+  }
+
+  /* Ensure charts and indicators have colors if any */
+  .bg-primary {
+    background-color: #10b981 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
+

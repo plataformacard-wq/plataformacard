@@ -98,7 +98,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
     ];
 
-    if (role === "admin" || role === "b2b_admin" || (isActuallySuperAdmin && isShadowMode)) {
+    if (role === "admin" || role === "b2b_admin" || role === "b2c_admin" || (isActuallySuperAdmin && isShadowMode)) {
       const isB2B = businessModel === "B2B";
 
       navLinks.push({ 

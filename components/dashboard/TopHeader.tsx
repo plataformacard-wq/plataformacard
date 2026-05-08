@@ -139,7 +139,7 @@ export function TopHeader({
               <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">
                 {role === "superadmin" ? "Admin QG" : 
                  role === "b2b_admin" ? "Gestor B2B" : 
-                 role === "b2c_admin" ? "Gestor B2C" : 
+                 role === "b2c_admin" ? "Gestor Individual" : 
                  role === "caas_admin" ? "Gestor Catálogo" : 
                  role === "seller" ? "Vendedor" : role}
               </span>

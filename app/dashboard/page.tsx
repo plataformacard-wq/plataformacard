@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const [sellerCount, setSellerCount] = useState<number | null>(null);
   const [sellers, setSellers] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState<number | null>(null);
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2C");
   const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -40,11 +40,21 @@ export default function DashboardPage() {
           return;
         }
 
-        const { data: profile, error: profError } = await supabase
+        let { data: profile, error: profError } = await supabase
           .from("profiles")
           .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role")
           .eq("user_id", user.id)
           .maybeSingle();
+
+        // Fallback por e-mail para contas com erro de vínculo
+        if (!profile && user.email) {
+          const { data: profileByEmail } = await supabase
+            .from("profiles")
+            .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role")
+            .eq("email", user.email)
+            .maybeSingle();
+          if (profileByEmail) profile = profileByEmail;
+        }
 
         if (profError) {
           console.error("Erro ao carregar perfil no dashboard:", profError);
@@ -136,18 +146,18 @@ export default function DashboardPage() {
     },
     {
       label: "Cliques em Links",
-      value: "842",
+      value: "0", // Temporariamente 0 até implementarmos o tracking específico
       icon: MousePointer2,
-      trend: "+18%",
+      trend: "0%",
       color: "violet",
       bgClass: "bg-violet-500/10",
       textClass: "text-violet-500"
     },
     {
       label: "Conversão Est.",
-      value: "3.2%",
+      value: "0%", // Temporariamente 0%
       icon: TrendingUp,
-      trend: "+2.1%",
+      trend: "0%",
       color: "amber",
       bgClass: "bg-amber-500/10",
       textClass: "text-amber-500"

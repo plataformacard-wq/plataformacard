@@ -66,16 +66,20 @@ export function PanelLayout({ children }: PanelLayoutProps) {
       try {
         // Usamos getSession primeiro por ser mais rápido no cliente
         const { data: { session } } = await supabase.auth.getSession();
+        let user = session?.user;
         
-        if (!session?.user) {
-          // Pequena espera para garantir que o cookie foi processado em caso de login recente
-          const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          user = authUser || undefined;
           if (!user) {
-            console.warn("Nenhuma sessão encontrada, redirecionando para login...");
             router.push("/entrar");
             return;
           }
         }
+
+        // NOVIDADE: Seta o nome instantaneamente via metadados do login
+        const instantName = user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
+        setNome(instantName);
 
         // Tenta obter o perfil via Server Action
         let profile = null;
@@ -86,17 +90,20 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         }
 
         if (!profile) {
-          console.warn("Perfil não encontrado no banco, usando modo Admin genérico para evitar trava");
-          setRole("superadmin");
-          setBusinessModel("B2B");
+          setRole("b2c_admin");
+          setBusinessModel("B2C");
+          const fallbackName = user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
+          setNome(fallbackName);
           setIsReady(true);
           return;
         }
 
         const userRole = profile.role || "admin";
-        setRole(userRole);
-        setNome(profile.full_name || "Admin");
+        const displayName = profile.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
+        
+        setNome(displayName);
         setAvatar(profile.avatar_url || null);
+        setRole(userRole);
         setSlug(profile.slug || null);
         
         setPermissions({
@@ -202,14 +209,6 @@ export function PanelLayout({ children }: PanelLayoutProps) {
     window.location.href = "/admin";
   }
 
-  if (businessModel === null) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
-      </div>
-    );
-  }
-
   const isAdminPath = pathname.startsWith("/admin");
   const isShadowMode = pathname.startsWith("/dashboard") && role === "superadmin";
 
@@ -237,7 +236,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
 
       <Sidebar 
         role={role} 
-        businessModel={businessModel}
+        businessModel={businessModel || "B2C"}
         planId={planId}
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
@@ -258,7 +257,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           role={role}
           slug={slug}
           isReady={isReady}
-          businessModel={businessModel}
+          businessModel={businessModel || "B2C"}
           isDark={isDark}
           isAdminPath={isAdminPath}
           toggleTheme={() => {

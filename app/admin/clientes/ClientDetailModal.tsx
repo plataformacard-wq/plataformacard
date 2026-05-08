@@ -106,15 +106,23 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
 
 
   const handleModelToggle = async (newModel: 'B2B' | 'B2C') => {
-    if (newModel === businessModel) return;
+    if (newModel === businessModel || updatingModel) return;
+    
     setUpdatingModel(true);
-    const result = await updateOrganizationModel(organization.id, newModel);
-    if (result.success) {
-      setBusinessModel(newModel);
-    } else {
-      alert("Erro ao atualizar modelo: " + result.error);
+    try {
+      const result = await updateOrganizationModel(organization.id, newModel);
+      if (result.success) {
+        setBusinessModel(newModel);
+        // Feedback visual de sucesso
+        console.log(`Modelo alterado para ${newModel}`);
+      } else {
+        alert("Erro ao atualizar modelo: " + result.error);
+      }
+    } catch (err) {
+      console.error("Erro na transição de modelo:", err);
+    } finally {
+      setUpdatingModel(false);
     }
-    setUpdatingModel(false);
   };
 
   // Lógica de Contrato
@@ -184,7 +192,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         )}
                         <button 
                           onClick={() => handleModelToggle('B2B')}
-                          className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${
+                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
                             businessModel === 'B2B' 
                               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                               : 'text-[var(--dash-text-muted)] hover:text-blue-500'
@@ -194,7 +202,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         </button>
                         <button 
                           onClick={() => handleModelToggle('B2C')}
-                          className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${
+                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
                             businessModel === 'B2C' 
                               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                               : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
@@ -213,7 +221,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
                         >
                           <option value="">SELECIONE UM PLANO</option>
-                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: STARTER</option>
+                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: ESSENTIAL</option>
                           <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: PRO BUSINESS</option>
                           <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">PLANO: ENTERPRISE</option>
                         </select>

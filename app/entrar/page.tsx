@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -57,22 +58,21 @@ export default function LoginPage() {
       password,
     });
 
-    setLoadingEmail(false);
-
     if (error) {
+      setLoadingEmail(false);
       setErrorMessage(error.message);
       return;
     }
 
     router.push("/dashboard");
+    router.refresh();
   }
 
   async function handleGoogleLogin() {
     setErrorMessage("");
     setLoadingGoogle(true);
 
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -88,107 +88,98 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="mx-auto flex min-h-screen max-w-md items-center px-6 py-10">
-        <div className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="mb-6">
-            <span className="inline-flex rounded-full bg-black px-3 py-1 text-xs font-medium text-white">
-              PlataformaCard
-            </span>
+    <main className="min-h-screen bg-zinc-950 px-4 py-10 text-white">
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur">
+        <div className="mb-8">
+          <div className="inline-flex rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black mb-4">
+            PlataformaCard
+          </div>
+          <h1 className="text-2xl font-bold">Entrar</h1>
+          <p className="mt-2 text-sm text-zinc-300">
+            Acesse seu painel com email e senha ou entre com Google.
+          </p>
+        </div>
 
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-neutral-900">
-              Entrar
-            </h1>
-
-            <p className="mt-2 text-sm text-neutral-600">
-              Acesse seu painel com email e senha ou entre com Google.
-            </p>
+        <form onSubmit={handleEmailLogin} className="space-y-5">
+          <div>
+            <label htmlFor="email" className="mb-2 block text-sm font-medium">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="voce@exemplo.com"
+              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm outline-none transition focus:border-white/30"
+              autoComplete="email"
+              required
+            />
           </div>
 
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-1 block text-sm font-medium text-neutral-700"
-              >
-                Email
-              </label>
+          <div>
+            <label htmlFor="password" className="mb-2 block text-sm font-medium">
+              Senha
+            </label>
+            <div className="flex overflow-hidden rounded-xl border border-white/10 bg-zinc-900 focus-within:border-white/30">
               <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
-                placeholder="seuemail@exemplo.com"
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Sua senha"
+                className="w-full bg-transparent px-4 py-3 text-sm outline-none"
+                autoComplete="current-password"
                 required
               />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1 block text-sm font-medium text-neutral-700"
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="px-4 text-sm text-zinc-300 transition hover:text-white"
               >
-                Senha
-              </label>
-
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-neutral-300 px-4 py-3 pr-24 text-sm outline-none transition focus:border-black"
-                  placeholder="••••••••"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-neutral-500 transition hover:text-black"
-                >
-                  {showPassword ? "Ocultar" : "Mostrar"}
-                </button>
-              </div>
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
             </div>
-
-            {errorMessage ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {errorMessage}
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={loadingEmail}
-              className="w-full rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loadingEmail ? "Entrando..." : "Entrar com email"}
-            </button>
-          </form>
-
-          <div className="my-6 flex items-center gap-3">
-            <div className="h-px flex-1 bg-neutral-200" />
-            <span className="text-xs uppercase tracking-wide text-neutral-400">
-              ou
-            </span>
-            <div className="h-px flex-1 bg-neutral-200" />
           </div>
 
+          {errorMessage ? (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {errorMessage === "auth_callback_failed" ? "Falha na autenticação. Tente novamente." : errorMessage}
+            </div>
+          ) : null}
+
           <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={loadingGoogle}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
+            type="submit"
+            disabled={loadingEmail}
+            className="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-zinc-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <GoogleIcon />
-            <span>
-              {loadingGoogle ? "Redirecionando..." : "Entrar com Google"}
-            </span>
+            {loadingEmail ? "Entrando..." : "Entrar com email"}
           </button>
+        </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-sm text-zinc-500">ou</span>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={loadingGoogle}
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <GoogleIcon />
+          <span>
+            {loadingGoogle ? "Redirecionando..." : "Entrar com Google"}
+          </span>
+        </button>
+
+        <div className="mt-6 text-center text-sm text-zinc-300">
+          Não tem conta?{" "}
+          <Link href="/cadastro" className="font-medium text-white hover:underline">
+            Cadastrar-se
+          </Link>
         </div>
       </div>
     </main>

@@ -113,7 +113,7 @@ export default function CadastroPage() {
       return;
     }
 
-    const codeToMatch = activeBetaCode || "MAJ2024"; // Fallback se o banco falhar
+    const codeToMatch = (activeBetaCode || "MAJ2024").trim(); 
     if (inviteCode.trim().toUpperCase() !== codeToMatch.toUpperCase()) {
       setErrorMessage("Código de Convite inválido. Este sistema está em fase Beta fechada.");
       return;

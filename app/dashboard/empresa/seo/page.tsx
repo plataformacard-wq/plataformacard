@@ -28,6 +28,7 @@ export default function SEOPage() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("seulink.com");
+  const [businessModel, setBusinessModel] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -68,6 +69,7 @@ export default function SEOPage() {
           if (org) {
             setOrgName(org.name || "");
             setOrgSlug(org.slug || "seulink.com");
+            setBusinessModel(org.business_model || "B2C");
             setFormData({
               meta_title: org.meta_title || "",
               meta_description: org.meta_description || "",
@@ -376,44 +378,46 @@ export default function SEOPage() {
         </section>
 
         {/* 04 - Configurações de Leads (CRM) */}
-        <section className="space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>03. Configurações de Leads (CRM)</h2>
-          
-          <div className="p-5 rounded-2xl border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
-            <div className="flex items-center justify-between">
-              <div className="flex gap-3">
-                <div className={`mt-1 p-2 rounded-lg ${formData.centralize_leads ? "bg-emerald-500/10 text-emerald-600" : "bg-blue-500/10 text-blue-600"}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={formData.centralize_leads ? "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"} />
-                  </svg>
+        {businessModel === "B2B" && (
+          <section className="space-y-6">
+            <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>03. Configurações de Leads (CRM)</h2>
+            
+            <div className="p-5 rounded-2xl border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+              <div className="flex items-center justify-between">
+                <div className="flex gap-3">
+                  <div className={`mt-1 p-2 rounded-lg ${formData.centralize_leads ? "bg-emerald-500/10 text-emerald-600" : "bg-blue-500/10 text-blue-600"}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={formData.centralize_leads ? "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"} />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                      Centralizar Leads no WhatsApp da Empresa (CRM)
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-secondary)" }}>
+                      {formData.centralize_leads 
+                        ? "Leads serão enviados ao WhatsApp central com tag para transbordo no CRM." 
+                        : "Leads serão enviados diretamente para o WhatsApp do vendedor."}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                    Centralizar Leads no WhatsApp da Empresa (CRM)
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-secondary)" }}>
-                    {formData.centralize_leads 
-                      ? "Leads serão enviados ao WhatsApp central com tag para transbordo no CRM." 
-                      : "Leads serão enviados diretamente para o WhatsApp do vendedor."}
-                  </p>
-                </div>
-              </div>
 
-              <button
-                onClick={() => setFormData({ ...formData, centralize_leads: !formData.centralize_leads })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  formData.centralize_leads ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    formData.centralize_leads ? "translate-x-6" : "translate-x-1"
+                <button
+                  onClick={() => setFormData({ ...formData, centralize_leads: !formData.centralize_leads })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                    formData.centralize_leads ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"
                   }`}
-                />
-              </button>
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.centralize_leads ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* 05 - Google Preview */}
         <section className="space-y-4 pt-6">

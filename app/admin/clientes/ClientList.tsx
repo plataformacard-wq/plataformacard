@@ -96,7 +96,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
           // Mapeamento de Plano (UUID para Nome)
           const getPlanName = (planId: string) => {
             if (!planId) return "Sem Plano";
-            if (planId === "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0") return "STARTER";
+            if (planId === "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0") return "ESSENTIAL";
             if (planId === "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62") return "PRO BUSINESS";
             if (planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26") return "ENTERPRISE";
             return "Custom";
@@ -109,30 +109,30 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
               style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
             >
               {/* 1. Identidade da Empresa (Esquerda) */}
-              <div className="flex items-center gap-5 md:w-[350px] shrink-0">
+              <div className="flex items-center gap-5 md:w-72 shrink-0">
                 <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
                   <Building2 size={32} />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xl font-black truncate leading-tight" style={{ color: "var(--dash-text-primary)" }}>
+                  <h3 className="text-lg font-black truncate leading-tight" style={{ color: "var(--dash-text-primary)" }}>
                     {org.name || "Sem Nome"}
                   </h3>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] truncate max-w-[200px] mt-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] truncate max-w-[150px] mt-1">
                     /{org.slug}
                   </p>
                 </div>
               </div>
 
               {/* 2. Dados Analíticos / Saúde (Centro - Bordas Tracejadas) */}
-              <div className="flex-1 flex items-center justify-between px-8 border-y md:border-y-0 md:border-x border-dashed py-6 md:py-0 w-full md:w-auto gap-8" style={{ borderColor: "var(--dash-border)" }}>
-                <div className="flex flex-col items-center md:items-start min-w-[70px]">
+              <div className="flex-1 flex flex-wrap items-center justify-between px-4 md:px-8 border-y md:border-y-0 md:border-x border-dashed py-6 md:py-0 w-full md:w-auto gap-4 md:gap-6" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="flex flex-col items-center md:items-start min-w-[60px]">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Desde</p>
                   <p className="text-sm font-black" style={{ color: "var(--dash-text-primary)" }}>
                     {new Date(org.created_at).toLocaleDateString("pt-BR", { month: 'short', year: 'numeric' })}
                   </p>
                 </div>
                 
-                <div className="flex flex-col items-center min-w-[70px]">
+                <div className="flex flex-col items-center min-w-[60px]">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Status</p>
                   <div className="flex items-center gap-1.5">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -141,9 +141,9 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                 </div>
 
                 {/* SELETOR B2B / B2C ULTRA EVIDENTE */}
-                <div className="flex flex-col items-center min-w-[140px]">
+                <div className="flex flex-col items-center min-w-[120px]">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-2">Modelo de Operação</p>
-                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative">
+                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative scale-90 md:scale-100">
                     {updatingId === org.id && (
                       <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
                         <RefreshCw size={12} className="animate-spin text-white" />
@@ -172,7 +172,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center md:items-end min-w-[100px]">
+                <div className="flex flex-col items-center md:items-end min-w-[80px]">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Plano</p>
                   <p className="text-sm font-black text-amber-500 uppercase text-right">
                     {getPlanName(org.plan_id)}
