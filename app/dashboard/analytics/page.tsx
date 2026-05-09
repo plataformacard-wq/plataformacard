@@ -58,11 +58,13 @@ export default async function AnalyticsPage(props: {
 
   // Busca dados da organização para o relatório
   let organizationName = "PlataformaCard";
-  if (profile.organization_id) {
+  const orgId = profile?.organization_id;
+  
+  if (orgId) {
     const { data: org } = await supabase
       .from("organizations")
       .select("name")
-      .eq("id", profile.organization_id)
+      .eq("id", orgId)
       .maybeSingle();
     if (org?.name) organizationName = org.name;
   }
@@ -95,10 +97,13 @@ export default async function AnalyticsPage(props: {
   let fetchError = null;
 
   try {
+    const pId = profile?.id || user.id;
+    const pOrgId = profile?.organization_id || null;
+
     const [summaryRes, topProductsRes, productConversionRes] = await Promise.all([
-      getAnalyticsSummary(profile.id, profile.organization_id, startDate, endDate).catch(e => { console.error(e); return null; }),
-      getTopProducts(profile.id, 5, profile.organization_id, startDate, endDate).catch(e => { console.error(e); return null; }),
-      getProductConversion(profile.id, profile.organization_id, startDate, endDate).catch(e => { console.error(e); return null; }),
+      getAnalyticsSummary(pId, pOrgId, startDate, endDate).catch(e => { console.error(e); return null; }),
+      getTopProducts(pId, 5, pOrgId, startDate, endDate).catch(e => { console.error(e); return null; }),
+      getProductConversion(pId, pOrgId, startDate, endDate).catch(e => { console.error(e); return null; }),
     ]);
 
     if (summaryRes) summary = summaryRes;
@@ -159,8 +164,8 @@ export default async function AnalyticsPage(props: {
 
       <Suspense fallback={<div className="h-20 w-full animate-pulse bg-zinc-500/5 rounded-2xl mb-8" />}>
         <AnalyticsControls 
-          organizationId={profile.organization_id || ""} 
-          profileId={profile.id} 
+          organizationId={pOrgId || ""} 
+          profileId={pId} 
         />
       </Suspense>
 
