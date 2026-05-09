@@ -74,6 +74,8 @@ const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 type ProductRow = {
   id: string;
+  organization_id: string;
+  category_id: string | null;
   name: string;
   description: string | null;
   specs: Spec[] | null;
@@ -84,7 +86,7 @@ type ProductRow = {
   has_wholesale: boolean | null;
   wholesale_price: number | null;
   wholesale_min_quantity: number | null;
-  price_display_mode: string | null; // retail | wholesale | both
+  price_display_mode: "retail" | "wholesale" | "both" | null;
   image_url: string | null;
   image_urls: string[] | null;
   is_active: boolean;
@@ -386,6 +388,8 @@ export default function CatalogoPage() {
       .select(
         `
       id,
+      organization_id,
+      category_id,
       name,
       description,
       specs,
