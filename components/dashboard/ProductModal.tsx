@@ -385,10 +385,11 @@ export default function ProductModal({
       if (isEditMode && productId) {
         // Update images first
         const finalUrls: string[] = [];
+        const safeId: string = productId;
         for (const img of modalImages) {
           if (img.isExisting) finalUrls.push(img.url);
           else if (img.file) {
-            const uploaded = await uploadProductImage(productId, img.file);
+            const uploaded = await uploadProductImage(safeId, img.file);
             if (uploaded) finalUrls.push(uploaded);
           }
         }
@@ -414,10 +415,13 @@ export default function ProductModal({
         if (insertError) throw insertError;
         productId = inserted.id;
         
+        if (!productId) throw new Error("Falha ao obter ID do produto recém-criado.");
+
         const finalUrls: string[] = [];
+        const safeId: string = productId;
         for (const img of modalImages) {
           if (img.file) {
-            const uploaded = await uploadProductImage(productId, img.file);
+            const uploaded = await uploadProductImage(safeId, img.file);
             if (uploaded) finalUrls.push(uploaded);
           }
         }
