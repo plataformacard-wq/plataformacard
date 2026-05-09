@@ -10,6 +10,9 @@
   
   --dash-bg: #f8fafc;
   --dash-surface: #ffffff;
+  --dash-sidebar-bg: #0f172a;
+  --dash-sidebar-text: rgba(255, 255, 255, 0.6);
+  --dash-sidebar-text-active: #ffffff;
   --dash-border: #e2e8f0;
   --dash-text-primary: #0f172a;
   --dash-text-secondary: #475569;
@@ -45,14 +48,17 @@
   --primary: #25D366;
   --primary-foreground: #000000;
 
+  /* Dashboard Premium (Dark) */
   --dash-bg: #0a0a0a;
+  --dash-bg-gradient: radial-gradient(ellipse 100% 45% at 50% -15%, #0d3b1f 0%, #0a0a0a 80%);
   --dash-surface: #141414;
+  --dash-sidebar-bg: #0a0a0a;
   --dash-border: rgba(255, 255, 255, 0.08);
   --dash-text-primary: #ffffff;
   --dash-text-secondary: rgba(255, 255, 255, 0.6);
   --dash-text-muted: rgba(255, 255, 255, 0.28);
-  --dash-input-bg: rgba(255, 255, 255, 0.035);
-  --dash-input-border: rgba(255, 255, 255, 0.08);
+  --dash-input-bg: #1a1a1a;
+  --dash-input-border: rgba(255, 255, 255, 0.1);
   --dash-header-bg: rgba(10, 10, 10, 0.7);
   --dash-header-border: rgba(255, 255, 255, 0.08);
   --dash-hover-bg: rgba(255, 255, 255, 0.06);
@@ -97,6 +103,8 @@
   --color-dash-text-primary: var(--dash-text-primary);
   --color-dash-text-secondary: var(--dash-text-secondary);
   --color-dash-text-muted: var(--dash-text-muted);
+  --color-dash-sidebar-text: var(--dash-sidebar-text);
+  --color-dash-sidebar-text-active: var(--dash-sidebar-text-active);
 }
 
 @layer base {
@@ -245,6 +253,7 @@ button, a, [role="button"] {
   .bg-primary {
     background-color: #10b981 !important;
     -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   /* Show print-only elements */
@@ -256,4 +265,3 @@ button, a, [role="button"] {
 .print-only {
   display: none;
 }
-

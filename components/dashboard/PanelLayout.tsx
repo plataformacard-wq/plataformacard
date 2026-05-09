@@ -213,7 +213,10 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const isShadowMode = pathname.startsWith("/dashboard") && role === "superadmin";
 
   return (
-    <div className="flex min-h-screen bg-[var(--dash-bg)] text-[var(--dash-text-primary)] transition-colors duration-500">
+    <div 
+      className="flex min-h-screen text-[var(--dash-text-primary)] transition-colors duration-500"
+      style={{ background: isDark ? 'var(--dash-bg-gradient)' : 'var(--dash-bg)' }}
+    >
       {/* Banner de Simulação */}
       {isShadowMode && (
         <div className="fixed top-0 left-0 right-0 z-[999] bg-amber-500 text-white px-4 py-2 flex items-center justify-between shadow-lg">

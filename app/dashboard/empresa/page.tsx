@@ -34,6 +34,7 @@ export default function EmpresaPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   
   const [businessHours, setBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
@@ -49,22 +50,25 @@ export default function EmpresaPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("organization_id")
+        .select("organization_id, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (profile?.organization_id) {
-        setOrgId(profile.organization_id);
-        const { data: org } = await supabase
-          .from("organizations")
-          .select("business_hours, business_model, centralize_leads")
-          .eq("id", profile.organization_id)
-          .maybeSingle();
-        
-        if (org) {
-          if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
-          if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
-          if (org.centralize_leads !== undefined) setCentralizeLeads(!!org.centralize_leads);
+      if (profile) {
+        setRole(profile.role);
+        if (profile.organization_id) {
+          setOrgId(profile.organization_id);
+          const { data: org } = await supabase
+            .from("organizations")
+            .select("business_hours, business_model, centralize_leads")
+            .eq("id", profile.organization_id)
+            .maybeSingle();
+          
+          if (org) {
+            if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
+            if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
+            if (org.centralize_leads !== undefined) setCentralizeLeads(!!org.centralize_leads);
+          }
         }
       }
       setLoading(false);
@@ -143,8 +147,6 @@ export default function EmpresaPage() {
     setSaving(true);
     setSaveMessage("");
 
-    // IMPORTANTE: Se a coluna 'business_hours' não existir no banco, esta query falhará.
-    // Você deve executar: ALTER TABLE organizations ADD COLUMN IF NOT EXISTS business_hours jsonb;
     const { error } = await supabase
       .from("organizations")
       .update({ 
@@ -167,6 +169,8 @@ export default function EmpresaPage() {
     return <p style={{ color: "var(--dash-text-secondary)" }}>Carregando dados da empresa...</p>;
   }
 
+  const isB2CAdmin = role === "b2c_admin";
+
   return (
     <div className="space-y-6">
       <div>
@@ -178,35 +182,37 @@ export default function EmpresaPage() {
         </p>
       </div>
 
-      {/* Modelo de Negócio */}
-      <div
-        className="rounded-2xl border p-6 shadow-sm"
-        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-      >
-        <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>
-          Modelo de Negócio
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { id: "B2C", title: "Cartão Pessoal (B2C)", desc: "Foco em networking e perfis individuais." },
-            { id: "B2B", title: "Gestão de Vendas (B2B)", desc: "Foco em times de vendas e catálogos." },
-            { id: "CaaS", title: "Catálogo Puro (CaaS)", desc: "Vitrine digital centralizada da marca." }
-          ].map((model) => (
-            <button
-              key={model.id}
-              onClick={() => setBusinessModel(model.id as any)}
-              className={`p-4 rounded-xl border text-left transition-all ${
-                businessModel === model.id 
-                  ? "border-emerald-500 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
-                  : "border-zinc-200 bg-zinc-50/30 opacity-60 hover:opacity-100"
-              }`}
-            >
-              <p className="text-sm font-bold text-zinc-900 mb-1">{model.title}</p>
-              <p className="text-xs text-zinc-500 leading-relaxed">{model.desc}</p>
-            </button>
-          ))}
+      {/* Modelo de Negócio - Oculto para Gestores Individuais (B2C/Essential) */}
+      {(role === "superadmin" || (role === "b2b_admin" && businessModel === "B2B")) && (
+        <div
+          className="rounded-2xl border p-6 shadow-sm"
+          style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+        >
+          <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>
+            Modelo de Negócio
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { id: "B2C", title: "Individual (Essential)", desc: "Foco em networking e perfis individuais." },
+              { id: "B2B", title: "Empresarial (Pro)", desc: "Foco em times de vendas e catálogos." },
+              { id: "CaaS", title: "Catálogo Master (CaaS)", desc: "Vitrine digital centralizada da marca." }
+            ].map((model) => (
+              <button
+                key={model.id}
+                onClick={() => setBusinessModel(model.id as any)}
+                className={`p-4 rounded-xl border text-left transition-all ${
+                  businessModel === model.id 
+                    ? "border-emerald-500 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                    : "border-zinc-200 bg-zinc-50/30 opacity-60 hover:opacity-100"
+                }`}
+              >
+                <p className="text-sm font-bold text-zinc-900 mb-1">{model.title}</p>
+                <p className="text-xs text-zinc-500 leading-relaxed">{model.desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         className="rounded-2xl border p-6 shadow-sm"
@@ -227,7 +233,7 @@ export default function EmpresaPage() {
             <select
               value={businessHours.manual_override || "null"}
               onChange={(e) => setBusinessHours({ ...businessHours, manual_override: e.target.value === "null" ? null : e.target.value as any })}
-              className="rounded-lg border px-3 py-1.5 text-sm outline-none"
+              className="rounded-lg border px-3 py-1.5 text-sm outline-none cursor-pointer transition-all focus:border-emerald-500"
               style={{
                 background: "var(--dash-input-bg)",
                 borderColor: "var(--dash-input-border)",

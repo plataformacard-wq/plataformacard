@@ -37,6 +37,13 @@ interface SidebarProps {
   };
 }
 
+interface NavLink {
+  href?: string;
+  label: string;
+  icon: React.ElementType;
+  subItems?: { href: string; label: string; icon: React.ElementType }[];
+}
+
 export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, isReady, permissions }: SidebarProps) {
   const pathname = usePathname();
   const [currentHash, setCurrentHash] = useState("");
@@ -57,7 +64,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
   // DETERMINAÇÃO DO MENU (QG vs CLIENTE)
   const isAdminPath = pathname.startsWith("/admin");
-  let navLinks: any[] = [];
+  let navLinks: NavLink[] = [];
   const isActuallySuperAdmin = role === "superadmin";
 
   if (isAdminPath && !isShadowMode) {
@@ -108,7 +115,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
           { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
         ]
-      } as any);
+      });
       navLinks.push({ 
         label: "Catálogo", 
         icon: BookOpen,
@@ -117,7 +124,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
           { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
         ]
-      } as any);
+      });
 
       const isB2C = businessModel === "B2C" || (role as any) === "b2c_admin";
       const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
@@ -160,14 +167,15 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       }
 
       if (canAccessAnalytics) {
-        navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+        // Analytics será adicionado ao final globalmente
       }
     }
 
     navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
     
-    // Analytics é visível para todos por padrão (admins), mas para sellers depende da flag acima.
-    if (role !== "seller" && !navLinks.some(link => link.label === "Analytics")) {
+    // ANALYTICS SEMPRE POR ÚLTIMO (Protocolo B2C)
+    const canSeeAnalytics = role === "admin" || role === "b2b_admin" || role === "b2c_admin" || isActuallySuperAdmin || permissions?.dash_access_analytics;
+    if (canSeeAnalytics) {
       navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
     }
   }
@@ -187,7 +195,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         } ${
           isCollapsed ? "w-20" : "w-72"
         }`}
-        style={{ backgroundColor: "#1e1e1e", borderColor: "#2c3338" }}
+        style={{ backgroundColor: "var(--dash-sidebar-bg)", borderColor: "var(--dash-border)" }}
       >
         <div className="flex h-full flex-col py-6 relative">
           {/* Collapse Toggle Button (Desktop) */}
@@ -209,7 +217,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col overflow-hidden whitespace-nowrap transition-all">
-                  <span className="text-base font-bold tracking-tight leading-none text-white">PlataformaCard</span>
+                  <span className="text-base font-bold tracking-tight leading-none text-[var(--dash-text-primary)]">PlataformaCard</span>
                   <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider">
                     {isAdminPath ? "CENTRO DE INTELIGÊNCIA (QG)" : (isShadowMode ? "Modo Simulação" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor"))}
                   </span>
@@ -217,7 +225,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
               )}
             </Link>
             {!isCollapsed && (
-              <button onClick={onClose} className="rounded-lg p-1 text-[#a7aaad] hover:bg-[#2c3338] lg:hidden">
+              <button onClick={onClose} className="rounded-lg p-1 text-[var(--dash-text-muted)] hover:bg-[var(--dash-hover-bg)] lg:hidden">
                 <X size={20} />
               </button>
             )}
@@ -241,7 +249,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                       className={`group relative flex w-full items-center justify-between rounded-xl p-3 text-sm font-medium transition-all ${
                         isActive 
                           ? "text-white bg-primary" 
-                          : "text-[#a7aaad] hover:bg-[#2c3338] hover:text-white"
+                          : "text-[var(--dash-sidebar-text)] hover:bg-white/10 hover:text-[var(--dash-sidebar-text-active)]"
                       } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
                       title={isCollapsed ? item.label : ""}
                     >
@@ -255,13 +263,8 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                           className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
                         />
                       )}
-                      {isCollapsed && hasSubItems && (
-                        <div className="absolute right-[-12px] top-1/2 -translate-y-1/2 opacity-30">
-                          <ChevronDown 
-                            size={14} 
-                            className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
-                          />
-                        </div>
+                      {isActive && !isCollapsed && (
+                        <div className="absolute left-0 h-7 w-1 rounded-r-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
                       )}
                     </button>
                     
@@ -284,13 +287,17 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                                   isCollapsed ? "p-2 justify-center" : "px-3 py-2 text-xs"
                                 } ${
                                   isSubActive 
-                                    ? "text-white font-bold" 
-                                    : "text-[#a7aaad] hover:text-white"
+                                    ? "text-primary font-bold" 
+                                    : "text-[var(--dash-sidebar-text)] hover:text-[var(--dash-sidebar-text-active)]"
                                 }`}
                                 title={isCollapsed ? sub.label : ""}
                               >
                                 {sub.icon && <sub.icon size={isCollapsed ? 18 : 14} />}
                                 {!isCollapsed && sub.label}
+
+                                {isSubActive && !isCollapsed && (
+                                  <div className="absolute left-[-40px] h-5 w-1 rounded-r-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
+                                )}
                               </Link>
                             );
                           })}
@@ -308,7 +315,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                   className={`group relative flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-all ${
                     isActive 
                       ? "text-white bg-primary" 
-                      : "text-[#a7aaad] hover:bg-[#2c3338] hover:text-white"
+                      : "text-[var(--dash-sidebar-text)] hover:bg-white/10 hover:text-[var(--dash-sidebar-text-active)]"
                   } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
                   title={isCollapsed ? item.label : ""}
                 >
@@ -316,7 +323,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                   {!isCollapsed && <span>{item.label}</span>}
                   
                   {isActive && !isCollapsed && (
-                    <div className="absolute left-0 h-6 w-1 rounded-r-full bg-white/50" />
+                    <div className="absolute left-0 h-7 w-1 rounded-r-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
                   )}
                 </Link>
               );
@@ -325,11 +332,11 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
           {!isCollapsed && (
             <div className="mt-auto px-4 pb-6">
-              <div className="rounded-2xl bg-white/5 p-4 border border-white/10">
+              <div className="rounded-2xl bg-[var(--dash-surface-secondary)] p-4 border border-[var(--dash-border)]">
                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Status do Sistema</p>
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                  <span className="text-xs font-medium text-[#a7aaad]">Operacional</span>
+                  <span className="text-xs font-medium text-[var(--dash-text-secondary)]">Operacional</span>
                 </div>
               </div>
             </div>

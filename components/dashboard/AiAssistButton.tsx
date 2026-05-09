@@ -117,13 +117,26 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-2 w-56 bg-white border border-emerald-100 rounded-2xl shadow-2xl z-[100] overflow-hidden"
+            className="absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl z-[100] overflow-hidden border"
+            style={{ 
+              background: "var(--dash-surface)", 
+              borderColor: "var(--dash-border)" 
+            }}
           >
             <div className="p-2 space-y-1">
               <button
                 onClick={handleEnhance}
                 disabled={!canActivate(formData)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-zinc-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors disabled:opacity-40"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide rounded-xl transition-colors disabled:opacity-40"
+                style={{ color: "var(--dash-text-primary)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--dash-hover-bg)";
+                  e.currentTarget.style.color = "var(--primary)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--dash-text-primary)";
+                }}
               >
                 <span>Melhorar Descrição</span>
                 <Sparkles size={12} className="text-emerald-500" />
@@ -132,7 +145,16 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
               <button
                 onClick={handleGrammarFix}
                 disabled={!hasContent}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-zinc-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors disabled:opacity-40"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide rounded-xl transition-colors disabled:opacity-40"
+                style={{ color: "var(--dash-text-primary)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--dash-hover-bg)";
+                  e.currentTarget.style.color = "var(--primary)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--dash-text-primary)";
+                }}
               >
                 <span>Corrigir Gramática</span>
                 <Check size={12} className="text-emerald-500" />
@@ -141,15 +163,17 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
               {canUndo && (
                 <button
                   onClick={handleUndo}
-                  className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-amber-600 hover:bg-amber-50 rounded-xl transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-amber-600 rounded-xl transition-colors"
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(245, 158, 11, 0.1)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                 >
                   <span>Desfazer alteração</span>
                   <RotateCcw size={12} className="text-amber-600" />
                 </button>
               )}
             </div>
-            <div className="bg-emerald-50/50 p-3 border-t border-emerald-100">
-              <p className="text-[9px] text-emerald-600/70 font-medium leading-tight">
+            <div className="p-3 border-t" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+              <p className="text-[9px] font-medium leading-tight" style={{ color: "var(--dash-text-muted)" }}>
                 A IA usará o nome e preço do produto para criar um texto de alta conversão.
               </p>
             </div>

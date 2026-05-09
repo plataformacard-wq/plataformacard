@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAnalyticsSummary } from "@/lib/dashboard/getAnalyticsSummary";
@@ -5,6 +6,7 @@ import { getTopProducts } from "@/lib/dashboard/getTopProducts";
 import { getProductConversion } from "@/lib/dashboard/getProductConversion";
 import AnalyticsControls from "@/components/dashboard/analytics/AnalyticsControls";
 import PrintReportButton from "@/components/dashboard/analytics/PrintReportButton";
+import { AlertCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -38,22 +40,32 @@ export default async function AnalyticsPage(props: {
     redirect("/entrar");
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("profiles")
     .select("id, organization_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (profileError || !profile) {
-    redirect("/entrar");
+  // Busca perfil ou usa fallback para contas de emergência
+  let profile = profileData;
+  if (!profile) {
+    // Cria um perfil temporário em memória para evitar redirect se for um erro de sync
+    profile = { 
+      id: user.id, 
+      organization_id: user.user_metadata?.organization_id || null 
+    } as any;
   }
 
   // Busca dados da organização para o relatório
-  const { data: organization } = await supabase
-    .from("organizations")
-    .select("name")
-    .eq("id", profile.organization_id)
-    .single();
+  let organizationName = "PlataformaCard";
+  if (profile.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", profile.organization_id)
+      .maybeSingle();
+    if (org?.name) organizationName = org.name;
+  }
 
   // Lógica de cálculo de datas baseada no período
   let startDate: string | undefined;
@@ -77,11 +89,29 @@ export default async function AnalyticsPage(props: {
     startDate = start.toISOString();
   }
 
-  const [summary, topProducts, productConversion] = (await Promise.all([
-    getAnalyticsSummary(profile.id, profile.organization_id, startDate, endDate),
-    getTopProducts(profile.id, 5, profile.organization_id, startDate, endDate),
-    getProductConversion(profile.id, profile.organization_id, startDate, endDate),
-  ])) as [any, any, any[]];
+  let summary = { profileViews: 0, catalogViews: 0, productClicks: 0, conversationsStarted: 0 };
+  let topProducts = [];
+  let productConversion: any[] = [];
+  let fetchError = null;
+
+  try {
+    const [summaryRes, topProductsRes, productConversionRes] = await Promise.all([
+      getAnalyticsSummary(profile.id, profile.organization_id, startDate, endDate).catch(e => { console.error(e); return null; }),
+      getTopProducts(profile.id, 5, profile.organization_id, startDate, endDate).catch(e => { console.error(e); return null; }),
+      getProductConversion(profile.id, profile.organization_id, startDate, endDate).catch(e => { console.error(e); return null; }),
+    ]);
+
+    if (summaryRes) summary = summaryRes;
+    if (topProductsRes) topProducts = topProductsRes;
+    if (productConversionRes) productConversion = productConversionRes;
+    
+    if (!summaryRes && !topProductsRes) {
+      fetchError = "Não foi possível carregar alguns dados de BI. Verifique se as funções RPC estão configuradas no Supabase.";
+    }
+  } catch (err: any) {
+    console.error("Erro geral no fetch de analytics:", err);
+    fetchError = err.message;
+  }
 
   const rateProfileToCatalog = pct(summary.catalogViews, summary.profileViews);
   const rateCatalogToProduct = pct(summary.productClicks, summary.catalogViews);
@@ -97,7 +127,7 @@ export default async function AnalyticsPage(props: {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-black text-black">Relatório de Desempenho</h1>
-            <p className="text-sm font-bold text-zinc-500 mt-1">{organization?.name || "PlataformaCard"}</p>
+            <p className="text-sm font-bold text-zinc-500 mt-1">{organizationName}</p>
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Documento Oficial</p>
@@ -115,13 +145,24 @@ export default async function AnalyticsPage(props: {
             Métricas de visitas, cliques e conversões.
           </p>
         </div>
-        <PrintReportButton />
+        <div className="flex items-center gap-2">
+          <PrintReportButton />
+        </div>
       </div>
 
-      <AnalyticsControls 
-        organizationId={profile.organization_id} 
-        profileId={profile.id} 
-      />
+      {fetchError && (
+        <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-600">
+          <AlertCircle size={20} />
+          <p className="text-xs font-medium">{fetchError}</p>
+        </div>
+      )}
+
+      <Suspense fallback={<div className="h-20 w-full animate-pulse bg-zinc-500/5 rounded-2xl mb-8" />}>
+        <AnalyticsControls 
+          organizationId={profile.organization_id || ""} 
+          profileId={profile.id} 
+        />
+      </Suspense>
 
       {/* KPIs */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -198,7 +239,7 @@ export default async function AnalyticsPage(props: {
                 </tr>
               </thead>
               <tbody>
-                {productConversion.map((item) => (
+                {productConversion.map((item: any) => (
                   <tr
                     key={item.product_id}
                     className="border-b last:border-none"

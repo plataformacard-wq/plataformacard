@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Camera } from "lucide-react";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -145,6 +145,7 @@ function PerfilContent() {
         if (profile.custom_business_hours) {
           setCustomBusinessHours(profile.custom_business_hours as BusinessHours);
         }
+
 
         // Buscar modelo de negócio separadamente para garantir sincronia com PanelLayout
         if (profile.organization_id) {
@@ -414,8 +415,8 @@ function PerfilContent() {
               {/* Avatar */}
               <div className="flex flex-col items-center gap-3">
                 <div 
-                  className="group relative h-24 w-24 rounded-full border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
-                  style={{ borderColor: "var(--dash-border)" }}
+                  className="group relative h-24 w-24 rounded-full border overflow-hidden transition-all hover:border-primary/50 cursor-pointer" 
+                  style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
                   onClick={() => setShowImageEditor(true)}
                 >
                   {avatarPreview ? (
@@ -431,10 +432,12 @@ function PerfilContent() {
                     </>
                   ) : (
                     <div
-                      className="flex h-full w-full items-center justify-center text-xl font-medium text-white"
-                      style={{ background: "var(--dash-text-primary)" }}
+                      className="flex h-full w-full items-center justify-center text-3xl font-black"
+                      style={{ background: "var(--dash-surface-secondary)", color: "var(--dash-text-secondary)" }}
                     >
-                      {nome.charAt(0).toUpperCase()}
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-dashed border-[var(--dash-text-muted)] opacity-50">
+                        C
+                      </div>
                     </div>
                   )}
                 </div>
@@ -524,15 +527,15 @@ function PerfilContent() {
           </div>
         )}
 
-          {/* Botão salvar Identidade */}
-          {businessModel === "B2B" && (
+          {/* Botão salvar Identidade - Apenas se não estiver na aba de segurança */}
+          {businessModel === "B2B" && view !== "security" && (
             <div className="flex justify-start">
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-xl px-6 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
-                style={{ background: "var(--dash-text-primary)" }}
+                className="rounded-xl px-6 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
+                style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
               >
                 {saving ? "Salvando..." : "Atualizar Nome"}
               </button>
@@ -660,7 +663,7 @@ function PerfilContent() {
                 onClick={handleSave}
                 disabled={saving}
                 className="rounded-xl px-8 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-                style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
+                style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
               >
                 {saving ? "Salvando..." : "Salvar Alterações"}
               </button>
