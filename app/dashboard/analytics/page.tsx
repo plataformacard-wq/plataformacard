@@ -96,9 +96,10 @@ export default async function AnalyticsPage(props: {
   let productConversion: any[] = [];
   let fetchError = null;
 
+  const pId = profile?.id || user.id;
+  const pOrgId = profile?.organization_id || null;
+
   try {
-    const pId = profile?.id || user.id;
-    const pOrgId = profile?.organization_id || null;
 
     const [summaryRes, topProductsRes, productConversionRes] = await Promise.all([
       getAnalyticsSummary(pId, pOrgId, startDate, endDate).catch(e => { console.error(e); return null; }),
