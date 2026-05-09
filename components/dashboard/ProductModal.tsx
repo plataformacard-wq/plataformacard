@@ -34,13 +34,15 @@ const ReactQuill = nextDynamic(() => import("react-quill-new"), {
   loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
 });
 
+type Spec = { id?: string; chave: string; valor: string };
+
 interface ProductRow {
   id: string;
   organization_id: string;
   category_id: string | null;
   name: string;
   description: string | null;
-  specs: { chave: string; valor: string }[] | null;
+  specs: Spec[] | null;
   price: number | null;
   compare_at_price: number | null;
   sku: string | null;
@@ -97,7 +99,7 @@ export default function ProductModal({
   // Form State
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [specs, setSpecs] = useState<{ chave: string; valor: string }[]>([]);
+  const [specs, setSpecs] = useState<Spec[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [productCompareAtPrice, setProductCompareAtPrice] = useState("");

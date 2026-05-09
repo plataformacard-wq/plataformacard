@@ -66,7 +66,7 @@ type Catalog = {
   description: string | null;
 };
 
-type Spec = { chave: string; valor: string };
+type Spec = { id?: string; chave: string; valor: string };
 
 const PRICE_INPUT_REGEX = /^[0-9.,]*$/;
 
