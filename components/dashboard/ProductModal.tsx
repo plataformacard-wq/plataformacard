@@ -326,12 +326,9 @@ export default function ProductModal({
     }
   };
 
-  const onImageEditorConfirm = (blob: Blob) => {
-    const file = new File([blob], pendingFile?.name || "image.png", { type: "image/png" });
+  const onImageEditorConfirm = (file: File, previewUrl: string) => {
     const newId = `new-${Date.now()}`;
-    const newUrl = URL.createObjectURL(file);
-    
-    setModalImages(prev => [...prev, { id: newId, url: newUrl, file, isExisting: false }].slice(0, 5));
+    setModalImages(prev => [...prev, { id: newId, url: previewUrl, file, isExisting: false }].slice(0, 5));
     setShowImageEditor(false);
     setPendingFile(null);
   };
@@ -969,6 +966,8 @@ export default function ProductModal({
         }}
         onConfirm={onImageEditorConfirm}
         initialFile={pendingFile}
+        minWidth={400}
+        minHeight={400}
       />
 
       <style jsx global>{`
