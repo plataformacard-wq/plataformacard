@@ -62,6 +62,8 @@ interface ProductRow {
 interface Category {
   id: string;
   name: string;
+  description?: string | null;
+  sort_order?: number | null;
   specs_title?: string | null;
   show_specs?: boolean | null;
   show_colors?: boolean | null;

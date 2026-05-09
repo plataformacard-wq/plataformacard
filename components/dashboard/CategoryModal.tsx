@@ -9,7 +9,7 @@ interface Category {
   id: string;
   name: string;
   description?: string | null;
-  sort_order?: number;
+  sort_order?: number | null;
 }
 
 interface CategoryModalProps {
