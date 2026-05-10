@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Clock,
   Info,
-  Globe
+  Globe,
+  HardDrive
 } from "lucide-react";
 
 interface SidebarProps {
@@ -87,6 +88,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
           { href: "/admin/caas", label: "Gestão CaaS (QG)", icon: Globe },
           { href: "/admin/catalogos", label: "Análise de Vitrines", icon: BookOpen },
+          { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
           { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
         ]
       },

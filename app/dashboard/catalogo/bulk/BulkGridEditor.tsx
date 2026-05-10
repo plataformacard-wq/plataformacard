@@ -218,6 +218,7 @@ export default function BulkGridEditor() {
           .select(`
             id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
             category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock,
+            highlight_text, show_highlight,
             categories (id, name)
           `)
           .eq("organization_id", profile.organization_id)
@@ -271,6 +272,7 @@ export default function BulkGridEditor() {
         .select(`
           id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
           category_id, updated_at, image_url, image_urls, specs, is_in_stock,
+          highlight_text, show_highlight,
           categories (id, name)
         `)
         .eq("organization_id", orgId)

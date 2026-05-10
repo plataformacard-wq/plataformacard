@@ -1,19 +1,141 @@
 "use server";
 
 /**
- * Gera sugestões de SEO (Título e Descrição) usando Google Gemini 1.5 Flash
- * Baseado no nome da organização e contexto de produtos.
+ * Gera ou melhora a descrição do produto com explicação das mudanças.
  */
-export async function generateSEOWithAI(orgName: string, businessType: string = "comércio") {
+export async function enhanceDescriptionWithAI(payload: { 
+  name: string; 
+  currentDescription?: string; 
+  price?: string;
+  specs?: { chave: string; valor: string }[];
+}) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return { 
-      error: "API Key do Gemini não configurada. Adicione GEMINI_API_KEY ao seu .env.local" 
-    };
+    return { error: "API Key do Gemini não configurada." };
   }
 
-  console.log(`[AI-DEBUG] Iniciando chamada. Key detectada (tamanho: ${apiKey.length}, começa com: ${apiKey.substring(0, 4)}...)`);
+  const specsText = payload.specs?.map(s => `${s.chave}: ${s.valor}`).join(', ') || 'Não informadas';
+
+  const prompt = `
+    Aja como um copywriter de alta conversão, focado em vendas diretas e "papo reto".
+    Seu objetivo é criar uma descrição impactante, concisa e profissional para o produto: "${payload.name}".
+    
+    FONTES DE DADOS:
+    - Especificações Técnicas: "${specsText}"
+    - Descrição atual: "${payload.currentDescription || 'Vazia'}"
+
+    REGRAS CRÍTICAS:
+    1. O texto deve ter NO MÁXIMO 10 LINHAS. Seja direto e evite enrolação.
+    2. Use as Especificações Técnicas como base para não ser genérico.
+    3. Use HTML básico (<b>, <p>, <ul>, <li>).
+    4. O tom deve ser "papo reto": direto, honesto e persuasivo.
+    5. AO FINAL, inclua 3 hashtags relevantes.
+    6. JAMAIS cite o preço do produto no texto. 
+    7. NÃO gere títulos ou campos extras.
+
+    RETORNO:
+    Retorne APENAS um JSON no formato:
+    {
+      "proposed": "HTML da nova descrição",
+      "explanation": "Uma breve explicação do que foi melhorado (ex: 'Tornei o texto mais direto e foquei na potência do motor')."
+    }
+  `;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
+
+    if (!response.ok) return { error: `Erro na API do Google` };
+
+    const data = await response.json();
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) throw new Error("Resposta vazia");
+
+    const cleanedText = resultText.replace(/```json|```/g, "").trim();
+    const parsedData = JSON.parse(cleanedText);
+    return { success: true, data: parsedData };
+
+  } catch (error: any) {
+    console.error("ERRO ENHANCE:", error);
+    return { error: "Falha ao melhorar descrição." };
+  }
+}
+
+/**
+ * Corrige a ortografia de múltiplos campos com explicação.
+ */
+export async function fixProductOrthography(payload: { name: string; highlight?: string; description: string }) {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return { error: "API Key do Gemini não configurada." };
+  }
+
+  const prompt = `
+    Aja como um revisor profissional. Corrija APENAS erros de ortografia, gramática e pontuação dos seguintes campos.
+    
+    CAMPOS:
+    1. Nome: "${payload.name}"
+    2. Destaque: "${payload.highlight || ''}"
+    3. Descrição: "${payload.description}"
+
+    REGRAS:
+    - O campo "Destaque" deve ser retornado em CAIXA ALTA (UPPERCASE).
+    - Mantenha tags HTML na descrição.
+    
+    RETORNO:
+    Retorne APENAS um JSON no formato:
+    {
+      "name": "Nome corrigido",
+      "highlight": "Destaque corrigido",
+      "description": "Descrição corrigida",
+      "explanation": "Lista breve dos erros encontrados e corrigidos."
+    }
+  `;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
+
+    if (!response.ok) return { error: `Erro na API do Google` };
+
+    const data = await response.json();
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) throw new Error("Resposta vazia");
+
+    const cleanedText = resultText.replace(/```json|```/g, "").trim();
+    const parsedData = JSON.parse(cleanedText);
+    return { success: true, data: parsedData };
+
+  } catch (error: any) {
+    console.error("ERRO FIX_ALL:", error);
+    return { error: "Falha ao corrigir campos." };
+  }
+}
+
+/**
+ * Gera sugestões de SEO (Título e Descrição) usando Google Gemini 1.5 Flash
+ */
+export async function generateSEOWithAI(orgName: string, businessType: string = "comércio") {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return { error: "API Key do Gemini não configurada." };
 
   const prompt = `
     Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para a empresa "${orgName}" do ramo "${businessType}".
@@ -33,140 +155,16 @@ export async function generateSEOWithAI(orgName: string, businessType: string = 
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return { 
-        error: `Google API retornou erro ${response.status}. Detalhes: ${errorData.error?.message || 'Falha desconhecida'}.` 
-      };
-    }
+    if (!response.ok) return { error: `Google API retornou erro ${response.status}` };
 
     const data = await response.json();
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!resultText) {
-      throw new Error("Resposta sem texto do Google");
-    }
+    if (!resultText) throw new Error("Resposta sem texto do Google");
 
-    try {
-      const cleanedText = resultText.replace(/```json|```/g, "").trim();
-      const parsedData = JSON.parse(cleanedText);
-      return { success: true, data: parsedData };
-    } catch (parseError) {
-      return { error: "A IA retornou um formato inválido. Tente novamente." };
-    }
-
+    const cleanedText = resultText.replace(/```json|```/g, "").trim();
+    const parsedData = JSON.parse(cleanedText);
+    return { success: true, data: parsedData };
   } catch (error: any) {
-    console.error("ERRO FATAL NA CHAMADA IA:", error);
-    return { error: `Erro de conexão (${error.name}): ${error.message}.` };
-  }
-}
-
-/**
- * Gera ou melhora a descrição do produto.
- * Focado apenas no campo de texto da sessão.
- */
-export async function enhanceDescriptionWithAI(payload: { name: string; currentDescription?: string; price?: string }) {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return { error: "API Key do Gemini não configurada." };
-  }
-
-  const prompt = `
-    Aja como um copywriter especializado em e-commerce de luxo.
-    Seu objetivo é criar uma descrição irresistível para o produto: "${payload.name}".
-    
-    Contexto atual:
-    - Descrição existente: "${payload.currentDescription || 'Vazia'}"
-    - Preço: "${payload.price || 'Não informado'}"
-
-    REGRAS:
-    1. Use HTML básico (<b>, <p>, <ul>, <li>) para uma formatação elegante.
-    2. Foque nos benefícios e na experiência de uso, não apenas em características.
-    3. Se houver descrição atual, use-a como base para expandir e melhorar.
-    4. O tom deve ser persuasivo e profissional.
-    5. AO FINAL do texto, inclua sempre de 3 a 5 hashtags relevantes (ex: #tecnologia #premium).
-    6. NÃO gere títulos, especificações técnicas em formato JSON ou cores. APENAS o texto da descrição.
-
-    Retorne APENAS o HTML da nova descrição.
-  `;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      return { error: `Erro na API do Google: ${response.status}` };
-    }
-
-    const data = await response.json();
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!resultText) throw new Error("Resposta vazia");
-
-    return { success: true, data: resultText.trim() };
-
-  } catch (error: any) {
-    console.error("ERRO ENHANCE:", error);
-    return { error: "Falha ao melhorar descrição." };
-  }
-}
-
-/**
- * Corrige apenas a gramática e pontuação de um texto.
- */
-export async function correctGrammarWithAI(text: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return { error: "API Key do Gemini não configurada." };
-  }
-
-  const prompt = `
-    Aja como um revisor profissional de textos para e-commerce.
-    Sua tarefa é APENAS corrigir erros de gramática, ortografia e pontuação do texto abaixo.
-    Mantenha o significado original, o tom de voz e quaisquer tags HTML presentes.
-    NÃO adicione novas informações nem remova detalhes importantes.
-    
-    TEXTO:
-    ${text}
-    
-    Retorne APENAS o texto corrigido, sem comentários adicionais.
-  `;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      return { error: `Erro na API do Google: ${response.status}` };
-    }
-
-    const data = await response.json();
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!resultText) throw new Error("Resposta vazia");
-
-    return { success: true, data: resultText.trim() };
-
-  } catch (error: any) {
-    console.error("ERRO GRAMMAR:", error);
-    return { error: "Falha ao corrigir gramática." };
+    return { error: "Erro de conexão com a IA." };
   }
 }

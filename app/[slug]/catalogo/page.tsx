@@ -22,6 +22,7 @@ type Profile = {
   bio: string | null;
   is_available: boolean | null;
   custom_business_hours: any;
+  can_customize_hours: boolean | null;
 };
 
 type Organization = {
@@ -83,6 +84,8 @@ type Product = {
   show_specs?: boolean | null;
   show_colors?: boolean | null;
   colors?: string[] | null;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -158,7 +161,7 @@ export default async function Page(props: PageProps) {
 
   const { data: profileData } = await admin
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours, can_customize_hours")
     .ilike("slug", slug)
     .maybeSingle();
 
@@ -278,7 +281,7 @@ export default async function Page(props: PageProps) {
     const { data: productsData } = await admin
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors"
+        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
       )
       .in("category_id", categoryIds)
       .eq("is_active", true)
@@ -337,6 +340,7 @@ export default async function Page(props: PageProps) {
         isAvailable={profile?.is_available}
         businessHours={orgData?.business_hours}
         customBusinessHours={profile?.custom_business_hours}
+        canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
       />
     </>

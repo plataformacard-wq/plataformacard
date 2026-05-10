@@ -29,25 +29,51 @@ Este documento serve como a **Fonte Única de Verdade (SSOT)** para a arquitetur
   6. Perfil (Penúltimo)
   7. Analytics (Último)
 
-## 5. Prevenção de Regressões (Protocolo de Resiliência)
+## 5. Lógica de Disponibilidade e Horários
+O sistema utiliza uma hierarquia de três níveis para determinar se um catálogo está aberto:
+1.  **Status Manual:** Se `is_available` for `false` no perfil, o catálogo fica "Pausado" (sempre fechado).
+2.  **Permissão de Customização:** Se `can_customize_hours` for `true` e houver horários configurados no perfil, estes têm prioridade.
+3.  **Herança da Empresa:** Caso o vendedor não tenha permissão ou não tenha configurado horários, o sistema herda os horários da `Organization`.
+4.  **Fallback de Segurança:** Se nem o vendedor nem a empresa tiverem horários salvos, o sistema aplica o `DEFAULT_BUSINESS_HOURS` (Seg-Sex 08-18h, Sáb 08-12h) para evitar catálogos "sempre abertos" por erro de configuração.
+
+## 6. Prevenção de Regressões (Protocolo de Resiliência)
 - **Suspense Boundaries:** Obrigatório o uso de `Suspense` em componentes que utilizam `useSearchParams` ou dados dinâmicos de BI (ex: Analytics).
 - **Hooks Management:** Nunca chamar hooks (`useState`, `useEffect`) dentro de condicionais ou após retornos antecipados. Centralizar todos no topo do componente.
 - **Tokenização:** Proibido o uso de cores hexadecimais fixas no JSX. Sempre usar tokens CSS (`var(--dash-...)`).
 
-## 6. Arquitetura Modular (Refatoração)
+## 7. Arquitetura Modular (Refatoração)
 - **Extração de Modais:** Componentes complexos (ex: `ProductModal`, `CategoryModal`) devem ser extraídos para arquivos dedicados em `components/dashboard/`.
 - **Comunicação via Props:** A comunicação deve ocorrer estritamente via props (`isOpen`, `onClose`, `onSuccess`), mantendo o componente pai (`CatalogoClient`) como orquestrador de dados.
 - **Persistência de Rascunhos:** Formulários complexos devem utilizar `localStorage` para persistir rascunhos de descrições e especificações, evitando perda de dados em caso de refresh acidental.
 - **Separação de Preocupações:** O cliente principal foca na listagem e filtros; os modais focam no CRUD e interações específicas (IA, Uploads).
 
 
-## 7. Log de Alterações (Últimas Entregas)
+## 9. Gestão de Recursos e Escalabilidade (Plano Free)
+O sistema possui duas camadas de monitoramento no Super Admin:
+- **Centro de Inteligência (Dashboard QG):** Foco estratégico e de negócios.
+- **Gestão de Recursos:** Foco técnico e de infraestrutura.
+
+**Watchdog Automatizado (Telegram):**
+O sistema possui um "Watchdog" via Supabase Edge Functions que monitora a saúde do SaaS a cada 12-24 horas.
+- **Thresholds:** 75% (Aviso), 85% (Crítico), 95% (Emergência).
+- **Configuração:** Requer `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` nas Secrets do Supabase.
+
+**Pilares de Monitoramento Técnico:**
+- **Banco de Dados (DB):** Limite de 500MB (Supabase). Monitorado via contagem de linhas totais.
+- **Largura de Banda:** Limite de 100GB/mês (Vercel).
+- **Storage:** Gerenciado via compressor integrado.
+
+## 10. Log de Alterações (Últimas Entregas)
 - **2026-05-09:**
-  - Estabilização definitiva do Dark Mode no `ProductModal` e `CategoryModal`.
+  - **UI/UX Premium (Galeria):** Implementação de reordenação por drag-and-drop e novo fluxo de editor que abre antes do seletor de arquivos.
+  - **Herança de Horários:** Correção da lógica de disponibilidade para vendedores, respeitando permissões de personalização e implementando fallback seguro para horários da organização.
   - Reordenamento estratégico da Sidebar (Dashboard > Empresa > Catálogo > ... > Perfil > Analytics).
   - Implementação do campo `specs_title` e layout de coluna única para especificações.
   - Substituição de botões estáticos por Sliders de Status (Visível/Estoque).
   - Auditoria completa de cores (Pre-Git Scan) removendo hexadecimais fixos e classes `zinc` residuais.
 
 ---
-*Última atualização: 2026-05-09*
+*Última atualização: 2026-05-10*
+
+> [!IMPORTANT]
+> Para acompanhar o progresso técnico e tarefas em aberto, consulte o arquivo [PENDENCIAS.md](file:///c:/Users/Start/plataformacard/PENDENCIAS.md).

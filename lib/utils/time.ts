@@ -22,6 +22,20 @@ export type BusinessHours = {
   };
 };
 
+export const DEFAULT_BUSINESS_HOURS: BusinessHours = {
+  timezone: "America/Sao_Paulo",
+  manual_override: null,
+  schedule: {
+    monday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    tuesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    wednesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    thursday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    friday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
+    saturday: { isOpen: true, shifts: [{ open: "08:00", close: "12:00" }] },
+    sunday: { isOpen: false, shifts: [] },
+  },
+};
+
 export type BusinessStatus = {
   isOpenNow: boolean;
   message: string;
@@ -30,16 +44,15 @@ export type BusinessStatus = {
 const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
 
 export function getBusinessStatus(businessHours: BusinessHours | null): BusinessStatus {
-  if (!businessHours || !businessHours.schedule) {
-    // Fallback if no business hours are defined
-    return { isOpenNow: true, message: "Disponível" };
-  }
+  const hours = (!businessHours || !businessHours.schedule || Object.keys(businessHours.schedule).length === 0)
+    ? DEFAULT_BUSINESS_HOURS
+    : businessHours;
 
-  if (businessHours.manual_override === "open") {
+  if (hours.manual_override === "open") {
     return { isOpenNow: true, message: "Aberto agora" };
   }
 
-  if (businessHours.manual_override === "closed") {
+  if (hours.manual_override === "closed") {
     return { isOpenNow: false, message: "Fechado temporariamente" };
   }
 
@@ -47,7 +60,7 @@ export function getBusinessStatus(businessHours: BusinessHours | null): Business
   
   // Use Intl to get the current date/time components in the specified timezone
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: businessHours.timezone || "America/Sao_Paulo",
+    timeZone: hours.timezone || "America/Sao_Paulo",
     hour12: false,
     weekday: "long",
     hour: "2-digit",
@@ -65,7 +78,6 @@ export function getBusinessStatus(businessHours: BusinessHours | null): Business
   const currentMinute = parseInt(getPart("minute"), 10);
   
   // To get the local day of the week reliably in the target timezone
-  // We can just create a string and parse it, or map the weekday output.
   const weekdayEn = getPart("weekday").toLowerCase();
   const currentDayIndex = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].indexOf(weekdayEn);
   
@@ -74,7 +86,7 @@ export function getBusinessStatus(businessHours: BusinessHours | null): Business
   }
 
   const dayKey = dayNames[currentDayIndex];
-  const todaySchedule = businessHours.schedule[dayKey];
+  const todaySchedule = hours.schedule[dayKey];
 
   if (!todaySchedule || !todaySchedule.isOpen) {
     return { isOpenNow: false, message: "Fechado hoje" };
@@ -94,7 +106,6 @@ export function getBusinessStatus(businessHours: BusinessHours | null): Business
     let closeMinutesTotal = closeH * 60 + closeM;
 
     // Handle shifts that end at midnight or cross midnight (e.g. 18:00 to 02:00)
-    // If it crosses midnight, the close time is smaller than the open time
     if (closeMinutesTotal <= openMinutesTotal) {
        closeMinutesTotal += 24 * 60; // Add 24 hours
     }

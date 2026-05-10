@@ -27,6 +27,8 @@ export interface ProductRow {
   image_url: string | null;
   image_urls: string[] | string | null;
   specs: any;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
   [key: string]: any;
 }
 
@@ -299,6 +301,31 @@ export default function ProductDetailDrawer({
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowColors ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
+              </div>
+
+              <div className="md:col-span-2 flex flex-col gap-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tag size={18} className="text-emerald-500" />
+                    <span className="text-sm font-black uppercase tracking-tight">Destaque do Produto</span>
+                  </div>
+                  <button 
+                    onClick={() => updateData(rowIndex, "show_highlight", !product.show_highlight)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${product.show_highlight ? 'bg-emerald-500' : 'bg-zinc-600'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${product.show_highlight ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                {product.show_highlight && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+                    <input 
+                      value={product.highlight_text || ""}
+                      onChange={(e) => updateData(rowIndex, "highlight_text", e.target.value)}
+                      placeholder="Ex: Produto Exclusivo, Sem CNH..."
+                      className="w-full p-3 bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                  </motion.div>
+                )}
               </div>
             </div>
 

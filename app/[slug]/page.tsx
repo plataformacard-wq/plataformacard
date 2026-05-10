@@ -7,6 +7,7 @@ import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton"
 import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
 import CatalogBadge from "@/components/catalog/CatalogBadge";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
+import PublicShareButton from "@/components/PublicShareButton";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -71,6 +72,7 @@ type ProfileRow = {
   whatsapp: string | null;
   is_available: boolean | null;
   custom_business_hours: any;
+  can_customize_hours: boolean | null;
 };
 
 export const dynamicParams = true;
@@ -204,7 +206,7 @@ export default async function Page(props: PageProps) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours, can_customize_hours")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -227,7 +229,7 @@ export default async function Page(props: PageProps) {
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
     supabase
       .from("organizations")
-      .select("name, business_hours")
+      .select("name, business_hours, accent_color, secondary_color, logo_url")
       .eq("id", safeProfile.organization_id)
       .maybeSingle(),
     getCatalogStats(supabase, safeProfile),
@@ -238,11 +240,21 @@ export default async function Page(props: PageProps) {
 
   const orgName = orgRes.data?.name?.trim() ?? null;
   const orgBusinessHours = (orgRes.data?.business_hours as unknown as BusinessHours) ?? null;
+  const orgLogo = orgRes.data?.logo_url ?? null;
+  const accentColor = orgRes.data?.accent_color || "#25D366";
+  const secondaryColor = orgRes.data?.secondary_color || "#128C7E";
   const customBusinessHours = (safeProfile.custom_business_hours as unknown as BusinessHours) ?? null;
   
   // Decide if we use the profile's manual override or the organization's business hours
   // Fase 2: Herança de Horários
-  const activeHours = customBusinessHours || orgBusinessHours;
+  const hasCustomSchedule = customBusinessHours && 
+                            customBusinessHours.schedule && 
+                            Object.keys(customBusinessHours.schedule).length > 0;
+  
+  const activeHours = (safeProfile.can_customize_hours && hasCustomSchedule) 
+    ? customBusinessHours 
+    : orgBusinessHours;
+
   const businessStatus = getBusinessStatus(activeHours);
   
   // Se o perfil estava com is_available = false (manual), forçamos o fechamento. 
@@ -276,8 +288,20 @@ export default async function Page(props: PageProps) {
         alignItems: "center",
         justifyContent: "center",
         padding: "40px 16px",
+        overflow: "hidden"
       }}
     >
+      {/* Mesh Background for Premium Feel */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div 
+          className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] blur-[120px] rounded-full opacity-20 dark:opacity-30"
+          style={{ background: accentColor }}
+        />
+        <div 
+          className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] blur-[100px] rounded-full opacity-10 dark:opacity-20"
+          style={{ background: secondaryColor }}
+        />
+      </div>
       <style>{`
         @keyframes slideUpFade {
           from { opacity: 0; transform: translateY(24px); }
@@ -325,8 +349,17 @@ export default async function Page(props: PageProps) {
           animation: pulseGlow 2s infinite alternate;
         }
         @keyframes pulseGlow {
-          from { box-shadow: 0 0 6px #25D366; }
-          to { box-shadow: 0 0 12px #25D366, 0 0 2px #fff; }
+          from { box-shadow: 0 0 6px ${accentColor}; }
+          to { box-shadow: 0 0 12px ${accentColor}, 0 0 2px #fff; }
+        }
+        
+        .public-card {
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .public-card:hover {
+          transform: translateY(-5px) scale(1.01);
         }
       `}</style>
       <ProfileViewTracker profileId={safeProfile.id} slug={slug} />
@@ -344,11 +377,17 @@ export default async function Page(props: PageProps) {
         {/* Barra verde de destaque no topo */}
         <div
           style={{
-            height: 3,
+            height: 4,
             background:
-              "linear-gradient(90deg, transparent 0%, #25D366 40%, #128C7E 60%, transparent 100%)",
+              `linear-gradient(90deg, transparent 0%, ${accentColor} 40%, ${secondaryColor} 60%, transparent 100%)`,
           }}
         />
+
+        {orgLogo && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 dark:opacity-10 grayscale hover:grayscale-0 transition-all duration-700 pointer-events-none">
+             <img src={orgLogo} alt={orgName || ""} className="h-20 w-auto object-contain" />
+          </div>
+        )}
 
         <div style={{ padding: "36px 28px 32px" }}>
           {/* Avatar com anel brilhante */}
@@ -367,7 +406,7 @@ export default async function Page(props: PageProps) {
                   inset: -3,
                   borderRadius: "50%",
                   background:
-                    "conic-gradient(from 0deg, #25D366 0%, #128C7E 40%, rgba(37,211,102,0.1) 60%, #25D366 100%)",
+                    `conic-gradient(from 0deg, ${accentColor} 0%, ${secondaryColor} 40%, rgba(255,255,255,0.1) 60%, ${accentColor} 100%)`,
                   opacity: 0.75,
                 }}
               />
@@ -424,7 +463,7 @@ export default async function Page(props: PageProps) {
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: isAvailableNow ? "#25D366" : "#9CA3AF",
+                  background: isAvailableNow ? accentColor : "#9CA3AF",
                   display: "block",
                 }}
               />
@@ -538,6 +577,29 @@ export default async function Page(props: PageProps) {
                 Ver catálogo
               </Link>
             </CatalogBadge>
+
+            <PublicShareButton 
+              title={safeProfile.full_name || "Perfil Digital"}
+              text={safeProfile.bio || "Confira meu perfil e catálogo digital."}
+              url={""} // O componente pegará a URL atual se estiver vazio
+              className="btn-catalog"
+              style={{
+                display: "inline-flex",
+                width: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: "transparent",
+                border: "1px solid var(--public-card-border)",
+                borderRadius: 14,
+                padding: "12px 20px",
+                color: "var(--public-text-dim)",
+                fontSize: 13,
+                fontWeight: 600,
+                marginTop: 4,
+                cursor: "pointer"
+              }}
+            />
           </div>
 
           {/* Stats */}
@@ -597,6 +659,12 @@ export default async function Page(props: PageProps) {
               </div>
             ))}
           </div>
+
+          {orgLogo && (
+            <div className="mt-8 flex justify-center opacity-40 hover:opacity-80 transition-opacity">
+              <img src={orgLogo} alt={orgName || ""} className="h-8 w-auto object-contain grayscale" />
+            </div>
+          )}
         </div>
       </div>
 

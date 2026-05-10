@@ -95,6 +95,8 @@ type ProductRow = {
   show_specs?: boolean | null;
   show_colors?: boolean | null;
   colors?: string[] | null;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
   created_at: string;
   sort_order: number | null;
   categories:
@@ -405,6 +407,8 @@ export default function CatalogoPage() {
       is_active,
       is_in_stock,
       price_display_mode,
+      highlight_text,
+      show_highlight,
       sort_order,
       created_at,
       categories (

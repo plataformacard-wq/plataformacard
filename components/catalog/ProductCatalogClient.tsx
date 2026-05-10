@@ -20,7 +20,9 @@ import {
   Tag,
   Layers,
   Check,
-  Clock
+  Clock,
+  Share2,
+  Copy
 } from "lucide-react";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import { getBusinessStatus } from "@/lib/utils/time";
@@ -63,6 +65,8 @@ type Product = {
   show_specs?: boolean | null;
   show_colors?: boolean | null;
   colors?: string[] | null;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -87,6 +91,7 @@ type ProductCatalogClientProps = {
   isAvailable?: boolean | null;
   businessHours?: any;
   customBusinessHours?: any;
+  canCustomizeHours?: boolean | null;
   organizationId?: string | null;
 };
 
@@ -120,6 +125,7 @@ export default function ProductCatalogClient({
   isAvailable,
   businessHours,
   customBusinessHours,
+  canCustomizeHours,
   organizationId
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "#25D366";
@@ -129,12 +135,19 @@ export default function ProductCatalogClient({
   const [priceMode, setPriceMode] = useState<"retail" | "wholesale">("retail");
 
   const businessStatus = useMemo(() => {
-    const activeHours = customBusinessHours || businessHours;
+    const hasCustomSchedule = customBusinessHours && 
+                              customBusinessHours.schedule && 
+                              Object.keys(customBusinessHours.schedule).length > 0;
+
+    const activeHours = (canCustomizeHours && hasCustomSchedule) 
+      ? customBusinessHours 
+      : businessHours;
+
     const status = getBusinessStatus(activeHours);
     const isAvailableNow = isAvailable === false ? false : status.isOpenNow;
     const statusMessage = isAvailable === false ? "Pausado" : status.message;
     return { isAvailableNow, statusMessage };
-  }, [businessHours, customBusinessHours, isAvailable]);
+  }, [businessHours, customBusinessHours, canCustomizeHours, isAvailable]);
 
   const whatsappUrl = useMemo(() => {
     if (!whatsapp) return null;
@@ -201,6 +214,8 @@ export default function ProductCatalogClient({
       show_colors: product.show_colors ?? category?.show_colors ?? false,
       specs_title: product.specs_title || category?.specs_title || "Especificações Técnicas",
       colors: product.colors || category?.colors || [],
+      highlight_text: product.highlight_text,
+      show_highlight: product.show_highlight,
     };
   }, [products, selectedProductId, categories]);
 
@@ -314,6 +329,25 @@ export default function ProductCatalogClient({
       pageType: "catalog",
       metadata: { slug, path: `/${slug}/catalogo`, productName: product.name },
     });
+  };
+
+  const handleShare = async (title: string, text: string, url: string) => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("Erro ao compartilhar:", err);
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert("Link copiado!");
+      } catch (err) {
+        console.error("Erro ao copiar link:", err);
+      }
+    }
   };
 
   const filteredCategories = useMemo(() => {
@@ -452,6 +486,16 @@ export default function ProductCatalogClient({
                 )
               )}
               <PublicThemeToggle className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center bg-[var(--public-bg)] border border-[var(--public-card-border)] hover:bg-[var(--public-card-bg)] transition-colors text-[var(--public-text-main)] shadow-sm" />
+              <button 
+                onClick={() => handleShare(
+                  catalogName || "Catálogo",
+                  catalogDescription || "",
+                  window.location.href.split('#')[0]
+                )}
+                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center bg-[var(--public-bg)] border border-[var(--public-card-border)] hover:bg-[var(--public-card-bg)] transition-colors text-[var(--public-text-main)] shadow-sm"
+              >
+                <Share2 size={16} />
+              </button>
             </div>
           </div>
         </motion.header>
@@ -586,10 +630,16 @@ export default function ProductCatalogClient({
                       </div>
 
                       <div className="p-6">
-                        <div className="mb-4">
+                        <div className="mb-4 flex flex-col gap-2 items-start">
                           <h3 className="inline-block text-xl font-black tracking-tighter text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-4 py-2 rounded-2xl shadow-sm whitespace-pre-wrap">
                              {product.name}
                           </h3>
+                          {product.show_highlight && product.highlight_text && (
+                            <div className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5 animate-in fade-in zoom-in duration-300 w-fit">
+                              <Tag size={12} className="animate-pulse" />
+                              {product.highlight_text}
+                            </div>
+                          )}
                         </div>
                         {product.description && (
                           <div 
@@ -747,6 +797,17 @@ export default function ProductCatalogClient({
                     <h2 className="text-3xl sm:text-4xl font-black tracking-tighter text-[var(--public-text-main)] leading-tight">
                       {selectedProduct.name}
                     </h2>
+                    
+                    {selectedProduct.show_highlight && selectedProduct.highlight_text && (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm w-fit"
+                      >
+                        <Tag size={14} className="animate-pulse" />
+                        {selectedProduct.highlight_text}
+                      </motion.div>
+                    )}
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
@@ -946,6 +1007,21 @@ export default function ProductCatalogClient({
                           Produto Indisponível
                         </div>
                       )}
+
+                      <button 
+                        onClick={() => {
+                          const baseUrl = window.location.href.split('#')[0];
+                          handleShare(
+                            selectedProduct.name,
+                            selectedProduct.description?.replace(/<[^>]*>/g, '').substring(0, 100) || "",
+                            `${baseUrl}#${selectedProduct.id}`
+                          );
+                        }}
+                        className="mt-4 flex items-center justify-center gap-2 w-full py-3 px-6 bg-[var(--public-card-bg)] border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-xl hover:bg-[var(--public-bg)] hover:text-[var(--public-text-main)] transition-all text-xs uppercase tracking-widest"
+                      >
+                        <Share2 size={16} />
+                        Compartilhar este Produto
+                      </button>
                     </div>
                   </div>
                 )}

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, ChevronDown, Loader2, Check, RotateCcw } from 'lucide-react'
-import { enhanceDescriptionWithAI, correctGrammarWithAI } from '@/lib/ai-actions'
+import { enhanceDescriptionWithAI, correctGrammarWithAI, fixProductOrthography } from '@/lib/ai-actions'
 
 interface AiAssistButtonProps {
   /** Dados do formulário que já foram preenchidos */
@@ -45,7 +45,8 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
       const result = await enhanceDescriptionWithAI({
         name: formData.name,
         currentDescription: formData.description,
-        price: formData.price
+        price: formData.price,
+        specs: formData.specs
       })
       if (result.success && result.data) {
         onApply({ description: result.data })
@@ -73,6 +74,28 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
       }
     } catch (e) {
       setError('Falha ao processar gramática')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFixAll = async () => {
+    setLoading(true)
+    setError(null)
+    setShowDropdown(false)
+    try {
+      const result = await fixProductOrthography({
+        name: formData.name,
+        highlight: formData.highlight,
+        description: formData.description
+      })
+      if (result.success && result.data) {
+        onApply(result.data)
+      } else {
+        setError(result.error || 'Erro ao corrigir campos')
+      }
+    } catch (e) {
+      setError('Falha ao processar correção')
     } finally {
       setLoading(false)
     }
@@ -125,6 +148,7 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
           >
             <div className="p-2 space-y-1">
               <button
+                type="button"
                 onClick={handleEnhance}
                 disabled={!canActivate(formData)}
                 className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide rounded-xl transition-colors disabled:opacity-40"
@@ -143,6 +167,25 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
               </button>
               
               <button
+                type="button"
+                onClick={handleFixAll}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide rounded-xl transition-colors disabled:opacity-40"
+                style={{ color: "var(--dash-text-primary)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--dash-hover-bg)";
+                  e.currentTarget.style.color = "var(--primary)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--dash-text-primary)";
+                }}
+              >
+                <span>Corretor com IA</span>
+                <Check size={12} className="text-emerald-500" />
+              </button>
+              
+              <button
+                type="button"
                 onClick={handleGrammarFix}
                 disabled={!hasContent}
                 className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide rounded-xl transition-colors disabled:opacity-40"
@@ -162,6 +205,7 @@ export const AiAssistButton: React.FC<AiAssistButtonProps> = ({
 
               {canUndo && (
                 <button
+                  type="button"
                   onClick={handleUndo}
                   className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-amber-600 rounded-xl transition-colors"
                   onMouseEnter={(e) => e.currentTarget.style.background = "rgba(245, 158, 11, 0.1)"}

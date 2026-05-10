@@ -22,9 +22,14 @@ import {
   Upload,
   GripVertical,
   Palette,
-  DollarSign
+  DollarSign,
+  Sparkles,
+  Loader2,
+  Check
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
+import { enhanceDescriptionWithAI, fixProductOrthography } from "@/lib/ai-actions";
+import AiReviewModal from "./AiReviewModal";
 import { AiAssistButton } from "@/components/dashboard/AiAssistButton";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
@@ -59,6 +64,8 @@ interface ProductRow {
   show_specs?: boolean | null;
   show_colors?: boolean | null;
   colors?: string[] | null;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
 }
 
 interface Category {
@@ -116,6 +123,8 @@ export default function ProductModal({
   const [showColors, setShowColors] = useState<boolean | null>(null);
   const [specsTitle, setSpecsTitle] = useState("");
   const [productColors, setProductColors] = useState<string[]>([]);
+  const [productHighlightText, setProductHighlightText] = useState("");
+  const [showHighlight, setShowHighlight] = useState(false);
   const [lastSavedData, setLastSavedData] = useState<{ description: string; specs: any[] } | null>(null);
   
   // Drafts
@@ -132,6 +141,8 @@ export default function ProductModal({
   const [colorPickerValue, setColorPickerValue] = useState("#000000");
   const [editingColorIdx, setEditingColorIdx] = useState<number | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [aiLoadingType, setAiLoadingType] = useState<'description' | 'fixAll' | null>(null);
+  const [reviewData, setReviewData] = useState<any>(null);
   
   // Image Editor State
   const [showImageEditor, setShowImageEditor] = useState(false);
@@ -183,6 +194,8 @@ export default function ProductModal({
         setShowColors(editingProduct.show_colors ?? null);
         setSpecsTitle(editingProduct.specs_title || "");
         setProductColors(Array.isArray(editingProduct.colors) ? editingProduct.colors : []);
+        setProductHighlightText(editingProduct.highlight_text || "");
+        setShowHighlight(editingProduct.show_highlight ?? false);
       } else {
         // Reset
         setProductName("");
@@ -204,6 +217,8 @@ export default function ProductModal({
         setShowColors(null);
         setSpecsTitle("");
         setProductColors([]);
+        setProductHighlightText("");
+        setShowHighlight(false);
       }
       setProductFormError("");
       setNameError("");
@@ -286,6 +301,12 @@ export default function ProductModal({
       setLastDescription(productDescription);
       setProductDescription(suggestions.description);
     }
+    if (suggestions.name) {
+      setProductName(suggestions.name);
+    }
+    if (suggestions.highlight) {
+      setProductHighlightText(suggestions.highlight.toUpperCase().substring(0, 35));
+    }
     if (suggestions.specs && Array.isArray(suggestions.specs)) {
       setLastSpecs(specs);
       setSpecs(suggestions.specs.map((s: any, i: number) => ({
@@ -317,14 +338,6 @@ export default function ProductModal({
     const { data } = supabase.storage.from("products").getPublicUrl(path);
     return data.publicUrl;
   }
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPendingFile(file);
-      setShowImageEditor(true);
-    }
-  };
 
   const onImageEditorConfirm = (file: File, previewUrl: string) => {
     const newId = `new-${Date.now()}`;
@@ -375,6 +388,8 @@ export default function ProductModal({
         show_colors: showColors,
         specs_title: specsTitle.trim() || null,
         colors: productColors,
+        highlight_text: showHighlight ? productHighlightText.trim() : null,
+        show_highlight: showHighlight,
       };
 
       let productId = editingProduct?.id;
@@ -528,6 +543,49 @@ export default function ProductModal({
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-sm font-black uppercase tracking-wider flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
+                      <Tag size={16} className="text-emerald-500" /> Destaque do Produto
+                    </label>
+                    {/* Slider Switch */}
+                    <div 
+                      onClick={() => setShowHighlight(!showHighlight)}
+                      className={`flex items-center gap-3 cursor-pointer group`}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)] group-hover:text-emerald-500 transition-colors">Ativar Destaque</span>
+                      <div className={`w-10 h-5 rounded-full relative transition-colors ${showHighlight ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
+                        <motion.div 
+                          animate={{ x: showHighlight ? 22 : 4 }}
+                          className="absolute top-1 w-3 h-3 bg-white rounded-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={productHighlightText}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      if (val.length <= 35) setProductHighlightText(val);
+                    }}
+                    placeholder="Ex: PRODUTO EXCLUSIVO, SEM CNH..."
+                    disabled={!showHighlight}
+                    className={`w-full rounded-2xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
+                    style={{ background: showHighlight ? "rgba(16, 185, 129, 0.02)" : "var(--dash-input-bg)", borderColor: showHighlight ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                  />
+                  {showHighlight && (
+                    <div className="mt-1.5 flex justify-end">
+                      <span className={`text-[9px] font-black tracking-widest uppercase ${productHighlightText.length >= 30 ? 'text-amber-500' : 'text-zinc-500'}`}>
+                        {productHighlightText.length} / 35 CARACTERES
+                      </span>
+                    </div>
+                  )}
+                  <p className="mt-2 text-[10px] font-bold" style={{ color: "var(--dash-text-muted)" }}>
+                    Este texto aparecerá com alta visibilidade no catálogo público para destacar um diferencial.
+                  </p>
+                </div>
                 
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                   <div 
@@ -584,13 +642,6 @@ export default function ProductModal({
                 <div className="md:col-span-2">
                   <div className="mb-2 flex items-center justify-between">
                     <label className="text-sm font-black uppercase tracking-wider">Descrição</label>
-                    <AiAssistButton
-                      formData={{ name: productName, description: productDescription, price: productPrice, specs, colors: productColors }}
-                      onApply={handleApplyAiSuggestions}
-                      canActivate={canActivateAiAssist}
-                      onUndo={handleUndoAi}
-                      canUndo={lastDescription !== null || lastSpecs !== null}
-                    />
                   </div>
                   <ReactQuill theme="snow" value={productDescription} onChange={setProductDescription} className="quill-premium" />
                 </div>
@@ -912,25 +963,158 @@ export default function ProductModal({
               )}
             </div>
 
-            {/* Galeria */}
             <div className="space-y-6">
-              <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Galeria (Até 5 fotos)</h3>
-              <div className="grid grid-cols-5 gap-4">
-                {modalImages.map((img, i) => (
-                  <div key={img.id} className="relative h-20 w-20 rounded-xl overflow-hidden border" style={{ borderColor: "var(--dash-border)" }}>
-                    <img src={img.url} className="h-full w-full object-cover" />
-                    <button type="button" onClick={() => setModalImages(modalImages.filter(item => item.id !== img.id))} className="absolute top-0 right-0 bg-red-500 text-white p-0.5"><XIcon size={10}/></button>
-                  </div>
-                ))}
-                  <label 
-                    className="h-20 w-20 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors"
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Galeria (Até 5 fotos)</h3>
+                <span className="text-[10px] font-bold text-zinc-500">Arraste para reordenar • A primeira é a principal</span>
+              </div>
+              
+              <Reorder.Group 
+                axis="x" 
+                values={modalImages} 
+                onReorder={setModalImages}
+                className="flex flex-wrap gap-4"
+              >
+                <AnimatePresence>
+                  {modalImages.map((img, i) => (
+                    <Reorder.Item 
+                      key={img.id} 
+                      value={img}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="relative h-24 w-24 rounded-2xl overflow-hidden border-2 cursor-grab active:cursor-grabbing group shadow-sm hover:shadow-md transition-all"
+                      style={{ 
+                        borderColor: i === 0 ? "var(--dash-primary)" : "var(--dash-border)",
+                        background: "var(--dash-surface-secondary)"
+                      }}
+                    >
+                      <img src={img.url} className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <GripVertical size={20} className="text-white" />
+                      </div>
+                      {i === 0 && (
+                        <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">
+                          Principal
+                        </div>
+                      )}
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalImages(modalImages.filter(item => item.id !== img.id));
+                        }} 
+                        className="absolute top-1 right-1 bg-red-500/90 hover:bg-red-500 text-white p-1 rounded-lg backdrop-blur-sm transition-colors z-10"
+                      >
+                        <XIcon size={12}/>
+                      </button>
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+
+                {modalImages.length < 5 && (
+                  <button 
+                    type="button"
+                    onClick={() => setShowImageEditor(true)}
+                    className="h-24 w-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 group"
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--dash-border)"}
                   >
-                    <Upload size={20} className="text-zinc-400" />
-                    <input type="file" className="hidden" onChange={handleImageSelect} />
-                  </label>
+                    <Upload size={20} className="text-zinc-500 group-hover:text-emerald-500 transition-colors" />
+                    <span className="text-[10px] font-black uppercase text-zinc-500 group-hover:text-emerald-500">Adicionar</span>
+                  </button>
+                )}
+              </Reorder.Group>
+            </div>
+
+            {/* SESSÃO: FILTRO DE QUALIDADE IA */}
+            <div className="pt-10 border-t space-y-6" style={{ borderColor: "var(--dash-border)" }}>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-tight text-[var(--dash-text-primary)]">Filtro de Qualidade IA</h3>
+                  <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-widest">Toque final profissional para o seu cadastro</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Melhorar Descrição */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!productName) return alert("Dê um nome ao produto primeiro.");
+                    setAiLoadingType('description');
+                    try {
+                      const result = await enhanceDescriptionWithAI({
+                        name: productName,
+                        currentDescription: productDescription,
+                        specs
+                      });
+                      if (result.success && result.data) {
+                        setReviewData({
+                          type: 'description',
+                          title: 'Melhoria de Descrição',
+                          explanation: result.data.explanation,
+                          original: productDescription,
+                          proposed: result.data.proposed
+                        });
+                      }
+                    } finally {
+                      setAiLoadingType(null);
+                    }
+                  }}
+                  disabled={!!aiLoadingType}
+                  className="flex items-center justify-between p-6 rounded-3xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
+                >
+                  <div className="text-left">
+                    <p className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">Melhorar Legenda</p>
+                    <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">IA cria um texto de alta conversão</p>
+                  </div>
+                  <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    {aiLoadingType === 'description' ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                  </div>
+                </button>
+
+                {/* Corretor com IA */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setAiLoadingType('fixAll');
+                    try {
+                      const result = await fixProductOrthography({
+                        name: productName,
+                        highlight: productHighlightText,
+                        description: productDescription
+                      });
+                      if (result.success && result.data) {
+                        setReviewData({
+                          type: 'fixAll',
+                          title: 'Corretor com IA',
+                          explanation: result.data.explanation,
+                          changes: [
+                            { id: 'name', field: 'Nome', from: productName, to: result.data.name },
+                            { id: 'highlight', field: 'Destaque', from: productHighlightText, to: result.data.highlight },
+                            { id: 'description', field: 'Descrição', from: productDescription, to: result.data.description }
+                          ],
+                          payload: result.data
+                        });
+                      }
+                    } finally {
+                      setAiLoadingType(null);
+                    }
+                  }}
+                  disabled={!!aiLoadingType}
+                  className="flex items-center justify-between p-6 rounded-3xl border-2 border-dashed border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] hover:border-blue-500/40 transition-all group disabled:opacity-50"
+                >
+                  <div className="text-left">
+                    <p className="text-xs font-black uppercase tracking-widest text-blue-500 mb-1">Corretor Profissional</p>
+                    <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">Corrige erros de todos os campos</p>
+                  </div>
+                  <div className="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    {aiLoadingType === 'fixAll' ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                  </div>
+                </button>
               </div>
             </div>
           </form>
@@ -968,6 +1152,32 @@ export default function ProductModal({
         initialFile={pendingFile}
         minWidth={400}
         minHeight={400}
+      />
+
+      <AiReviewModal
+        isOpen={!!reviewData}
+        onClose={() => setReviewData(null)}
+        onConfirm={(acceptedFields) => {
+          if (reviewData.type === 'description') {
+            if (acceptedFields['single']) {
+              setLastDescription(productDescription);
+              setProductDescription(reviewData.proposed);
+            }
+          } else if (reviewData.type === 'fixAll') {
+            if (acceptedFields['name']) setProductName(reviewData.payload.name);
+            if (acceptedFields['highlight']) setProductHighlightText(reviewData.payload.highlight);
+            if (acceptedFields['description']) {
+              setLastDescription(productDescription);
+              setProductDescription(reviewData.payload.description);
+            }
+          }
+          setReviewData(null);
+        }}
+        title={reviewData?.title || ""}
+        explanation={reviewData?.explanation || ""}
+        original={reviewData?.original}
+        proposed={reviewData?.proposed}
+        changes={reviewData?.changes}
       />
 
       <style jsx global>{`
