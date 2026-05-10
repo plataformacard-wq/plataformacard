@@ -48,7 +48,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Watchdog Telegram:** Deploy da Edge Function e configuração de Secrets.
 - [ ] **Auditoria de Tipagem:** Remoção de `any` e unificação de interfaces (`ProductRow`, etc).
 - [ ] **Auditoria de Tema:** Varredura de cores hardcoded e classes Tailwind residuais.
-- [ ] **Gestão de Recursos (Super Admin):** Implementar monitoração de consumo de tokens da IA para controle de custos do SaaS.
+- [x] **Gestão de Recursos (Super Admin):** Monitoração de consumo de tokens da IA (Gemini) integrada ao dashboard de infraestrutura.
 
 ---
 

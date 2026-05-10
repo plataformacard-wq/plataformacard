@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   TrendingUp,
   Image as ImageIcon,
-  Layers
+  Layers,
+  Sparkles,
+  Cpu
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getSaaSResourceMetrics, ResourceMetrics } from "@/app/admin/recursos/actions";
@@ -194,6 +196,70 @@ export default function ResourceManagementClient() {
                   <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
                     Seu tráfego atual está muito abaixo do limite. Você pode suportar um aumento massivo de acessos sem custos adicionais de infraestrutura.
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Consumo de Inteligência Artificial */}
+        <div className="border p-8 rounded-3xl shadow-2xl relative overflow-hidden lg:col-span-2" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <div className="absolute top-0 right-0 p-4 opacity-5" style={{ color: "var(--dash-text-primary)" }}>
+            <Cpu size={120} />
+          </div>
+
+          <div className="flex items-center gap-4 mb-8">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500">
+              <Sparkles size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Consumo de IA (Gemini 1.5 Flash)</h3>
+              <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>Orçamento Mensal Estimado: 1M Tokens</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium" style={{ color: "var(--dash-text-secondary)" }}>Uso de Tokens do SaaS</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-black border ${getStatusColor(metrics?.aiUsagePercent || 0)}`}>
+                  {metrics?.aiUsagePercent || 0}%
+                </span>
+              </div>
+              
+              <div className="h-4 bg-[var(--dash-bg)] rounded-full overflow-hidden border border-[var(--dash-border)] p-1">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${metrics?.aiUsagePercent || 0}%` }}
+                  className={`h-full rounded-full ${getProgressBarColor(metrics?.aiUsagePercent || 0)} shadow-[0_0_15px_rgba(16,185,129,0.3)]`}
+                />
+              </div>
+
+              <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-1">Dica de Gestão</p>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
+                  O Gemini 1.5 Flash é altamente eficiente. Com o consumo atual, sua margem de lucro operacional por usuário permanece protegida.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+                <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-emerald-500">Total de Tokens</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                  {metrics?.totalAiTokens?.toLocaleString() || 0}
+                </p>
+                <p className="text-[9px] mt-1 font-bold text-[var(--dash-text-muted)] uppercase">Acumulado Mensal</p>
+              </div>
+              <div className="p-5 rounded-3xl bg-[var(--dash-bg)] border border(--dash-border)">
+                <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-blue-500">Eficiência (In/Out)</p>
+                <div className="flex items-end gap-1">
+                  <p className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>{Math.round(((metrics?.aiTokensPrompt || 1) / (metrics?.totalAiTokens || 1)) * 100)}%</p>
+                  <p className="text-[9px] mb-1 text-[var(--dash-text-muted)] font-bold uppercase">Prompt</p>
+                </div>
+                <div className="w-full h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden flex">
+                   <div className="h-full bg-emerald-500" style={{ width: `${Math.round(((metrics?.aiTokensPrompt || 1) / (metrics?.totalAiTokens || 1)) * 100)}%` }} />
+                   <div className="h-full bg-blue-500" style={{ width: `${100 - Math.round(((metrics?.aiTokensPrompt || 1) / (metrics?.totalAiTokens || 1)) * 100)}%` }} />
                 </div>
               </div>
             </div>

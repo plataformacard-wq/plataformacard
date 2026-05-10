@@ -1,5 +1,37 @@
 "use server";
 
+import { createClient } from "@/lib/supabase/server";
+
+/**
+ * Função interna para logar o uso de tokens no banco de dados.
+ */
+async function logAiUsage(actionType: string, usage: any) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Busca o organization_id do perfil do usuário
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    await supabase.from('ai_usage_logs').insert({
+      user_id: user.id,
+      organization_id: profile?.organization_id,
+      action_type: actionType,
+      prompt_tokens: usage?.promptTokenCount || 0,
+      completion_tokens: usage?.candidatesTokenCount || 0,
+      total_tokens: usage?.totalTokenCount || 0,
+      model_name: 'gemini-1.5-flash'
+    });
+  } catch (error) {
+    console.error("[AI-LOG-ERROR]:", error);
+  }
+}
+
 /**
  * Gera ou melhora a descrição do produto com explicação das mudanças.
  */
@@ -57,6 +89,12 @@ export async function enhanceDescriptionWithAI(payload: {
     if (!response.ok) return { error: `Erro na API do Google` };
 
     const data = await response.json();
+    
+    // Log de uso
+    if (data.usageMetadata) {
+      await logAiUsage('enhance_description', data.usageMetadata);
+    }
+
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta vazia");
 
@@ -117,6 +155,12 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
     if (!response.ok) return { error: `Erro na API do Google` };
 
     const data = await response.json();
+    
+    // Log de uso
+    if (data.usageMetadata) {
+      await logAiUsage('fix_orthography', data.usageMetadata);
+    }
+
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta vazia");
 
@@ -158,6 +202,12 @@ export async function generateSEOWithAI(orgName: string, businessType: string = 
     if (!response.ok) return { error: `Google API retornou erro ${response.status}` };
 
     const data = await response.json();
+    
+    // Log de uso
+    if (data.usageMetadata) {
+      await logAiUsage('generate_seo', data.usageMetadata);
+    }
+
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta sem texto do Google");
 
