@@ -45,7 +45,6 @@ import {
   Plus as PlusIcon
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
-import { AiAssistButton } from "@/components/dashboard/AiAssistButton";
 import ProductModal from "@/components/dashboard/ProductModal";
 import CategoryModal from "@/components/dashboard/CategoryModal";
 

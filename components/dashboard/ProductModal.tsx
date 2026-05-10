@@ -30,7 +30,6 @@ import {
 import { HexColorPicker } from "react-colorful";
 import { enhanceDescriptionWithAI, fixProductOrthography } from "@/lib/ai-actions";
 import AiReviewModal from "./AiReviewModal";
-import { AiAssistButton } from "@/components/dashboard/AiAssistButton";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
 // Carregamento dinâmico do Quill
