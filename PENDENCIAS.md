@@ -59,6 +59,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
     - Se `paused`: Exibir badge "Indisponível para entrega imediata" nos cards.
     - Se `paused`: Desativar abertura do modal de detalhes (cards puramente informativos).
 - [ ] **Status de Vendedor - Lógica de Desligamento:**
+    - Adicionar botão vermelho `{Desligar vendedor}` no modal de gestão de vendedores para acionamento do desligamento.
     - Criar "Bridge Page" (página de transição) para links de vendedores inativos.
     - Exibir lista aleatória/sugerida de vendedores ativos da mesma empresa na Bridge Page.
     - Botão de redirecionamento para o Catálogo Master da Organização.
