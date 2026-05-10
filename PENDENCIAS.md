@@ -55,7 +55,9 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 ## 💰 4. Business & Expansão (Backlog)
 
 - [ ] **Sistemas de Pagamento:** Iniciar planejamento da arquitetura para checkout e assinaturas.
-- [ ] **Pesquisa de Mercado:** Estudo de precificação e planos da concorrência para ajuste do SaaS.
+- [ ] **Análise Estratégica:** Criação e validação do sistema de acesso de vendedores ao dashboard com as limitações configuradas pelo Gestor B2B.
+- [ ] **Análise Estratégica:** Definição e criação de Planos e Funções (Roles) do SaaS.
+- [ ] **Pesquisa de Mercado:** Estudo de precificação e análise da concorrência para posicionamento do SaaS.
 - [ ] **Limpeza Automática de Logs:** Rotina para preservar espaço no Plano Free.
 
 ---
