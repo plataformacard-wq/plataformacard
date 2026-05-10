@@ -12,7 +12,8 @@ import {
   Settings,
   Plus as PlusIcon,
   List,
-  Palette
+  Palette,
+  Tag
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { createClient } from "@/lib/supabase/client";
