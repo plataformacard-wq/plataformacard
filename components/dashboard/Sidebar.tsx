@@ -85,11 +85,11 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Gestão SaaS", 
         icon: Building2,
         subItems: [
-          { href: "/admin/caas", label: "Gestão CaaS (QG)", icon: Globe },
           { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
-          { href: "/admin/catalogos", label: "Análise de Vitrines", icon: BookOpen },
-          { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
           { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
+          { href: "/admin/catalogos", label: "Análise de Vitrines", icon: BookOpen },
+          { href: "/admin/caas", label: "Gestão CaaS (QG)", icon: Globe },
+          { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
         ]
       },
       { 
