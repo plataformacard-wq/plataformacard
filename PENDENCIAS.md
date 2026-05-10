@@ -52,7 +52,21 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 
 ---
 
-## 💰 4. Business & Expansão (Backlog)
+## 🚨 5. Bloqueadores de Lançamento (CRÍTICO)
+
+- [ ] **Status de Vendedor - Lógica de Pausa:**
+    - Implementar campo `status` (`active`, `paused`, `terminated`) no DB.
+    - Se `paused`: Exibir badge "Indisponível para entrega imediata" nos cards.
+    - Se `paused`: Desativar abertura do modal de detalhes (cards puramente informativos).
+- [ ] **Status de Vendedor - Lógica de Desligamento:**
+    - Criar "Bridge Page" (página de transição) para links de vendedores inativos.
+    - Exibir lista aleatória/sugerida de vendedores ativos da mesma empresa na Bridge Page.
+    - Botão de redirecionamento para o Catálogo Master da Organização.
+    - Remoção automática de dados sensíveis (foto/nome) do perfil desligado.
+
+---
+
+## 💰 6. Business & Expansão (Backlog)
 
 - [ ] **Sistemas de Pagamento:** Iniciar planejamento da arquitetura para checkout e assinaturas.
 - [ ] **Análise Estratégica:** Criação e validação do sistema de acesso de vendedores ao dashboard com as limitações configuradas pelo Gestor B2B.
