@@ -625,12 +625,12 @@ export default function ProductCatalogClient({
                               Serviço
                             </span>
                           )}
-                            {new Date(product.created_at).getTime() > lastViewTimestamp && (
+                            {lastViewTimestamp !== null && new Date(product.created_at).getTime() > lastViewTimestamp && (
                               <span className="text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg border" style={{ backgroundColor: primaryColor, borderColor: `${primaryColor}aa` }}>
                                 NOVO
                               </span>
                             )}
-                            {new Date(product.updated_at).getTime() > lastViewTimestamp && new Date(product.created_at).getTime() <= lastViewTimestamp && (
+                            {lastViewTimestamp !== null && new Date(product.updated_at).getTime() > lastViewTimestamp && new Date(product.created_at).getTime() <= lastViewTimestamp && (
                               <span className="bg-blue-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-blue-400">
                                 ATUALIZADO
                               </span>
