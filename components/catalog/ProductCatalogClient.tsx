@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import { getBusinessStatus } from "@/lib/utils/time";
+import { formatWhatsAppMessage } from "@/lib/utils/whatsapp-utils";
 
 type Category = {
   id: string;
@@ -67,6 +68,7 @@ type Product = {
   colors?: string[] | null;
   highlight_text?: string | null;
   show_highlight?: boolean | null;
+  type?: "product" | "service" | null;
   created_at: string;
   updated_at: string;
 };
@@ -93,6 +95,7 @@ type ProductCatalogClientProps = {
   customBusinessHours?: any;
   canCustomizeHours?: boolean | null;
   organizationId?: string | null;
+  whatsappTemplate?: string | null;
 };
 
 const cleanProductName = (name: string) => name.replace(/\s*-\s*EDITADO\s*$/gi, "").trim();
@@ -126,7 +129,8 @@ export default function ProductCatalogClient({
   businessHours,
   customBusinessHours,
   canCustomizeHours,
-  organizationId
+  organizationId,
+  whatsappTemplate
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "#25D366";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -283,15 +287,23 @@ export default function ProductCatalogClient({
     if (!whatsapp || !selectedProduct) return null;
     const cleanNumber = whatsapp.replace(/\D/g, "");
     
+    const itemTerm = selectedProduct.type === 'service' ? 'serviço' : 'produto';
     const modeText = priceMode === "wholesale" ? "Atacado" : "Varejo";
     const priceText = priceMode === "wholesale" 
       ? formatPrice(selectedProduct.wholesale_price) 
       : formatPrice(selectedProduct.price);
 
-    const message = `Olá! Tenho interesse no produto *${selectedProduct.name}* para compra em *${modeText}*${priceText ? ` (${priceText})` : ""}.${selectedProduct.sku ? `\nReferência: ${selectedProduct.sku}` : ""}\n\nIdentificador: ${slug}`;
+    const message = formatWhatsAppMessage(whatsappTemplate, {
+      item_name: selectedProduct.name,
+      item_price: priceText,
+      item_sku: selectedProduct.sku || undefined,
+      item_url: `${window.location.origin}/${slug}/catalogo#${selectedProduct.id}`,
+      item_type: selectedProduct.type === 'service' ? 'serviço' : 'produto',
+      seller_name: fullName || "Vendedor",
+    });
     
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
-  }, [whatsapp, selectedProduct, priceMode, slug]);
+  }, [whatsapp, selectedProduct, priceMode, slug, whatsappTemplate, fullName]);
 
   const trackLead = async (productName?: string) => {
     console.log("📍 trackLead iniciado para:", productName);
@@ -546,7 +558,7 @@ export default function ProductCatalogClient({
             </div>
             <input
               type="text"
-              placeholder="O que você está procurando?"
+              placeholder="O que você está procurando? (Produto ou Serviço)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl py-4 pl-12 pr-6 text-[var(--public-text-main)] placeholder:text-[var(--public-text-dim)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
@@ -575,7 +587,7 @@ export default function ProductCatalogClient({
                     )}
                   </div>
                   <span className="text-xs font-bold text-[var(--public-text-dim)] uppercase tracking-widest bg-[var(--public-card-bg)] px-3 py-1.5 rounded-2xl border border-[var(--public-card-border)] shadow-sm">
-                    {category.products.length} itens
+                    {category.products.length} {category.products.every(p => p.type === 'service') ? 'serviços' : category.products.some(p => p.type === 'service') ? 'itens' : 'produtos'}
                   </span>
                 </div>
 
@@ -607,8 +619,12 @@ export default function ProductCatalogClient({
                           <Package size={48} className={`text-[var(--public-text-dim)] ${!product.is_in_stock ? 'opacity-30' : ''}`} />
                         )}
 
-                        {lastViewTimestamp !== null && (
-                          <div className="absolute top-4 left-4 flex flex-col gap-2">
+                        <div className="absolute top-4 left-4 flex flex-col gap-2">
+                          {product.type === 'service' && (
+                            <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-lg shadow-lg border border-emerald-400/30 uppercase tracking-widest">
+                              Serviço
+                            </span>
+                          )}
                             {new Date(product.created_at).getTime() > lastViewTimestamp && (
                               <span className="text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg border" style={{ backgroundColor: primaryColor, borderColor: `${primaryColor}aa` }}>
                                 NOVO
@@ -620,7 +636,6 @@ export default function ProductCatalogClient({
                               </span>
                             )}
                           </div>
-                        )}
 
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
@@ -667,7 +682,7 @@ export default function ProductCatalogClient({
                             )}
                             {product.is_in_stock !== false && product.has_retail === false && product.has_wholesale && product.wholesale_price && (
                               <div className="flex flex-col">
-                                <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mb-0.5">A partir de (Atacado)</span>
+                                <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mb-0.5">A partir de ({product.type === 'service' ? 'Agendamento' : 'Atacado'})</span>
                                 <p className="text-xl font-extrabold text-emerald-400">
                                   {formatPrice(product.wholesale_price)}
                                 </p>
@@ -691,8 +706,8 @@ export default function ProductCatalogClient({
               <div className="bg-[var(--public-card-bg)] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--public-card-border)]">
                 <Search size={32} className="text-[var(--public-text-dim)]" />
               </div>
-              <h3 className="text-xl font-bold text-[var(--public-text-main)] mb-2">Nenhum produto encontrado</h3>
-              <p className="text-[var(--public-text-dim)]">Tente buscar por termos diferentes ou confira outras categorias.</p>
+              <h3 className="text-xl font-bold text-[var(--public-text-main)] mb-2">Nenhum item encontrado</h3>
+              <p className="text-[var(--public-text-dim)]">Tente buscar por termos diferentes (produtos ou serviços) ou confira outras categorias.</p>
             </div>
           )}
         </div>

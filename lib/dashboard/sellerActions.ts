@@ -12,6 +12,7 @@ export async function createSeller(formData: FormData) {
   const dashAccessCatalog = formData.get("dashAccessCatalog") === "true";
   const dashAccessAnalytics = formData.get("dashAccessAnalytics") === "true";
   const dashAccessCompany = formData.get("dashAccessCompany") === "true";
+  const whatsappTemplate = formData.get("whatsappTemplate") as string;
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -52,8 +53,7 @@ export async function createSeller(formData: FormData) {
     return { error: "Este slug (link) já está em uso." };
   }
 
-  console.log("🛠️ INICIANDO GRAVAÇÃO DE VENDEDOR...");
-  console.log("📍 Org ID Alvo:", profileManager.organization_id);
+  // Início da gravação de vendedor
 
   try {
     // ESTRATÉGIA: Criar uma conta técnica invisível para satisfazer o banco de dados
@@ -95,7 +95,8 @@ export async function createSeller(formData: FormData) {
       role: "seller",
       dash_access_catalog: dashAccessCatalog,
       dash_access_analytics: dashAccessAnalytics,
-      dash_access_company: dashAccessCompany
+      dash_access_company: dashAccessCompany,
+      whatsapp_template: whatsappTemplate
     };
 
     const { error: insertError } = await adminAuthClient
@@ -173,8 +174,7 @@ export async function getSellers() {
     .eq("user_id", adminUser.id)
     .single();
 
-  console.log("--- DEBUG GET SELLERS ---");
-  console.log("Org ID do Gestor:", profileManager?.organization_id);
+  // Debug Sellers removed for production
 
   if (!profileManager?.organization_id) return { sellers: [] };
 

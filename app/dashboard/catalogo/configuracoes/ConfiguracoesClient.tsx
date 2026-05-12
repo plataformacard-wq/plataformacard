@@ -9,17 +9,22 @@ import {
   BookOpen,
   FileText,
   Layout,
-  Palette,
-  Globe,
-  Copy,
-  Check,
   ExternalLink,
   Layers,
   Smartphone,
   Sparkles,
   ChevronRight,
   Info,
-  Code
+  Code,
+  Package,
+  Settings,
+  Zap,
+  MessageCircle,
+  HelpCircle,
+  Globe,
+  Palette,
+  Copy,
+  Check
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -44,6 +49,8 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug }: C
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [whatsappTemplate, setWhatsappTemplate] = useState(initialCatalog.whatsapp_template || "");
+  const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">(initialCatalog.type || initialCatalog.catalog_type || "product");
   
   // Customization State for Embed
   const [embedWidth, setEmbedWidth] = useState("100%");
@@ -93,6 +100,8 @@ ${iframeResizerCode}
         .update({
           name: catalog.name,
           description: catalog.description,
+          whatsapp_template: whatsappTemplate,
+          type: catalogType
         })
         .eq("id", catalog.id);
 
@@ -170,30 +179,87 @@ ${iframeResizerCode}
                 </div>
               </div>
 
-              <div className="grid gap-8">
-                <div className="space-y-3">
+              <div className="grid gap-10">
+                {/* Tipo de Catálogo */}
+                <div className="space-y-4">
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
-                    <Layout size={14} className="text-primary" /> Título do Catálogo
+                    <Zap size={14} className="text-primary" /> Tipo de Catálogo
                   </label>
-                  <input
-                    value={catalog.name}
-                    onChange={(e) => setCatalog({ ...catalog, name: e.target.value })}
-                    className="w-full p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-lg"
-                    placeholder="Ex: Coleção Outono/Inverno"
-                  />
+                  <div className="flex flex-wrap p-1.5 rounded-[24px] bg-[var(--dash-hover-bg)] border border-[var(--dash-border)]">
+                    <button
+                      onClick={() => setCatalogType("product")}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                    >
+                      <Package size={18} /> Produto
+                    </button>
+                    <button
+                      onClick={() => setCatalogType("service")}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                    >
+                      <Settings size={18} /> Serviço
+                    </button>
+                    <button
+                      onClick={() => setCatalogType("hybrid")}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                    >
+                      <Sparkles size={18} /> Híbrido
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-[var(--dash-text-muted)] font-medium pl-2">
+                    {catalogType === 'product' && 'Ideal para lojas de varejo e atacado.'}
+                    {catalogType === 'service' && 'Perfeito para consultores, mecânicos e prestadores de serviço.'}
+                    {catalogType === 'hybrid' && 'Permite classificar cada item individualmente como produto ou serviço.'}
+                  </p>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
-                    <FileText size={14} className="text-primary" /> Descrição do Catálogo
-                  </label>
-                  <textarea
-                    value={catalog.description || ""}
-                    onChange={(e) => setCatalog({ ...catalog, description: e.target.value })}
-                    rows={5}
-                    className="w-full p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium"
-                    placeholder="Uma breve apresentação sobre sua empresa ou esta coleção..."
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-[var(--dash-border)]">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                      <Globe size={14} className="text-primary" /> Descrição da Vitrine (SEO)
+                    </label>
+                    <textarea
+                      value={catalog.description || ""}
+                      onChange={(e) => setCatalog({ ...catalog, description: e.target.value })}
+                      rows={6}
+                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px] focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                      placeholder="Descreva seu negócio para seus clientes e para o Google..."
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                        <MessageCircle size={14} className="text-primary" /> Modelo de Mensagem (WhatsApp)
+                      </label>
+                      <div className="group relative">
+                        <HelpCircle size={14} className="text-[var(--dash-text-muted)] cursor-help" />
+                        <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-zinc-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl leading-relaxed">
+                          Use as tags para injetar dados reais do produto na mensagem. Ex: "Olá, quero saber mais sobre o {`{nome}`}"
+                        </div>
+                      </div>
+                    </div>
+                    <textarea
+                      value={whatsappTemplate}
+                      onChange={(e) => setWhatsappTemplate(e.target.value)}
+                      rows={6}
+                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px] focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                      placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e gostaria de saber mais..."
+                    />
+                    
+                    {/* Tags Rápidas */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {['nome', 'preco', 'sku', 'link', 'tipo'].map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => setWhatsappTemplate(prev => prev + `{${tag}}`)}
+                          className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
+                        >
+                          {`{${tag}}`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
               

@@ -63,6 +63,7 @@ type Catalog = {
   id: string;
   name: string;
   description: string | null;
+  type: "product" | "service" | "hybrid";
 };
 
 type Spec = { id?: string; chave: string; valor: string };
@@ -74,6 +75,7 @@ const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 type ProductRow = {
   id: string;
   organization_id: string;
+  whatsapp_template: string | null;
   category_id: string | null;
   name: string;
   description: string | null;
@@ -96,6 +98,7 @@ type ProductRow = {
   colors?: string[] | null;
   highlight_text?: string | null;
   show_highlight?: boolean | null;
+  type?: "product" | "service";
   created_at: string;
   sort_order: number | null;
   categories:
@@ -160,6 +163,8 @@ export default function CatalogoPage() {
 
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [catalogDescription, setCatalogDescription] = useState("");
+  const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">("product");
+  const [whatsappTemplate, setWhatsappTemplate] = useState("");
   const [savingCatalog, setSavingCatalog] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [catalogId, setCatalogId] = useState<string | null>(null);
@@ -234,11 +239,20 @@ export default function CatalogoPage() {
     if (!user) return null;
 
     // 1. Tenta buscar o perfil pelo ID principal (que deve ser igual ao do usuário)
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from("profiles")
       .select("organization_id, id, organizations(plan_id, plans(*))")
       .eq("id", user.id)
       .maybeSingle();
+
+    if (!profile) {
+      const { data: profileByUid } = await supabase
+        .from("profiles")
+        .select("organization_id, id, organizations(plan_id, plans(*))")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      profile = profileByUid;
+    }
 
     if (profile?.organizations) {
       const orgs = profile.organizations as any;
@@ -343,13 +357,15 @@ export default function CatalogoPage() {
     if (catId) {
       const { data: catalogData } = await supabase
         .from("catalogs")
-        .select("id, name, description")
+        .select("id, name, description, catalog_type, type, whatsapp_template")
         .eq("id", catId)
         .single();
       
       if (catalogData) {
-        setCatalog(catalogData);
-        setCatalogDescription(catalogData.description ?? "");
+        setCatalog(catalogData as Catalog);
+        setCatalogDescription(catalogData.description || "");
+        setCatalogType((catalogData as any).type || (catalogData as any).catalog_type || "product");
+        setWhatsappTemplate(catalogData.whatsapp_template || "");
       }
     }
 
@@ -408,6 +424,7 @@ export default function CatalogoPage() {
       price_display_mode,
       highlight_text,
       show_highlight,
+      type,
       sort_order,
       created_at,
       categories (
@@ -436,14 +453,18 @@ export default function CatalogoPage() {
     const supabase = createClient();
     const { error } = await supabase
       .from("catalogs")
-      .update({ description: catalogDescription })
+      .update({ 
+        type: catalogType,
+        whatsapp_template: whatsappTemplate.trim() || null 
+      })
       .eq("id", catalogId);
     
     if (error) {
-      console.error("Erro ao salvar descrição do catálogo:", error);
-      alert("Erro ao salvar descrição.");
+      console.error("Erro ao salvar catálogo:", error);
+      alert("Erro ao salvar alterações.");
     } else {
-      setCatalog({ ...catalog, description: catalogDescription });
+      setCatalog(prev => prev ? { ...prev, type: catalogType, description: catalogDescription, whatsapp_template: whatsappTemplate } : null);
+      alert("Configurações atualizadas com sucesso!");
     }
     setSavingCatalog(false);
   }
@@ -652,8 +673,33 @@ export default function CatalogoPage() {
             Catálogo
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
-            Gerencie seus produtos, categorias e a vitrine digital da sua marca.
+            Gerencie seus {catalogType === 'service' ? 'serviços' : catalogType === 'hybrid' ? 'produtos e serviços' : 'produtos'}, categorias e a vitrine digital da sua marca.
           </p>
+
+          <div className="mt-4 flex items-center gap-2">
+            {[
+              { id: 'product', label: '📦 Catálogo de Produtos' },
+              { id: 'service', label: '🛠️ Catálogo de Serviços' },
+              { id: 'hybrid', label: '🌓 Catálogo Híbrido' }
+            ].map((type) => (
+              <button
+                key={type.id}
+                onClick={async () => {
+                  if (!catalogId) return;
+                  setCatalogType(type.id as any);
+                  const supabase = createClient();
+                  await supabase.from("catalogs").update({ type: type.id }).eq("id", catalogId);
+                }}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                  catalogType === type.id 
+                    ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20" 
+                    : "bg-transparent border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
@@ -773,7 +819,9 @@ export default function CatalogoPage() {
                 <div className="p-2 rounded-xl bg-primary/10 text-primary">
                   <Package size={24} />
                 </div>
-                <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Produtos</h2>
+                <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                  {catalogType === 'service' ? 'Serviços' : catalogType === 'hybrid' ? 'Produtos/Serviços' : 'Produtos'}
+                </h2>
               </div>
               
               <div className="flex items-center gap-3 flex-1 max-w-xl">
@@ -792,7 +840,7 @@ export default function CatalogoPage() {
                   onClick={handleOpenCreateProduct}
                   className="hidden md:flex items-center gap-2 rounded-xl px-6 py-3 bg-primary text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
                 >
-                  <Plus size={20} /> Novo Produto
+                  <Plus size={20} /> Novo {catalogType === 'service' ? 'Serviço' : 'Produto'}
                 </button>
               </div>
             </div>
@@ -907,7 +955,9 @@ export default function CatalogoPage() {
                                 onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_active'); }}
                                 className="flex items-center gap-2 cursor-pointer group/sw"
                               >
-                                <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Disponível</span>
+                                <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">
+                                  {product.type === 'service' ? 'Disponível' : 'Visível'}
+                                </span>
                                 <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
                                   <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
                                 </div>
@@ -996,6 +1046,7 @@ export default function CatalogoPage() {
         categories={categories}
         orgId={orgId || ""}
         canCreateProduct={canCreateProduct ?? false}
+        catalogType={catalogType}
       />
 
       <CategoryModal

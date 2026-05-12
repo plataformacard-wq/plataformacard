@@ -41,6 +41,7 @@ type ProfileData = {
   custom_business_hours: any;
   can_customize_hours: boolean | null;
   role: string | null;
+  whatsapp_template: string | null;
   organization_id: string | null;
   organizations?: {
     business_model: string;
@@ -68,6 +69,7 @@ function PerfilContent() {
   const [bioInput, setBioInput] = useState("");
   const [whatsappInput, setWhatsappInput] = useState("");
   const [slugInput, setSlugInput] = useState("");
+  const [whatsappTemplateInput, setWhatsappTemplateInput] = useState("");
   const [slugOriginal, setSlugOriginal] = useState("");
   const [slugError, setSlugError] = useState("");
   const [slugChecking, setSlugChecking] = useState(false);
@@ -136,6 +138,7 @@ function PerfilContent() {
         setWhatsappInput(profile.whatsapp || "");
         setSlugInput(profile.slug || "");
         setSlugOriginal(profile.slug || "");
+        setWhatsappTemplateInput(profile.whatsapp_template || "");
         setAvatar(profile.avatar_url || null);
         setIsAvailable(profile.is_available ?? true);
         
@@ -330,6 +333,7 @@ function PerfilContent() {
         avatar_url: newAvatarUrl,
         bio: bioInput.trim() || null,
         whatsapp: whatsappInput.trim() || null,
+        whatsapp_template: whatsappTemplateInput.trim() || null,
         slug: trimmedSlug || null,
         is_available: isAvailable,
         custom_business_hours: customBusinessHours,
@@ -590,6 +594,45 @@ function PerfilContent() {
                     </div>
                     <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                       Apenas números, com DDD. Ex: 27999887766
+                    </p>
+                  </div>
+
+                  {/* WhatsApp Template */}
+                  <div>
+                    <label
+                      htmlFor="whatsapp_template"
+                      className="text-sm font-medium"
+                      style={{ color: "var(--dash-text-primary)" }}
+                    >
+                      Modelo de Mensagem personalizada
+                    </label>
+                    <textarea
+                      id="whatsapp_template"
+                      value={whatsappTemplateInput}
+                      onChange={(e) => setWhatsappTemplateInput(e.target.value)}
+                      placeholder="Ex: Olá! Tenho interesse no item {nome}..."
+                      rows={3}
+                      className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
+                      style={{
+                        background: "var(--dash-input-bg)",
+                        borderColor: "var(--dash-input-border)",
+                        color: "var(--dash-text-primary)",
+                      }}
+                    />
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {['{nome}', '{preco}', '{sku}', '{link}', '{tipo}'].map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => setWhatsappTemplateInput(prev => prev + tag)}
+                          className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
+                      Use as tags acima para inserir dados automáticos do item. Deixe vazio para usar a mensagem padrão.
                     </p>
                   </div>
 

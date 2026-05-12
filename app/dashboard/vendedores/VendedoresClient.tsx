@@ -43,6 +43,7 @@ type Seller = {
   dash_access_catalog: boolean | null;
   dash_access_analytics: boolean | null;
   dash_access_company: boolean | null;
+  whatsapp_template: string | null;
 };
 
 const defaultBusinessHours: BusinessHours = {
@@ -98,6 +99,7 @@ export default function VendedoresClient() {
   const [formAccessAnalytics, setFormAccessAnalytics] = useState(false);
   const [formAccessCompany, setFormAccessCompany] = useState(false);
   const [formHours, setFormHours] = useState<BusinessHours>(defaultBusinessHours);
+  const [formWhatsappTemplate, setFormWhatsappTemplate] = useState("");
   const [showImageEditor, setShowImageEditor] = useState(false);
   
   const [saving, setSaving] = useState(false);
@@ -188,10 +190,9 @@ export default function VendedoresClient() {
       setFormSlug(seller.slug || "");
       setFormAvatar(seller.avatar_url || null);
       setFormCanCustomize(seller.can_customize_hours || false);
-      setFormAccessCatalog(seller.dash_access_catalog || false);
-      setFormAccessAnalytics(seller.dash_access_analytics || false);
       setFormAccessCompany(seller.dash_access_company || false);
       setFormHours(seller.custom_business_hours || defaultBusinessHours);
+      setFormWhatsappTemplate(seller.whatsapp_template || "");
     } else {
       setSelectedSeller(null);
       setFormEmail("");
@@ -206,6 +207,7 @@ export default function VendedoresClient() {
       setFormAccessAnalytics(false);
       setFormAccessCompany(false);
       setFormHours(defaultBusinessHours);
+      setFormWhatsappTemplate("");
     }
     setView('form');
   }
@@ -232,6 +234,7 @@ export default function VendedoresClient() {
       formData.append("dashAccessCatalog", String(formAccessCatalog));
       formData.append("dashAccessAnalytics", String(formAccessAnalytics));
       formData.append("dashAccessCompany", String(formAccessCompany));
+      formData.append("whatsappTemplate", formWhatsappTemplate);
 
       const result = await createSeller(formData);
       
@@ -283,6 +286,7 @@ export default function VendedoresClient() {
         dash_access_catalog: formAccessCatalog,
         dash_access_analytics: formAccessAnalytics,
         dash_access_company: formAccessCompany,
+        whatsapp_template: formWhatsappTemplate,
       };
 
       // USA SERVER ACTION para ignorar RLS
@@ -590,6 +594,35 @@ export default function VendedoresClient() {
                       </p>
                     )}
                   </div>
+                </div>
+
+                <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-2 block">
+                    Modelo de Mensagem (WhatsApp)
+                  </label>
+                  <textarea 
+                    value={formWhatsappTemplate} 
+                    onChange={e => setFormWhatsappTemplate(e.target.value)}
+                    placeholder="Ex: Olá! Vi o item {item_nome} no valor de {item_preco} e tenho interesse."
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border outline-none bg-[var(--dash-bg)] text-sm"
+                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {['{nome}', '{preco}', '{sku}', '{link}', '{tipo}', '{vendedor}'].map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setFormWhatsappTemplate(prev => prev + tag)}
+                        className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[10px] text-[var(--dash-text-muted)] leading-relaxed">
+                    Personalize a mensagem que o cliente envia ao clicar no WhatsApp. Deixe vazio para usar o padrão.
+                  </p>
                 </div>
               </div>
 

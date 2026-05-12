@@ -11,6 +11,8 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
 - [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" e dados de teste. O jogo vai começar!
 - [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
+- [ ] **Sino de Notificações:** Implementar funcionalidade real para o ícone de sino no dashboard (alertas de leads, sistema ou atualizações). Atualmente é apenas estético.
+- [ ] **Sticker de Status (Assinatura):** Integrar o sticker de "Status do Sistema" para exibir informações em tempo real sobre a assinatura do cliente (ex: "Assinatura Ativa", "Próxima ao Vencimento"). Deve emitir alertas sutis quando o prazo estiver acabando.
 
 ---
 
@@ -39,6 +41,12 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Revitalização do Cartão Público:** Tornar o design menos neutro e mais "premium".
 - [ ] **Conexão Visual Dinâmica:** Implementar sistema que herda cores e logo da empresa/vendedor para o cartão, removendo o aspecto genérico.
 - [ ] **Landing Page de Captura:** Criar página oficial para conversão de novos clientes do SaaS.
+- [ ] **Validação: Catálogo Híbrido & WhatsApp Customizado:**
+    - [ ] **Migração:** Confirmar integridade das colunas `whatsapp_template` (perfis/catálogos) e `type` (produtos).
+    - [ ] **Template Tags:** Testar substituição de `{nome}`, `{preco}`, `{sku}`, `{link}` e `{vendedor}` na vitrine.
+    - [ ] **Lógica Híbrida:** Validar seletor Produto/Serviço no `ProductModal` e labels dinâmicos.
+    - [ ] **Fallback:** Garantir que mensagens inteligentes padrão funcionam se o template estiver vazio.
+    - [ ] **SEO Vitrine:** Validar se a descrição customizada aparece corretamente na meta tag da página pública.
 
 ---
 

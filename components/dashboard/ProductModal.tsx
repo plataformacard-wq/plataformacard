@@ -65,6 +65,7 @@ interface ProductRow {
   colors?: string[] | null;
   highlight_text?: string | null;
   show_highlight?: boolean | null;
+  type?: "product" | "service";
 }
 
 interface Category {
@@ -85,6 +86,7 @@ interface ProductModalProps {
   categories: Category[];
   orgId: string;
   canCreateProduct: boolean;
+  catalogType: "product" | "service" | "hybrid";
 }
 
 export default function ProductModal({ 
@@ -94,7 +96,8 @@ export default function ProductModal({
   editingProduct, 
   categories, 
   orgId,
-  canCreateProduct 
+  canCreateProduct,
+  catalogType 
 }: ProductModalProps) {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
@@ -146,6 +149,8 @@ export default function ProductModal({
   // Image Editor State
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [itemType, setItemType] = useState<"product" | "service">("product");
+  const [enableSku, setEnableSku] = useState(true);
 
   const isEditMode = !!editingProduct;
 
@@ -195,6 +200,8 @@ export default function ProductModal({
         setProductColors(Array.isArray(editingProduct.colors) ? editingProduct.colors : []);
         setProductHighlightText(editingProduct.highlight_text || "");
         setShowHighlight(editingProduct.show_highlight ?? false);
+        setItemType(editingProduct.type || (catalogType === 'service' ? 'service' : 'product'));
+        setEnableSku(!!editingProduct.sku);
       } else {
         // Reset
         setProductName("");
@@ -218,6 +225,8 @@ export default function ProductModal({
         setProductColors([]);
         setProductHighlightText("");
         setShowHighlight(false);
+        setItemType(catalogType === 'service' ? 'service' : 'product');
+        setEnableSku(catalogType !== 'service');
       }
       setProductFormError("");
       setNameError("");
@@ -389,6 +398,7 @@ export default function ProductModal({
         colors: productColors,
         highlight_text: showHighlight ? productHighlightText.trim() : null,
         show_highlight: showHighlight,
+        type: itemType,
       };
 
       let productId = editingProduct?.id;
@@ -474,7 +484,7 @@ export default function ProductModal({
               <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-black flex items-center gap-3">
                   {isEditMode ? <EditIcon size={28} className="text-emerald-500" /> : <Plus size={28} className="text-emerald-500" />}
-                  {isEditMode ? (productName || "Editar Produto") : "Novo Produto"}
+                  {isEditMode ? (productName || `Editar ${itemType === 'service' ? 'Serviço' : 'Produto'}`) : `Novo ${itemType === 'service' ? 'Serviço' : 'Produto'}`}
                 </h2>
                 {!isEditMode && lastSavedData && (
                   <button
@@ -500,10 +510,30 @@ export default function ProductModal({
           <form id="productForm" onSubmit={handleSubmit} className="space-y-8">
             {productFormError && <p className="text-xs text-red-500 font-bold bg-red-50 p-4 rounded-2xl border border-red-100">{productFormError}</p>}
 
+            {/* Seletor de Tipo (Apenas se Híbrido) */}
+            {catalogType === 'hybrid' && (
+              <div className="flex p-1.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50">
+                <button
+                  type="button"
+                  onClick={() => { setItemType("product"); setEnableSku(true); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'product' ? 'bg-white dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                >
+                  <Package size={16} /> Produto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setItemType("service"); setEnableSku(false); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'service' ? 'bg-white dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                >
+                  <Settings size={16} /> Serviço
+                </button>
+              </div>
+            )}
+
             {/* Identidade */}
             <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
-                <Package size={16} /> Identidade do Produto
+                <Package size={16} /> Identidade do {itemType === 'service' ? 'Serviço' : 'Produto'}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-2xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                 <div className="md:col-span-2">
@@ -533,12 +563,25 @@ export default function ProductModal({
                   {nameError && <p className="mt-1.5 text-xs text-red-500">{nameError}</p>}
                 </div>
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-wider" style={{ color: "var(--dash-text-muted)" }}>SKU</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-black uppercase tracking-wider" style={{ color: "var(--dash-text-muted)" }}>SKU / Ref</label>
+                    <div 
+                      onClick={() => setEnableSku(!enableSku)}
+                      className="flex items-center gap-2 cursor-pointer group"
+                    >
+                      <span className="text-[9px] font-bold text-zinc-500 group-hover:text-emerald-500 transition-colors uppercase">Habilitar</span>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors ${enableSku ? 'bg-emerald-500' : 'bg-zinc-400'}`}>
+                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${enableSku ? 'left-4.5' : 'left-0.5'}`} />
+                      </div>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    className="w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
+                    disabled={!enableSku}
+                    placeholder="Ex: SERV-01, PROD-99..."
+                    className={`w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
@@ -546,7 +589,7 @@ export default function ProductModal({
                 <div className="md:col-span-2">
                   <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-black uppercase tracking-wider flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
-                      <Tag size={16} className="text-emerald-500" /> Destaque do Produto
+                      <Tag size={16} className="text-emerald-500" /> Destaque do {itemType === 'service' ? 'Serviço' : 'Produto'}
                     </label>
                     {/* Slider Switch */}
                     <div 
@@ -569,7 +612,7 @@ export default function ProductModal({
                       const val = e.target.value.toUpperCase();
                       if (val.length <= 35) setProductHighlightText(val);
                     }}
-                    placeholder="Ex: PRODUTO EXCLUSIVO, SEM CNH..."
+                    placeholder={itemType === 'service' ? 'Ex: ATENDIMENTO EM 24H, GARANTIA TOTAL...' : 'Ex: PRODUTO EXCLUSIVO, SEM CNH...'}
                     disabled={!showHighlight}
                     className={`w-full rounded-2xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
                     style={{ background: showHighlight ? "rgba(16, 185, 129, 0.02)" : "var(--dash-input-bg)", borderColor: showHighlight ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
@@ -600,7 +643,7 @@ export default function ProductModal({
                         <Eye size={20} />
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-wider" style={{ color: isActive ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Visível</p>
+                        <p className="text-xs font-black uppercase tracking-wider" style={{ color: isActive ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{itemType === 'service' ? 'Ativo' : 'Visível'}</p>
                       </div>
                     </div>
                     {/* Slider Switch */}
@@ -625,7 +668,7 @@ export default function ProductModal({
                         <Package size={20} />
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-wider" style={{ color: isInStock ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Estoque</p>
+                        <p className="text-xs font-black uppercase tracking-wider" style={{ color: isInStock ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{itemType === 'service' ? 'Disponível' : 'Estoque'}</p>
                       </div>
                     </div>
                     {/* Slider Switch */}

@@ -23,6 +23,7 @@ type Profile = {
   is_available: boolean | null;
   custom_business_hours: any;
   can_customize_hours: boolean | null;
+  whatsapp_template: string | null;
 };
 
 type Organization = {
@@ -43,6 +44,7 @@ type Catalog = {
   name: string;
   description: string | null;
   catalog_type: string | null;
+  whatsapp_template: string | null;
 };
 
 type Category = {
@@ -161,7 +163,7 @@ export default async function Page(props: PageProps) {
 
   const { data: profileData } = await admin
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours, can_customize_hours")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, whatsapp_template, is_available, custom_business_hours, can_customize_hours")
     .ilike("slug", slug)
     .maybeSingle();
 
@@ -175,11 +177,6 @@ export default async function Page(props: PageProps) {
         .maybeSingle();
       if (brandingData) {
         orgData = brandingData as any;
-        console.log(`[DEBUG SERVER] Org found for ${slug}:`, { 
-          id: orgData?.id, 
-          accent: orgData?.accent_color,
-          raw: brandingData.accent_color 
-        });
       }
     }
   } else {
@@ -191,10 +188,6 @@ export default async function Page(props: PageProps) {
       
     if (brandingData) {
       orgData = brandingData as any;
-      console.log(`[DEBUG SERVER] Org found directly for slug ${slug}:`, { 
-        id: orgData?.id, 
-        accent: orgData?.accent_color 
-      });
     } else {
       return notFound();
     }
@@ -259,7 +252,7 @@ export default async function Page(props: PageProps) {
 
   const { data: catalogData } = await admin
     .from("catalogs")
-    .select("id, name, description, catalog_type")
+    .select("id, name, description, catalog_type, whatsapp_template")
     .eq("id", catalogId)
     .maybeSingle();
 
@@ -342,6 +335,7 @@ export default async function Page(props: PageProps) {
         customBusinessHours={profile?.custom_business_hours}
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
+        whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
       />
     </>
   );

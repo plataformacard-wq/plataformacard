@@ -383,13 +383,14 @@ export default async function Page(props: PageProps) {
           }}
         />
 
-        {orgLogo && (
-          <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 dark:opacity-10 grayscale hover:grayscale-0 transition-all duration-700 pointer-events-none">
-             <img src={orgLogo} alt={orgName || ""} className="h-20 w-auto object-contain" />
-          </div>
-        )}
+        <div style={{ padding: "24px 28px 32px" }}>
+          {/* Logo do Topo (Branding) */}
+          {orgLogo && (
+            <div className="mb-6 flex justify-center opacity-80 dark:opacity-60 transition-all duration-700">
+               <img src={orgLogo} alt={orgName || ""} className="h-10 w-auto object-contain" />
+            </div>
+          )}
 
-        <div style={{ padding: "36px 28px 32px" }}>
           {/* Avatar com anel brilhante */}
           <div
             style={{
@@ -661,8 +662,8 @@ export default async function Page(props: PageProps) {
           </div>
 
           {orgLogo && (
-            <div className="mt-8 flex justify-center opacity-40 hover:opacity-80 transition-opacity">
-              <img src={orgLogo} alt={orgName || ""} className="h-8 w-auto object-contain grayscale" />
+            <div className="mt-8 flex justify-center opacity-60 hover:opacity-100 transition-opacity">
+              <img src={orgLogo} alt={orgName || ""} className="h-6 w-auto object-contain" />
             </div>
           )}
         </div>
