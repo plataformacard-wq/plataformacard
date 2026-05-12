@@ -295,7 +295,7 @@ export default function ProductCatalogClient({
 
     const message = formatWhatsAppMessage(whatsappTemplate, {
       item_name: selectedProduct.name,
-      item_price: priceText,
+      item_price: priceText || "",
       item_sku: selectedProduct.sku || undefined,
       item_url: `${window.location.origin}/${slug}/catalogo#${selectedProduct.id}`,
       item_type: selectedProduct.type === 'service' ? 'serviço' : 'produto',
