@@ -49,7 +49,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug }: C
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [whatsappTemplate, setWhatsappTemplate] = useState(initialCatalog.whatsapp_template || "");
+  const [whatsappTemplate, setWhatsappTemplate] = useState<string>(initialCatalog.whatsapp_template || "");
   const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">(initialCatalog.type || initialCatalog.catalog_type || "product");
   
   // Customization State for Embed
@@ -252,7 +252,7 @@ ${iframeResizerCode}
                         <button
                           key={tag}
                           type="button"
-                          onClick={() => setWhatsappTemplate(prev => prev + `{${tag}}`)}
+                          onClick={() => setWhatsappTemplate((prev: string) => prev + `{${tag}}`)}
                           className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
                         >
                           {`{${tag}}`}

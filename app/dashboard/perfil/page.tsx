@@ -127,7 +127,7 @@ function PerfilContent() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, bio, whatsapp, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
+        .select("full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
 
@@ -624,7 +624,7 @@ function PerfilContent() {
                         <button
                           key={tag}
                           type="button"
-                          onClick={() => setWhatsappTemplateInput(prev => prev + tag)}
+                          onClick={() => setWhatsappTemplateInput((prev: string) => prev + tag)}
                           className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
                         >
                           {tag}
