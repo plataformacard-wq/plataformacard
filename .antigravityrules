@@ -1,1 +1,1 @@
-Sempre use 'cmd /c' para todas as execuções de shell para garantir que o processo termine corretamente.
+Sempre verifique se há atualizações no GitHub (git fetch) ao iniciar uma nova sessão e informe o usuário. Utilize comandos compatíveis com o SO atual e priorize a manutenção dos arquivos de documentação.
