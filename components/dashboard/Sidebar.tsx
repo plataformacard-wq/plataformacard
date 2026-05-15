@@ -87,7 +87,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         subItems: [
           { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
           { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
-          { href: "/admin/catalogos", label: "Análise de Vitrines", icon: BookOpen },
+          { href: "/admin/catalogos", label: "Gestão de Catálogos", icon: BookOpen },
           { href: "/admin/caas", label: "Gestão CaaS (QG)", icon: Globe },
           { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
         ]
@@ -107,7 +107,24 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
     ];
 
-    if (role === "admin" || role === "b2b_admin" || role === "b2c_admin" || (isActuallySuperAdmin && isShadowMode)) {
+    // Atalho para o QG se for Super Admin (Acesso Completo)
+    if (isActuallySuperAdmin) {
+      navLinks.unshift({ 
+        label: "Plataforma QG", 
+        icon: ShieldCheck,
+        subItems: [
+          { href: "/admin", label: "Dashboard (QG)", icon: LayoutDashboard },
+          { href: "/admin/analytics?tab=b2b", label: "BI & Analytics", icon: BarChart3 },
+          { href: "/admin/clientes", label: "Gestão de Empresas", icon: Users },
+          { href: "/admin/catalogos", label: "Gestão de Catálogos", icon: BookOpen },
+          { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
+          { href: "/admin/maintenance", label: "Manutenção Global", icon: Info },
+          { href: "/admin/settings", label: "Configurações Globais", icon: Settings },
+        ]
+      });
+    }
+
+    if (role === "admin" || role === "b2b_admin" || role === "b2c_admin" || isActuallySuperAdmin) {
       const isB2B = businessModel === "B2B";
 
       navLinks.push({ 
@@ -220,9 +237,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
               {!isCollapsed && (
                 <div className="flex flex-col overflow-hidden whitespace-nowrap transition-all">
                   <span className="text-base font-bold tracking-tight leading-none text-[var(--dash-text-primary)]">PlataformaCard</span>
-                  <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider">
-                    {isAdminPath ? "CENTRO DE INTELIGÊNCIA (QG)" : (isShadowMode ? "Modo Simulação" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor"))}
-                  </span>
+                    <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider">
+                      {isAdminPath ? "CENTRO DE INTELIGÊNCIA (QG)" : (isShadowMode ? "Modo Simulação" : (isActuallySuperAdmin ? "Painel Super Admin" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor")))}
+                    </span>
                 </div>
               )}
             </Link>

@@ -3,14 +3,14 @@
 Este protocolo DEVE ser executado integralmente antes de qualquer `git push` para garantir a estabilidade do deploy no Vercel e a coesão visual da plataforma.
 
 ## 1. Auditoria de Tipagem (Build Resilience)
-- [x] **Proibição do `any`:** Realizar busca global por `as any` ou `: any` em componentes JSX. (Identificados em Sidebar e Modais, controlados).
+- [x] **Proibição do `any`:** Realizar busca global por `as any` ou `: any` em componentes JSX. (Limpeza realizada no ProductCatalogClient).
 - [x] **Checks de Nulidade (Null Safety):** Garantir que objetos vindos de `maybeSingle()` ou rascunhos usem optional chaining (`?.`). (OK em Destaques e IA).
 - [ ] **Escopo de Variáveis:** Verificar se variáveis dentro de blocos `try/catch` não estão sendo usadas fora deles.
 - [x] **Unificação de Tipos:** Garantir que tipos com o mesmo nome sejam idênticos. (OK em ProductRow).
 - [x] **Sincronização de Interfaces:** Garantir que as interfaces contenham todos os campos retornados pelo banco. (OK).
 
 ## 2. Auditoria de Tema (Dark Mode Compliance)
-- [/] **Hardcoded Colors:** Buscar por cores hexadecimais fixas no JSX. (Identificadas em Quill CSS e bordas Emerald).
+- [x] **Hardcoded Colors:** Buscar por cores hexadecimais fixas no JSX. (Limpeza concluída no ProductCatalogClient).
 - [x] **Zinc/White Cleanup:** Buscar por classes Tailwind fixas como `bg-white`, `bg-zinc-50`. (OK).
 
 ## 3. Protocolo de Navegação (Sidebar & UX)

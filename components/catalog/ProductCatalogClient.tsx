@@ -91,14 +91,26 @@ type ProductCatalogClientProps = {
   secondaryColor?: string | null;
   bio?: string | null;
   isAvailable?: boolean | null;
-  businessHours?: any;
-  customBusinessHours?: any;
+  businessHours?: Record<string, any>;
+  customBusinessHours?: Record<string, any>;
   canCustomizeHours?: boolean | null;
   organizationId?: string | null;
   whatsappTemplate?: string | null;
 };
 
-const cleanProductName = (name: string) => name.replace(/\s*-\s*EDITADO\s*$/gi, "").trim();
+const sanitizeText = (text: string | null | undefined) => {
+  if (!text) return "";
+  return text
+    .replace(/\s*-\s*EDITADO\s*$/gi, "")
+    .replace(/\u00ad/g, "") // Soft hyphen
+    .replace(/&shy;/g, "")  // Soft hyphen (HTML)
+    .replace(/\u00a0/g, " ") // NBSP
+    .replace(/&nbsp;/g, " ") // NBSP (HTML)
+    .replace(/\s+/g, " ")    // Double spaces
+    .replace(/ENPLACAMENTO/gi, "EMPLACAMENTO") // Consertar typo comum
+    .trim();
+};
+
 
 const formatPrice = (price: number | null | undefined) => {
   if (price === null || price === undefined) return null;
@@ -132,7 +144,7 @@ export default function ProductCatalogClient({
   organizationId,
   whatsappTemplate
 }: ProductCatalogClientProps) {
-  const primaryColor = accentColor || "#25D366";
+  const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -213,12 +225,12 @@ export default function ProductCatalogClient({
     
     return {
       ...product,
-      name: cleanProductName(product.name),
+      name: sanitizeText(product.name),
       show_specs: product.show_specs ?? category?.show_specs ?? true,
       show_colors: product.show_colors ?? category?.show_colors ?? false,
       specs_title: product.specs_title || category?.specs_title || "Especificações Técnicas",
       colors: product.colors || category?.colors || [],
-      highlight_text: product.highlight_text?.replace(/ENPLACAMENTO/g, "EMPLACAMENTO"),
+      highlight_text: sanitizeText(product.highlight_text),
       show_highlight: product.show_highlight,
     };
   }, [products, selectedProductId, categories]);
@@ -369,14 +381,14 @@ export default function ProductCatalogClient({
         p.category_id === cat.id && 
         p.is_active !== false &&
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ).map(p => ({ ...p, name: cleanProductName(p.name) }))
+      ).map(p => ({ ...p, name: sanitizeText(p.name) }))
     })).filter(cat => cat.products.length > 0);
 
     const uncategorized = products.filter(p => 
       (!p.category_id || !categories.some(c => c.id === p.category_id)) && 
       p.is_active !== false &&
       p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ).map(p => ({ ...p, name: cleanProductName(p.name) }));
+    ).map(p => ({ ...p, name: sanitizeText(p.name) }));
 
     if (uncategorized.length > 0) {
       categorized.push({
@@ -646,13 +658,13 @@ export default function ProductCatalogClient({
 
                       <div className="p-6">
                         <div className="mb-4 flex flex-col gap-2 items-start">
-                          <h3 className="inline-block text-xl font-black tracking-tighter text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-4 py-2 rounded-2xl shadow-sm whitespace-pre-wrap">
+                          <h3 className="inline-block text-xl font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-4 py-2 rounded-2xl shadow-sm break-words-strategy">
                              {product.name}
                           </h3>
                           {product.show_highlight && product.highlight_text && (
-                            <div className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5 animate-in fade-in zoom-in duration-300 w-fit">
+                            <div className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
                               <Tag size={12} className="animate-pulse" />
-                              {product.highlight_text}
+                              {sanitizeText(product.highlight_text)}
                             </div>
                           )}
                         </div>
@@ -674,7 +686,7 @@ export default function ProductCatalogClient({
                                 )}
                                 <div className="flex items-center gap-1.5">
                                   {product.compare_at_price && <span className="text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
-                                  <p className="text-xl font-extrabold text-emerald-400">
+                                  <p className="text-xl font-extrabold text-[var(--primary-color)]">
                                     {formatPrice(product.price)}
                                   </p>
                                 </div>
@@ -809,7 +821,7 @@ export default function ProductCatalogClient({
               <div className="flex flex-col min-w-0 relative">
                 <div className="sticky top-0 z-20 px-6 sm:px-8 py-5 bg-[var(--public-glass-bg)] backdrop-blur-md border-b border-[var(--public-card-border)]">
                   <div className="flex flex-col gap-4">
-                    <h2 className="text-3xl sm:text-4xl font-black tracking-tighter text-[var(--public-text-main)] leading-tight">
+                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[var(--public-text-main)] leading-tight break-words-strategy">
                       {selectedProduct.name}
                     </h2>
                     
@@ -817,7 +829,7 @@ export default function ProductCatalogClient({
                       <motion.div 
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm w-fit"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm w-fit break-words-strategy"
                       >
                         <Tag size={14} className="animate-pulse" />
                         {selectedProduct.highlight_text}
@@ -1050,7 +1062,15 @@ export default function ProductCatalogClient({
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .ql-description-content { line-height: 1.8; font-size: 0.95rem; color: var(--public-text-dim); width: 100% !important; max-width: 100% !important; }
-        .ql-description-content * { word-break: normal !important; overflow-wrap: break-word !important; hyphens: none !important; -webkit-hyphens: none !important; max-width: 100% !important; box-sizing: border-box !important; white-space: pre-wrap !important; }
+        .ql-description-content *, .break-words-strategy { 
+          word-break: keep-all !important; 
+          overflow-wrap: normal !important; 
+          hyphens: none !important; 
+          -webkit-hyphens: none !important; 
+          max-width: 100% !important; 
+          box-sizing: border-box !important; 
+          white-space: normal !important; 
+        }
         .ql-description-content p { margin-bottom: 1.25rem; }
         .ql-description-content b, .ql-description-content strong { font-weight: 900; color: var(--public-text-main); }
         .public-footer-sticky { background-color: var(--public-card-bg) !important; }

@@ -44,6 +44,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
 
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
   const [newLead, setNewLead] = useState<{product_name: string, seller_name: string} | null>(null);
+  const [hasShadowCookie, setHasShadowCookie] = useState(false);
 
   useEffect(() => {
     // Tema
@@ -117,6 +118,8 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           .split("; ")
           .find((row) => row.startsWith("shadow_org_id="))
           ?.split("=")[1];
+
+        setHasShadowCookie(!!shadowOrgId);
 
         const targetOrgId = (userRole === "superadmin" && shadowOrgId) 
           ? shadowOrgId 
@@ -210,7 +213,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   }
 
   const isAdminPath = pathname.startsWith("/admin");
-  const isShadowMode = pathname.startsWith("/dashboard") && role === "superadmin";
+  const isShadowMode = pathname.startsWith("/dashboard") && role === "superadmin" && hasShadowCookie;
 
   return (
     <div 

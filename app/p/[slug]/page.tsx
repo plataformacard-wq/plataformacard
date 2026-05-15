@@ -1,0 +1,476 @@
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
+import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
+
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+type ProfileRow = {
+  id: string;
+  slug: string;
+  organization_id: string;
+  full_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  whatsapp: string | null;
+};
+
+export const dynamicParams = true;
+export const revalidate = 0;
+
+function initialsFromName(name: string | null): string {
+  if (!name?.trim()) {
+    return "?";
+  }
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+async function resolveCatalogId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  profile: ProfileRow
+): Promise<string | null> {
+  const { data: profileCatalogData } = await supabase
+    .from("profile_catalogs")
+    .select("organization_catalog_id")
+    .eq("profile_id", profile.id)
+    .eq("is_selected", true)
+    .limit(1)
+    .maybeSingle();
+
+  let catalogId: string | null = null;
+
+  if (profileCatalogData?.organization_catalog_id) {
+    const { data: orgCatalogFromProfile } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("id", profileCatalogData.organization_catalog_id)
+      .maybeSingle();
+
+    catalogId = orgCatalogFromProfile?.catalog_id ?? null;
+  }
+
+  if (!catalogId) {
+    // Tenta primeiro catálogo habilitado
+    const { data: enabledCatalog } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", profile.organization_id)
+      .eq("is_enabled", true)
+      .limit(1)
+      .maybeSingle();
+
+    catalogId = enabledCatalog?.catalog_id ?? null;
+
+    // Fallback B2B: se não há catálogo habilitado, pega qualquer catálogo da organização
+    if (!catalogId) {
+      const { data: anyCatalog } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("organization_id", profile.organization_id)
+        .limit(1)
+        .maybeSingle();
+
+      catalogId = anyCatalog?.catalog_id ?? null;
+    }
+  }
+
+  return catalogId;
+}
+
+async function getCatalogStats(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  profile: ProfileRow
+): Promise<{ productCount: number; categoryCount: number }> {
+  const catalogId = await resolveCatalogId(supabase, profile);
+  if (!catalogId) {
+    return { productCount: 0, categoryCount: 0 };
+  }
+
+  const { data: categoriesData } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("catalog_id", catalogId);
+
+  const categoryIds = (categoriesData ?? []).map((c) => c.id);
+  const categoryCount = categoryIds.length;
+
+  if (categoryIds.length === 0) {
+    return { productCount: 0, categoryCount: 0 };
+  }
+
+  const { count: productCount } = await supabase
+    .from("products")
+    .select("*", { count: "exact", head: true })
+    .in("category_id", categoryIds);
+
+  return {
+    productCount: productCount ?? 0,
+    categoryCount,
+  };
+}
+
+export default async function Page(props: PageProps) {
+  const supabase = await createClient();
+
+  const { slug } = await props.params;
+
+  if (
+    slug === "login" ||
+    slug === "cadastro" ||
+    slug === "dashboard" ||
+    slug === "admin" ||
+    slug === "auth" ||
+    slug === "recuperar-senha" ||
+    slug === "reset-senha" ||
+    slug === "test"
+  ) {
+    notFound();
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!profile) {
+    notFound();
+  }
+
+  const safeProfile = profile as ProfileRow;
+
+  const [orgRes, catalogStats, analyticsRes] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", safeProfile.organization_id)
+      .maybeSingle(),
+    getCatalogStats(supabase, safeProfile),
+    supabase.rpc("get_profile_analytics_summary", {
+      p_profile_id: safeProfile.id,
+    }),
+  ]);
+
+  const orgName = orgRes.data?.name?.trim() ?? null;
+  const bioLine = [safeProfile.bio?.trim() || null, orgName]
+    .filter(Boolean)
+    .join(" · ");
+
+  let visitCount = 0;
+  if (!analyticsRes.error && analyticsRes.data != null) {
+    const row = Array.isArray(analyticsRes.data)
+      ? analyticsRes.data[0]
+      : analyticsRes.data;
+    visitCount = Number(
+      (row as { profile_views?: number | string | null })?.profile_views ?? 0
+    );
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(37,211,102,0.10) 0%, #0a0a0a 65%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 16px",
+      }}
+    >
+      <ProfileViewTracker profileId={safeProfile.id} slug={slug} />
+
+      {/* Card */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 400,
+          background: "rgba(255,255,255,0.035)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 32,
+          boxShadow:
+            "0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Barra verde de destaque no topo */}
+        <div
+          style={{
+            height: 3,
+            background:
+              "linear-gradient(90deg, transparent 0%, #25D366 40%, #128C7E 60%, transparent 100%)",
+          }}
+        />
+
+        <div style={{ padding: "36px 28px 32px" }}>
+          {/* Avatar com anel brilhante */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ position: "relative", width: 92, height: 92 }}>
+              {/* Anel externo brilhante */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: -3,
+                  borderRadius: "50%",
+                  background:
+                    "conic-gradient(from 0deg, #25D366 0%, #128C7E 40%, rgba(37,211,102,0.1) 60%, #25D366 100%)",
+                  opacity: 0.75,
+                }}
+              />
+              {/* Avatar */}
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  background: "#1c1c1c",
+                  border: "3px solid #0a0a0a",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 30,
+                  fontWeight: 700,
+                  color: "rgba(255,255,255,0.65)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {safeProfile.avatar_url ? (
+                  <img
+                    src={safeProfile.avatar_url}
+                    alt={safeProfile.full_name ?? "Foto do perfil"}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  initialsFromName(safeProfile.full_name)
+                )}
+              </div>
+            </div>
+
+            {/* Badge DISPONÍVEL */}
+            <div
+              style={{
+                marginTop: -10,
+                zIndex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                background: "rgba(0,0,0,0.75)",
+                border: "1px solid rgba(37,211,102,0.25)",
+                borderRadius: 999,
+                padding: "3px 10px",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#25D366",
+                  display: "block",
+                  boxShadow: "0 0 6px #25D366",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.5)",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Disponível
+              </span>
+            </div>
+          </div>
+
+          {/* Nome e bio */}
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <h1
+              style={{
+                fontSize: 30,
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.025em",
+                lineHeight: 1.1,
+                margin: 0,
+              }}
+            >
+              {safeProfile.full_name}
+            </h1>
+
+            {bioLine ? (
+              <p
+                style={{
+                  marginTop: 10,
+                  fontSize: 14,
+                  color: "rgba(255,255,255,0.42)",
+                  lineHeight: 1.55,
+                }}
+              >
+                {bioLine}
+              </p>
+            ) : null}
+          </div>
+
+          {/* Botões CTA */}
+          <div
+            style={{
+              marginTop: 28,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {safeProfile.whatsapp ? (
+              <ProfileWhatsAppButton
+                profileId={safeProfile.id}
+                slug={slug}
+                whatsapp={safeProfile.whatsapp}
+              />
+            ) : null}
+
+            <Link
+              href={`/p/${slug}/catalogo`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderRadius: 14,
+                padding: "14px 20px",
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 15,
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
+            >
+              <svg
+                width={17}
+                height={17}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                style={{ opacity: 0.6 }}
+              >
+                <path d="M8 6h13" />
+                <path d="M8 12h13" />
+                <path d="M8 18h13" />
+                <path d="M3 6h.01" />
+                <path d="M3 12h.01" />
+                <path d="M3 18h.01" />
+              </svg>
+              Ver catálogo
+            </Link>
+          </div>
+
+          {/* Stats */}
+          <div
+            style={{
+              marginTop: 28,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: 18,
+              overflow: "hidden",
+            }}
+          >
+            {[
+              { value: catalogStats.productCount, label: "Produtos" },
+              { value: catalogStats.categoryCount, label: "Categorias" },
+              { value: visitCount, label: "Visitas" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "18px 8px",
+                  textAlign: "center",
+                  borderRight:
+                    i < 2 ? "1px solid rgba(255,255,255,0.06)" : undefined,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: "#fff",
+                    letterSpacing: "-0.03em",
+                    margin: 0,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {stat.value}
+                </p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: "rgba(255,255,255,0.28)",
+                    margin: "5px 0 0",
+                  }}
+                >
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Rodapé */}
+      <footer
+        style={{
+          marginTop: 36,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#25D366",
+            opacity: 0.45,
+            display: "block",
+          }}
+        />
+        <span
+          style={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.22)",
+            letterSpacing: "0.05em",
+          }}
+        >
+          anotameucontato.com.br
+        </span>
+      </footer>
+    </main>
+  );
+}

@@ -62,6 +62,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 
 ## 🚨 5. Bloqueadores de Lançamento (CRÍTICO)
 
+- [ ] **Quebra de Texto em Cards Públicos:** Resolver definitivamente o problema de palavras (ex: EMPLACAMENTO) que quebram no meio. Estratégia de CSS `word-break: keep-all` aplicada e sanitização de caracteres invisíveis implementada, aguardando validação final em todos os dispositivos.
 - [ ] **Status de Vendedor - Lógica de Pausa:**
     - Implementar campo `status` (`active`, `paused`, `terminated`) no DB.
     - Se `paused`: Exibir badge "Indisponível para entrega imediata" nos cards.
@@ -84,4 +85,4 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Limpeza Automática de Logs:** Rotina para preservar espaço no Plano Free.
 
 ---
-*Última atualização: 2026-05-10*
+*Última atualização: 2026-05-15*
