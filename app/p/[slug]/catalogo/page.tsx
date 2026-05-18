@@ -19,6 +19,7 @@ type Profile = {
 type Catalog = {
   id: string;
   name: string;
+  description: string | null;
   catalog_type: string | null;
 };
 
@@ -26,7 +27,12 @@ type Category = {
   id: string;
   catalog_id: string;
   name: string;
+  description: string | null;
   sort_order: number | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
 };
 
 type Spec = {
@@ -41,9 +47,25 @@ type Product = {
   description: string | null;
   specs: Spec[] | null;
   price: number | null;
+  compare_at_price: number | null;
+  sku: string | null;
+  has_retail: boolean | null;
+  has_wholesale: boolean | null;
+  wholesale_price: number | null;
+  wholesale_min_quantity: number | null;
   image_url: string | null;
+  image_urls: string[] | null;
   is_extra: boolean | null;
   sort_order: number | null;
+  is_in_stock: boolean | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
+  created_at: string;
+  updated_at: string;
 };
 
 
@@ -116,7 +138,7 @@ if (!catalogId) {
 
   const { data: catalogData, error: catalogError } = await supabase
     .from("catalogs")
-    .select("id, name, catalog_type")
+    .select("id, name, description, catalog_type")
     .eq("id", catalogId)
     .maybeSingle();
 
@@ -128,7 +150,7 @@ if (!catalogId) {
 
   const { data: categoriesData, error: categoriesError } = await supabase
     .from("categories")
-    .select("id, catalog_id, name, sort_order")
+    .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
     .eq("catalog_id", catalogId)
     .order("sort_order", { ascending: true });
 
@@ -145,9 +167,11 @@ if (!catalogId) {
     const { data: productsData, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, image_url, is_extra, sort_order"
+        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
       )
       .in("category_id", categoryIds)
+      .eq("is_active", true)
+      .is("deleted_at", null)
       .order("sort_order", { ascending: true });
 
     if (productsError) {
@@ -157,8 +181,6 @@ if (!catalogId) {
     products = (productsData ?? []) as Product[];
   }
 
-  const productImages: [] = [];
-
   return (
     <ProductCatalogClient
       profileId={profile.id}
@@ -166,10 +188,12 @@ if (!catalogId) {
       slug={profile.slug}
       fullName={profile.full_name}
       avatarUrl={profile.avatar_url}
+      catalogName={catalog.name}
+      catalogDescription={catalog.description}
       categories={categories}
       products={products}
-      productImages={productImages}
       whatsapp={profile.whatsapp}
+      bio={profile.bio}
     />
   );
 }

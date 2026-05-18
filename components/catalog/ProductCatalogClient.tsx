@@ -159,7 +159,7 @@ export default function ProductCatalogClient({
       ? customBusinessHours 
       : businessHours;
 
-    const status = getBusinessStatus(activeHours);
+    const status = getBusinessStatus((activeHours ?? null) as any);
     const isAvailableNow = isAvailable === false ? false : status.isOpenNow;
     const statusMessage = isAvailable === false ? "Pausado" : status.message;
     return { isAvailableNow, statusMessage };
