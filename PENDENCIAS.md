@@ -78,6 +78,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
     - [x] Exibir lista aleatória/sugerida de vendedores ativos da mesma empresa na Bridge Page.
     - [x] Botão de redirecionamento para o Catálogo Master da Organização.
     - [x] Remoção automática de dados sensíveis (foto/nome) do perfil desligado.
+- [ ] **Auditoria no Cadastro de Catálogo B2C:** Realizar auditoria técnica e validação completa no processo de criação/vinculação automática de catálogos para perfis com nível de acesso B2C (individual seller) para prevenir falhas de RLS.
 
 ---
 

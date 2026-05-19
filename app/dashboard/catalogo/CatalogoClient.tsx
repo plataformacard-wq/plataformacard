@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
+import { getOrCreateCatalog } from "@/lib/dashboard/sellerActions";
 import 'react-quill-new/dist/quill.snow.css';
 
 // Carregamento dinÃƒÂ¢mico do Quill para evitar erros de SSR
@@ -303,73 +304,24 @@ export default function CatalogoPage() {
   }
 
   async function fetchCatalog(orgId: string): Promise<string | null> {
-    const supabase = createClient();
-    
-    // 1. Tenta pegar o catálogo vinculado
-    const { data: orgCatalog } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id")
-      .eq("organization_id", orgId)
-      .maybeSingle();
-
-    let catId = orgCatalog?.catalog_id;
-
-    // 2. Se não existe, vamos criar um catálogo padrão agora mesmo
-    if (!catId) {
-      console.log("Criando catálogo automático para a organização...");
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-
-      // Criar o catálogo
-      const { data: newCatalog, error: catError } = await supabase
-        .from("catalogs")
-        .insert({
-          name: "Meu Catálogo",
-          description: "Catálogo principal de produtos",
-          owner_id: user.id
-        })
-        .select()
-        .single();
-
-      if (catError || !newCatalog) {
-        console.error("Erro ao criar catálogo:", JSON.stringify(catError));
+    try {
+      const res = await getOrCreateCatalog(orgId);
+      if (res?.error || !res?.catalog) {
+        console.error("Erro ao carregar ou criar catálogo via Server Action:", res?.error);
         return null;
       }
 
-      // Vincular à organização
-      const { error: linkError } = await supabase
-        .from("organization_catalogs")
-        .insert({
-          organization_id: orgId,
-          catalog_id: newCatalog.id,
-          is_enabled: true
-        });
-
-      if (linkError) {
-        console.error("Erro ao vincular catálogo:", linkError);
-        return null;
-      }
-
-      catId = newCatalog.id;
-    }
-
-    if (catId) {
-      const { data: catalogData } = await supabase
-        .from("catalogs")
-        .select("id, name, description, catalog_type, type, whatsapp_template")
-        .eq("id", catId)
-        .single();
+      const catalogData = res.catalog;
+      setCatalog(catalogData as Catalog);
+      setCatalogDescription(catalogData.description || "");
+      setCatalogType((catalogData as any).type || (catalogData as any).catalog_type || "product");
+      setWhatsappTemplate(catalogData.whatsapp_template || "");
       
-      if (catalogData) {
-        setCatalog(catalogData as Catalog);
-        setCatalogDescription(catalogData.description || "");
-        setCatalogType((catalogData as any).type || (catalogData as any).catalog_type || "product");
-        setWhatsappTemplate(catalogData.whatsapp_template || "");
-      }
+      return catalogData.id;
+    } catch (err) {
+      console.error("Erro catastrófico no fetchCatalog:", err);
+      return null;
     }
-
-    return catId ?? null;
   }
 
   async function refreshLimit() {

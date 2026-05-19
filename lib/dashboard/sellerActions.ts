@@ -344,3 +344,79 @@ export async function updateSellerPermissions(userId: string, canCustomizeHours:
 
   return { success: true };
 }
+
+export async function getOrCreateCatalog(orgId: string) {
+  const supabaseServer = await createClient();
+  const { data: { user } } = await supabaseServer.auth.getUser();
+
+  if (!user) {
+    return { error: "Usuário não autenticado." };
+  }
+
+  const adminClient = createAdminClient();
+
+  // 1. Tenta pegar o catálogo vinculado
+  const { data: orgCatalog, error: orgCatalogError } = await adminClient
+    .from("organization_catalogs")
+    .select("catalog_id")
+    .eq("organization_id", orgId)
+    .maybeSingle();
+
+  if (orgCatalogError) {
+    console.error("getOrCreateCatalog fetch linked error:", orgCatalogError);
+  }
+
+  let catId = orgCatalog?.catalog_id;
+
+  // 2. Se não existe, cria um catálogo padrão
+  if (!catId) {
+    console.log("Criando catálogo automático via Server Action...");
+
+    // Criar o catálogo
+    const { data: newCatalog, error: catError } = await adminClient
+      .from("catalogs")
+      .insert({
+        name: "Meu Catálogo",
+        description: "Catálogo principal de produtos",
+        owner_id: user.id
+      })
+      .select()
+      .single();
+
+    if (catError || !newCatalog) {
+      console.error("Erro ao criar catálogo no admin:", catError);
+      return { error: `Erro ao criar catálogo: ${catError?.message || "Catálogo não criado"}` };
+    }
+
+    // Vincular à organização
+    const { error: linkError } = await adminClient
+      .from("organization_catalogs")
+      .insert({
+        organization_id: orgId,
+        catalog_id: newCatalog.id,
+        is_enabled: true
+      });
+
+    if (linkError) {
+      console.error("Erro ao vincular catálogo no admin:", linkError);
+      return { error: `Erro ao vincular catálogo: ${linkError.message}` };
+    }
+
+    catId = newCatalog.id;
+  }
+
+  // 3. Busca e retorna o catálogo completo
+  const { data: catalogData, error: catalogFetchError } = await adminClient
+    .from("catalogs")
+    .select("id, name, description, catalog_type, type, whatsapp_template")
+    .eq("id", catId)
+    .single();
+
+  if (catalogFetchError || !catalogData) {
+    console.error("Erro ao buscar catálogo completo:", catalogFetchError);
+    return { error: `Erro ao buscar catálogo: ${catalogFetchError?.message || "Não encontrado"}` };
+  }
+
+  return { success: true, catalog: catalogData };
+}
+
