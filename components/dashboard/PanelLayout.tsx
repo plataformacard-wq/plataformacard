@@ -16,7 +16,9 @@ import {
   Clock
 } from "lucide-react";
 import GlobalAlert from "@/components/dashboard/GlobalAlert";
-import { getMyProfile, getOrganizationById } from "@/lib/admin-actions";
+import PlanOverageAlert from "@/components/dashboard/PlanOverageAlert";
+import { getMyProfile, getOrganizationById, getOrganizationStats } from "@/lib/admin-actions";
+import { detectOverage, getPlanName } from "@/lib/plans";
 
 type PanelLayoutProps = {
   children: React.ReactNode;
@@ -45,6 +47,8 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
   const [newLead, setNewLead] = useState<{product_name: string, seller_name: string} | null>(null);
   const [hasShadowCookie, setHasShadowCookie] = useState(false);
+  const [planOverages, setPlanOverages] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
+  const [currentPlanName, setCurrentPlanName] = useState("");
 
   useEffect(() => {
     // Tema
@@ -113,11 +117,18 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           dash_access_company: !!profile.dash_access_company,
         });
 
-        // Lógica de Organização (com suporte a Shadow Mode para Super Admin)
+        // GUARDA CLIENT-SIDE: Super Admin não deve ficar no /dashboard sem Shadow Mode
         const shadowOrgId = document.cookie
           .split("; ")
           .find((row) => row.startsWith("shadow_org_id="))
           ?.split("=")[1];
+
+        if (userRole === "superadmin") {
+          if (!shadowOrgId && window.location.pathname.startsWith("/dashboard")) {
+            router.replace("/admin");
+            return;
+          }
+        }
 
         setHasShadowCookie(!!shadowOrgId);
 
@@ -128,12 +139,31 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         if (targetOrgId) {
           try {
             const org = await getOrganizationById(targetOrgId);
+            const orgPlanId = org?.plan_id || null;
             setBusinessModel(org?.business_model as any || "B2B");
-            setPlanId(org?.plan_id || null);
+            setPlanId(orgPlanId);
+            setCurrentPlanName(getPlanName(orgPlanId));
+
+            // Detecta excedência de plano (uso acima do limite)
+            // Só verifica para clientes reais (não super admin sem shadow)
+            if (orgPlanId && userRole !== "superadmin") {
+              try {
+                const usageResult = await getOrganizationStats(targetOrgId);
+                if (usageResult.success) {
+                  const overages = detectOverage(orgPlanId, {
+                    products: usageResult.stats.products,
+                    sellers: usageResult.stats.sellers,
+                  });
+                  setPlanOverages(overages);
+                }
+              } catch (overageErr) {
+                console.warn("Erro ao verificar excedência de plano:", overageErr);
+              }
+            }
             
             // Se estiver em shadow mode, podemos querer mostrar o nome da empresa em algum lugar
             if (shadowOrgId && userRole === "superadmin") {
-              console.log(`Simulando acesso à organização: ${org?.name}`);
+              // Shadow mode ativo
             }
           } catch (oErr) {
             console.error("Erro ao buscar organização:", oErr);
@@ -282,6 +312,11 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         />
 
         {notice && <GlobalAlert {...notice} noticeId={notice.id} noticeText={notice.text} isActive={notice.active} />}
+
+        {/* Banner de Excedência de Plano */}
+        {planOverages.length > 0 && (
+          <PlanOverageAlert overages={planOverages} planName={currentPlanName} />
+        )}
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="mx-auto max-w-7xl">

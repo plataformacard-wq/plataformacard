@@ -83,6 +83,23 @@ O sistema possui um "Watchdog" via Supabase Edge Functions que monitora a saúde
 - **Largura de Banda:** Limite de 100GB/mês (Vercel).
 - **Storage:** Gerenciado via compressor integrado.
 
+## 11. Estrutura Estratégica de Planos e Limites (SaaS)
+Baseado na restrição de 1GB de Storage e 500MB de Banco de Dados da infraestrutura gratuita (Supabase), a plataforma adota o seguinte modelo de limites para forçar a conversão de B2B sem asfixiar o servidor:
+
+**1. Plano Free / Start (Isca para entrada)**
+- **Limite de Produtos:** 20 produtos (Suficiente para testar, insuficiente para catálogos completos).
+- **Limite de Vendedores:** 2 perfis (Atende autônomos ou pequenos negócios com até 1 funcionário).
+- **Justificativa:** Previne o esgotamento do Storage de Imagens. Mesmo com 1.000 empresas usando o plano gratuito no limite, o consumo de DB seria menor que 10%, e o de Storage ficaria sob controle (~3MB/cliente, assumindo imagens comprimidas). Se fornecêssemos 50 produtos grátis, o storage gratuito de 1GB do Supabase seria consumido por apenas ~130 empresas.
+
+**2. Plano Basic / Profissional**
+- **Limite de Produtos:** 50 a 100 produtos.
+- **Limite de Vendedores:** 5 a 10 perfis.
+- **Justificativa:** Foco no comércio tradicional de pequeno e médio porte. A essa altura, o cliente já está pagando pela plataforma, subsidiando possíveis upgrades da nossa própria infraestrutura no Supabase/Vercel.
+
+**3. Plano Pro / Enterprise**
+- **Limite de Produtos e Vendedores:** Ilimitados (ou altos volumes como 1.000 produtos).
+- **Justificativa:** Ticket alto B2B (distribuidoras e grandes marcas) que viabiliza financeiramente qualquer custo de infraestrutura isolada ou tiers pagos do Supabase.
+
 - **2026-05-19:**
   - **Overlays e Modais (React Portals):** Refatoração da arquitetura de popups no catálogo e perfil (`Consultor Indisponível`) usando `createPortal` para burlar isolamentos de z-index (Stacking Context).
   - **Tematização Sólida Absoluta:** Remoção de transparências em modais injetando leitura direta do DOM (`document.documentElement.getAttribute('data-theme')`) para cores `#ffffff` e `#18181b`.

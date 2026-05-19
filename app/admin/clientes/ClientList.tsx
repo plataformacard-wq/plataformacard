@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import ClientDetailModal from "./ClientDetailModal";
 import { updateOrganizationModel } from "@/lib/admin-actions";
+import { getPlanName } from "@/lib/plans";
 
 interface ClientListProps {
   organizations: any[];
@@ -93,15 +94,6 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
       {/* Lista de Cards Premium (Padrão Horizontal Vendedores) */}
       <div className="space-y-4">
         {filteredOrgs?.map((org) => {
-          // Mapeamento de Plano (UUID para Nome)
-          const getPlanName = (planId: string) => {
-            if (!planId) return "Sem Plano";
-            if (planId === "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0") return "ESSENTIAL";
-            if (planId === "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62") return "PRO BUSINESS";
-            if (planId === "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26") return "ENTERPRISE";
-            return "Custom";
-          };
-
           return (
             <div 
               key={org.id} 

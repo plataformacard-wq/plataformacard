@@ -13,11 +13,13 @@ import {
   ChevronRight,
   TrendingUp,
   Mail,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess } from "@/lib/admin-actions";
+import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS } from "@/lib/plans";
 
 interface ClientDetailModalProps {
   isOpen: boolean;
@@ -42,6 +44,9 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const [updatingModel, setUpdatingModel] = useState(false);
   const [showSellers, setShowSellers] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
+  // Estado para o painel de confirmação de downgrade
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [downgradeConflicts, setDowngradeConflicts] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
 
   // Sincronizar estado quando a organização mudar (abertura do modal)
   useEffect(() => {
@@ -93,15 +98,42 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
     }
   }, [isOpen, organization?.id, supabase]);
 
-  const handlePlanChange = async (newPlan: string) => {
+  const handlePlanChange = async (newPlanId: string) => {
+    if (!newPlanId || newPlanId === currentPlan) return;
+
+    // Verifica se o downgrade causa conflitos de recursos
+    const conflicts = detectDowngradeConflicts(newPlanId, {
+      products: stats.productCount,
+      sellers: stats.userCount,
+    });
+
+    if (conflicts.length > 0) {
+      // Pausa a troca e exibe o painel de confirmação
+      setPendingPlanId(newPlanId);
+      setDowngradeConflicts(conflicts);
+      return;
+    }
+
+    // Sem conflitos: aplica diretamente
+    await applyPlanChange(newPlanId);
+  };
+
+  const applyPlanChange = async (planId: string) => {
     setUpdatingPlan(true);
-    const result = await updateOrganizationPlan(organization.id, newPlan);
+    const result = await updateOrganizationPlan(organization.id, planId);
     if (result.success) {
-      setCurrentPlan(newPlan);
+      setCurrentPlan(planId);
     } else {
       alert("Erro ao atualizar plano: " + result.error);
     }
+    setPendingPlanId(null);
+    setDowngradeConflicts([]);
     setUpdatingPlan(false);
+  };
+
+  const cancelDowngrade = () => {
+    setPendingPlanId(null);
+    setDowngradeConflicts([]);
   };
 
 
@@ -113,8 +145,6 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
       const result = await updateOrganizationModel(organization.id, newModel);
       if (result.success) {
         setBusinessModel(newModel);
-        // Feedback visual de sucesso
-        console.log(`Modelo alterado para ${newModel}`);
       } else {
         alert("Erro ao atualizar modelo: " + result.error);
       }
@@ -221,8 +251,8 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
                         >
                           <option value="">SELECIONE UM PLANO</option>
-                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: ESSENTIAL</option>
-                          <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: PRO BUSINESS</option>
+                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: START</option>
+                          <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: BASIC</option>
                           <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">PLANO: ENTERPRISE</option>
                         </select>
                         {updatingPlan && (
@@ -232,6 +262,53 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         )}
                       </div>
                     </div>
+
+                    {/* PAINEL DE CONFIRMAÇÃO DE DOWNGRADE */}
+                    {downgradeConflicts.length > 0 && pendingPlanId && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full mt-3 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10"
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <AlertTriangle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-xs font-black text-amber-600 mb-1">
+                              Conflito de Recursos — Downgrade para {getPlanName(pendingPlanId)}
+                            </p>
+                            <p className="text-[10px] text-amber-600/70 leading-relaxed">
+                              O cliente possui mais recursos do que o novo plano permite. Os dados existentes <strong>não serão removidos</strong>, mas novos cadastros ficarão bloqueados.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {downgradeConflicts.map((c) => (
+                            <div key={c.resource} className="flex items-center gap-1.5 text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-500 px-2.5 py-1 rounded-lg">
+                              <span>{c.label}:</span>
+                              <span>{c.current} ativos</span>
+                              <span className="opacity-50">/</span>
+                              <span>limite {c.limit}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={cancelDowngrade}
+                            className="flex-1 py-2 rounded-xl border border-[var(--dash-border)] text-[10px] font-black uppercase text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-all"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => pendingPlanId && applyPlanChange(pendingPlanId)}
+                            disabled={updatingPlan}
+                            className="flex-1 py-2 rounded-xl bg-amber-500 text-white text-[10px] font-black uppercase hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          >
+                            {updatingPlan ? <RefreshCw size={10} className="animate-spin" /> : null}
+                            Confirmar Downgrade
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
                 </div>
               </div>
             </div>

@@ -119,13 +119,21 @@ function RecessCountdown({ endsAt }: { endsAt: string }) {
   );
 }
 
-export default function VendedoresClient() {
+export default function VendedoresClient({
+  initialSellerLimit = 0,
+  initialSellerCount = 0,
+}: {
+  initialSellerLimit?: number;
+  initialSellerCount?: number;
+}) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [vendedores, setVendedores] = useState<Seller[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isB2C, setIsB2C] = useState(false);
+  const [sellerLimit] = useState(initialSellerLimit);
+  const [sellerCount, setSellerCount] = useState(initialSellerCount);
   const router = useRouter();
   
   // View State: 'list' | 'form'
@@ -175,8 +183,11 @@ export default function VendedoresClient() {
     if (result.error) {
       console.error("❌ Erro ao buscar vendedores:", result.error);
     } else if (result.sellers) {
-      setVendedores(result.sellers as Seller[]);
+      const sellers = result.sellers as Seller[];
+      setVendedores(sellers);
       setDebugData(result.debug);
+      // Atualiza contagem real de vendedores
+      setSellerCount(sellers.filter(s => s.role === 'seller').length);
     }
 
     // 2. Verificar permissões e B2C (Para redirecionamento se necessário)
@@ -252,6 +263,15 @@ export default function VendedoresClient() {
 
   function handleOpenForm(seller?: Seller) {
     setMessage("");
+
+    // Guard de limite de vendedores (somente para novos cadastros)
+    if (!seller && sellerLimit > 0 && sellerCount >= sellerLimit) {
+      setMessage(
+        `Limite atingido: seu plano permite ${sellerLimit} vendedor${sellerLimit !== 1 ? 'es' : ''}. Faça upgrade para continuar.`
+      );
+      return;
+    }
+
     if (seller) {
       setSelectedSeller(seller);
       setFormEmail(seller.email || "");
@@ -459,14 +479,32 @@ export default function VendedoresClient() {
                   Gerencie a ficha completa e as permissões da sua equipe.
                 </p>
               </div>
-              <button 
-                onClick={() => handleOpenForm()}
-                className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
-              >
-                <UserPlus size={18} />
-                Novo Vendedor
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                {/* Widget de Capacidade de Vendedores */}
+                {sellerLimit > 0 && (
+                  <div className="text-right">
+                    <span className={`text-xs font-black ${sellerCount >= sellerLimit ? 'text-red-500' : 'text-emerald-500'}`}>
+                      {sellerCount} / {sellerLimit} vendedores
+                    </span>
+                    <div className="mt-1 h-1.5 w-40 rounded-full bg-[var(--dash-border)] overflow-hidden">
+                      <motion.div
+                        className={`h-full rounded-full ${sellerCount >= sellerLimit ? 'bg-red-500' : 'bg-emerald-500'}`}
+                        animate={{ width: `${Math.min((sellerCount / sellerLimit) * 100, 100)}%` }}
+                        transition={{ duration: 0.6 }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <button 
+                  onClick={() => handleOpenForm()}
+                  disabled={sellerLimit > 0 && sellerCount >= sellerLimit}
+                  className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                  style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
+                >
+                  <UserPlus size={18} />
+                  Novo Vendedor
+                </button>
+              </div>
             </div>
 
             <div className="relative">
