@@ -37,7 +37,12 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [x] **Social Share - Catálogo:** Botão flutuante ou fixo para compartilhar a vitrine.
 - [x] **Social Share - Modal de Produto:** Link direto para o produto específico com preview (OG Tags).
 
-### 2.3 Estética, Branding e Identidade
+### 2.3 Gestão de Promoções em Massa (Bulk Pricing)
+- [ ] **Integração de Banco (RPC)**: Criar migration SQL `apply_bulk_price_adjustment` para aplicação e reversão de descontos e acréscimos usando os campos `price` e `compare_at_price`.
+- [ ] **Interface Administrativa**: Desenvolver painel modular no Dashboard para permitir ajustes em 3 níveis de escopo (Catálogo Inteiro, Categoria, Produto Único).
+- [ ] **Regras de Negócio**: Suportar % ou Valor Fixo com preview das alterações antes de executar.
+
+### 2.4 Estética, Branding e Identidade
 - [ ] **Revitalização do Cartão Público:** Tornar o design menos neutro e mais "premium".
 - [ ] **Conexão Visual Dinâmica:** Implementar sistema que herda cores e logo da empresa/vendedor para o cartão, removendo o aspecto genérico.
 - [ ] **Landing Page de Captura:** Criar página oficial para conversão de novos clientes do SaaS.
@@ -62,17 +67,17 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 
 ## 🚨 5. Bloqueadores de Lançamento (CRÍTICO)
 
-- [ ] **Quebra de Texto em Cards Públicos:** Resolver definitivamente o problema de palavras (ex: EMPLACAMENTO) que quebram no meio. Estratégia de CSS `word-break: keep-all` aplicada e sanitização de caracteres invisíveis implementada, aguardando validação final em todos os dispositivos.
-- [ ] **Status de Vendedor - Lógica de Pausa:**
-    - Implementar campo `status` (`active`, `paused`, `terminated`) no DB.
-    - Se `paused`: Exibir badge "Indisponível para entrega imediata" nos cards.
-    - Se `paused`: Desativar abertura do modal de detalhes (cards puramente informativos).
-- [ ] **Status de Vendedor - Lógica de Desligamento:**
-    - Adicionar botão vermelho `{Desligar vendedor}` no modal de gestão de vendedores para acionamento do desligamento.
-    - Criar "Bridge Page" (página de transição) para links de vendedores inativos.
-    - Exibir lista aleatória/sugerida de vendedores ativos da mesma empresa na Bridge Page.
-    - Botão de redirecionamento para o Catálogo Master da Organização.
-    - Remoção automática de dados sensíveis (foto/nome) do perfil desligado.
+- [x] **Quebra de Texto em Cards Públicos:** Resolver definitivamente o problema de palavras (ex: EMPLACAMENTO) que quebram no meio. Estratégia de CSS `word-break: keep-all` aplicada e sanitização de caracteres invisíveis implementada, aguardando validação final em todos os dispositivos.
+- [x] **Status de Vendedor - Lógica de Pausa:**
+    - [x] Implementar campo `status` (`active`, `paused`, `terminated`) no DB.
+    - [x] Se `paused`: Exibir badge "Indisponível para entrega imediata" nos cards.
+    - [x] Se `paused`: Desativar abertura do modal de detalhes (cards puramente informativos).
+- [x] **Status de Vendedor - Lógica de Desligamento:**
+    - [x] Adicionar botão vermelho `{Desligar vendedor}` no modal de gestão de vendedores para acionamento do desligamento.
+    - [x] Criar "Bridge Page" (página de transição) para links de vendedores inativos.
+    - [x] Exibir lista aleatória/sugerida de vendedores ativos da mesma empresa na Bridge Page.
+    - [x] Botão de redirecionamento para o Catálogo Master da Organização.
+    - [x] Remoção automática de dados sensíveis (foto/nome) do perfil desligado.
 
 ---
 

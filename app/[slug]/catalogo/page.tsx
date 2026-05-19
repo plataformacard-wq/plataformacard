@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
+import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -24,6 +25,9 @@ type Profile = {
   custom_business_hours: any;
   can_customize_hours: boolean | null;
   whatsapp_template: string | null;
+  status: string | null;
+  redirect_leads: boolean | null;
+  recess_ends_at: string | null;
 };
 
 type Organization = {
@@ -163,7 +167,7 @@ export default async function Page(props: PageProps) {
 
   const { data: profileData } = await admin
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, whatsapp_template, is_available, custom_business_hours, can_customize_hours")
+    .select("*")
     .ilike("slug", slug)
     .maybeSingle();
 
@@ -191,6 +195,25 @@ export default async function Page(props: PageProps) {
     } else {
       return notFound();
     }
+  }
+
+  const isRecessActive = profile?.recess_ends_at && new Date(profile.recess_ends_at) > new Date();
+  const isTerminated = profile?.status === 'terminated';
+  const isPaused = profile?.status === 'paused' || isRecessActive;
+  const isRedirecting = !!profile?.redirect_leads;
+
+  if (profile && (isTerminated || (isPaused && isRedirecting))) {
+    return (
+      <ConsultantsBridge
+        profile={profile}
+        orgName={orgData?.name || null}
+        orgLogo={(orgData as any)?.logo_url || null}
+        orgSlug={orgData?.slug || profile.organization_id}
+        accentColor={orgData?.accent_color || "#25D366"}
+        secondaryColor={orgData?.secondary_color || "#128C7E"}
+        reason={isTerminated ? 'terminated' : 'paused'}
+      />
+    );
   }
 
   const trackingProfileId = (profile?.id || orgData?.id) || "";
@@ -336,6 +359,7 @@ export default async function Page(props: PageProps) {
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
         whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
+        sellerStatus={profile?.status}
       />
     </>
   );

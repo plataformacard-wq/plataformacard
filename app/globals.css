@@ -38,7 +38,8 @@
   --public-text-dim: #475569;
   --public-text-muted: #94a3b8;
   --public-glass-bg: rgba(255, 255, 255, 0.8);
-  --public-status-bg: rgba(0, 0, 0, 0.05);
+  --public-status-bg: #ffffff;
+  --public-modal-bg: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -78,7 +79,8 @@
   --public-text-dim: rgba(255, 255, 255, 0.6);
   --public-text-muted: rgba(255, 255, 255, 0.28);
   --public-glass-bg: rgba(255, 255, 255, 0.05);
-  --public-status-bg: rgba(0, 0, 0, 0.75);
+  --public-status-bg: #151515;
+  --public-modal-bg: #18181b;
 }
 
 @theme inline {

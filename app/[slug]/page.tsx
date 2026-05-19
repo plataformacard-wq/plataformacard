@@ -1,13 +1,17 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
 import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
 import CatalogBadge from "@/components/catalog/CatalogBadge";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import PublicShareButton from "@/components/PublicShareButton";
+import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -73,6 +77,9 @@ type ProfileRow = {
   is_available: boolean | null;
   custom_business_hours: any;
   can_customize_hours: boolean | null;
+  status: string | null;
+  redirect_leads: boolean | null;
+  recess_ends_at: string | null;
 };
 
 export const dynamicParams = true;
@@ -186,6 +193,7 @@ async function getCatalogStats(
 
 export default async function Page(props: PageProps) {
   const supabase = await createClient();
+  const admin = createAdminClient();
 
   const { slug } = await props.params;
 
@@ -204,14 +212,14 @@ export default async function Page(props: PageProps) {
     notFound();
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours, can_customize_hours")
+    .select("*")
     .eq("slug", slug)
     .maybeSingle();
 
   if (!profile) {
-    const { data: org } = await supabase
+    const { data: org } = await admin
       .from("organizations")
       .select("id, slug, business_model")
       .ilike("slug", slug)
@@ -227,9 +235,9 @@ export default async function Page(props: PageProps) {
   const safeProfile = profile as ProfileRow;
 
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
-    supabase
+    admin
       .from("organizations")
-      .select("name, business_hours, accent_color, secondary_color, logo_url")
+      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url")
       .eq("id", safeProfile.organization_id)
       .maybeSingle(),
     getCatalogStats(supabase, safeProfile),
@@ -239,12 +247,33 @@ export default async function Page(props: PageProps) {
   ]);
 
   const orgName = orgRes.data?.name?.trim() ?? null;
+  const orgSlug = orgRes.data?.slug ?? safeProfile.organization_id;
   const orgBusinessHours = (orgRes.data?.business_hours as unknown as BusinessHours) ?? null;
   const orgLogo = orgRes.data?.logo_url ?? null;
+  const orgFavicon = orgRes.data?.favicon_url ?? null;
   const accentColor = orgRes.data?.accent_color || "#25D366";
   const secondaryColor = orgRes.data?.secondary_color || "#128C7E";
   const customBusinessHours = (safeProfile.custom_business_hours as unknown as BusinessHours) ?? null;
-  
+
+  const isRecessActive = safeProfile.recess_ends_at && new Date(safeProfile.recess_ends_at) > new Date();
+  const isTerminated = safeProfile.status === 'terminated';
+  const isPaused = safeProfile.status === 'paused' || isRecessActive;
+  const isRedirecting = !!safeProfile.redirect_leads;
+
+  if (isTerminated || (isPaused && isRedirecting)) {
+    return (
+      <ConsultantsBridge
+        profile={safeProfile}
+        orgName={orgName}
+        orgLogo={orgLogo}
+        orgSlug={orgSlug}
+        accentColor={accentColor}
+        secondaryColor={secondaryColor}
+        reason={isTerminated ? 'terminated' : 'paused'}
+      />
+    );
+  }
+
   // Decide if we use the profile's manual override or the organization's business hours
   // Fase 2: Herança de Horários
   const hasCustomSchedule = customBusinessHours && 
@@ -257,10 +286,15 @@ export default async function Page(props: PageProps) {
 
   const businessStatus = getBusinessStatus(activeHours);
   
-  // Se o perfil estava com is_available = false (manual), forçamos o fechamento. 
+  // Se o perfil estava com is_available = false (manual) ou em recesso, forçamos o fechamento. 
   // Caso contrário, seguimos a regra.
-  const isAvailableNow = safeProfile.is_available === false ? false : businessStatus.isOpenNow;
-  const statusMessage = safeProfile.is_available === false ? "Pausado" : businessStatus.message;
+  const isAvailableNow = (safeProfile.is_available === false || isRecessActive) ? false : businessStatus.isOpenNow;
+  const statusMessage = isRecessActive 
+    ? "Indisponível para atendimento imediato" 
+    : safeProfile.is_available === false 
+      ? "Indisponível" 
+      : businessStatus.message;
+
 
   const bioLine = [safeProfile.bio?.trim() || null, orgName]
     .filter(Boolean)
@@ -437,6 +471,12 @@ export default async function Page(props: PageProps) {
                     alt={safeProfile.full_name ?? "Foto do perfil"}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
+                ) : orgFavicon ? (
+                  <img
+                    src={orgFavicon}
+                    alt={orgName ?? "Logo da empresa"}
+                    style={{ width: "100%", height: "100%", objectFit: "contain", backgroundColor: "white" }}
+                  />
                 ) : (
                   initialsFromName(safeProfile.full_name)
                 )}
@@ -530,6 +570,7 @@ export default async function Page(props: PageProps) {
                 profileId={safeProfile.id}
                 slug={slug}
                 whatsapp={safeProfile.whatsapp}
+                isAvailable={isAvailableNow}
               />
             ) : <p style={{color: 'red'}}>WhatsApp is NULL</p>}
 

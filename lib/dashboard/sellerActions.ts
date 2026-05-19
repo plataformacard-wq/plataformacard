@@ -13,6 +13,7 @@ export async function createSeller(formData: FormData) {
   const dashAccessAnalytics = formData.get("dashAccessAnalytics") === "true";
   const dashAccessCompany = formData.get("dashAccessCompany") === "true";
   const whatsappTemplate = formData.get("whatsappTemplate") as string;
+  const redirectLeads = formData.get("redirectLeads") === "true";
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -96,7 +97,8 @@ export async function createSeller(formData: FormData) {
       dash_access_catalog: dashAccessCatalog,
       dash_access_analytics: dashAccessAnalytics,
       dash_access_company: dashAccessCompany,
-      whatsapp_template: whatsappTemplate
+      whatsapp_template: whatsappTemplate,
+      redirect_leads: redirectLeads
     };
 
     const { error: insertError } = await adminAuthClient
@@ -150,7 +152,10 @@ export async function toggleSellerStatus(sellerId: string, isAvailable: boolean)
     const adminAuthClient = createAdminClient();
     const { error } = await adminAuthClient
       .from("profiles")
-      .update({ is_available: isAvailable })
+      .update({ 
+        is_available: isAvailable,
+        status: isAvailable ? 'active' : 'paused'
+      })
       .eq("id", sellerId);
 
     if (error) return { error: error.message };
@@ -233,6 +238,43 @@ export async function deleteSeller(userId: string) {
 
   return { success: true };
 }
+
+export async function terminateSeller(sellerId: string) {
+  const supabaseServer = await createClient();
+  const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+
+  if (!adminUser) return { error: "Não autenticado" };
+
+  const adminAuthClient = createAdminClient();
+
+  const { data: profileManager } = await adminAuthClient
+    .from("profiles")
+    .select("role")
+    .eq("user_id", adminUser.id)
+    .single();
+
+  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  if (!allowedRoles.includes(profileManager?.role)) {
+    return { error: "Permissão negada." };
+  }
+
+  // Remove PII data but keep the slug and organization to route to the Bridge Page
+  const { error } = await adminAuthClient
+    .from("profiles")
+    .update({ 
+      status: 'terminated',
+      is_available: false,
+      full_name: 'Consultor Desligado',
+      avatar_url: null,
+      whatsapp: null,
+      bio: null
+    })
+    .eq("id", sellerId);
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
 
 export async function updateSellerPassword(userId: string, newPassword: string) {
   const supabaseServer = await createClient();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
@@ -96,6 +97,7 @@ type ProductCatalogClientProps = {
   canCustomizeHours?: boolean | null;
   organizationId?: string | null;
   whatsappTemplate?: string | null;
+  sellerStatus?: string | null;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -108,6 +110,7 @@ const sanitizeText = (text: string | null | undefined) => {
     .replace(/&nbsp;/g, " ") // NBSP (HTML)
     .replace(/\s+/g, " ")    // Double spaces
     .replace(/ENPLACAMENTO/gi, "EMPLACAMENTO") // Consertar typo comum
+    .replace(/E[NM]PLACA\s+MENTO/gi, "EMPLACAMENTO") // Consertar "EMPLACA MENTO" separado
     .trim();
 };
 
@@ -142,13 +145,15 @@ export default function ProductCatalogClient({
   customBusinessHours,
   canCustomizeHours,
   organizationId,
-  whatsappTemplate
+  whatsappTemplate,
+  sellerStatus
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [priceMode, setPriceMode] = useState<"retail" | "wholesale">("retail");
+  const [showWarning, setShowWarning] = useState(false);
 
   const businessStatus = useMemo(() => {
     const hasCustomSchedule = customBusinessHours && 
@@ -161,7 +166,7 @@ export default function ProductCatalogClient({
 
     const status = getBusinessStatus((activeHours ?? null) as any);
     const isAvailableNow = isAvailable === false ? false : status.isOpenNow;
-    const statusMessage = isAvailable === false ? "Pausado" : status.message;
+    const statusMessage = isAvailable === false ? "Indisponível" : status.message;
     return { isAvailableNow, statusMessage };
   }, [businessHours, customBusinessHours, canCustomizeHours, isAvailable]);
 
@@ -341,6 +346,9 @@ export default function ProductCatalogClient({
   };
 
   const handleOpenProduct = (product: Product) => {
+    if (sellerStatus === 'paused') {
+      return; // Bloqueia abertura do modal se o vendedor estiver pausado
+    }
     console.log("📦 Abrindo produto:", product.name);
     setSelectedProductId(product.id);
     
@@ -468,13 +476,19 @@ export default function ProductCatalogClient({
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {whatsappUrl && (
-                businessStatus.isAvailableNow ? (
-                  <a 
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      console.log("🖱️ Clique WhatsApp Topo detectado");
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!businessStatus.isAvailableNow) {
+                      setShowWarning(true);
+                      void trackAnalyticsEvent({
+                        profileId,
+                        catalogId,
+                        eventType: "whatsapp_click_closed",
+                        pageType: "catalog_header",
+                        metadata: { slug }
+                      });
+                    } else {
                       void trackLead();
                       void trackAnalyticsEvent({
                         profileId,
@@ -484,30 +498,14 @@ export default function ProductCatalogClient({
                         pageType: "catalog_header",
                         metadata: { slug }
                       });
-                    }}
-                    className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg"
-                  >
-                    <MessageCircle size={14} />
-                    WhatsApp
-                  </a>
-                ) : (
-                  <div 
-                    onClick={() => {
-                      console.log("🖱️ Clique WhatsApp (FECHADO) Topo detectado");
-                      void trackAnalyticsEvent({
-                        profileId,
-                        catalogId,
-                        eventType: "whatsapp_click_closed",
-                        pageType: "catalog_header",
-                        metadata: { slug }
-                      });
-                    }}
-                    className="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-500 px-4 py-2 rounded-xl text-[10px] font-bold border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    <Clock size={12} />
-                    Fechado
-                  </div>
-                )
+                      window.open(whatsappUrl, "_blank");
+                    }
+                  }}
+                  className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg"
+                >
+                  <MessageCircle size={14} />
+                  WhatsApp
+                </button>
               )}
               <PublicThemeToggle className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center bg-[var(--public-bg)] border border-[var(--public-card-border)] hover:bg-[var(--public-card-bg)] transition-colors text-[var(--public-text-main)] shadow-sm" />
               <button 
@@ -578,7 +576,18 @@ export default function ProductCatalogClient({
           </motion.div>
         </section>
 
-        <div className="space-y-16">
+        <div className="space-y-16 relative">
+          {sellerStatus === 'paused' && (
+            <div className="mb-8 w-full">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-2xl text-center shadow-sm">
+                <span className="font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  Indisponível para atendimento imediato
+                </span>
+                <p className="text-xs mt-1 opacity-80">As informações abaixo são puramente para consulta de vitrine.</p>
+              </div>
+            </div>
+          )}
           <LayoutGroup>
             {filteredCategories.map((category, idx) => (
               <motion.section 
@@ -610,8 +619,8 @@ export default function ProductCatalogClient({
                       key={product.id}
                       id={product.id}
                       onClick={() => handleOpenProduct(product)}
-                      whileHover={{ y: -8 }}
-                      className="group relative bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl overflow-hidden cursor-pointer hover:border-emerald-500/30 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgb(0,0,0,0.5)]"
+                      whileHover={sellerStatus === 'paused' ? {} : { y: -8 }}
+                      className={`group relative bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgb(0,0,0,0.5)] ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : 'cursor-pointer hover:border-emerald-500/30'}`}
                     >
                       <div className="aspect-square relative overflow-hidden bg-[var(--public-card-bg)] flex items-center justify-center p-0">
                         {!product.is_in_stock && (
@@ -649,11 +658,13 @@ export default function ProductCatalogClient({
                             )}
                           </div>
 
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
-                            <Maximize2 size={18} className="text-white" />
+                        {sellerStatus !== 'paused' && (
+                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
+                              <Maximize2 size={18} className="text-white" />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       <div className="p-6">
@@ -670,8 +681,8 @@ export default function ProductCatalogClient({
                         </div>
                         {product.description && (
                           <div 
-                            className="text-[var(--public-text-dim)] text-sm mb-5 leading-relaxed line-clamp-4 [&_*]:!whitespace-normal [&_*]:!break-words [&_*]:!max-w-full"
-                            dangerouslySetInnerHTML={{ __html: product.description }}
+                            className="text-[var(--public-text-dim)] text-sm mb-5 leading-relaxed line-clamp-4 break-words-strategy [&_*]:!whitespace-normal [&_*]:!max-w-full"
+                            dangerouslySetInnerHTML={{ __html: sanitizeText(product.description) }}
                           />
                         )}
                         <div className="flex items-center justify-between mt-auto">
@@ -701,9 +712,11 @@ export default function ProductCatalogClient({
                               </div>
                             )}
                           </div>
-                          <div className="h-10 w-10 rounded-full bg-[var(--public-bg)] flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors border border-[var(--public-card-border)] text-[var(--public-text-main)]">
-                            <ArrowRight size={18} />
-                          </div>
+                          {sellerStatus !== 'paused' && (
+                            <div className="h-10 w-10 rounded-full bg-[var(--public-bg)] flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors border border-[var(--public-card-border)] text-[var(--public-text-main)]">
+                              <ArrowRight size={18} />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -1063,19 +1076,88 @@ export default function ProductCatalogClient({
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .ql-description-content { line-height: 1.8; font-size: 0.95rem; color: var(--public-text-dim); width: 100% !important; max-width: 100% !important; }
         .ql-description-content *, .break-words-strategy { 
-          word-break: keep-all !important; 
-          overflow-wrap: normal !important; 
-          hyphens: none !important; 
-          -webkit-hyphens: none !important; 
+          word-break: normal !important; 
+          overflow-wrap: break-word !important; 
+          hyphens: auto !important; 
+          -webkit-hyphens: auto !important; 
           max-width: 100% !important; 
           box-sizing: border-box !important; 
-          white-space: normal !important; 
         }
         .ql-description-content p { margin-bottom: 1.25rem; }
         .ql-description-content b, .ql-description-content strong { font-weight: 900; color: var(--public-text-main); }
         .public-footer-sticky { background-color: var(--public-card-bg) !important; }
         .public-footer-fade { background-image: linear-gradient(to top, var(--public-card-bg), transparent) !important; }
       `}</style>
+
+      {/* Modal de Aviso Empático */}
+      {hasMounted && createPortal(
+        <AnimatePresence>
+          {showWarning && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90"
+              onClick={() => setShowWarning(false)}
+            >
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="relative border border-[var(--public-card-border)] rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl"
+                style={{ backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#18181b' : '#ffffff' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button 
+                  onClick={() => setShowWarning(false)}
+                  className="absolute top-4 right-4 text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] p-2 rounded-full bg-[var(--public-status-bg)] transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="w-16 h-16 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-[var(--public-text-main)] mb-2">
+                  Consultor Indisponível
+                </h3>
+                <p className="text-sm text-[var(--public-text-dim)] mb-8 leading-relaxed">
+                  O consultor está temporariamente ausente ou fora do horário. Sua mensagem será entregue, mas o tempo de resposta pode ser maior que o habitual.
+                </p>
+                
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => {
+                      setShowWarning(false);
+                      void trackLead();
+                      void trackAnalyticsEvent({
+                        profileId,
+                        catalogId,
+                        eventType: "whatsapp_click_delayed",
+                        pageType: "catalog_header",
+                        metadata: { slug }
+                      });
+                      if (whatsappUrl) window.open(whatsappUrl, "_blank");
+                    }}
+                    className="w-full py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-[#25D366] hover:bg-[#128C7E] transition-colors shadow-lg shadow-green-500/20"
+                  >
+                    Continuar mesmo assim
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
     </div>
   );
 }

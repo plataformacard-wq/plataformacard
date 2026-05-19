@@ -48,7 +48,27 @@ O sistema utiliza uma hierarquia de três níveis para determinar se um catálog
 - **Separação de Preocupações:** O cliente principal foca na listagem e filtros; os modais focam no CRUD e interações específicas (IA, Uploads).
 
 
-## 9. Gestão de Recursos e Escalabilidade (Plano Free)
+## 8. Tipografia e Quebra de Palavras (Word Wrapping)
+- **Problema Recorrente**: Quebras abruptas de palavras no catálogo devido ao uso indiscriminado de `word-break: keep-all` misturado com HTML gerado pelo editor Rich Text (React Quill) ou spans do Tailwind.
+- **Padrão Ouro Estabelecido**: 
+  - NUNCA use `word-break: keep-all` ou `word-break: break-all` em áreas de descrição ricas.
+  - O correto para layouts premium no projeto é: `overflow-wrap: break-word` acompanhado de `word-break: normal` e `hyphens: auto`.
+  - **Sanitização de HTML**: Todo texto, inclusive o `description` em HTML retornado do banco, DEVE passar pelo `sanitizeText` antes do render (ex: `dangerouslySetInnerHTML={{ __html: sanitizeText(product.description) }}`). A regex foi atualizada para corrigir typos do usuário como "EMPLACA MENTO".
+  - *Para mais detalhes, consulte o Knowledge Item (KI) "text_wrapping_strategy".*
+
+## 9. Renderização de Modais e Overlays (Popups)
+- **O Problema do Stacking Context**: O uso de animações (`framer-motion`), `transform`, ou `filter` em componentes da UI gera um isolamento de contexto no CSS (Stacking Context). Isso faz com que modais com `position: fixed` sejam "cortadas" e não cubram toda a tela do usuário.
+- **Padrão Ouro Estabelecido (React Portals)**:
+  - TODA modal ou overlay que deve cobrir 100% da viewport **deve** usar `createPortal(..., document.body)`.
+  - O overlay deve ser fixado em preto puro com altíssima opacidade (ex: `bg-black/90` e `z-[9999]`) e implementar fechamento ao clique externo.
+  - O componente deve garantir que está `mounted` via `useEffect` antes de invocar o Portal para evitar erros de hidratação no Next.js (SSR).
+- **Esquema de Cores Absoluto (Sem Transparência)**:
+  - Modais interativas sobre o catálogo NÃO DEVEM usar fundos semi-transparentes ou depender da cascata de CSS Modules se renderizadas via Portal, pois o portal perde o escopo da classe `data-theme` aplicada em contêineres internos.
+  - Para o fundo da modal (caixa principal), use **Inline Styles** forçando a cor baseada na leitura direta do DOM para contornar falhas de cache ou de variáveis não resolvidas no Tailwind v4.
+  - Exemplo Padrão: `style={{ backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#18181b' : '#ffffff' }}`.
+  - O objetivo é criar blocos sólidos de informação que interrompem o fluxo (Frustração UX), com animações de Scale Up + Spring (via `AnimatePresence`) para atenuar o impacto visual.
+
+## 10. Gestão de Recursos e Escalabilidade (Plano Free)
 O sistema possui duas camadas de monitoramento no Super Admin:
 - **Centro de Inteligência (Dashboard QG):** Foco estratégico e de negócios.
 - **Gestão de Recursos:** Foco técnico e de infraestrutura.
@@ -63,7 +83,10 @@ O sistema possui um "Watchdog" via Supabase Edge Functions que monitora a saúde
 - **Largura de Banda:** Limite de 100GB/mês (Vercel).
 - **Storage:** Gerenciado via compressor integrado.
 
-## 10. Log de Alterações (Últimas Entregas)
+- **2026-05-19:**
+  - **Overlays e Modais (React Portals):** Refatoração da arquitetura de popups no catálogo e perfil (`Consultor Indisponível`) usando `createPortal` para burlar isolamentos de z-index (Stacking Context).
+  - **Tematização Sólida Absoluta:** Remoção de transparências em modais injetando leitura direta do DOM (`document.documentElement.getAttribute('data-theme')`) para cores `#ffffff` e `#18181b`.
+  - **Animações (Framer Motion):** Implementação de efeitos de Fade-In e Scale-Up (spring) em mensagens de interrupção de UX.
 - **2026-05-09:**
   - **UI/UX Premium (Galeria):** Implementação de reordenação por drag-and-drop e novo fluxo de editor que abre antes do seletor de arquivos.
   - **Herança de Horários:** Correção da lógica de disponibilidade para vendedores, respeitando permissões de personalização e implementando fallback seguro para horários da organização.
@@ -73,7 +96,7 @@ O sistema possui um "Watchdog" via Supabase Edge Functions que monitora a saúde
   - Auditoria completa de cores (Pre-Git Scan) removendo hexadecimais fixos e classes `zinc` residuais.
 
 ---
-*Última atualização: 2026-05-10*
+*Última atualização: 2026-05-19*
 
 > [!IMPORTANT]
 > Para acompanhar o progresso técnico e tarefas em aberto, consulte o arquivo [PENDENCIAS.md](file:///c:/Users/Start/plataformacard/PENDENCIAS.md).
