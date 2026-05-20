@@ -61,6 +61,37 @@ export default function DashboardPage() {
         }
 
         if (profile) {
+          const shadowOrgId = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("shadow_org_id="))
+            ?.split("=")[1];
+
+          const isSuperAdmin = profile.role === "superadmin";
+          const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile.organization_id;
+
+          if (isSuperAdmin && shadowOrgId) {
+            const { data: simulatedProfile } = await supabase
+              .from("profiles")
+              .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role")
+              .eq("organization_id", shadowOrgId)
+              .in("role", ["b2b_admin", "b2c_admin", "admin"])
+              .limit(1)
+              .maybeSingle();
+
+            if (simulatedProfile) {
+              profile = {
+                ...profile,
+                id: simulatedProfile.id,
+                full_name: simulatedProfile.full_name,
+                slug: simulatedProfile.slug,
+                organization_id: simulatedProfile.organization_id,
+                avatar_url: simulatedProfile.avatar_url,
+                whatsapp: simulatedProfile.whatsapp,
+                bio: simulatedProfile.bio,
+              };
+            }
+          }
+
           setNome(profile.full_name ?? "");
           setSlug(profile.slug ?? null);
           setAvatarUrl(profile.avatar_url ?? null);
@@ -69,12 +100,12 @@ export default function DashboardPage() {
           setUserRole(profile.role ?? "");
 
           // Dados dependentes da organização
-          if (profile.organization_id) {
+          if (activeOrgId) {
             // Conta produtos
             const { count: pCount } = await supabase
               .from("products")
               .select("*", { count: "exact", head: true })
-              .eq("organization_id", profile.organization_id)
+              .eq("organization_id", activeOrgId)
               .is("deleted_at", null);
             setProductCount(pCount ?? 0);
 
@@ -82,7 +113,7 @@ export default function DashboardPage() {
             const { data: sData, count: sCount } = await supabase
               .from("profiles")
               .select("id, full_name, slug, avatar_url", { count: "exact" })
-              .eq("organization_id", profile.organization_id)
+              .eq("organization_id", activeOrgId)
               .eq("role", "seller")
               .limit(5);
             
@@ -93,7 +124,7 @@ export default function DashboardPage() {
             const { data: org } = await supabase
               .from("organizations")
               .select("business_model")
-              .eq("id", profile.organization_id)
+              .eq("id", activeOrgId)
               .maybeSingle();
             
             if (org?.business_model) {

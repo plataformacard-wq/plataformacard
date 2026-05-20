@@ -56,12 +56,21 @@ export default function EmpresaPage() {
 
       if (profile) {
         setRole(profile.role);
-        if (profile.organization_id) {
-          setOrgId(profile.organization_id);
+        
+        const shadowOrgId = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("shadow_org_id="))
+          ?.split("=")[1];
+
+        const isSuperAdmin = profile.role === "superadmin";
+        const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile.organization_id;
+
+        if (activeOrgId) {
+          setOrgId(activeOrgId);
           const { data: org } = await supabase
             .from("organizations")
             .select("business_hours, business_model, centralize_leads")
-            .eq("id", profile.organization_id)
+            .eq("id", activeOrgId)
             .maybeSingle();
           
           if (org) {
@@ -182,37 +191,7 @@ export default function EmpresaPage() {
         </p>
       </div>
 
-      {/* Modelo de Negócio - Oculto para Gestores Individuais (B2C/Essential) */}
-      {(role === "superadmin" || (role === "b2b_admin" && businessModel === "B2B")) && (
-        <div
-          className="rounded-2xl border p-6 shadow-sm"
-          style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-        >
-          <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>
-            Modelo de Negócio
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { id: "B2C", title: "Individual (Essential)", desc: "Foco em networking e perfis individuais." },
-              { id: "B2B", title: "Empresarial (Pro)", desc: "Foco em times de vendas e catálogos." },
-              { id: "CaaS", title: "Catálogo Master (CaaS)", desc: "Vitrine digital centralizada da marca." }
-            ].map((model) => (
-              <button
-                key={model.id}
-                onClick={() => setBusinessModel(model.id as any)}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  businessModel === model.id 
-                    ? "border-emerald-500 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
-                    : "border-zinc-200 bg-zinc-50/30 opacity-60 hover:opacity-100"
-                }`}
-              >
-                <p className="text-sm font-bold text-zinc-900 mb-1">{model.title}</p>
-                <p className="text-xs text-zinc-500 leading-relaxed">{model.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       <div
         className="rounded-2xl border p-6 shadow-sm"

@@ -13,18 +13,25 @@ export default async function ConfiguracoesPage() {
   // Busca a organização e o catálogo vinculado
   const { data: profile } = await supabase
     .from("profiles")
-    .select("organization_id, slug")
+    .select("organization_id, slug, role")
     .eq("id", user.id)
     .single();
 
-  if (!profile?.organization_id) {
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+  const isSuperAdmin = profile?.role === "superadmin";
+  const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+  if (!activeOrgId) {
     return <div>Organização não encontrada.</div>;
   }
 
   const { data: orgCatalog } = await supabase
     .from("organization_catalogs")
     .select("catalog_id")
-    .eq("organization_id", profile.organization_id)
+    .eq("organization_id", activeOrgId)
     .eq("is_enabled", true)
     .maybeSingle();
 
@@ -40,8 +47,8 @@ export default async function ConfiguracoesPage() {
 
   const { data: orgData } = await supabase
     .from("organizations")
-    .select("accent_color, business_model")
-    .eq("id", profile.organization_id)
+    .select("accent_color, business_model, slug")
+    .eq("id", activeOrgId)
     .single();
 
   const catalog = {
@@ -50,5 +57,7 @@ export default async function ConfiguracoesPage() {
     business_model: orgData?.business_model,
   };
 
-  return <ConfiguracoesClient catalog={catalog} slug={profile?.slug || ""} />;
+  const finalSlug = (isSuperAdmin && shadowOrgId) ? (orgData?.slug || "") : (profile?.slug || "");
+
+  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} />;
 }

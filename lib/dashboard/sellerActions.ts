@@ -41,6 +41,14 @@ export async function createSeller(formData: FormData) {
     return { error: "Permissão negada." };
   }
 
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+  const activeOrgId = (profileManager.role === "superadmin" && shadowOrgId)
+    ? shadowOrgId
+    : profileManager.organization_id;
+
   const adminAuthClient = createAdminClient();
 
   // Verifica se o slug já existe
@@ -58,7 +66,7 @@ export async function createSeller(formData: FormData) {
 
   try {
     // ESTRATÉGIA: Criar uma conta técnica invisível para satisfazer o banco de dados
-    const virtualEmail = `vendedor_${slug}_${profileManager.organization_id.split("-")[0]}@interno.plataforma.card`;
+    const virtualEmail = `vendedor_${slug}_${activeOrgId.split("-")[0]}@interno.plataforma.card`;
     const randomPassword = crypto.randomUUID();
 
     const { data: authData, error: authError } = await adminAuthClient.auth.admin.createUser({
@@ -92,7 +100,7 @@ export async function createSeller(formData: FormData) {
       bio: bio,
       whatsapp: whatsapp,
       avatar_url: avatarUrl,
-      organization_id: profileManager.organization_id,
+      organization_id: activeOrgId,
       role: "seller",
       dash_access_catalog: dashAccessCatalog,
       dash_access_analytics: dashAccessAnalytics,
@@ -175,7 +183,7 @@ export async function getSellers() {
 
   const { data: profileManager } = await adminAuthClient
     .from("profiles")
-    .select("organization_id")
+    .select("organization_id, role")
     .eq("user_id", adminUser.id)
     .single();
 
@@ -183,10 +191,18 @@ export async function getSellers() {
 
   if (!profileManager?.organization_id) return { sellers: [] };
 
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+  const activeOrgId = (profileManager.role === "superadmin" && shadowOrgId)
+    ? shadowOrgId
+    : profileManager.organization_id;
+
   const { data: sellers } = await adminAuthClient
     .from("profiles")
     .select("*")
-    .eq("organization_id", profileManager.organization_id)
+    .eq("organization_id", activeOrgId)
     .order("full_name");
 
   // DIAGNÓSTICO: Buscar os 3 últimos criados no sistema GERAL
@@ -199,7 +215,7 @@ export async function getSellers() {
   return { 
     sellers: sellers || [], 
     debug: { 
-      managerOrg: profileManager.organization_id,
+      managerOrg: activeOrgId,
       globalRecent: globalLast 
     } 
   };

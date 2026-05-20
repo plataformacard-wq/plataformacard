@@ -28,11 +28,13 @@ import {
   FileSpreadsheet,
   Search,
   RefreshCw,
-  Database
+  Database,
+  Tags
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { motion, AnimatePresence } from "framer-motion";
 import BulkImportModal from "@/components/dashboard/BulkImportModal";
+import BulkPromoModal from "@/components/dashboard/BulkPromoModal";
 
 // DnD Kit Imports
 import {
@@ -186,6 +188,7 @@ export default function BulkGridEditor() {
   const [presence, setPresence] = useState<{ user: string; color: string }[]>([]);
   const [showNoCategoryModal, setShowNoCategoryModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showPromoModal, setShowPromoModal] = useState(false);
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
   const editingProduct = editingRowIndex !== null ? data[editingRowIndex] : null;
   
@@ -201,16 +204,25 @@ export default function BulkGridEditor() {
 
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("organization_id, full_name")
+          .select("organization_id, full_name, role")
           .eq("id", user.id)
           .maybeSingle();
 
         if (profileError) throw profileError;
-        if (!profile?.organization_id) return;
+
+        const shadowOrgId = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("shadow_org_id="))
+          ?.split("=")[1];
+
+        const isSuperAdmin = profile?.role === "superadmin";
+        const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+        if (!activeOrgId || !profile) return;
 
         setUserId(user.id);
         setUserName(profile.full_name || "Membro");
-        setOrgId(profile.organization_id);
+        setOrgId(activeOrgId);
         
         // 1. Fetch products (primary data)
         const { data: prods, error: prodsError } = await supabase
@@ -221,7 +233,7 @@ export default function BulkGridEditor() {
             highlight_text, show_highlight,
             categories (id, name)
           `)
-          .eq("organization_id", profile.organization_id)
+          .eq("organization_id", activeOrgId)
           .is("deleted_at", null)
           .order("sort_order", { ascending: true });
 
@@ -233,7 +245,7 @@ export default function BulkGridEditor() {
         const { data: orgCatalog } = await supabase
           .from("organization_catalogs")
           .select("catalog_id")
-          .eq("organization_id", profile.organization_id)
+          .eq("organization_id", activeOrgId)
           .eq("is_enabled", true)
           .maybeSingle();
 
@@ -694,6 +706,15 @@ export default function BulkGridEditor() {
             <Database size={18} />
             Importar & Sync
           </button>
+
+          <button
+            onClick={() => setShowPromoModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-900/20 border-none"
+            title="Ajustar preços e promoções em lote"
+          >
+            <Tags size={18} />
+            Ajustes e Promoções
+          </button>
         </div>
           
           {presence.length > 1 && (
@@ -869,6 +890,21 @@ export default function BulkGridEditor() {
           orgId={orgId}
           catalogId={catalogId}
           categories={categories}
+        />
+      )}
+
+      {orgId && catalogId && (
+        <BulkPromoModal
+          isOpen={showPromoModal}
+          onClose={() => setShowPromoModal(false)}
+          onSuccess={() => {
+            refreshData();
+            setShowPromoModal(false);
+          }}
+          catalogId={catalogId}
+          orgId={orgId}
+          categories={categories}
+          products={data}
         />
       )}
     </div>

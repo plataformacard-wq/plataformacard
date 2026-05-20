@@ -42,7 +42,7 @@ export default async function AnalyticsPage(props: {
 
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
-    .select("id, organization_id")
+    .select("id, organization_id, role")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -52,13 +52,44 @@ export default async function AnalyticsPage(props: {
     // Cria um perfil temporário em memória para evitar redirect se for um erro de sync
     profile = { 
       id: user.id, 
-      organization_id: user.user_metadata?.organization_id || null 
+      organization_id: user.user_metadata?.organization_id || null,
+      role: ""
     } as any;
+  }
+
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+  const isSuperAdmin = profile?.role === "superadmin";
+  const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+  if (profile && isSuperAdmin && shadowOrgId) {
+    const { data: simulatedProfile } = await supabase
+      .from("profiles")
+      .select("id, organization_id")
+      .eq("organization_id", shadowOrgId)
+      .in("role", ["b2b_admin", "b2c_admin", "admin"])
+      .limit(1)
+      .maybeSingle();
+    
+    if (simulatedProfile) {
+      profile = {
+        ...profile,
+        id: simulatedProfile.id,
+        organization_id: simulatedProfile.organization_id,
+      };
+    } else {
+      profile = {
+        ...profile,
+        organization_id: shadowOrgId,
+      };
+    }
   }
 
   // Busca dados da organização para o relatório
   let organizationName = "PlataformaCard";
-  const orgId = profile?.organization_id;
+  const orgId = activeOrgId;
   
   if (orgId) {
     const { data: org } = await supabase

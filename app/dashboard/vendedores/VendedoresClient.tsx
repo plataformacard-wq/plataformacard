@@ -199,17 +199,29 @@ export default function VendedoresClient({
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (profile?.organization_id) {
-        setOrgId(profile.organization_id);
+      const shadowOrgId = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("shadow_org_id="))
+        ?.split("=")[1];
+
+      const isSuperAdmin = profile?.role === "superadmin";
+      const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+      if (activeOrgId) {
+        setOrgId(activeOrgId);
         const { data: org } = await supabase
           .from("organizations")
           .select("business_model")
-          .eq("id", profile.organization_id)
+          .eq("id", activeOrgId)
           .maybeSingle();
         
-        if (org?.business_model === "B2C" || profile.role === "b2c_admin") {
-          setIsB2C(true);
-          router.push("/dashboard");
+        if (org?.business_model === "B2C" || (isSuperAdmin && shadowOrgId) || profile?.role === "b2c_admin") {
+          // Se for B2C simulado ou real, ou se a role for b2c_admin, redireciona
+          const isB2CModel = org?.business_model === "B2C";
+          if (isB2CModel) {
+            setIsB2C(true);
+            router.push("/dashboard");
+          }
         }
       }
     }

@@ -79,6 +79,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
     - [x] Botão de redirecionamento para o Catálogo Master da Organização.
     - [x] Remoção automática de dados sensíveis (foto/nome) do perfil desligado.
 - [ ] **Auditoria no Cadastro de Catálogo B2C:** Realizar auditoria técnica e validação completa no processo de criação/vinculação automática de catálogos para perfis com nível de acesso B2C (individual seller) para prevenir falhas de RLS.
+- [ ] **Recesso Temporário B2C (Férias):** Implementar a lógica de recesso programado (dias/horas) para usuários individuais B2C na aba de Edição de Cartão Público (Perfil), conforme o plano de implementação aprovado.
 
 ---
 
@@ -88,7 +89,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Análise Estratégica:** Criação e validação do sistema de acesso de vendedores ao dashboard com as limitações configuradas pelo Gestor B2B.
 - [ ] **Análise Estratégica:** Definição e criação de Planos e Funções (Roles) do SaaS.
 - [ ] **Pesquisa de Mercado:** Estudo de precificação e análise da concorrência para posicionamento do SaaS.
-- [ ] **Limpeza Automática de Logs:** Rotina para preservar espaço no Plano Free.
+- [x] **Remoção de Seletor de Modelo de Negócio Obsoleto:** Removido o card de seleção de Modelo de Negócio da página de configurações da Empresa no dashboard (obsoleto).
 
 ---
-*Última atualização: 2026-05-15*
+*Última atualização: 2026-05-20*

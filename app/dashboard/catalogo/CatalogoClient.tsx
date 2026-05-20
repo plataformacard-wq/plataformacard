@@ -242,30 +242,42 @@ export default function CatalogoPage() {
     // 1. Tenta buscar o perfil pelo ID principal (que deve ser igual ao do usuário)
     let { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id, id, organizations(plan_id, plans(*))")
+      .select("organization_id, id, role")
       .eq("id", user.id)
       .maybeSingle();
 
     if (!profile) {
       const { data: profileByUid } = await supabase
         .from("profiles")
-        .select("organization_id, id, organizations(plan_id, plans(*))")
+        .select("organization_id, id, role")
         .eq("user_id", user.id)
         .maybeSingle();
       profile = profileByUid;
     }
 
-    if (profile?.organizations) {
-      const orgs = profile.organizations as any;
-      const org = Array.isArray(orgs) ? orgs[0] : orgs;
-      const plan = Array.isArray(org?.plans) ? org.plans[0] : org?.plans;
+    const shadowOrgId = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("shadow_org_id="))
+      ?.split("=")[1];
+
+    const isSuperAdmin = profile?.role === "superadmin";
+    const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+    if (activeOrgId) {
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("plan_id, plans(*)")
+        .eq("id", activeOrgId)
+        .maybeSingle();
       
+      const orgData = Array.isArray(org) ? org[0] : org;
+      const plan = Array.isArray(orgData?.plans) ? orgData.plans[0] : orgData?.plans;
       if (plan) {
         setProductLimit(plan.max_products || 20);
       }
     }
 
-    return (profile?.organization_id as string) ?? null;
+    return activeOrgId ?? null;
   }
 
   async function fetchUserSlug(userId: string) {
@@ -274,27 +286,46 @@ export default function CatalogoPage() {
     // Tenta buscar o perfil (tentando id e user_id para garantir compatibilidade)
     let { data: profile } = await supabase
       .from("profiles")
-      .select("slug, organization_id")
+      .select("slug, organization_id, role")
       .eq("id", userId)
       .maybeSingle();
       
     if (!profile) {
       const { data: profileByUid } = await supabase
         .from("profiles")
-        .select("slug, organization_id")
+        .select("slug, organization_id, role")
         .eq("user_id", userId)
         .maybeSingle();
       profile = profileByUid;
     }
+
+    const shadowOrgId = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("shadow_org_id="))
+      ?.split("=")[1];
+
+    const isSuperAdmin = profile?.role === "superadmin";
+    const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
     
-    if (profile?.slug) {
+    if (isSuperAdmin && shadowOrgId) {
+      // Busca o slug da organização simulada
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("slug")
+        .eq("id", shadowOrgId)
+        .maybeSingle();
+      
+      if (org?.slug) {
+        setUserSlug(org.slug);
+      }
+    } else if (profile?.slug) {
       setUserSlug(profile.slug);
-    } else if (profile?.organization_id) {
+    } else if (activeOrgId) {
       // Fallback: busca o slug da organização se o perfil não tiver slug
       const { data: org } = await supabase
         .from("organizations")
         .select("slug")
-        .eq("id", profile.organization_id)
+        .eq("id", activeOrgId)
         .maybeSingle();
       
       if (org?.slug) {

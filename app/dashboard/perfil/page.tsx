@@ -32,6 +32,7 @@ const dayNamesMap = {
 };
 
 type ProfileData = {
+  user_id?: string | null;
   full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
@@ -85,6 +86,7 @@ function PerfilContent() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
+  const [activeProfileUserId, setActiveProfileUserId] = useState<string | null>(null);
   
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -125,13 +127,53 @@ function PerfilContent() {
 
       setEmail(user.email ?? "");
 
-      const { data: profile } = await supabase
+      let { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
+        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
 
       if (profile) {
+        let targetProfileUserId = user.id;
+
+        const shadowOrgId = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("shadow_org_id="))
+          ?.split("=")[1];
+
+        const isSuperAdmin = profile.role === "superadmin";
+        const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile.organization_id;
+
+        if (isSuperAdmin && shadowOrgId) {
+          const { data: simulatedProfile } = await supabase
+            .from("profiles")
+            .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
+            .eq("organization_id", shadowOrgId)
+            .in("role", ["b2b_admin", "b2c_admin", "admin"])
+            .limit(1)
+            .maybeSingle<ProfileData>();
+
+          if (simulatedProfile) {
+            targetProfileUserId = simulatedProfile.user_id || user.id;
+            profile = {
+              ...profile,
+              user_id: simulatedProfile.user_id,
+              full_name: simulatedProfile.full_name,
+              avatar_url: simulatedProfile.avatar_url,
+              bio: simulatedProfile.bio,
+              whatsapp: simulatedProfile.whatsapp,
+              whatsapp_template: simulatedProfile.whatsapp_template,
+              slug: simulatedProfile.slug,
+              is_available: simulatedProfile.is_available,
+              custom_business_hours: simulatedProfile.custom_business_hours,
+              can_customize_hours: simulatedProfile.can_customize_hours,
+              organization_id: simulatedProfile.organization_id,
+            };
+          }
+        }
+
+        setActiveProfileUserId(targetProfileUserId);
+
         setNome(profile.full_name || "Cliente");
         setNomeInput(profile.full_name || "");
         setBioInput(profile.bio || "");
@@ -151,11 +193,11 @@ function PerfilContent() {
 
 
         // Buscar modelo de negócio separadamente para garantir sincronia com PanelLayout
-        if (profile.organization_id) {
+        if (activeOrgId) {
           const { data: org } = await supabase
             .from("organizations")
             .select("business_model")
-            .eq("id", profile.organization_id)
+            .eq("id", activeOrgId)
             .maybeSingle();
           
           if (org?.business_model) {
@@ -326,6 +368,8 @@ function PerfilContent() {
       newAvatarUrl = urlData.publicUrl;
     }
 
+    const targetUserId = activeProfileUserId || user.id;
+
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -338,7 +382,7 @@ function PerfilContent() {
         is_available: isAvailable,
         custom_business_hours: customBusinessHours,
       })
-      .eq("user_id", user.id);
+      .eq("user_id", targetUserId);
 
     if (error) {
       setSaveMessage("Não foi possível salvar. Tente novamente.");
