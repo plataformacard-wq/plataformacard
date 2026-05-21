@@ -38,9 +38,9 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [x] **Social Share - Modal de Produto:** Link direto para o produto específico com preview (OG Tags).
 
 ### 2.3 Gestão de Promoções em Massa (Bulk Pricing)
-- [ ] **Integração de Banco (RPC)**: Criar migration SQL `apply_bulk_price_adjustment` para aplicação e reversão de descontos e acréscimos usando os campos `price` e `compare_at_price`.
-- [ ] **Interface Administrativa**: Desenvolver painel modular no Dashboard para permitir ajustes em 3 níveis de escopo (Catálogo Inteiro, Categoria, Produto Único).
-- [ ] **Regras de Negócio**: Suportar % ou Valor Fixo com preview das alterações antes de executar.
+- [x] **Integração de Banco (RPC)**: Criar migration SQL `apply_bulk_price_adjustment` para aplicação e reversão de descontos e acréscimos usando os campos `price` e `compare_at_price`. (Resolvido via RPC no Supabase)
+- [x] **Interface Administrativa**: Desenvolver painel modular no Dashboard para permitir ajustes em 3 níveis de escopo (Catálogo Inteiro, Categoria, Produto Único). (Resolvido no BulkPromoModal e BulkGridEditor)
+- [x] **Regras de Negócio**: Suportar % ou Valor Fixo com preview das alterações antes de executar. (Resolvido com preview dinâmico de reajuste)
 
 ### 2.4 Estética, Branding e Identidade
 - [ ] **Revitalização do Cartão Público:** Tornar o design menos neutro e mais "premium".

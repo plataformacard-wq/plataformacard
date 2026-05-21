@@ -98,6 +98,7 @@ type ProductCatalogClientProps = {
   organizationId?: string | null;
   whatsappTemplate?: string | null;
   sellerStatus?: string | null;
+  recessEndsAt?: string | null;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -146,7 +147,8 @@ export default function ProductCatalogClient({
   canCustomizeHours,
   organizationId,
   whatsappTemplate,
-  sellerStatus
+  sellerStatus,
+  recessEndsAt,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -165,10 +167,15 @@ export default function ProductCatalogClient({
       : businessHours;
 
     const status = getBusinessStatus((activeHours ?? null) as any);
-    const isAvailableNow = isAvailable === false ? false : status.isOpenNow;
-    const statusMessage = isAvailable === false ? "Indisponível" : status.message;
+    const isRecessActive = recessEndsAt && new Date(recessEndsAt) > new Date();
+    const isAvailableNow = (isRecessActive || isAvailable === false) ? false : status.isOpenNow;
+    const statusMessage = isRecessActive
+      ? "Em Recesso"
+      : isAvailable === false
+        ? "Indisponível"
+        : status.message;
     return { isAvailableNow, statusMessage };
-  }, [businessHours, customBusinessHours, canCustomizeHours, isAvailable]);
+  }, [businessHours, customBusinessHours, canCustomizeHours, isAvailable, recessEndsAt]);
 
   const whatsappUrl = useMemo(() => {
     if (!whatsapp) return null;

@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload, X, Camera } from "lucide-react";
+import { Upload, X, Camera, Calendar, Info, Clock } from "lucide-react";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -44,6 +44,9 @@ type ProfileData = {
   role: string | null;
   whatsapp_template: string | null;
   organization_id: string | null;
+  recess_ends_at?: string | null;
+  status?: string | null;
+  redirect_leads?: boolean | null;
   organizations?: {
     business_model: string;
   };
@@ -75,6 +78,9 @@ function PerfilContent() {
   const [slugError, setSlugError] = useState("");
   const [slugChecking, setSlugChecking] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
+  const [recessActive, setRecessActive] = useState(false);
+  const [recessDays, setRecessDays] = useState(0);
+  const [recessHours, setRecessHours] = useState(0);
   const [useCompanyHours, setUseCompanyHours] = useState(true);
   const [canCustomize, setCanCustomize] = useState(false);
   const [customBusinessHours, setCustomBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
@@ -127,13 +133,16 @@ function PerfilContent() {
 
       setEmail(user.email ?? "");
 
-      let { data: profile } = await supabase
+      let profileResult: ProfileData | null = null;
+      const { data: initialProfile } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
+        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
+      profileResult = initialProfile;
 
-      if (profile) {
+      if (profileResult) {
+        let profile: ProfileData = profileResult;
         let targetProfileUserId = user.id;
 
         const shadowOrgId = document.cookie
@@ -147,7 +156,7 @@ function PerfilContent() {
         if (isSuperAdmin && shadowOrgId) {
           const { data: simulatedProfile } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id")
+            .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads")
             .eq("organization_id", shadowOrgId)
             .in("role", ["b2b_admin", "b2c_admin", "admin"])
             .limit(1)
@@ -168,6 +177,9 @@ function PerfilContent() {
               custom_business_hours: simulatedProfile.custom_business_hours,
               can_customize_hours: simulatedProfile.can_customize_hours,
               organization_id: simulatedProfile.organization_id,
+              recess_ends_at: simulatedProfile.recess_ends_at,
+              status: simulatedProfile.status,
+              redirect_leads: simulatedProfile.redirect_leads,
             };
           }
         }
@@ -183,14 +195,34 @@ function PerfilContent() {
         setWhatsappTemplateInput(profile.whatsapp_template || "");
         setAvatar(profile.avatar_url || null);
         setIsAvailable(profile.is_available ?? true);
-        
+
+        const recessEndsAt = profile.recess_ends_at ?? null;
+        if (recessEndsAt) {
+          const remainingMs = new Date(recessEndsAt).getTime() - Date.now();
+          if (remainingMs > 0) {
+            const totalHours = Math.floor(remainingMs / (1000 * 60 * 60));
+            const days = Math.floor(totalHours / 24);
+            const hours = totalHours % 24;
+            setRecessActive(true);
+            setRecessDays(days);
+            setRecessHours(hours);
+          } else {
+            setRecessActive(false);
+            setRecessDays(0);
+            setRecessHours(0);
+          }
+        } else {
+          setRecessActive(false);
+          setRecessDays(0);
+          setRecessHours(0);
+        }
+
         const hasPermission = profile.can_customize_hours ?? false;
         setCanCustomize(hasPermission);
 
         if (profile.custom_business_hours) {
           setCustomBusinessHours(profile.custom_business_hours as BusinessHours);
         }
-
 
         // Buscar modelo de negócio separadamente para garantir sincronia com PanelLayout
         if (activeOrgId) {
@@ -370,6 +402,10 @@ function PerfilContent() {
 
     const targetUserId = activeProfileUserId || user.id;
 
+    const recessEndsAt = recessActive
+      ? new Date(Date.now() + (recessDays * 24 * 60 * 60 * 1000) + (recessHours * 60 * 60 * 1000)).toISOString()
+      : null;
+
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -379,7 +415,9 @@ function PerfilContent() {
         whatsapp: whatsappInput.trim() || null,
         whatsapp_template: whatsappTemplateInput.trim() || null,
         slug: trimmedSlug || null,
-        is_available: isAvailable,
+        is_available: recessActive ? false : isAvailable,
+        status: recessActive ? "paused" : (isAvailable ? "active" : "paused"),
+        recess_ends_at: recessEndsAt,
         custom_business_hours: customBusinessHours,
       })
       .eq("user_id", targetUserId);
@@ -738,10 +776,172 @@ function PerfilContent() {
                 </div>
               </div>
 
-              {/* Status de Atendimento & Horários (Apenas se view for card) */}
+              {/* Status de Atendimento & Recesso */}
             </>
           )}
+
+          {/* Card: Status de Atendimento e Recesso (Apenas B2C, view=card) */}
+          {businessModel === "B2C" && view === "card" && (
+            <div
+              className="rounded-2xl border p-6 shadow-sm transition-colors"
+              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+            >
+              <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                Status de Atendimento e Recesso
+              </h2>
+              <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+                Controle sua disponibilidade e programe férias temporárias.
+              </p>
+
+              <div className="mt-6 space-y-5">
+
+                {/* Toggle Disponível / Indisponível */}
+                <label
+                  className={`flex items-center justify-between gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
+                    isAvailable && !recessActive
+                      ? "border-green-500 bg-green-500/5"
+                      : "border-[var(--dash-border)] bg-[var(--dash-bg)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Clock size={16} className={isAvailable && !recessActive ? "text-green-500" : "text-[var(--dash-text-muted)]"} />
+                    <div>
+                      <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                        Disponível para atendimento
+                      </span>
+                      <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)] mt-0.5">
+                        Quando ativo, seu cartão público exibe o status de disponível para contato.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <input
+                      id="toggle-available"
+                      type="checkbox"
+                      className="sr-only"
+                      checked={isAvailable && !recessActive}
+                      disabled={recessActive}
+                      onChange={e => setIsAvailable(e.target.checked)}
+                    />
+                    <div
+                      className={`w-10 h-5 rounded-full transition-colors duration-200 ${
+                        isAvailable && !recessActive ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                      } ${recessActive ? "opacity-40 cursor-not-allowed" : ""}`}
+                      onClick={() => !recessActive && setIsAvailable(v => !v)}
+                    >
+                      <div
+                        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                          isAvailable && !recessActive ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </label>
+
+                {/* Automação de Recesso */}
+                <div className="border-t pt-5" style={{ borderColor: "var(--dash-border)" }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar size={16} className="text-purple-500" />
+                    <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                      Programar Recesso / Férias
+                    </span>
+                  </div>
+
+                  <label
+                    className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      recessActive
+                        ? "border-purple-500 bg-purple-500/5"
+                        : "border-[var(--dash-border)] bg-[var(--dash-bg)]"
+                    }`}
+                  >
+                    <div className="mt-0.5">
+                      <input
+                        type="checkbox"
+                        checked={recessActive}
+                        onChange={e => {
+                          const val = e.target.checked;
+                          setRecessActive(val);
+                          if (val) {
+                            setIsAvailable(false);
+                            if (recessDays === 0 && recessHours === 0) setRecessDays(7);
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                        Ativar recesso temporário
+                      </span>
+                      <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)] mt-0.5">
+                        Ao salvar com recesso ativo, seu cartão ficará pausado pelo período determinado. Você voltará como disponível automaticamente ao expirar.
+                      </p>
+                    </div>
+                  </label>
+
+                  {recessActive && (
+                    <div className="mt-4 p-4 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20 border border-[var(--dash-border)] space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">
+                            Dias de Recesso
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="365"
+                            value={recessDays}
+                            onChange={e => setRecessDays(Math.max(0, parseInt(e.target.value) || 0))}
+                            className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
+                            style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">
+                            Horas Adicionais
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="23"
+                            value={recessHours}
+                            onChange={e => setRecessHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
+                            className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
+                            style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-purple-600 dark:text-purple-400 leading-relaxed">
+                        <p className="font-semibold flex items-center gap-1">
+                          <Info size={12} />
+                          {recessDays === 0 && recessHours === 0 ? (
+                            <span>Defina a duração para ver a data final do recesso.</span>
+                          ) : (
+                            <span>
+                              Retorno previsto:{" "}
+                              <strong className="underline">
+                                {new Date(
+                                  Date.now() +
+                                    recessDays * 24 * 60 * 60 * 1000 +
+                                    recessHours * 60 * 60 * 1000
+                                ).toLocaleString("pt-BR", {
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                })}
+                              </strong>
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           
+
           {/* Fim do Bloco de Identidade/Card */}
           {view === "card" && (
             <div className="flex justify-start">

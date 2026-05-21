@@ -360,6 +360,7 @@ export default async function Page(props: PageProps) {
         organizationId={targetOrgId}
         whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
         sellerStatus={profile?.status}
+        recessEndsAt={profile?.recess_ends_at}
       />
     </>
   );
