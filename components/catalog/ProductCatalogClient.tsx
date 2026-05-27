@@ -768,16 +768,19 @@ export default function ProductCatalogClient({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-[95%] sm:w-full max-w-2xl bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-2xl flex flex-col overflow-y-auto max-h-[95vh] custom-scrollbar public-modal-content z-10"
+              className="relative w-[95%] sm:w-full max-w-2xl bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[95vh] public-modal-content z-10"
             >
+              {/* Pinned Close Button */}
               <button 
                 onClick={() => setSelectedProductId(null)}
-                className="absolute top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/40 hover:scale-110 active:scale-95 transition-all"
+                className="absolute top-4 right-4 z-40 h-10 w-10 rounded-full bg-black/45 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-110 active:scale-95 transition-all shadow-md"
               >
                 <X size={20} />
               </button>
 
-              <div className="w-full bg-[var(--public-card-bg)] flex flex-col relative shrink-0">
+              {/* Scrollable Body */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="w-full bg-[var(--public-card-bg)] flex flex-col relative shrink-0">
                 <div 
                   className="relative aspect-[16/10] overflow-hidden flex items-center justify-center p-4"
                   onMouseMove={handleImageZoomMove}
@@ -994,8 +997,11 @@ export default function ProductCatalogClient({
                 </div>
               </div>
 
+              {/* Close Scrollable Body */}
+              </div>
+
               {productWhatsappUrl && (
-                  <div className="relative px-6 sm:px-8 py-5 border-t border-[var(--public-card-border)] z-30 public-footer-sticky">
+                  <div className="relative px-6 sm:px-8 py-5 border-t border-[var(--public-card-border)] z-30 public-footer-sticky shrink-0">
                     <div className="absolute inset-x-0 -top-12 h-12 pointer-events-none public-footer-fade" />
                     <div className="relative">
                       {selectedProduct.is_in_stock !== false ? (
