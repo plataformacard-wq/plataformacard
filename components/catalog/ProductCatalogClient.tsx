@@ -530,21 +530,20 @@ export default function ProductCatalogClient({
         </motion.header>
       )}
       
-      {/* Floating Status Badge for Embed Mode */}
-      {isEmbed && (
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="fixed top-4 right-12 z-[60] flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] backdrop-blur-md shadow-lg"
-        >
-          <div className={`w-2 h-2 rounded-full ${businessStatus.isAvailableNow ? 'bg-emerald-500' : 'bg-slate-400'} animate-pulse`} />
-          <span className="text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-wider">
-            {businessStatus.statusMessage}
-          </span>
-        </motion.div>
-      )}
-
-      <main className={`${isEmbed ? 'w-full px-4' : 'max-w-5xl mx-auto px-6'} ${isEmbed ? 'pt-6' : 'pt-12'}`}>
+      <main className={`${isEmbed ? 'w-full px-4 relative' : 'max-w-5xl mx-auto px-6'} ${isEmbed ? 'pt-6' : 'pt-12'}`}>
+        {/* Floating Status Badge for Embed Mode */}
+        {isEmbed && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute top-6 right-12 z-[60] flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] backdrop-blur-md shadow-lg"
+          >
+            <div className={`w-2 h-2 rounded-full ${businessStatus.isAvailableNow ? 'bg-emerald-500' : 'bg-slate-400'} animate-pulse`} />
+            <span className="text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-wider">
+              {businessStatus.statusMessage}
+            </span>
+          </motion.div>
+        )}
         <section className="mb-12">
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
