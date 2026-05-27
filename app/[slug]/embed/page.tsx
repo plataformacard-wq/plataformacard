@@ -122,9 +122,9 @@ export default async function EmbedPage(props: PageProps) {
   return (
     <div className="w-full min-h-screen bg-white overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
-        main { max-width: 100% !important; width: 100% !important; margin: 0 !important; padding-left: 12px !important; padding-right: 12px !important; }
+        body { margin: 0; padding: 0; }
+        main { max-width: 100% !important; width: 100% !important; margin: 0 auto !important; padding-left: 24px !important; padding-right: 24px !important; }
         .max-w-5xl, .max-w-6xl, .max-w-2xl, .max-w-xl { max-width: 100% !important; width: 100% !important; }
-        .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
       ` }} />
       <script
         dangerouslySetInnerHTML={{
