@@ -535,7 +535,7 @@ export default function ProductCatalogClient({
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="fixed top-4 right-4 z-[60] flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] backdrop-blur-md shadow-lg"
+          className="fixed top-4 right-12 z-[60] flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] backdrop-blur-md shadow-lg"
         >
           <div className={`w-2 h-2 rounded-full ${businessStatus.isAvailableNow ? 'bg-emerald-500' : 'bg-slate-400'} animate-pulse`} />
           <span className="text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-wider">
