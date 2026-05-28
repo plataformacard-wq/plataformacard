@@ -429,7 +429,7 @@ export default function ProductCatalogClient({
           maxWidth: 'none'
         } as any}
       >
-        <main className="w-full pt-6 px-4 sm:px-6 relative">
+        <main className="w-full pt-6 px-6 sm:px-8 pb-12 relative">
           <div className="relative w-full max-w-2xl mx-auto bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-sm flex flex-col overflow-visible">
             {/* Close Button */}
             <button 
@@ -940,7 +940,7 @@ export default function ProductCatalogClient({
         </motion.header>
       )}
       
-      <main className={`${isEmbed ? 'w-full px-2 sm:px-4 relative' : 'max-w-5xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
+      <main className={`${isEmbed ? 'w-full px-6 sm:px-8 relative' : 'max-w-5xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
         {/* Floating Status Badge for Embed Mode */}
         {isEmbed && (
           <motion.div 
