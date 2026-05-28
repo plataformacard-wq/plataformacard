@@ -86,6 +86,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [x] **02 - Remover scrolling do modal de produtos e deixar todo expandido:** Alterar o comportamento de exibição do modal de produtos no embed para que apareça completamente expandido verticalmente na página, eliminando barras de rolagem internas no modal.
 - [x] **03 - Auditoria na versão mobile do catálogo iframe:** Realizar testes completos de layout, responsividade e usabilidade no fluxo do iframe em smartphones e tablets.
 - [x] **04 - Atenuar as sombras dos cards de produtos:** Suavizar o sombreamento (box-shadow) dos cartões de produtos na vitrine para um visual mais sutil e moderno.
+- [x] **05 - Padronização Estética Mobile:** Padronizar margens externas do iframe (listagem e modal) para `px-4`/`px-5`, garantindo 1 coluna com visualização premium (referência MAJ Atacado).
 
 ---
 
