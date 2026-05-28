@@ -429,7 +429,7 @@ export default function ProductCatalogClient({
           maxWidth: 'none'
         } as any}
       >
-        <main className="w-full pt-6 relative">
+        <main className="w-full pt-6 px-4 sm:px-6 relative">
           <div className="relative w-full max-w-2xl mx-auto bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-sm flex flex-col overflow-visible">
             {/* Close Button */}
             <button 
@@ -1028,7 +1028,7 @@ export default function ProductCatalogClient({
                   </span>
                 </div>
 
-                <div className={`grid ${isEmbed ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"}`}>
+                <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"}`}>
                   {category.products.map((product) => (
                     <motion.div
                       layout
@@ -1083,9 +1083,9 @@ export default function ProductCatalogClient({
                         )}
                       </div>
 
-                      <div className="p-3 sm:p-5 flex flex-col h-full">
+                      <div className="p-4 sm:p-6 flex flex-col h-full">
                         <div className="mb-2 sm:mb-4 flex flex-col gap-1.5 sm:gap-2 items-start">
-                          <h3 className="text-sm sm:text-lg font-black tracking-tight text-[var(--public-text-main)] leading-snug line-clamp-2">
+                          <h3 className="inline-block text-lg sm:text-xl font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm break-words-strategy">
                              {product.name}
                           </h3>
                           {product.show_highlight && product.highlight_text && (
