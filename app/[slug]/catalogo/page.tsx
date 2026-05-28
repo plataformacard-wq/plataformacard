@@ -332,6 +332,20 @@ export default async function Page(props: PageProps) {
 
   return (
     <>
+      {isEmbed && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          body { margin: 0; padding: 0; }
+          main { 
+            max-width: 1200px !important; 
+            width: 100% !important; 
+            margin: 0 auto !important; 
+            padding-left: clamp(12px, 4vw, 48px) !important; 
+            padding-right: clamp(12px, 4vw, 48px) !important; 
+            box-sizing: border-box; 
+          }
+          main .max-w-5xl, main .max-w-6xl, main .max-w-2xl, main .max-w-xl { max-width: 100% !important; width: 100% !important; }
+        ` }} />
+      )}
       <ProductCatalogClient
         profileId={trackingProfileId}
         catalogId={catalog.id || ""}

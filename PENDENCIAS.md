@@ -82,10 +82,10 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Recesso Temporário B2C (Férias):** Implementar a lógica de recesso programado (dias/horas) para usuários individuais B2C na aba de Edição de Cartão Público (Perfil), conforme o plano de implementação aprovado.
 
 ### 5.1 Pendências do Catálogo IFrame
-- [ ] **01 - Criar um loader de carregamento personalizado:** Desenvolver um indicador de carregamento customizado e de alta qualidade estética para o catálogo embarcado.
-- [ ] **02 - Remover scrolling do modal de produtos e deixar todo expandido:** Alterar o comportamento de exibição do modal de produtos no embed para que apareça completamente expandido verticalmente na página, eliminando barras de rolagem internas no modal.
-- [ ] **03 - Auditoria na versão mobile do catálogo iframe:** Realizar testes completos de layout, responsividade e usabilidade no fluxo do iframe em smartphones e tablets.
-- [ ] **04 - Atenuar as sombras dos cards de produtos:** Suavizar o sombreamento (box-shadow) dos cartões de produtos na vitrine para um visual mais sutil e moderno.
+- [x] **01 - Criar um loader de carregamento personalizado:** Desenvolver um indicador de carregamento customizado e de alta qualidade estética para o catálogo embarcado.
+- [x] **02 - Remover scrolling do modal de produtos e deixar todo expandido:** Alterar o comportamento de exibição do modal de produtos no embed para que apareça completamente expandido verticalmente na página, eliminando barras de rolagem internas no modal.
+- [x] **03 - Auditoria na versão mobile do catálogo iframe:** Realizar testes completos de layout, responsividade e usabilidade no fluxo do iframe em smartphones e tablets.
+- [x] **04 - Atenuar as sombras dos cards de produtos:** Suavizar o sombreamento (box-shadow) dos cartões de produtos na vitrine para um visual mais sutil e moderno.
 
 ---
 
