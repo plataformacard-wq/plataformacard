@@ -68,6 +68,23 @@ O sistema utiliza uma hierarquia de três níveis para determinar se um catálog
   - Exemplo Padrão: `style={{ backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#18181b' : '#ffffff' }}`.
   - O objetivo é criar blocos sólidos de informação que interrompem o fluxo (Frustração UX), com animações de Scale Up + Spring (via `AnimatePresence`) para atenuar o impacto visual.
 
+### 9.1 Comportamento Responsivo do Detalhe de Produtos (Embed vs Standard)
+Para garantir uma experiência de navegação otimizada e evitar bugs de rolagem (double scrollbars e clipping) causados pelo encapsulamento em iFrames, a exibição de detalhes de produtos adota três comportamentos distintos baseados no contexto (`isEmbed`) e dispositivo (`isMobile` com breakpoint `< 768px`):
+
+1. **Catálogo Padrão (Sem Embed - `isEmbed === false`)**:
+   - **Comportamento**: Abre o **Modal Popup Tradicional** centralizado na viewport do navegador.
+   - **Responsividade**: Funciona de forma idêntica tanto em Mobile quanto em Desktop.
+   - **Características**: Fundo escurecido (`bg-black/80` com `backdrop-blur-md`), padding lateral deixando as bordas da vitrine visíveis e bloqueio de rolagem do body (`overflow: hidden`).
+
+2. **Catálogo Embarcado (Modo Embed - `isEmbed === true`)**:
+   - **Mobile (`isMobile === true`)**:
+     - **Comportamento**: **Expansão em Sanfona (Inline Accordion)** diretamente no card do produto na vitrine, sem abrir nenhuma modal flutuante.
+     - **Rolagem**: Não bloqueia a rolagem do body. Ao ser aberto, a aplicação executa um scroll suave (`scrollIntoView`) para centralizar o card expandido na tela do smartphone após 150ms.
+     - **Vantagem**: Evita glitches visuais, quebras de layout dentro de iframes pequenos e barras de rolagem duplas.
+   - **Desktop (`isMobile === false`)**:
+     - **Comportamento**: Abre o **Modal Popup Tradicional** dentro dos limites do iFrame.
+     - **Características**: Mantém o fundo escurecido e o card de detalhes centralizado com margens (padding), permitindo ver o catálogo ao fundo. Trava a rolagem do body dentro do iframe para permitir a navegação limpa na descrição do produto.
+
 ## 10. Gestão de Recursos e Escalabilidade (Plano Free)
 O sistema possui duas camadas de monitoramento no Super Admin:
 - **Centro de Inteligência (Dashboard QG):** Foco estratégico e de negócios.
