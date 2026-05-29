@@ -157,6 +157,7 @@ export default function ProductCatalogClient({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [priceMode, setPriceMode] = useState<"retail" | "wholesale">("retail");
   const [showWarning, setShowWarning] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const businessStatus = useMemo(() => {
     const hasCustomSchedule = customBusinessHours && 
@@ -188,6 +189,12 @@ export default function ProductCatalogClient({
   useEffect(() => {
     setHasMounted(true);
     
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    
     // Auto-Height for Embed Mode
     if (isEmbed) {
       const sendHeight = () => {
@@ -207,10 +214,15 @@ export default function ProductCatalogClient({
       sendHeight();
 
       return () => {
+        window.removeEventListener("resize", handleResize);
         observer.disconnect();
         window.removeEventListener('load', sendHeight);
       };
     }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [isEmbed]);
 
   const [isZoomed, setIsZoomed] = useState(false);
@@ -272,13 +284,13 @@ export default function ProductCatalogClient({
   }, [profileId, catalogId, slug, organizationId]);
 
   useEffect(() => {
-    if (selectedProductId) {
+    if (selectedProductId && !isEmbed) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
     return () => { document.body.style.overflow = "auto"; };
-  }, [selectedProductId]);
+  }, [selectedProductId, isEmbed]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -366,12 +378,16 @@ export default function ProductCatalogClient({
     window.location.hash = product.id;
     
     if (isEmbed) {
-      setTimeout(() => {
-        const el = document.getElementById(product.id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 150);
+      if (isMobile) {
+        setTimeout(() => {
+          const el = document.getElementById(product.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 150);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
     
     void trackAnalyticsEvent({
@@ -434,10 +450,430 @@ export default function ProductCatalogClient({
   }, [categories, products, searchQuery, catalogId]);
 
   const handleCloseProduct = () => {
+    const closedProductId = selectedProductId;
     setSelectedProductId(null);
     setExpandedDescriptionId(null);
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    
+    if (isEmbed && !isMobile && closedProductId) {
+      setTimeout(() => {
+        const el = document.getElementById(closedProductId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
   };
+
+  // Renderização do detalhe do produto no embed para Desktop (completamente expandido, sem scroll interno)
+  if (isEmbed && !isMobile && selectedProduct) {
+    return (
+      <div 
+        className="w-full min-h-screen public-theme-container flex justify-center items-start selection:bg-emerald-500/30 !max-w-none !mx-0"
+        style={{ 
+          "--primary-color": primaryColor,
+          width: '100%',
+          maxWidth: 'none'
+        } as any}
+      >
+        <main className="w-full pt-6 relative">
+          <div className="relative w-full max-w-2xl mx-auto bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-sm flex flex-col overflow-visible">
+            {/* Close Button */}
+            <button 
+              onClick={handleCloseProduct}
+              className="absolute top-4 right-4 z-40 h-10 w-10 rounded-full bg-black/45 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-110 active:scale-95 transition-all shadow-md cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Product Image Area */}
+            <div className="w-full bg-[var(--public-card-bg)] flex flex-col relative rounded-t-2xl overflow-hidden">
+              <div 
+                className="relative aspect-[16/10] overflow-hidden flex items-center justify-center p-4"
+                onMouseMove={handleImageZoomMove}
+                onMouseEnter={() => setIsZoomed(true)}
+                onMouseLeave={() => setIsZoomed(false)}
+              >
+                {selectedImageUrl ? (
+                  <motion.img 
+                    key={selectedImageUrl}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: isZoomed ? 2.5 : 1 }}
+                    transition={{ 
+                      scale: { duration: 0.2, ease: "easeOut" },
+                      opacity: { duration: 0.3 }
+                    }}
+                    src={selectedImageUrl} 
+                    alt={selectedProduct.name}
+                    style={{ transformOrigin: zoomOrigin }}
+                    className="w-full h-full object-contain cursor-zoom-in"
+                  />
+                ) : (
+                  <Package size={100} className="text-[var(--public-text-dim)]" />
+                )}
+
+                {hasMultipleImages && (
+                  <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(prev => prev === 0 ? selectedProductGallery.length - 1 : prev - 1); }}
+                      className="pointer-events-auto h-10 w-10 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] shadow-lg flex items-center justify-center text-[var(--public-text-main)] hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(prev => prev === selectedProductGallery.length - 1 ? 0 : prev + 1); }}
+                      className="pointer-events-auto h-10 w-10 rounded-full bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] shadow-lg flex items-center justify-center text-[var(--public-text-main)] hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {hasMultipleImages && (
+                <div className="p-3 border-t border-[var(--public-card-border)] flex gap-2 overflow-x-auto no-scrollbar justify-center bg-[var(--public-bg)]">
+                  {selectedProductGallery.map((url, idx) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className={`h-14 w-14 rounded-2xl border-2 flex-shrink-0 transition-all overflow-hidden cursor-pointer ${
+                        selectedImageIndex === idx ? "border-emerald-500 scale-105" : "border-[var(--public-card-border)] opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Details Area */}
+            <div className="flex flex-col min-w-0 relative">
+              <div className="sticky top-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-[var(--public-glass-bg)] backdrop-blur-md border-b border-[var(--public-card-border)]">
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[var(--public-text-main)] leading-tight break-words-strategy">
+                    {selectedProduct.name}
+                  </h2>
+                  
+                  {selectedProduct.show_highlight && selectedProduct.highlight_text && (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] sm:text-sm font-black uppercase tracking-wider shadow-sm w-fit break-words-strategy"
+                    >
+                      <Tag size={12} className="animate-pulse" />
+                      {selectedProduct.highlight_text}
+                    </motion.div>
+                  )}
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                        selectedProduct.is_in_stock !== false 
+                          ? 'bg-[var(--primary-color)]/10 text-[var(--primary-color)] border-[var(--primary-color)]/20' 
+                          : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                      }`}>
+                        {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
+                      </span>
+                      {selectedProduct.sku && (
+                        <span className="px-2 py-1 rounded-lg bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[9px] sm:text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-widest">
+                          REF: {selectedProduct.sku}
+                        </span>
+                      )}
+                    </div>
+
+                    {selectedProduct.show_colors && selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                      <div className="flex items-center gap-2.5 bg-[var(--public-bg)] px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-[var(--public-card-border)]">
+                        <span className="text-[8px] sm:text-[9px] font-black text-[var(--public-text-dim)] uppercase tracking-widest">Cores disponíveis</span>
+                        <div className="flex items-center gap-1">
+                          {selectedProduct.colors.map((color, i) => (
+                            <div key={i} className="h-3.5 w-3.5 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125" style={{ backgroundColor: color }} title="Cor disponível" />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-4 sm:px-10 py-6 sm:py-8 pb-8 sm:pb-12 min-w-0">
+                {selectedProduct.is_in_stock !== false && (
+                  <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
+                    <div className="bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-2xl p-4 sm:p-6">
+                      <div className="space-y-4 sm:space-y-6">
+                        {selectedProduct.has_retail !== false && (
+                          <div 
+                            onClick={() => setPriceMode("retail")}
+                            className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
+                              priceMode === "retail" ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                              <p className="text-[var(--public-text-dim)] text-[9px] sm:text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Tag size={12} /> Preço de Varejo
+                              </p>
+                              {priceMode === "retail" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
+                            </div>
+                            <div className="flex flex-col gap-0.5 sm:gap-1">
+                              {selectedProduct.compare_at_price && (
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-[var(--public-text-dim)]">
+                                  <span className="text-[9px] sm:text-[10px] uppercase opacity-60">De</span>
+                                  <span className="line-through">{formatPrice(selectedProduct.compare_at_price)}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-1.5 sm:gap-2">
+                                {selectedProduct.compare_at_price && <span className="text-[9px] sm:text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
+                                <p className="text-xl sm:text-2xl font-extrabold text-emerald-400">
+                                  {formatPrice(selectedProduct.price) || "Consulte"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedProduct.has_wholesale && (
+                          <div 
+                            onClick={() => setPriceMode("wholesale")}
+                            className={`p-3.5 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${
+                              priceMode === "wholesale" ? "bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-500 shadow-lg shadow-emerald-500/10" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                              <p className="text-emerald-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Layers size={12} /> Preço de Atacado
+                              </p>
+                              {priceMode === "wholesale" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
+                            </div>
+                            <p className="text-xl sm:text-2xl font-extrabold text-emerald-400">
+                              {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
+                            </p>
+                            {selectedProduct.wholesale_min_quantity && (
+                              <div className="mt-2">
+                                <span className="inline-block bg-emerald-500 !text-white text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
+                                  Mínimo de {selectedProduct.wholesale_min_quantity} unidades
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-6 sm:space-y-8">
+                  {selectedProduct.description && (
+                    <div>
+                      <h4 className="flex items-center gap-2 text-[var(--public-text-main)] font-extrabold text-base sm:text-lg mb-3 sm:mb-4">
+                        <Info size={18} className="text-emerald-500" />
+                        Descrição do Produto
+                      </h4>
+                      {(() => {
+                        const cleanHTML = (html: string) => {
+                          if (!html) return '';
+                          return html.replace(/\u00a0/g, ' ').replace(/\u00ad/g, '').replace(/&nbsp;/g, ' ').replace(/&shy;/g, '');
+                        };
+                        return (
+                          <div className="w-full block overflow-hidden">
+                            <div 
+                              className="text-xs sm:text-sm leading-relaxed ql-description-content"
+                              style={{ width: '100%', wordBreak: 'normal', overflowWrap: 'break-word', hyphens: 'none', WebkitHyphens: 'none', whiteSpace: 'pre-wrap', boxSizing: 'border-box' }}
+                              dangerouslySetInnerHTML={{ __html: hasMounted ? cleanHTML(selectedProduct.description) : selectedProduct.description }}
+                            />
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {selectedProduct.show_specs !== false && selectedProduct.specs && selectedProduct.specs.length > 0 && (
+                    <div>
+                      <h4 className="flex items-center gap-2 text-[var(--public-text-main)] font-extrabold text-base sm:text-lg mb-3 sm:mb-4">
+                        <Package size={18} className="text-emerald-500" />
+                        {selectedProduct.specs_title || "Especificações Técnicas"}
+                      </h4>
+                      <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-3">
+                        {selectedProduct.specs.map((spec, i) => (
+                          <div key={i} className="flex items-center justify-between bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3">
+                            <span className="text-xs sm:text-sm text-[var(--public-text-dim)] font-bold">{spec.chave}</span>
+                            <span className="text-sm sm:text-base text-[var(--public-text-main)] font-bold">{spec.valor}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {productWhatsappUrl && (
+              <div className="relative px-4 sm:px-8 py-4 sm:py-5 border-t border-[var(--public-card-border)] z-30 public-footer-sticky">
+                <div className="relative">
+                  {selectedProduct.is_in_stock !== false ? (
+                    businessStatus.isAvailableNow ? (
+                      <motion.a
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        href={productWhatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => {
+                          console.log("🖱️ Clique WhatsApp Produto detectado:", selectedProduct.name);
+                          void trackLead(selectedProduct.name);
+                          void trackAnalyticsEvent({
+                            profileId,
+                            catalogId,
+                            organizationId: organizationId,
+                            productId: selectedProduct.id,
+                            eventType: "whatsapp_click",
+                            pageType: "product_modal",
+                            metadata: { slug, productName: selectedProduct.name, priceMode }
+                          });
+                        }}
+                        className="flex items-center justify-center gap-3 w-full py-3.5 sm:py-4 px-6 bg-[#25D366] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-xs sm:text-sm uppercase tracking-wider"
+                        style={{ boxShadow: `0 10px 30px #25D36633` }}
+                      >
+                        <MessageCircle size={18} />
+                        Fazer Pedido via WhatsApp
+                      </motion.a>
+                    ) : (
+                      <div 
+                        onClick={() => {
+                          console.log("🖱️ Clique WhatsApp (FECHADO) Produto detectado:", selectedProduct.name);
+                          void trackAnalyticsEvent({
+                            profileId,
+                            catalogId,
+                            productId: selectedProduct.id,
+                            eventType: "whatsapp_click_closed",
+                            pageType: "product_modal",
+                            metadata: { slug, productName: selectedProduct.name, priceMode }
+                          });
+                        }}
+                        className="flex flex-col items-center justify-center gap-1 w-full py-2.5 sm:py-3 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-2xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                      >
+                        <div className="flex items-center gap-1.5 font-black text-[10px] sm:text-xs uppercase tracking-wider">
+                          <Clock size={14} />
+                          Estabelecimento Fechado
+                        </div>
+                        <span className="text-[9px] sm:text-[10px] font-medium opacity-70">Clique para registrar interesse mesmo fechado</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex items-center justify-center gap-3 w-full py-3.5 sm:py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-2xl border border-[var(--public-card-border)] transition-all text-xs sm:text-sm uppercase tracking-wider cursor-not-allowed opacity-60">
+                      <Package size={18} />
+                      Produto Indisponível
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => {
+                      const baseUrl = window.location.href.split('#')[0];
+                      handleShare(
+                        selectedProduct.name,
+                        selectedProduct.description?.replace(/<[^>]*>/g, '').substring(0, 100) || "",
+                        `${baseUrl}#${selectedProduct.id}`
+                      );
+                    }}
+                    className="mt-3 sm:mt-4 flex items-center justify-center gap-2 w-full py-2.5 sm:py-3 px-6 bg-[var(--public-card-bg)] border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-xl hover:bg-[var(--public-bg)] hover:text-[var(--public-text-main)] transition-all text-[10px] sm:text-xs uppercase tracking-widest cursor-pointer"
+                  >
+                    <Share2 size={14} />
+                    Compartilhar este Produto
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* Portais e Estilos globais essenciais */}
+        {hasMounted && createPortal(
+          <AnimatePresence>
+            {showWarning && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90"
+                onClick={() => setShowWarning(false)}
+              >
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  className="relative border border-[var(--public-card-border)] rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl"
+                  style={{ backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#18181b' : '#ffffff' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button 
+                    onClick={() => setShowWarning(false)}
+                    className="absolute top-4 right-4 text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] p-2 rounded-full bg-[var(--public-status-bg)] transition-colors cursor-pointer"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <div className="w-16 h-16 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-[var(--public-text-main)] mb-2">
+                    Consultor Indisponível
+                  </h3>
+                  <p className="text-sm text-[var(--public-text-dim)] mb-8 leading-relaxed">
+                    O consultor está temporariamente ausente ou fora do horário. Sua mensagem será entregue, mas o tempo de resposta pode ser maior que o habitual.
+                  </p>
+                  
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={() => {
+                        setShowWarning(false);
+                        void trackLead();
+                        void trackAnalyticsEvent({
+                          profileId,
+                          catalogId,
+                          eventType: "whatsapp_click_delayed",
+                          pageType: "catalog_header",
+                          metadata: { slug }
+                        });
+                        if (whatsappUrl) window.open(whatsappUrl, "_blank");
+                      }}
+                      className="w-full py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-[#25D366] hover:bg-[#128C7E] transition-colors shadow-lg shadow-green-500/20 cursor-pointer"
+                    >
+                      Continuar mesmo assim
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
+        <style jsx global>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+          .ql-description-content { line-height: 1.8; font-size: 0.95rem; color: var(--public-text-dim); width: 100% !important; max-width: 100% !important; }
+          .ql-description-content *, .break-words-strategy { 
+            word-break: normal !important; 
+            overflow-wrap: break-word !important; 
+            hyphens: auto !important; 
+            -webkit-hyphens: auto !important; 
+            max-width: 100% !important; 
+            box-sizing: border-box !important; 
+            white-space: pre-wrap !important;
+          }
+          .ql-description-content p { margin-bottom: 1.25rem; }
+          .ql-description-content b, .ql-description-content strong { font-weight: 900; color: var(--public-text-main); }
+          .public-footer-sticky { background-color: var(--public-card-bg) !important; }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -641,7 +1077,7 @@ export default function ProductCatalogClient({
 
                 <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"}`}>
                   {category.products.map((product) => {
-                    const isExpanded = isEmbed && selectedProductId === product.id;
+                    const isExpanded = isEmbed && isMobile && selectedProductId === product.id;
                     const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
                     const productGallery = product.image_url ? [product.image_url, ...(product.image_urls || [])] : (product.image_urls || []);
                     
@@ -940,8 +1376,9 @@ export default function ProductCatalogClient({
         </footer>
       )}
 
-      <AnimatePresence>
-        {!isEmbed && selectedProduct && (
+      {hasMounted && createPortal(
+        <AnimatePresence>
+          {!isEmbed && selectedProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
             <motion.div 
               initial={{ opacity: 0 }}
@@ -1266,7 +1703,9 @@ export default function ProductCatalogClient({
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
