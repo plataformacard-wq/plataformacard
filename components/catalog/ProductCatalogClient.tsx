@@ -806,37 +806,107 @@ export default function ProductCatalogClient({
                             </motion.div>
                           )}
 
-                          <div className="flex items-center justify-between mt-auto relative pt-2 z-10">
-                            <div className="flex flex-col items-start">
-                              {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
-                                <div className="flex flex-col gap-0.5">
-                                  {product.compare_at_price && (
-                                    <div className="text-[10px] sm:text-sm font-semibold text-[var(--public-text-dim)] flex items-center gap-1 sm:gap-1.5">
-                                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-[var(--public-text-dim)]/70 font-bold">De</span>
-                                      <span className="line-through">{formatPrice(product.compare_at_price)}</span>
+                          <div className="flex flex-col gap-3 mt-auto relative pt-2 z-10 w-full">
+                            {/* Preço (se habilitado) */}
+                            {(product.is_in_stock !== false && (
+                              (product.has_retail !== false && product.price !== null) || 
+                              (product.has_retail === false && product.has_wholesale && product.wholesale_price)
+                            )) && (
+                              <div className="flex flex-col items-start">
+                                {product.has_retail !== false && product.price !== null && (
+                                  <div className="flex flex-col gap-0.5">
+                                    {product.compare_at_price && (
+                                      <div className="text-[10px] sm:text-sm font-semibold text-[var(--public-text-dim)] flex items-center gap-1 sm:gap-1.5">
+                                        <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-[var(--public-text-dim)]/70 font-bold">De</span>
+                                        <span className="line-through">{formatPrice(product.compare_at_price)}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-1 sm:gap-1.5">
+                                      {product.compare_at_price && <span className="text-[8px] sm:text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
+                                      <p className="text-base sm:text-xl font-extrabold text-[var(--primary-color)] leading-none">
+                                        {formatPrice(product.price)}
+                                      </p>
                                     </div>
-                                  )}
-                                  <div className="flex items-center gap-1 sm:gap-1.5">
-                                    {product.compare_at_price && <span className="text-[8px] sm:text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
-                                    <p className="text-base sm:text-xl font-extrabold text-[var(--primary-color)] leading-none">
-                                      {formatPrice(product.price)}
+                                  </div>
+                                )}
+                                {product.has_retail === false && product.has_wholesale && product.wholesale_price && (
+                                  <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">A partir de</span>
+                                    <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
+                                      {formatPrice(product.wholesale_price)}
                                     </p>
                                   </div>
-                                </div>
-                              )}
-                              {product.is_in_stock !== false && product.has_retail === false && product.has_wholesale && product.wholesale_price && (
-                                <div className="flex flex-col">
-                                  <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">A partir de</span>
-                                  <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
-                                    {formatPrice(product.wholesale_price)}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                            
+                                )}
+                              </div>
+                            )}
+
+                            {/* Botões do Card em modo colapsado */}
                             {!isExpanded && sellerStatus !== 'paused' && (
-                              <div className="h-7 w-7 sm:h-10 sm:w-10 rounded-full bg-[var(--public-bg)] flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors border border-[var(--public-card-border)] text-[var(--public-text-main)] shrink-0 shadow-sm ml-2">
-                                <ArrowRight size={14} className="sm:w-4 sm:h-4" />
+                              <div className="flex flex-col gap-2 w-full mt-1">
+                                {/* Botão Saiba mais */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenProduct(product);
+                                  }}
+                                  className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 bg-transparent border border-[var(--primary-color)] hover:bg-[var(--primary-color)]/5 text-[var(--primary-color)] font-bold rounded-xl transition-all text-xs uppercase tracking-wider cursor-pointer"
+                                >
+                                  Saiba mais
+                                </button>
+
+                                {/* Botão do WhatsApp sempre visível */}
+                                {product.is_in_stock !== false ? (
+                                  businessStatus.isAvailableNow ? (
+                                    <a
+                                      href={wpUrl || '#'}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log("🖱️ Clique WhatsApp Card detectado:", product.name);
+                                        void trackLead(product.name);
+                                        void trackAnalyticsEvent({
+                                          profileId,
+                                          catalogId,
+                                          organizationId: organizationId,
+                                          productId: product.id,
+                                          eventType: "whatsapp_click",
+                                          pageType: "product_card",
+                                          metadata: { slug, productName: product.name, priceMode }
+                                        });
+                                      }}
+                                      className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider"
+                                    >
+                                      <MessageCircle size={16} />
+                                      Pedir no WhatsApp
+                                    </a>
+                                  ) : (
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        void trackAnalyticsEvent({
+                                          profileId,
+                                          catalogId,
+                                          productId: product.id,
+                                          eventType: "whatsapp_click_closed",
+                                          pageType: "product_card",
+                                          metadata: { slug, productName: product.name, priceMode }
+                                        });
+                                      }}
+                                      className="flex flex-col items-center justify-center gap-0.5 w-full py-2 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                                    >
+                                      <div className="flex items-center justify-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                                        <Clock size={12} className="text-slate-400" />
+                                        Estabelecimento Fechado
+                                      </div>
+                                    </div>
+                                  )
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
+                                    <Package size={16} />
+                                    Indisponível
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
