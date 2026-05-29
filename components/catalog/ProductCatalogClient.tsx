@@ -439,8 +439,8 @@ export default function ProductCatalogClient({
           maxWidth: 'none'
         } as any}
       >
-        <main className="w-full pt-6 px-4 sm:px-6 pb-12 relative">
-          <div className="relative w-full max-w-md mx-auto bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-sm flex flex-col overflow-visible">
+        <main className="w-full pt-6 px-[60px] sm:px-[70px] pb-12 relative">
+          <div className="relative w-full max-w-md mx-auto bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-visible">
             <button 
               onClick={handleCloseProduct}
               className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/45 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-110 active:scale-95 transition-all shadow-md cursor-pointer"
@@ -449,7 +449,7 @@ export default function ProductCatalogClient({
             </button>
 
             {/* Product Image Area */}
-            <div className="w-full bg-[var(--public-card-bg)] flex flex-col relative rounded-t-2xl overflow-hidden">
+            <div className="w-full bg-[var(--public-card-bg)] flex flex-col relative rounded-t-[2rem] overflow-hidden">
               <div 
                 className="relative aspect-[16/10] overflow-hidden flex items-center justify-center p-4"
                 onMouseMove={handleImageZoomMove}
