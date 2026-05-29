@@ -75,15 +75,38 @@ export default async function EmbedPage(props: PageProps) {
     }
   }
 
-  // FALLBACK 2: Busca direta por owner_id
+  // FALLBACK 2: Busca direta por organization_id ou owner_id
   if (!catalogId && targetOrgId) {
-    const { data: directCatalog } = await supabase
+    const { data: orgCatalog } = await supabase
       .from("catalogs")
       .select("id")
-      .eq("owner_id", targetOrgId)
+      .eq("organization_id", targetOrgId)
       .limit(1)
       .maybeSingle();
-    catalogId = directCatalog?.id ?? null;
+
+    if (orgCatalog?.id) {
+      catalogId = orgCatalog.id;
+    } else {
+      const { data: ownerCatalog } = await supabase
+        .from("catalogs")
+        .select("id")
+        .eq("owner_id", targetOrgId)
+        .limit(1)
+        .maybeSingle();
+
+      if (ownerCatalog?.id) {
+        catalogId = ownerCatalog.id;
+      } else if (profile?.id) {
+        const { data: profileCatalog } = await supabase
+          .from("catalogs")
+          .select("id")
+          .eq("owner_id", profile.id)
+          .limit(1)
+          .maybeSingle();
+
+        catalogId = profileCatalog?.id ?? null;
+      }
+    }
   }
 
   if (!catalogId) return notFound();
