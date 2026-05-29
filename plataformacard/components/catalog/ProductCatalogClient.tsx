@@ -501,7 +501,7 @@ export default function ProductCatalogClient({
         </motion.header>
       )}
       
-      <main className={`${isEmbed ? 'w-full px-4' : 'max-w-5xl mx-auto px-6'} ${isEmbed ? 'pt-6' : 'pt-12'}`}>
+      <main className={`${isEmbed ? 'w-full px-4 sm:px-6 relative' : 'max-w-5xl mx-auto px-6'} ${isEmbed ? 'pt-6' : 'pt-12'}`}>
         <section className="mb-12">
           {/* Status Badge for Embed Mode */}
           {isEmbed && (
