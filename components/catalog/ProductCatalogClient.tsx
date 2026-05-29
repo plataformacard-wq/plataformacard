@@ -642,8 +642,8 @@ export default function ProductCatalogClient({
                 <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"}`}>
                   {category.products.map((product) => {
                     const isExpanded = isEmbed && selectedProductId === product.id;
-                    const hasMultipleImages = product.gallery && product.gallery.length > 0;
-                    const productGallery = product.image_url ? [product.image_url, ...(product.gallery || [])] : (product.gallery || []);
+                    const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
+                    const productGallery = product.image_url ? [product.image_url, ...(product.image_urls || [])] : (product.image_urls || []);
                     
                     const wpUrl = (() => {
                       if (!whatsapp) return null;
