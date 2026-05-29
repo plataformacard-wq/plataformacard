@@ -341,7 +341,7 @@ export default function ProductCatalogClient({
       item_name: selectedProduct.name,
       item_price: priceText || "",
       item_sku: selectedProduct.sku || undefined,
-      item_url: `${window.location.origin}/${slug}/catalogo#${selectedProduct.id}`,
+      item_url: typeof window !== 'undefined' ? `${window.location.origin}/${slug}/catalogo#${selectedProduct.id}` : "",
       item_type: selectedProduct.type === 'service' ? 'serviço' : 'produto',
       seller_name: fullName || "Vendedor",
     });
@@ -670,7 +670,7 @@ export default function ProductCatalogClient({
                         item_name: product.name,
                         item_price: priceText || "",
                         item_sku: product.sku || undefined,
-                        item_url: `${window.location.origin}/${slug}/catalogo#${product.id}`,
+                        item_url: typeof window !== 'undefined' ? `${window.location.origin}/${slug}/catalogo#${product.id}` : "",
                         item_type: product.type === 'service' ? 'serviço' : 'produto',
                         seller_name: fullName || "Vendedor",
                       });
