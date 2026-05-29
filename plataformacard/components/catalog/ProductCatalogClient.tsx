@@ -684,9 +684,9 @@ export default function ProductCatalogClient({
                           if (!isExpanded) handleOpenProduct(product);
                         }}
                         whileHover={sellerStatus === 'paused' ? {} : { y: -4 }}
-                        className={`group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)]'} rounded-[2rem] overflow-hidden transition-all duration-300 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_12px_40px_rgb(0,0,0,0.4)] ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
+                        className={`group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-2xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
                       >
-                        <div className="aspect-square relative overflow-hidden bg-transparent flex items-center justify-center p-4 sm:p-6">
+                        <div className={`aspect-square relative overflow-hidden bg-[var(--public-card-bg)] flex items-center justify-center ${isExpanded ? 'p-4' : 'p-0'}`}>
                           {isExpanded && (
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleCloseProduct(); }}
@@ -759,23 +759,23 @@ export default function ProductCatalogClient({
                           </motion.div>
                         )}
 
-                        <div className="p-5 sm:p-7 flex flex-col h-full relative">
-                          <div className="mb-4 sm:mb-5 flex flex-col gap-2 sm:gap-3 items-start relative z-10">
-                            <h3 className="inline-block text-xl sm:text-2xl font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-5 py-2 sm:px-6 sm:py-2.5 rounded-full shadow-sm break-words-strategy">
+                        <div className="p-4 sm:p-6 flex flex-col h-full relative">
+                          <div className="mb-2 sm:mb-4 flex flex-col gap-1.5 sm:gap-2 items-start relative z-10">
+                            <h3 className="inline-block text-lg sm:text-xl font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm break-words-strategy">
                                {product.name}
                             </h3>
                             {product.show_highlight && product.highlight_text && (
-                              <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-xs font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-emerald-100 dark:border-emerald-500/20 flex items-center gap-1.5 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
-                                <Tag size={12} className="sm:w-3.5 sm:h-3.5 animate-pulse" />
+                              <div className="bg-emerald-500/10 text-emerald-500 text-[8px] sm:text-[9px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg border border-emerald-500/20 flex items-center gap-1 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
+                                <Tag size={10} className="sm:w-3 sm:h-3 animate-pulse" />
                                 {sanitizeText(product.highlight_text)}
                               </div>
                             )}
                           </div>
                           
                           {product.description && (
-                            <div className="relative z-10 mb-6 sm:mb-8">
+                            <div className="relative z-10 mb-3 sm:mb-5">
                               <div 
-                                className={`text-[var(--public-text-dim)] text-xs sm:text-sm leading-relaxed break-words-strategy [&_*]:!whitespace-normal [&_*]:!max-w-full ${isExpanded && expandedDescriptionId === product.id ? '' : 'line-clamp-2'}`}
+                                className={`text-[var(--public-text-dim)] text-[10px] sm:text-sm leading-relaxed break-words-strategy [&_*]:!whitespace-normal [&_*]:!max-w-full ${isExpanded && expandedDescriptionId === product.id ? '' : 'line-clamp-2'}`}
                                 dangerouslySetInnerHTML={{ __html: sanitizeText(product.description) }}
                               />
                               {isExpanded && product.description.length > 80 && expandedDescriptionId !== product.id && (
@@ -806,32 +806,28 @@ export default function ProductCatalogClient({
                             </motion.div>
                           )}
 
-                          <div className="flex items-end justify-between mt-auto relative pt-4 min-h-[72px] z-10">
-                            <div className="flex flex-col items-start pb-2 w-[calc(100%-80px)]">
+                          <div className="flex items-center justify-between mt-auto relative pt-2 z-10">
+                            <div className="flex flex-col items-start">
                               {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
-                                <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-0.5">
                                   {product.compare_at_price && (
                                     <div className="text-[10px] sm:text-sm font-semibold text-[var(--public-text-dim)] flex items-center gap-1 sm:gap-1.5">
-                                      <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--public-text-dim)]/70 font-bold">De</span>
+                                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-[var(--public-text-dim)]/70 font-bold">De</span>
                                       <span className="line-through">{formatPrice(product.compare_at_price)}</span>
                                     </div>
                                   )}
-                                  <div className="flex items-col gap-0">
-                                    <span className="text-[9px] sm:text-[10px] uppercase text-emerald-500 font-bold tracking-widest leading-none mb-1">
-                                      {product.compare_at_price ? "Por (Varejo)" : "A partir de (Varejo)"}
-                                    </span>
-                                    <p className="text-xl sm:text-2xl font-extrabold text-[var(--primary-color)] leading-none">
+                                  <div className="flex items-center gap-1 sm:gap-1.5">
+                                    {product.compare_at_price && <span className="text-[8px] sm:text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
+                                    <p className="text-base sm:text-xl font-extrabold text-[var(--primary-color)] leading-none">
                                       {formatPrice(product.price)}
                                     </p>
                                   </div>
                                 </div>
                               )}
                               {product.is_in_stock !== false && product.has_retail === false && product.has_wholesale && product.wholesale_price && (
-                                <div className="flex flex-col gap-0">
-                                  <span className="text-[9px] sm:text-[10px] font-bold text-[#25D366] uppercase tracking-widest leading-none mb-1">
-                                    A partir de (Atacado)
-                                  </span>
-                                  <p className="text-xl sm:text-2xl font-extrabold text-[#25D366] leading-none">
+                                <div className="flex flex-col">
+                                  <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">A partir de</span>
+                                  <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
                                     {formatPrice(product.wholesale_price)}
                                   </p>
                                 </div>
@@ -839,12 +835,8 @@ export default function ProductCatalogClient({
                             </div>
                             
                             {!isExpanded && sellerStatus !== 'paused' && (
-                              <div className="absolute -bottom-1 -right-1 sm:-bottom-3 sm:-right-3 z-20">
-                                <div className="w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] bg-[#25D366]/10 rounded-full flex items-center justify-center">
-                                  <div className="w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
-                                    <MessageCircle size={28} className="sm:w-8 sm:h-8" fill="currentColor" />
-                                  </div>
-                                </div>
+                              <div className="h-7 w-7 sm:h-10 sm:w-10 rounded-full bg-[var(--public-bg)] flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors border border-[var(--public-card-border)] text-[var(--public-text-main)] shrink-0 shadow-sm ml-2">
+                                <ArrowRight size={14} className="sm:w-4 sm:h-4" />
                               </div>
                             )}
                           </div>
