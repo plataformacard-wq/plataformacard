@@ -761,7 +761,7 @@ export default function ProductCatalogClient({
 
                         <div className="p-4 sm:p-6 flex flex-col h-full relative">
                           <div className="mb-2 sm:mb-4 flex flex-col gap-1.5 sm:gap-2 items-start relative z-10">
-                            <h3 className="inline-block text-lg sm:text-xl font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm break-words-strategy">
+                            <h3 className="inline-block text-sm sm:text-base font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl sm:rounded-2xl shadow-sm break-words-strategy">
                                {product.name}
                             </h3>
                             {product.show_highlight && product.highlight_text && (
