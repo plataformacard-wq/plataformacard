@@ -12,7 +12,7 @@ export default async function CaasAdminPage() {
   // 1. Fetch Master Catalogs (catalog_type = 'platform')
   const { data: masterCatalogs } = await admin
     .from("catalogs")
-    .select("id, name, description")
+    .select("*")
     .eq("catalog_type", "platform");
 
   // 2. Fetch Organizations

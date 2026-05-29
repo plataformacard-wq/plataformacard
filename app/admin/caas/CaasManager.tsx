@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { Globe, Building2, Check, ChevronDown, Search, ExternalLink, Plus, Package, HelpCircle, ArrowRightCircle, Target, Users2, BarChart3, Copy, Edit3, Trash2, X, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Globe, Building2, Check, ChevronDown, Search, ExternalLink, Plus, Package, HelpCircle, Users2, BarChart3, Copy, Edit3, Trash2, X, Save, Settings, MessageSquare, Percent, ToggleLeft, ToggleRight, Loader2, Sparkles, Tag } from "lucide-react";
 import { assignMasterCatalog, createMasterCatalog, deleteMasterCatalog, duplicateMasterCatalog, updateMasterCatalog } from "./actions";
 import CaasAnalytics from "./CaasAnalytics";
+import { createClient } from "@/lib/supabase/client";
+import BulkPromoModal from "@/components/dashboard/BulkPromoModal";
 
 interface MasterCatalog {
   id: string;
   name: string;
   description: string | null;
+  type?: "product" | "service" | "hybrid" | null;
+  whatsapp_template?: string | null;
+  hide_cta?: boolean | null;
 }
 
 interface Organization {
@@ -32,15 +37,102 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
   const [newDesc, setNewDesc] = useState("");
   const [viewingAnalyticsId, setViewingAnalyticsId] = useState<string | null>(null);
   
-  // Estados para Edição
+  // Estados para Edição rápida (nome/descrição)
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
+
+  // Estados para Modal de Configurações Avançadas (B2B-like)
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [configCatalogId, setConfigCatalogId] = useState<string | null>(null);
+  const [configTab, setConfigTab] = useState<"geral" | "mensagem" | "reajustes">("geral");
+  const [configName, setConfigName] = useState("");
+  const [configDesc, setConfigDesc] = useState("");
+  const [configType, setConfigType] = useState<"product" | "service" | "hybrid">("product");
+  const [configWhatsappTemplate, setConfigWhatsappTemplate] = useState("");
+  const [configHideCta, setConfigHideCta] = useState(false);
+  const [savingConfig, setSavingConfig] = useState(false);
+
+  // Estados para Reajuste em Massa (BulkPromoModal)
+  const [isBulkPromoOpen, setIsBulkPromoOpen] = useState(false);
+  const [configCategories, setConfigCategories] = useState<any[]>([]);
+  const [configProducts, setConfigProducts] = useState<any[]>([]);
+  const [loadingConfigData, setLoadingConfigData] = useState(false);
+
+  const supabaseClient = createClient();
 
   const filteredOrgs = organizations.filter(org => 
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     org.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Carrega categorias e produtos do catálogo master quando a aba de reajustes ou o BulkPromoModal é acionado
+  useEffect(() => {
+    if (!configCatalogId || !isConfigOpen) return;
+
+    async function loadCatalogData() {
+      setLoadingConfigData(true);
+      try {
+        const { data: cats } = await supabaseClient
+          .from("categories")
+          .select("id, name")
+          .eq("catalog_id", configCatalogId)
+          .order("sort_order", { ascending: true });
+
+        setConfigCategories(cats || []);
+
+        if (cats && cats.length > 0) {
+          const catIds = cats.map(c => c.id);
+          const { data: prods } = await supabaseClient
+            .from("products")
+            .select("id, name, price, compare_at_price, category_id, sku")
+            .in("category_id", catIds)
+            .eq("is_active", true)
+            .is("deleted_at", null);
+          setConfigProducts(prods || []);
+        } else {
+          setConfigProducts([]);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dados adicionais do catálogo master:", err);
+      } finally {
+        setLoadingConfigData(false);
+      }
+    }
+
+    void loadCatalogData();
+  }, [configCatalogId, isConfigOpen]);
+
+  const handleOpenConfig = (cat: MasterCatalog) => {
+    setConfigCatalogId(cat.id);
+    setConfigName(cat.name);
+    setConfigDesc(cat.description || "");
+    setConfigType(cat.type || "product");
+    setConfigWhatsappTemplate(cat.whatsapp_template || "");
+    setConfigHideCta(!!cat.hide_cta);
+    setConfigTab("geral");
+    setIsConfigOpen(true);
+  };
+
+  const handleSaveConfigSettings = async () => {
+    if (!configCatalogId) return;
+    setSavingConfig(true);
+    try {
+      await updateMasterCatalog(
+        configCatalogId,
+        configName,
+        configDesc,
+        configType,
+        configWhatsappTemplate,
+        configHideCta
+      );
+      setIsConfigOpen(false);
+    } catch (err: any) {
+      alert("Erro ao salvar configurações do catálogo: " + err.message);
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
   const handleCreateMaster = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +185,15 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
     if (!editingId) return;
     setLoadingId(editingId);
     try {
-      await updateMasterCatalog(editingId, editName, editDesc);
+      const original = masterCatalogs.find(c => c.id === editingId);
+      await updateMasterCatalog(
+        editingId, 
+        editName, 
+        editDesc, 
+        original?.type || "product", 
+        original?.whatsapp_template || "", 
+        !!original?.hide_cta
+      );
       setEditingId(null);
     } catch (error) {
       alert("Erro ao atualizar catálogo.");
@@ -261,12 +361,24 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
                             <Globe size={16} />
                           </div>
                           <div>
-                            <p className="font-bold text-sm text-dash-text-primary">{cat.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-sm text-dash-text-primary">{cat.name}</p>
+                              {cat.hide_cta && (
+                                <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-md uppercase">Vitrine Pura</span>
+                              )}
+                            </div>
                             {cat.description && <p className="text-[10px] text-dash-text-muted font-medium line-clamp-1">{cat.description}</p>}
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-1">
+                          <button 
+                            onClick={() => handleOpenConfig(cat)}
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all"
+                            title="Configurações Avançadas (B2B/CaaS)"
+                          >
+                            <Settings size={14} />
+                          </button>
                           <button 
                             onClick={() => handleDuplicate(cat.id)}
                             disabled={loadingId === cat.id}
@@ -278,7 +390,7 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
                           <button 
                             onClick={() => handleStartEdit(cat)}
                             className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all"
-                            title="Editar"
+                            title="Editar Nome"
                           >
                             <Edit3 size={14} />
                           </button>
@@ -407,6 +519,248 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
           </div>
         </div>
       </div>
+
+      {/* Modal de Configurações Avançadas (Estilo B2B/B2C) */}
+      {isConfigOpen && configCatalogId && (
+        <div className="fixed inset-0 z-[8000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div 
+            className="w-full max-w-4xl overflow-hidden rounded-[40px] border shadow-2xl flex flex-col max-h-[90vh]"
+            style={{ 
+              background: "var(--dash-surface)", 
+              borderColor: "var(--dash-border)",
+              color: "var(--dash-text-primary)"
+            }}
+          >
+            {/* Header */}
+            <div className="p-8 border-b flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                  <Settings size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight">Configurações do Catálogo Master</h2>
+                  <p className="text-xs text-[var(--dash-text-muted)] font-medium">Gerencie a identidade, CTAs e descontos do estoque mestre.</p>
+                </div>
+              </div>
+
+              {/* Tabs Navigation (Estilo B2B) */}
+              <div className="flex bg-[var(--dash-hover-bg)] p-1 rounded-xl border border-[var(--dash-border)]">
+                <button
+                  onClick={() => setConfigTab("geral")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "geral" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                >
+                  Geral
+                </button>
+                <button
+                  onClick={() => setConfigTab("mensagem")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "mensagem" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                >
+                  Mensagem
+                </button>
+                <button
+                  onClick={() => setConfigTab("reajustes")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "reajustes" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                >
+                  Reajustes
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {configTab === "geral" && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">Nome do Catálogo</label>
+                      <input 
+                        type="text" 
+                        value={configName}
+                        onChange={(e) => setConfigName(e.target.value)}
+                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
+                        style={{ color: "var(--dash-text-primary)" }}
+                        required
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">Descrição (SEO)</label>
+                      <input 
+                        type="text" 
+                        value={configDesc}
+                        onChange={(e) => setConfigDesc(e.target.value)}
+                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
+                        style={{ color: "var(--dash-text-primary)" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tipo de Catálogo */}
+                  <div className="space-y-3 pt-4 border-t border-[var(--dash-border)]">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                      <Sparkles size={12} className="text-purple-500" /> Tipo de Catálogo
+                    </label>
+                    <div className="flex p-1.5 rounded-[20px] bg-[var(--dash-hover-bg)] border border-[var(--dash-border)]">
+                      <button
+                        onClick={() => setConfigType("product")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${configType === "product" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      >
+                        <Package size={14} /> Produto
+                      </button>
+                      <button
+                        onClick={() => setConfigType("service")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${configType === "service" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      >
+                        <Settings size={14} /> Serviço
+                      </button>
+                      <button
+                        onClick={() => setConfigType("hybrid")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${configType === "hybrid" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      >
+                        <Sparkles size={14} /> Híbrido
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Toggle Habilitar CTA */}
+                  <div className="pt-6 border-t border-[var(--dash-border)] flex items-center justify-between bg-purple-500/5 border border-purple-500/10 p-5 rounded-2xl">
+                    <div>
+                      <h4 className="text-sm font-bold text-[var(--dash-text-primary)]">Habilitar Botões de WhatsApp (CTA)</h4>
+                      <p className="text-xs text-[var(--dash-text-muted)] mt-1 max-w-lg">
+                        Se ativado, exibe os botões de pedido direto no WhatsApp. Desative para transformar o catálogo em uma vitrine puramente de consulta visual.
+                      </p>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setConfigHideCta(!configHideCta)}
+                      className={`text-purple-500 hover:scale-105 active:scale-95 transition-all cursor-pointer`}
+                    >
+                      {configHideCta ? (
+                        <ToggleLeft size={44} className="text-zinc-500" />
+                      ) : (
+                        <ToggleRight size={44} className="text-purple-500" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {configTab === "mensagem" && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                      <MessageSquare size={14} className="text-purple-500" /> Modelo de Mensagem (WhatsApp template)
+                    </label>
+                  </div>
+                  <textarea
+                    value={configWhatsappTemplate}
+                    onChange={(e) => setConfigWhatsappTemplate(e.target.value)}
+                    rows={6}
+                    className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px] focus:ring-2 focus:ring-purple-500/20 outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                    placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e gostaria de fazer o pedido..."
+                  />
+                  
+                  {/* Tags Rápidas */}
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {['nome', 'preco', 'sku', 'link', 'tipo'].map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setConfigWhatsappTemplate(prev => prev + `{${tag}}`)}
+                        className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
+                      >
+                        {`{${tag}}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {configTab === "reajustes" && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="bg-purple-500/5 border border-purple-500/10 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="space-y-1 text-center md:text-left">
+                      <h4 className="text-lg font-bold text-[var(--dash-text-primary)]">Reajustes e Promoções em Massa</h4>
+                      <p className="text-xs text-[var(--dash-text-muted)] max-w-md mt-1 leading-relaxed">
+                        Defina descontos (promoções de/por) ou acréscimos (markups) aplicados instantaneamente em categorias ou produtos específicos do catálogo master.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsBulkPromoOpen(true)}
+                      className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-black uppercase tracking-widest px-6 py-4 rounded-xl shadow-lg transition-all"
+                    >
+                      <Percent size={14} />
+                      Configurar Reajuste
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[var(--dash-bg)] border border-[var(--dash-border)] p-4 rounded-2xl text-center">
+                      <span className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Categorias</span>
+                      <p className="text-2xl font-black text-purple-500 mt-1">
+                        {loadingConfigData ? "..." : configCategories.length}
+                      </p>
+                    </div>
+                    <div className="bg-[var(--dash-bg)] border border-[var(--dash-border)] p-4 rounded-2xl text-center">
+                      <span className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Produtos Ativos</span>
+                      <p className="text-2xl font-black text-emerald-500 mt-1">
+                        {loadingConfigData ? "..." : configProducts.length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-8 border-t flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
+              <button
+                onClick={() => setIsConfigOpen(false)}
+                className="px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-colors"
+                disabled={savingConfig}
+              >
+                Fechar
+              </button>
+              
+              <button
+                onClick={handleSaveConfigSettings}
+                disabled={savingConfig}
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-black uppercase tracking-widest px-8 py-3.5 rounded-xl shadow-lg transition-all"
+              >
+                {savingConfig ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    Salvar Alterações
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Reajustes em Massa Integrado */}
+      {isBulkPromoOpen && configCatalogId && (
+        <BulkPromoModal 
+          isOpen={isBulkPromoOpen}
+          onClose={() => setIsBulkPromoOpen(false)}
+          onSuccess={() => {
+            // Recarrega contadores do catálogo
+            setConfigCatalogId(null);
+            setTimeout(() => setConfigCatalogId(configCatalogId), 50);
+          }}
+          catalogId={configCatalogId}
+          orgId="" // orgId não é relevante para a RPC de ajuste em lote direta no catálogo master
+          categories={configCategories}
+          products={configProducts}
+        />
+      )}
     </div>
   );
 }

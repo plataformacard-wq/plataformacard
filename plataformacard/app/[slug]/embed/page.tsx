@@ -115,7 +115,7 @@ export default async function EmbedPage(props: PageProps) {
 
   const { data: catalogData } = await admin
     .from("catalogs")
-    .select("id, name, description, catalog_type")
+    .select("*")
     .eq("id", catalogId)
     .maybeSingle();
 
@@ -172,6 +172,7 @@ export default async function EmbedPage(props: PageProps) {
         products={(productsData ?? []) as any}
         whatsapp={finalWhatsapp}
         businessHours={orgData?.business_hours}
+        hideCta={!!catalogData?.hide_cta}
       />
     </div>
   );

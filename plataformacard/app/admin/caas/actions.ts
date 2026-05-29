@@ -106,15 +106,29 @@ export async function getMasterCatalogAnalytics(catalogId: string) {
   return Object.values(statsMap).sort((a, b) => b.count - a.count);
 }
 
-export async function updateMasterCatalog(id: string, name: string, description: string | null) {
+export async function updateMasterCatalog(
+  id: string, 
+  name: string, 
+  description: string | null,
+  type: string | null = 'product',
+  whatsappTemplate: string | null = '',
+  hideCta: boolean = false
+) {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("catalogs")
-    .update({ name, description })
+    .update({ 
+      name, 
+      description,
+      type,
+      whatsapp_template: whatsappTemplate,
+      hide_cta: hideCta
+    })
     .eq("id", id);
 
   if (error) throw error;
   revalidatePath("/admin/caas");
+  revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
 

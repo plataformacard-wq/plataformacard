@@ -48,6 +48,7 @@ type Catalog = {
   description: string | null;
   catalog_type: string | null;
   whatsapp_template: string | null;
+  hide_cta?: boolean | null;
 };
 
 type Category = {
@@ -293,7 +294,7 @@ export default async function Page(props: PageProps) {
 
   const { data: catalogData } = await supabase
     .from("catalogs")
-    .select("id, name, description, catalog_type, whatsapp_template")
+    .select("*")
     .eq("id", catalogId)
     .maybeSingle();
 
@@ -391,6 +392,7 @@ export default async function Page(props: PageProps) {
         whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
         sellerStatus={profile?.status}
         recessEndsAt={profile?.recess_ends_at}
+        hideCta={!!catalog?.hide_cta}
       />
     </>
   );

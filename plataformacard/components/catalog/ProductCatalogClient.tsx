@@ -99,6 +99,7 @@ type ProductCatalogClientProps = {
   whatsappTemplate?: string | null;
   sellerStatus?: string | null;
   recessEndsAt?: string | null;
+  hideCta?: boolean;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -149,6 +150,7 @@ export default function ProductCatalogClient({
   whatsappTemplate,
   sellerStatus,
   recessEndsAt,
+  hideCta = false,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -516,7 +518,7 @@ export default function ProductCatalogClient({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {whatsappUrl && (
+              {!hideCta && whatsappUrl && (
                 <button 
                   onClick={(e) => {
                     e.preventDefault();
@@ -855,57 +857,59 @@ export default function ProductCatalogClient({
                                 </button>
 
                                 {/* Botão do WhatsApp sempre visível */}
-                                {product.is_in_stock !== false ? (
-                                  businessStatus.isAvailableNow ? (
-                                    <a
-                                      href={wpUrl || '#'}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log("🖱️ Clique WhatsApp Card detectado:", product.name);
-                                        void trackLead(product.name);
-                                        void trackAnalyticsEvent({
-                                          profileId,
-                                          catalogId,
-                                          organizationId: organizationId,
-                                          productId: product.id,
-                                          eventType: "whatsapp_click",
-                                          pageType: "product_card",
-                                          metadata: { slug, productName: product.name, priceMode }
-                                        });
-                                      }}
-                                      className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider"
-                                    >
-                                      <MessageCircle size={16} />
-                                      Pedir no WhatsApp
-                                    </a>
-                                  ) : (
-                                    <div
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        void trackAnalyticsEvent({
-                                          profileId,
-                                          catalogId,
-                                          productId: product.id,
-                                          eventType: "whatsapp_click_closed",
-                                          pageType: "product_card",
-                                          metadata: { slug, productName: product.name, priceMode }
-                                        });
-                                      }}
-                                      className="flex flex-col items-center justify-center gap-0.5 w-full py-2 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
-                                    >
-                                      <div className="flex items-center justify-center gap-1 font-black text-[9px] uppercase tracking-wider">
-                                        <Clock size={12} className="text-slate-400" />
-                                        Estabelecimento Fechado
+                                {!hideCta && (
+                                  product.is_in_stock !== false ? (
+                                    businessStatus.isAvailableNow ? (
+                                      <a
+                                        href={wpUrl || '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          console.log("🖱️ Clique WhatsApp Card detectado:", product.name);
+                                          void trackLead(product.name);
+                                          void trackAnalyticsEvent({
+                                            profileId,
+                                            catalogId,
+                                            organizationId: organizationId,
+                                            productId: product.id,
+                                            eventType: "whatsapp_click",
+                                            pageType: "product_card",
+                                            metadata: { slug, productName: product.name, priceMode }
+                                          });
+                                        }}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider"
+                                      >
+                                        <MessageCircle size={16} />
+                                        Pedir no WhatsApp
+                                      </a>
+                                    ) : (
+                                      <div
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          void trackAnalyticsEvent({
+                                            profileId,
+                                            catalogId,
+                                            productId: product.id,
+                                            eventType: "whatsapp_click_closed",
+                                            pageType: "product_card",
+                                            metadata: { slug, productName: product.name, priceMode }
+                                          });
+                                        }}
+                                        className="flex flex-col items-center justify-center gap-0.5 w-full py-2 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                                      >
+                                        <div className="flex items-center justify-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                                          <Clock size={12} className="text-slate-400" />
+                                          Estabelecimento Fechado
+                                        </div>
                                       </div>
+                                    )
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
+                                      <Package size={16} />
+                                      Indisponível
                                     </div>
                                   )
-                                ) : (
-                                  <div className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
-                                    <Package size={16} />
-                                    Indisponível
-                                  </div>
                                 )}
                               </div>
                             )}
@@ -913,58 +917,60 @@ export default function ProductCatalogClient({
 
                           {isExpanded && (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 pt-5 border-t border-[var(--public-card-border)] relative z-20">
-                              {product.is_in_stock !== false ? (
-                                businessStatus.isAvailableNow ? (
-                                  <a
-                                    href={wpUrl || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      console.log("🖱️ Clique WhatsApp Produto detectado:", product.name);
-                                      void trackLead(product.name);
-                                      void trackAnalyticsEvent({
-                                        profileId,
-                                        catalogId,
-                                        organizationId: organizationId,
-                                        productId: product.id,
-                                        eventType: "whatsapp_click",
-                                        pageType: "product_accordion",
-                                        metadata: { slug, productName: product.name, priceMode }
-                                      });
-                                    }}
-                                    className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-lg transition-all text-xs uppercase tracking-wider"
-                                  >
-                                    <MessageCircle size={18} />
-                                    Fazer Pedido via WhatsApp
-                                  </a>
-                                ) : (
-                                  <div 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      void trackAnalyticsEvent({
-                                        profileId,
-                                        catalogId,
-                                        productId: product.id,
-                                        eventType: "whatsapp_click_closed",
-                                        pageType: "product_accordion",
-                                        metadata: { slug, productName: product.name, priceMode }
-                                      });
-                                    }}
-                                    className="flex flex-col items-center justify-center gap-1 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
-                                  >
-                                    <div className="flex items-center gap-1.5 font-black text-[10px] uppercase tracking-wider">
-                                      <Clock size={14} />
-                                      Estabelecimento Fechado
+                              {!hideCta && (
+                                product.is_in_stock !== false ? (
+                                  businessStatus.isAvailableNow ? (
+                                    <a
+                                      href={wpUrl || '#'}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log("🖱️ Clique WhatsApp Produto detectado:", product.name);
+                                        void trackLead(product.name);
+                                        void trackAnalyticsEvent({
+                                          profileId,
+                                          catalogId,
+                                          organizationId: organizationId,
+                                          productId: product.id,
+                                          eventType: "whatsapp_click",
+                                          pageType: "product_accordion",
+                                          metadata: { slug, productName: product.name, priceMode }
+                                        });
+                                      }}
+                                      className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-lg transition-all text-xs uppercase tracking-wider"
+                                    >
+                                      <MessageCircle size={18} />
+                                      Fazer Pedido via WhatsApp
+                                    </a>
+                                  ) : (
+                                    <div 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        void trackAnalyticsEvent({
+                                          profileId,
+                                          catalogId,
+                                          productId: product.id,
+                                          eventType: "whatsapp_click_closed",
+                                          pageType: "product_accordion",
+                                          metadata: { slug, productName: product.name, priceMode }
+                                        });
+                                      }}
+                                      className="flex flex-col items-center justify-center gap-1 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                                    >
+                                      <div className="flex items-center gap-1.5 font-black text-[10px] uppercase tracking-wider">
+                                        <Clock size={14} />
+                                        Estabelecimento Fechado
+                                      </div>
+                                      <span className="text-[9px] font-medium opacity-70">Clique para registrar interesse mesmo fechado</span>
                                     </div>
-                                    <span className="text-[9px] font-medium opacity-70">Clique para registrar interesse mesmo fechado</span>
+                                  )
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
+                                    <Package size={16} />
+                                    Produto Indisponível
                                   </div>
                                 )
-                              ) : (
-                                <div className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
-                                  <Package size={16} />
-                                  Produto Indisponível
-                                </div>
                               )}
 
                               <button 
@@ -1266,60 +1272,62 @@ export default function ProductCatalogClient({
                   <div className="relative px-6 sm:px-8 py-5 border-t border-[var(--public-card-border)] z-30 public-footer-sticky shrink-0">
                     <div className="absolute inset-x-0 -top-12 h-12 pointer-events-none public-footer-fade" />
                     <div className="relative">
-                      {selectedProduct.is_in_stock !== false ? (
-                        businessStatus.isAvailableNow ? (
-                          <motion.a
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            href={productWhatsappUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => {
-                              console.log("🖱️ Clique WhatsApp Produto detectado:", selectedProduct.name);
-                              void trackLead(selectedProduct.name);
-                              void trackAnalyticsEvent({
-                                profileId,
-                                catalogId,
-                                organizationId: organizationId,
-                                productId: selectedProduct.id,
-                                eventType: "whatsapp_click",
-                                pageType: "product_modal",
-                                metadata: { slug, productName: selectedProduct.name, priceMode }
-                              });
-                            }}
-                            className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
-                            style={{ boxShadow: `0 10px 30px #25D36633` }}
-                          >
-                            <MessageCircle size={20} />
-                            Fazer Pedido via WhatsApp
-                          </motion.a>
-                        ) : (
-                          <div 
-                            onClick={() => {
-                              console.log("🖱️ Clique WhatsApp (FECHADO) Produto detectado:", selectedProduct.name);
-                              void trackAnalyticsEvent({
-                                profileId,
-                                catalogId,
-                                productId: selectedProduct.id,
-                                eventType: "whatsapp_click_closed",
-                                pageType: "product_modal",
-                                metadata: { slug, productName: selectedProduct.name, priceMode }
-                              });
-                            }}
-                            className="flex flex-col items-center justify-center gap-1 w-full py-3 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-2xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
-                          >
-                            <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
-                              <Clock size={16} />
-                              Estabelecimento Fechado
+                      {!hideCta && (
+                        selectedProduct.is_in_stock !== false ? (
+                          businessStatus.isAvailableNow ? (
+                            <motion.a
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              href={productWhatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                console.log("🖱️ Clique WhatsApp Produto detectado:", selectedProduct.name);
+                                void trackLead(selectedProduct.name);
+                                void trackAnalyticsEvent({
+                                  profileId,
+                                  catalogId,
+                                  organizationId: organizationId,
+                                  productId: selectedProduct.id,
+                                  eventType: "whatsapp_click",
+                                  pageType: "product_modal",
+                                  metadata: { slug, productName: selectedProduct.name, priceMode }
+                                });
+                              }}
+                              className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
+                              style={{ boxShadow: `0 10px 30px #25D36633` }}
+                            >
+                              <MessageCircle size={20} />
+                              Fazer Pedido via WhatsApp
+                            </motion.a>
+                          ) : (
+                            <div 
+                              onClick={() => {
+                                console.log("🖱️ Clique WhatsApp (FECHADO) Produto detectado:", selectedProduct.name);
+                                void trackAnalyticsEvent({
+                                  profileId,
+                                  catalogId,
+                                  productId: selectedProduct.id,
+                                  eventType: "whatsapp_click_closed",
+                                  pageType: "product_modal",
+                                  metadata: { slug, productName: selectedProduct.name, priceMode }
+                                });
+                              }}
+                              className="flex flex-col items-center justify-center gap-1 w-full py-3 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-2xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                            >
+                              <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
+                                <Clock size={16} />
+                                Estabelecimento Fechado
+                              </div>
+                              <span className="text-[10px] font-medium opacity-70">Clique para registrar interesse mesmo fechado</span>
                             </div>
-                            <span className="text-[10px] font-medium opacity-70">Clique para registrar interesse mesmo fechado</span>
+                          )
+                        ) : (
+                          <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-2xl border border-[var(--public-card-border)] transition-all text-sm uppercase tracking-wider cursor-not-allowed opacity-60">
+                            <Package size={20} />
+                            Produto Indisponível
                           </div>
                         )
-                      ) : (
-                        <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-2xl border border-[var(--public-card-border)] transition-all text-sm uppercase tracking-wider cursor-not-allowed opacity-60">
-                          <Package size={20} />
-                          Produto Indisponível
-                        </div>
                       )}
 
                       <button 

@@ -43,6 +43,8 @@ type Catalog = {
   name: string;
   description: string | null;
   catalog_type: string | null;
+  whatsapp_template?: string | null;
+  hide_cta?: boolean | null;
 };
 
 type Category = {
@@ -281,7 +283,7 @@ export default async function Page(props: PageProps) {
 
   const { data: catalogData } = await admin
     .from("catalogs")
-    .select("id, name, description, catalog_type")
+    .select("*")
     .eq("id", catalogId)
     .maybeSingle();
 
@@ -364,6 +366,7 @@ export default async function Page(props: PageProps) {
         customBusinessHours={profile?.custom_business_hours}
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
+        hideCta={!!catalog?.hide_cta}
       />
     </>
   );
