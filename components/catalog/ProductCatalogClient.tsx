@@ -941,7 +941,7 @@ export default function ProductCatalogClient({
       )}
 
       <AnimatePresence>
-        {selectedProduct && (
+        {!isEmbed && selectedProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
             <motion.div 
               initial={{ opacity: 0 }}
