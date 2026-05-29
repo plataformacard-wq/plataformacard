@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -193,7 +192,6 @@ async function getCatalogStats(
 
 export default async function Page(props: PageProps) {
   const supabase = await createClient();
-  const admin = createAdminClient();
 
   const { slug } = await props.params;
 
@@ -212,14 +210,14 @@ export default async function Page(props: PageProps) {
     notFound();
   }
 
-  const { data: profile } = await admin
+  const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
 
   if (!profile) {
-    const { data: org } = await admin
+    const { data: org } = await supabase
       .from("organizations")
       .select("id, slug, business_model")
       .ilike("slug", slug)
@@ -235,7 +233,7 @@ export default async function Page(props: PageProps) {
   const safeProfile = profile as ProfileRow;
 
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
-    admin
+    supabase
       .from("organizations")
       .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url")
       .eq("id", safeProfile.organization_id)

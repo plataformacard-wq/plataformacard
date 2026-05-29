@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -20,14 +19,13 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function EmbedPage(props: PageProps) {
-  const admin = createAdminClient();
   const supabase = await createClient();
   const { slug } = await props.params;
 
   let profile: any = null;
   let orgData: any = null;
 
-  const { data: profileData } = await admin
+  const { data: profileData } = await supabase
     .from("profiles")
     .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
     .ilike("slug", slug)
@@ -36,7 +34,7 @@ export default async function EmbedPage(props: PageProps) {
   if (profileData) {
     profile = profileData;
     if (profile.organization_id) {
-      const { data: orgRaw } = await admin
+      const { data: orgRaw } = await supabase
         .from("organizations")
         .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads")
         .eq("id", profile.organization_id)
@@ -44,7 +42,7 @@ export default async function EmbedPage(props: PageProps) {
       if (orgRaw) orgData = orgRaw;
     }
   } else {
-    const { data: orgRaw } = await admin
+    const { data: orgRaw } = await supabase
       .from("organizations")
       .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads")
       .ilike("slug", slug)
@@ -65,7 +63,7 @@ export default async function EmbedPage(props: PageProps) {
   // Busca catálogo (mesma lógica do catalogo/page.tsx)
   // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
   if (targetOrgId) {
-    const { data: enabledCatalog } = await admin
+    const { data: enabledCatalog } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", targetOrgId)
@@ -79,7 +77,7 @@ export default async function EmbedPage(props: PageProps) {
 
   // FALLBACK 2: Busca direta por owner_id
   if (!catalogId && targetOrgId) {
-    const { data: directCatalog } = await admin
+    const { data: directCatalog } = await supabase
       .from("catalogs")
       .select("id")
       .eq("owner_id", targetOrgId)
@@ -90,13 +88,13 @@ export default async function EmbedPage(props: PageProps) {
 
   if (!catalogId) return notFound();
 
-  const { data: catalogData } = await admin
+  const { data: catalogData } = await supabase
     .from("catalogs")
     .select("id, name, description, catalog_type")
     .eq("id", catalogId)
     .maybeSingle();
 
-  const { data: categoriesData } = await admin
+  const { data: categoriesData } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
     .eq("catalog_id", catalogId)
@@ -105,7 +103,7 @@ export default async function EmbedPage(props: PageProps) {
   let productsData: any[] = [];
   if (categoriesData && categoriesData.length > 0) {
     const categoryIds = categoriesData.map(c => c.id);
-    const { data: prods } = await admin
+    const { data: prods } = await supabase
       .from("products")
       .select("*")
       .in("category_id", categoryIds)
@@ -124,9 +122,14 @@ export default async function EmbedPage(props: PageProps) {
   return (
     <div className="w-full min-h-screen bg-white overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
-        main { max-width: 100% !important; width: 100% !important; margin: 0 !important; padding-left: 12px !important; padding-right: 12px !important; }
-        .max-w-5xl, .max-w-6xl, .max-w-2xl, .max-w-xl { max-width: 100% !important; width: 100% !important; }
-        .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+        body { margin: 0; padding: 0; }
+        main { 
+          max-width: 1200px !important; 
+          width: 100% !important; 
+          margin: 0 auto !important; 
+          box-sizing: border-box; 
+        }
+        main .max-w-5xl, main .max-w-6xl, main .max-w-2xl, main .max-w-xl { max-width: 100% !important; width: 100% !important; }
       ` }} />
       <script
         dangerouslySetInnerHTML={{

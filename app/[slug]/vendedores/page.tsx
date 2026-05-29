@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Users, Phone, ArrowRight, ArrowLeft } from "lucide-react";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +12,10 @@ type PageProps = {
 
 export default async function VendedoresPublicPage(props: PageProps) {
   const { slug } = await props.params;
-  const admin = createAdminClient();
+  const supabase = await createClient();
 
   // 1. Buscar a organização pelo slug
-  const { data: org } = await admin
+  const { data: org } = await supabase
     .from("organizations")
     .select("id, name, slug, logo_url, favicon_url, accent_color, secondary_color")
     .ilike("slug", slug)
@@ -26,7 +26,7 @@ export default async function VendedoresPublicPage(props: PageProps) {
   }
 
   // 2. Buscar todos os vendedores da empresa
-  const { data: profilesData } = await admin
+  const { data: profilesData } = await supabase
     .from("profiles")
     .select("id, full_name, avatar_url, slug, bio, whatsapp, is_available, status, role, recess_ends_at")
     .eq("organization_id", org.id)

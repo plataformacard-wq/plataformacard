@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 
@@ -102,7 +101,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const searchParams = await props.searchParams;
   const isEmbed = searchParams.embed === "true";
   
-  const admin = createAdminClient();
+  const supabase = await createClient();
 
   // Se for embed, evitamos indexação pesada ou títulos genéricos
   if (isEmbed) {
@@ -112,7 +111,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     };
   }
 
-  const { data: profile } = await admin
+  const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, bio, organization_id")
     .ilike("slug", slug)
@@ -120,14 +119,14 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   let orgData = null;
   if (profile?.organization_id) {
-    const { data: org } = await admin
+    const { data: org } = await supabase
       .from("organizations")
       .select("name, meta_title, meta_description, favicon_url")
       .eq("id", profile.organization_id)
       .maybeSingle();
     orgData = org;
   } else {
-    const { data: org } = await admin
+    const { data: org } = await supabase
       .from("organizations")
       .select("name, meta_title, meta_description, favicon_url")
       .ilike("slug", slug)
@@ -157,7 +156,6 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function Page(props: PageProps) {
-  const admin = createAdminClient();
   const supabase = await createClient();
   
   const { slug } = await props.params;
@@ -165,7 +163,7 @@ export default async function Page(props: PageProps) {
   let profile: Profile | null = null;
   let orgData: Organization | null = null;
 
-  const { data: profileData } = await admin
+  const { data: profileData } = await supabase
     .from("profiles")
     .select("*")
     .ilike("slug", slug)
@@ -174,7 +172,7 @@ export default async function Page(props: PageProps) {
   if (profileData) {
     profile = profileData as Profile;
     if (profile.organization_id) {
-      const { data: brandingData } = await admin
+      const { data: brandingData } = await supabase
         .from("organizations")
         .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color, business_hours, centralize_leads")
         .eq("id", profile.organization_id)
@@ -184,7 +182,7 @@ export default async function Page(props: PageProps) {
       }
     }
   } else {
-    const { data: brandingData } = await admin
+    const { data: brandingData } = await supabase
       .from("organizations")
       .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color, business_hours, centralize_leads")
       .ilike("slug", slug)
@@ -223,7 +221,7 @@ export default async function Page(props: PageProps) {
 
   // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
   if (targetOrgId) {
-    const { data: enabledCatalog } = await admin
+    const { data: enabledCatalog } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", targetOrgId)
@@ -237,7 +235,7 @@ export default async function Page(props: PageProps) {
 
   // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja Master)
   if (!catalogId && profile) {
-    const { data: profileCatalogData } = await admin
+    const { data: profileCatalogData } = await supabase
       .from("profile_catalogs")
       .select("organization_catalog_id")
       .eq("profile_id", profile.id)
@@ -245,7 +243,7 @@ export default async function Page(props: PageProps) {
       .maybeSingle();
 
     if (profileCatalogData?.organization_catalog_id) {
-      const { data: orgCatalogFromProfile } = await admin
+      const { data: orgCatalogFromProfile } = await supabase
         .from("organization_catalogs")
         .select("catalog_id")
         .eq("id", profileCatalogData.organization_catalog_id)
@@ -257,7 +255,7 @@ export default async function Page(props: PageProps) {
 
   // FALLBACK 3: Busca direta por owner_id
   if (!catalogId && targetOrgId) {
-    const { data: directCatalog } = await admin
+    const { data: directCatalog } = await supabase
       .from("catalogs")
       .select("id")
       .eq("owner_id", targetOrgId)
@@ -271,9 +269,7 @@ export default async function Page(props: PageProps) {
     return notFound();
   }
 
-
-
-  const { data: catalogData } = await admin
+  const { data: catalogData } = await supabase
     .from("catalogs")
     .select("id, name, description, catalog_type, whatsapp_template")
     .eq("id", catalogId)
@@ -281,7 +277,7 @@ export default async function Page(props: PageProps) {
 
   const catalog = (catalogData as Catalog) || { id: catalogId, name: "Catálogo", description: "" };
 
-  const { data: categoriesData, error: catError } = await admin
+  const { data: categoriesData, error: catError } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
     .eq("catalog_id", catalogId)
@@ -294,7 +290,7 @@ export default async function Page(props: PageProps) {
   if (categories.length > 0) {
     const categoryIds = categories.map(c => c.id);
     
-    const { data: productsData } = await admin
+    const { data: productsData } = await supabase
       .from("products")
       .select(
         "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
@@ -318,7 +314,7 @@ export default async function Page(props: PageProps) {
 
   if (!finalWhatsapp && targetOrgId) {
     // Busca o WhatsApp de qualquer admin dessa organização
-    const { data: adminProfile } = await admin
+    const { data: adminProfile } = await supabase
       .from("profiles")
       .select("whatsapp")
       .eq("organization_id", targetOrgId)
@@ -336,6 +332,18 @@ export default async function Page(props: PageProps) {
 
   return (
     <>
+      {isEmbed && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          body { margin: 0; padding: 0; }
+          main { 
+            max-width: 1200px !important; 
+            width: 100% !important; 
+            margin: 0 auto !important; 
+            box-sizing: border-box; 
+          }
+          main .max-w-5xl, main .max-w-6xl, main .max-w-2xl, main .max-w-xl { max-width: 100% !important; width: 100% !important; }
+        ` }} />
+      )}
       <ProductCatalogClient
         profileId={trackingProfileId}
         catalogId={catalog.id || ""}
