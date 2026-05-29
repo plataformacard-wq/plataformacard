@@ -686,7 +686,7 @@ export default function ProductCatalogClient({
                           if (!isExpanded) handleOpenProduct(product);
                         }}
                         whileHover={sellerStatus === 'paused' ? {} : { y: -4 }}
-                        className={`group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-2xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
+                        className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-2xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
                       >
                         <div className={`aspect-square relative overflow-hidden bg-[var(--public-card-bg)] flex items-center justify-center ${isExpanded ? 'p-4' : 'p-0'}`}>
                           {isExpanded && (
@@ -761,7 +761,7 @@ export default function ProductCatalogClient({
                           </motion.div>
                         )}
 
-                        <div className="p-4 sm:p-6 flex flex-col h-full relative">
+                        <div className="p-4 sm:p-6 flex flex-col flex-1 relative">
                           <div className="mb-2 sm:mb-4 flex flex-col gap-1.5 sm:gap-2 items-start relative z-10">
                             <h3 className="inline-block text-sm sm:text-base font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl sm:rounded-2xl shadow-sm break-words-strategy">
                                {product.name}
