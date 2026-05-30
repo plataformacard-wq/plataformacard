@@ -100,6 +100,8 @@ type ProductCatalogClientProps = {
   sellerStatus?: string | null;
   recessEndsAt?: string | null;
   hideCta?: boolean;
+  isB2B?: boolean;
+  hidePrices?: boolean;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -151,6 +153,8 @@ export default function ProductCatalogClient({
   sellerStatus,
   recessEndsAt,
   hideCta = false,
+  isB2B = false,
+  hidePrices = false,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -319,13 +323,15 @@ export default function ProductCatalogClient({
     setSelectedImageIndex(0);
     setIsZoomed(false);
     if (selectedProduct) {
-      if (selectedProduct.has_retail !== false) {
+      if (isB2B && selectedProduct.has_wholesale) {
+        setPriceMode("wholesale");
+      } else if (selectedProduct.has_retail !== false) {
         setPriceMode("retail");
       } else if (selectedProduct.has_wholesale) {
         setPriceMode("wholesale");
       }
     }
-  }, [selectedProductId, selectedProduct]);
+  }, [selectedProductId, selectedProduct, isB2B]);
 
   const productWhatsappUrl = useMemo(() => {
     if (!whatsapp || !selectedProduct) return null;
@@ -810,12 +816,19 @@ export default function ProductCatalogClient({
 
                           <div className="flex flex-col gap-3 mt-auto relative pt-2 z-10 w-full">
                             {/* Preço (se habilitado) */}
-                            {(product.is_in_stock !== false && (
+                            {(!hidePrices && product.is_in_stock !== false && (
                               (product.has_retail !== false && product.price !== null) || 
-                              (product.has_retail === false && product.has_wholesale && product.wholesale_price)
+                              (product.has_wholesale && product.wholesale_price !== null)
                             )) && (
                               <div className="flex flex-col items-start">
-                                {product.has_retail !== false && product.price !== null && (
+                                {isB2B && product.has_wholesale && product.wholesale_price !== null ? (
+                                  <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">Atacado</span>
+                                    <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
+                                      {formatPrice(product.wholesale_price)}
+                                    </p>
+                                  </div>
+                                ) : product.has_retail !== false && product.price !== null ? (
                                   <div className="flex flex-col gap-0.5">
                                     {product.compare_at_price && (
                                       <div className="text-[10px] sm:text-sm font-semibold text-[var(--public-text-dim)] flex items-center gap-1 sm:gap-1.5">
@@ -830,15 +843,14 @@ export default function ProductCatalogClient({
                                       </p>
                                     </div>
                                   </div>
-                                )}
-                                {product.has_retail === false && product.has_wholesale && product.wholesale_price && (
+                                ) : product.has_wholesale && product.wholesale_price !== null ? (
                                   <div className="flex flex-col">
                                     <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">A partir de</span>
                                     <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
                                       {formatPrice(product.wholesale_price)}
                                     </p>
                                   </div>
-                                )}
+                                ) : null}
                               </div>
                             )}
 
@@ -1160,60 +1172,69 @@ export default function ProductCatalogClient({
                     <div className="space-y-6 mb-8">
                       <div className="bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-2xl p-6">
                         <div className="space-y-6">
-                          {selectedProduct.has_retail !== false && (
-                            <div 
-                              onClick={() => setPriceMode("retail")}
-                              className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                                priceMode === "retail" ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="text-[var(--public-text-dim)] text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                                  <Tag size={12} /> Preço de Varejo
-                                </p>
-                                {priceMode === "retail" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                {selectedProduct.compare_at_price && (
-                                  <div className="flex items-center gap-2 text-sm font-bold text-[var(--public-text-dim)]">
-                                    <span className="text-[10px] uppercase opacity-60">De</span>
-                                    <span className="line-through">{formatPrice(selectedProduct.compare_at_price)}</span>
-                                  </div>
-                                )}
-                                <div className="flex items-center gap-2">
-                                  {selectedProduct.compare_at_price && <span className="text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
-                                  <p className="text-2xl font-extrabold text-emerald-400">
-                                    {formatPrice(selectedProduct.price) || "Consulte"}
-                                  </p>
-                                </div>
-                              </div>
+                          {hidePrices ? (
+                            <div className="flex flex-col items-center text-center p-4">
+                              <p className="text-sm font-bold text-[var(--public-text-main)] mb-1">Preço sob consulta</p>
+                              <p className="text-xs text-[var(--public-text-dim)]">Entre em contato via WhatsApp para negociar.</p>
                             </div>
-                          )}
-
-                          {selectedProduct.has_wholesale && (
-                            <div 
-                              onClick={() => setPriceMode("wholesale")}
-                              className={`p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${
-                                priceMode === "wholesale" ? "bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-500 shadow-lg shadow-emerald-500/10" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                                  <Layers size={12} /> Preço de Atacado
-                                </p>
-                                {priceMode === "wholesale" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
-                              </div>
-                              <p className="text-2xl font-extrabold text-emerald-400">
-                                {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
-                              </p>
-                              {selectedProduct.wholesale_min_quantity && (
-                                <div className="mt-2">
-                                  <span className="inline-block bg-emerald-500 !text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
-                                    Mínimo de {selectedProduct.wholesale_min_quantity} unidades
-                                  </span>
+                          ) : (
+                            <>
+                              {selectedProduct.has_retail !== false && (!isB2B || !selectedProduct.has_wholesale) && (
+                                <div 
+                                  onClick={() => setPriceMode("retail")}
+                                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                                    priceMode === "retail" ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-[var(--public-text-dim)] text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                      <Tag size={12} /> Preço de Varejo
+                                    </p>
+                                    {priceMode === "retail" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    {selectedProduct.compare_at_price && (
+                                      <div className="flex items-center gap-2 text-sm font-bold text-[var(--public-text-dim)]">
+                                        <span className="text-[10px] uppercase opacity-60">De</span>
+                                        <span className="line-through">{formatPrice(selectedProduct.compare_at_price)}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                      {selectedProduct.compare_at_price && <span className="text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
+                                      <p className="text-2xl font-extrabold text-emerald-400">
+                                        {formatPrice(selectedProduct.price) || "Consulte"}
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
                               )}
-                            </div>
+
+                              {selectedProduct.has_wholesale && (
+                                <div 
+                                  onClick={() => setPriceMode("wholesale")}
+                                  className={`p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${
+                                    priceMode === "wholesale" ? "bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-500 shadow-lg shadow-emerald-500/10" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                      <Layers size={12} /> Preço de Atacado
+                                    </p>
+                                    {priceMode === "wholesale" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
+                                  </div>
+                                  <p className="text-2xl font-extrabold text-emerald-400">
+                                    {formatPrice(selectedProduct.wholesale_price) || "Consulte"}
+                                  </p>
+                                  {selectedProduct.wholesale_min_quantity && (
+                                    <div className="mt-2">
+                                      <span className="inline-block bg-emerald-500 !text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
+                                        Mínimo de {selectedProduct.wholesale_min_quantity} unidades
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

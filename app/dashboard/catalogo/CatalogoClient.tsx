@@ -100,6 +100,11 @@ type ProductRow = {
   highlight_text?: string | null;
   show_highlight?: boolean | null;
   type?: "product" | "service";
+  is_caas?: boolean;
+  is_new_from_master?: boolean;
+  original_master_price?: number | null;
+  caas_owner_name?: string;
+  override_id?: string;
   created_at: string;
   sort_order: number | null;
   categories:
@@ -172,6 +177,7 @@ export default function CatalogoPage() {
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(true); // Definindo como true por padrão para não bloquear o gestor
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [activeProductTab, setActiveProductTab] = useState<"my_products" | "caas_products">("my_products");
 
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -383,7 +389,7 @@ export default function CatalogoPage() {
     const supabase = createClient();
     setLoadingProducts(true);
 
-    const { data, error } = await supabase
+    const { data: ownData, error: ownError } = await supabase
       .from("products")
       .select(
         `
@@ -421,12 +427,110 @@ export default function CatalogoPage() {
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
 
-    if (data) {
-      const prodList = (data ?? []) as unknown as ProductRow[];
-      setProducts(prodList);
-      setProductUsageCount(prodList.length);
+    let prodList = (ownData ?? []) as unknown as ProductRow[];
+
+    // 2. Fetch CaaS Products (if any)
+    const { data: enabledCatalogs } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id, catalogs(name, organization_id, organizations(name))")
+      .eq("organization_id", orgId)
+      .eq("is_enabled", true);
+
+    if (enabledCatalogs && enabledCatalogs.length > 0) {
+      const caasCatalogIds = enabledCatalogs.map(c => c.catalog_id);
+      
+      const { data: caasCategories } = await supabase
+        .from("categories")
+        .select("id")
+        .in("catalog_id", caasCatalogIds);
+
+      if (caasCategories && caasCategories.length > 0) {
+        const caasCategoryIds = caasCategories.map(c => c.id);
+        
+        const { data: caasProductsData } = await supabase
+          .from("products")
+          .select(
+            `
+          id,
+          organization_id,
+          category_id,
+          name,
+          description,
+          specs,
+          price,
+          compare_at_price,
+          sku,
+          has_retail,
+          has_wholesale,
+          wholesale_price,
+          wholesale_min_quantity,
+          image_url,
+          image_urls,
+          is_active,
+          is_in_stock,
+          price_display_mode,
+          highlight_text,
+          show_highlight,
+          type,
+          sort_order,
+          created_at,
+          categories (
+            id,
+            name
+          )
+        `
+          )
+          .in("category_id", caasCategoryIds)
+          .eq("is_active", true) // Only active master products
+          .is("deleted_at", null);
+
+        if (caasProductsData && caasProductsData.length > 0) {
+          // Fetch overrides
+          const { data: overridesData } = await supabase
+            .from("organization_product_overrides")
+            .select("*")
+            .eq("organization_id", orgId)
+            .in("product_id", caasProductsData.map(p => p.id));
+            
+          const overrides = overridesData || [];
+
+          const caasProductsList = caasProductsData.map((p: any) => {
+            const override = overrides.find(o => o.product_id === p.id);
+            const catalogLink = (enabledCatalogs as any[]).find(ec => {
+              const cat = Array.isArray(ec.catalogs) ? ec.catalogs[0] : ec.catalogs;
+              return cat?.organization_id === p.organization_id;
+            });
+            const masterOrgName = (() => {
+              const cat = Array.isArray(catalogLink?.catalogs) ? catalogLink?.catalogs[0] : catalogLink?.catalogs;
+              const org = Array.isArray(cat?.organizations) ? cat?.organizations[0] : cat?.organizations;
+              return org?.name || "Catálogo Mestre";
+            })();
+            
+            return {
+              ...p,
+              is_caas: true,
+              override_id: override?.id,
+              caas_owner_name: masterOrgName,
+              // Apply overrides if they exist
+              price: override?.price !== undefined ? override.price : p.price,
+              compare_at_price: override?.compare_at_price !== undefined ? override.compare_at_price : p.compare_at_price,
+              wholesale_price: override?.wholesale_price !== undefined ? override.wholesale_price : p.wholesale_price,
+              is_in_stock: override?.is_in_stock !== undefined ? override.is_in_stock : p.is_in_stock,
+              is_active: override ? override.is_active : false,
+              is_new_from_master: !override,
+              original_master_price: p.price,
+              image_url: override?.image_url || p.image_url,
+              image_urls: override?.image_urls || p.image_urls,
+            };
+          });
+
+          prodList = [...prodList, ...caasProductsList];
+        }
+      }
     }
 
+    setProducts(prodList);
+    setProductUsageCount(prodList.filter(p => !p.is_caas).length); // Don't count CaaS against limit
     setLoadingProducts(false);
   }
 
@@ -888,6 +992,11 @@ export default function CatalogoPage() {
                             <h4 className="font-bold text-base truncate" style={{ color: "var(--dash-text-primary)" }}>
                               {product.name}
                             </h4>
+                            {(product as any).is_new_from_master && (
+                              <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[9px] font-black uppercase tracking-widest border border-yellow-500/20">
+                                NOVO NO MASTER
+                              </span>
+                            )}
                             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
                               {Array.isArray(product.categories)
                                   ? (product.categories[0]?.name ?? "Sem categoria")

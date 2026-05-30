@@ -51,6 +51,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug }: C
   const [copied, setCopied] = useState(false);
   const [whatsappTemplate, setWhatsappTemplate] = useState<string>(initialCatalog.whatsapp_template || "");
   const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">(initialCatalog.type || initialCatalog.catalog_type || "product");
+  const [hidePrices, setHidePrices] = useState<boolean>(initialCatalog.hide_prices || false);
   
   // Customization State for Embed
   const [embedWidth, setEmbedWidth] = useState("100%");
@@ -101,7 +102,8 @@ ${iframeResizerCode}
           name: catalog.name,
           description: catalog.description,
           whatsapp_template: whatsappTemplate,
-          type: catalogType
+          type: catalogType,
+          hide_prices: hidePrices
         })
         .eq("id", catalog.id);
 
@@ -261,6 +263,25 @@ ${iframeResizerCode}
                     </div>
                   </div>
                 </div>
+
+                {/* Seção Ocultação de Preços */}
+                <div className="pt-4 border-t border-[var(--dash-border)]">
+                  <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px]">
+                    <div className="space-y-1 pr-6">
+                      <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Ocultar Preços (Negociação via WhatsApp)</label>
+                      <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
+                        Esconde todos os valores financeiros da vitrine. Os clientes verão apenas o botão do WhatsApp. Ideal para vendas complexas ou vitrines B2B/CaaS.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setHidePrices(!hidePrices)}
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${hidePrices ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${hidePrices ? 'translate-x-2' : '-translate-x-2'}`} />
+                    </button>
+                  </div>
+                </div>
+
               </div>
               
               <div className="flex justify-end pt-4">

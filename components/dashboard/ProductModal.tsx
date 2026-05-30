@@ -25,7 +25,8 @@ import {
   DollarSign,
   Sparkles,
   Loader2,
-  Check
+  Check,
+  BellRing
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { enhanceDescriptionWithAI, fixProductOrthography } from "@/lib/ai-actions";
@@ -66,6 +67,10 @@ interface ProductRow {
   highlight_text?: string | null;
   show_highlight?: boolean | null;
   type?: "product" | "service";
+  is_caas?: boolean;
+  override_id?: string;
+  original_master_price?: number | null;
+  caas_owner_name?: string;
 }
 
 interface Category {
@@ -153,6 +158,7 @@ export default function ProductModal({
   const [enableSku, setEnableSku] = useState(true);
 
   const isEditMode = !!editingProduct;
+  const isCaaS = editingProduct?.is_caas === true;
 
   // Initialize form and load last saved data
   useEffect(() => {
@@ -415,16 +421,39 @@ export default function ProductModal({
           }
         }
         
-        const { error } = await supabase
-          .from("products")
-          .update({ 
-            ...payload, 
-            image_url: finalUrls[0] || null, 
-            image_urls: finalUrls 
-          })
-          .eq("id", productId);
+        if (isCaaS) {
+          // Upsert override
+          const overridePayload = {
+            organization_id: orgId,
+            product_id: productId,
+            price_b2c: payload.price,
+            price_b2b: payload.wholesale_price,
+            compare_at_price: payload.compare_at_price,
+            has_retail: payload.has_retail,
+            has_wholesale: payload.has_wholesale,
+            is_available: payload.is_active,
+            is_in_stock: payload.is_in_stock,
+            image_url: finalUrls[0] || null,
+            image_urls: finalUrls
+          };
           
-        if (error) throw error;
+          const { error } = await supabase
+            .from("organization_product_overrides")
+            .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+            
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("products")
+            .update({ 
+              ...payload, 
+              image_url: finalUrls[0] || null, 
+              image_urls: finalUrls 
+            })
+            .eq("id", productId);
+            
+          if (error) throw error;
+        }
       } else {
         // Create
         const { data: inserted, error: insertError } = await supabase
@@ -541,6 +570,7 @@ export default function ProductModal({
                     <Tag size={16} className="text-emerald-500" /> Categoria
                   </label>
                   <select
+                    disabled={isCaaS}
                     value={selectedCategoryId}
                     onChange={(e) => setSelectedCategoryId(e.target.value)}
                     className="w-full rounded-2xl border px-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500/50"
@@ -555,6 +585,7 @@ export default function ProductModal({
                   <label className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-wider" style={{ color: "var(--dash-text-muted)" }}>Nome</label>
                   <input
                     type="text"
+                    disabled={isCaaS}
                     value={productName}
                     onChange={(e) => setProductName(e.target.value.toUpperCase())}
                     className="w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
@@ -566,7 +597,7 @@ export default function ProductModal({
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-sm font-black uppercase tracking-wider" style={{ color: "var(--dash-text-muted)" }}>SKU / Ref</label>
                     <div 
-                      onClick={() => setEnableSku(!enableSku)}
+                      onClick={() => !isCaaS && setEnableSku(!enableSku)}
                       className="flex items-center gap-2 cursor-pointer group"
                     >
                       <span className="text-[9px] font-bold text-zinc-500 group-hover:text-emerald-500 transition-colors uppercase">Habilitar</span>
@@ -579,7 +610,7 @@ export default function ProductModal({
                     type="text"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    disabled={!enableSku}
+                    disabled={!enableSku || isCaaS}
                     placeholder="Ex: SERV-01, PROD-99..."
                     className={`w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
@@ -613,7 +644,7 @@ export default function ProductModal({
                       if (val.length <= 35) setProductHighlightText(val);
                     }}
                     placeholder={itemType === 'service' ? 'Ex: ATENDIMENTO EM 24H, GARANTIA TOTAL...' : 'Ex: PRODUTO EXCLUSIVO, SEM CNH...'}
-                    disabled={!showHighlight}
+                    disabled={!showHighlight || isCaaS}
                     className={`w-full rounded-2xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
                     style={{ background: showHighlight ? "rgba(16, 185, 129, 0.02)" : "var(--dash-input-bg)", borderColor: showHighlight ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
@@ -685,7 +716,7 @@ export default function ProductModal({
                   <div className="mb-2 flex items-center justify-between">
                     <label className="text-sm font-black uppercase tracking-wider">Descrição</label>
                   </div>
-                  <ReactQuill theme="snow" value={productDescription} onChange={setProductDescription} className="quill-premium" />
+                  <ReactQuill theme="snow" value={productDescription} onChange={setProductDescription} readOnly={isCaaS} className={`quill-premium ${isCaaS ? "opacity-60" : ""}`} />
                 </div>
               </div>
             </div>
@@ -731,7 +762,18 @@ export default function ProductModal({
 
                   <div className="space-y-4">
                     <div className="relative">
-                      <label className="text-[10px] font-black uppercase tracking-widest ml-2 mb-1 block" style={{ color: "var(--dash-text-muted)" }}>Preço de Venda</label>
+                      <div className="flex items-center justify-between ml-2 mb-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest block" style={{ color: "var(--dash-text-muted)" }}>Preço de Venda</label>
+                        {editingProduct?.is_caas && editingProduct.original_master_price != null && (
+                          <button
+                            type="button"
+                            onClick={() => setProductPrice(formatPriceForInput(editingProduct.original_master_price ?? null))}
+                            className="text-[9px] font-bold text-emerald-500 hover:text-emerald-600 uppercase tracking-widest"
+                          >
+                            Usar Preço {editingProduct.caas_owner_name || "Mestre"} (R$ {editingProduct.original_master_price.toFixed(2).replace('.', ',')})
+                          </button>
+                        )}
+                      </div>
                       <span className="absolute left-5 top-[38px] text-xs font-black opacity-40">R$</span>
                       <input 
                         type="text" 
@@ -741,6 +783,17 @@ export default function ProductModal({
                         className="w-full rounded-3xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
                         style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
+                      {editingProduct?.is_caas && editingProduct.original_master_price != null && parsePrice(productPrice) !== editingProduct.original_master_price && (
+                        <div className="mt-2 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center justify-between gap-3">
+                           <div className="flex items-center gap-2 text-[10px]">
+                             <div className="p-1.5 rounded-full bg-blue-100 text-blue-500"><BellRing size={14} /></div>
+                             <span className="text-blue-900/80 font-medium">O preço no Master é <b className="text-blue-700">R$ {editingProduct.original_master_price.toFixed(2).replace('.', ',')}</b></span>
+                           </div>
+                           <button type="button" onClick={() => setProductPrice(formatPriceForInput(editingProduct.original_master_price ?? null))} className="text-[9px] font-black px-3 py-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors uppercase">
+                             Atualizar
+                           </button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="relative opacity-80">

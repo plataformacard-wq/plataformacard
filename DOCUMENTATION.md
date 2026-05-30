@@ -117,6 +117,20 @@ Baseado na restrição de 1GB de Storage e 500MB de Banco de Dados da infraestru
 - **Limite de Produtos e Vendedores:** Ilimitados (ou altos volumes como 1.000 produtos).
 - **Justificativa:** Ticket alto B2B (distribuidoras e grandes marcas) que viabiliza financeiramente qualquer custo de infraestrutura isolada ou tiers pagos do Supabase.
 
+## 12. Arquitetura CaaS e Gestão de Franquias (Overrides)
+O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua como Super Admin (Master) e distribui catálogos para franqueados (Organizações). A diretriz principal é o **sigilo de custos** da MAJ aliado à **autonomia de precificação** do franqueado.
+
+**Pilares Arquiteturais:**
+1. **Blindagem de Preços:** O franqueado acessa a estrutura do produto CaaS (títulos, descrições, fotos base), mas os preços originais da MAJ são omitidos/ocultados pelo sistema.
+2. **Tabela de Overrides (`organization_product_overrides`):** Para ativar um produto CaaS na sua vitrine, o franqueado deve definir sua própria precificação e disponibilidade nesta tabela paralela, sem afetar o produto mestre.
+3. **Exibição Inteligente via Cartão Virtual:** O cliente final acessa apenas o link do Cartão do Vendedor (`/[slug]/catalogo`). O sistema identifica automaticamente se deve exibir o preço de atacado (`price_b2b`) ou varejo (`price_b2c`) com base no `business_model` configurado na Organização do Vendedor.
+4. **Ocultação de Preços (Negociação WA):**
+   - **Individual:** Continua usando as flags de produto (`has_retail` e `has_wholesale` falsas) para focar na negociação via botão do WhatsApp.
+   - **Global:** Configuração `hide_prices` no catálogo oculta financeiramente todos os produtos de uma só vez (compatível com B2B, B2C e CaaS).
+5. **Permissões Híbridas (Gestão):**
+   - **Produtos Próprios:** O franqueado tem CRUD total (pode criar, excluir, duplicar).
+   - **Produtos CaaS (MAJ):** Ação restrita. Bloqueado para exclusão/duplicação. O franqueado manipula apenas seus Overrides (Preços, Status, Ordenação e Fotos Complementares).
+
 - **2026-05-19:**
   - **Overlays e Modais (React Portals):** Refatoração da arquitetura de popups no catálogo e perfil (`Consultor Indisponível`) usando `createPortal` para burlar isolamentos de z-index (Stacking Context).
   - **Tematização Sólida Absoluta:** Remoção de transparências em modais injetando leitura direta do DOM (`document.documentElement.getAttribute('data-theme')`) para cores `#ffffff` e `#18181b`.

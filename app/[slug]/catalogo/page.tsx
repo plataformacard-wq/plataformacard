@@ -49,6 +49,7 @@ type Catalog = {
   catalog_type: string | null;
   whatsapp_template: string | null;
   hide_cta?: boolean | null;
+  hide_prices?: boolean | null;
 };
 
 type Category = {
@@ -218,24 +219,24 @@ export default async function Page(props: PageProps) {
   const trackingProfileId = (profile?.id || orgData?.id) || "";
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
-  let catalogId: string | null = null;
+  let catalogIds: string[] = [];
+  let primaryCatalogId: string | null = null;
 
-  // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
+  // PRIORIDADE 1: Catálogos Master/Próprios habilitados
   if (targetOrgId) {
-    const { data: enabledCatalog } = await supabase
+    const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", targetOrgId)
-      .eq("is_enabled", true)
-      .maybeSingle();
-
-    if (enabledCatalog?.catalog_id) {
-      catalogId = enabledCatalog.catalog_id;
+      .eq("is_enabled", true);
+      
+    if (enabledCatalogs && enabledCatalogs.length > 0) {
+      catalogIds = enabledCatalogs.map(c => c.catalog_id);
     }
   }
 
-  // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja Master)
-  if (!catalogId && profile) {
+  // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja catálogos habilitados na ORG)
+  if (catalogIds.length === 0 && profile) {
     const { data: profileCatalogData } = await supabase
       .from("profile_catalogs")
       .select("organization_catalog_id")
@@ -250,12 +251,14 @@ export default async function Page(props: PageProps) {
         .eq("id", profileCatalogData.organization_catalog_id)
         .maybeSingle();
 
-      catalogId = orgCatalogFromProfile?.catalog_id ?? null;
+      if (orgCatalogFromProfile?.catalog_id) {
+        catalogIds.push(orgCatalogFromProfile.catalog_id);
+      }
     }
   }
 
   // FALLBACK 3: Busca direta por organization_id ou owner_id
-  if (!catalogId && targetOrgId) {
+  if (catalogIds.length === 0 && targetOrgId) {
     const { data: orgCatalog } = await supabase
       .from("catalogs")
       .select("id")
@@ -264,7 +267,7 @@ export default async function Page(props: PageProps) {
       .maybeSingle();
 
     if (orgCatalog?.id) {
-      catalogId = orgCatalog.id;
+      catalogIds.push(orgCatalog.id);
     } else {
       const { data: ownerCatalog } = await supabase
         .from("catalogs")
@@ -274,7 +277,7 @@ export default async function Page(props: PageProps) {
         .maybeSingle();
 
       if (ownerCatalog?.id) {
-        catalogId = ownerCatalog.id;
+        catalogIds.push(ownerCatalog.id);
       } else if (profile?.id) {
         const { data: profileCatalog } = await supabase
           .from("catalogs")
@@ -283,32 +286,41 @@ export default async function Page(props: PageProps) {
           .limit(1)
           .maybeSingle();
 
-        catalogId = profileCatalog?.id ?? null;
+        if (profileCatalog?.id) catalogIds.push(profileCatalog.id);
       }
     }
   }
 
-  if (!catalogId) {
+  if (catalogIds.length === 0) {
     return notFound();
   }
 
-  const { data: catalogData } = await supabase
+  const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
-    .eq("id", catalogId)
-    .maybeSingle();
+    .in("id", catalogIds);
 
-  const catalog = (catalogData as Catalog) || { id: catalogId, name: "Catálogo", description: "" };
+  const catalogs = (catalogsData || []) as Catalog[];
+  const primaryCatalog = catalogs.find(c => c.catalog_type !== 'CaaS') || catalogs[0];
+  if (!primaryCatalog) return notFound();
+
+  const catalog = primaryCatalog;
+  // Se QUALQUER catálogo assinado estiver com hide_prices = true, consideramos verdadeiro.
+  const anyHidePrices = catalogs.some(c => c.hide_prices);
+  if (anyHidePrices) {
+    catalog.hide_prices = true;
+  }
 
   const { data: categoriesData, error: catError } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
-    .eq("catalog_id", catalogId)
+    .in("catalog_id", catalogIds)
     .order("sort_order", { ascending: true });
 
   const categories = (categoriesData ?? []) as Category[];
 
   let products: Product[] = [];
+  let overrides: any[] = [];
 
   if (categories.length > 0) {
     const categoryIds = categories.map(c => c.id);
@@ -323,7 +335,46 @@ export default async function Page(props: PageProps) {
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });
 
-    products = (productsData ?? []) as Product[];
+    const fetchedProducts = (productsData ?? []) as Product[];
+
+    // Fetch overrides se o usuário pertence a uma organização
+    if (targetOrgId) {
+      const { data: overridesData } = await supabase
+        .from("organization_product_overrides")
+        .select("*")
+        .eq("organization_id", targetOrgId)
+        .in("product_id", fetchedProducts.map(p => p.id));
+        
+      overrides = overridesData || [];
+    }
+
+    const caasCatalogIds = catalogs.filter(c => c.catalog_type === 'CaaS').map(c => c.id);
+    const caasCategoryIds = categories.filter(c => caasCatalogIds.includes(c.catalog_id)).map(c => c.id);
+
+    products = fetchedProducts.reduce((acc, product) => {
+      const isCaasProduct = caasCategoryIds.includes(product.category_id);
+      
+      if (isCaasProduct) {
+        const override = overrides.find(o => o.product_id === product.id);
+        if (!override || override.is_available === false) {
+          return acc; // Não renderiza se não tem override ou está desativado pelo franqueado
+        }
+        
+        // Aplica overrides
+        acc.push({
+          ...product,
+          price: override.price_b2c !== null ? override.price_b2c : product.price,
+          wholesale_price: override.price_b2b !== null ? override.price_b2b : product.wholesale_price,
+          has_retail: override.has_retail !== null ? override.has_retail : product.has_retail,
+          has_wholesale: override.has_wholesale !== null ? override.has_wholesale : product.has_wholesale,
+          sort_order: override.sort_order !== null ? override.sort_order : product.sort_order,
+          image_urls: override.extra_images ? [...(product.image_urls || []), ...override.extra_images] : product.image_urls
+        });
+      } else {
+        acc.push(product);
+      }
+      return acc;
+    }, [] as Product[]);
   }
 
   // Triple-check fallback para o WhatsApp
@@ -375,6 +426,8 @@ export default async function Page(props: PageProps) {
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
         logoUrl={(orgData as any)?.logo_url}
         isPureCatalog={(orgData as any)?.business_model === "CaaS"}
+        isB2B={(orgData as any)?.business_model === "B2B"}
+        hidePrices={catalog.hide_prices || false}
         isEmbed={isEmbed}
         accentColor={orgData?.accent_color || (orgData as any)?.accent_color}
         secondaryColor={orgData?.secondary_color || (orgData as any)?.secondary_color}
