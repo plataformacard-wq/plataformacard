@@ -371,18 +371,26 @@ export async function getOrCreateCatalog(orgId: string) {
 
   const adminClient = createAdminClient();
 
-  // 1. Tenta pegar o catálogo vinculado
-  const { data: orgCatalog, error: orgCatalogError } = await adminClient
+  // 1. Tenta pegar todos os catálogos vinculados à organização
+  const { data: linkedCatalogs, error: orgCatalogError } = await adminClient
     .from("organization_catalogs")
-    .select("catalog_id")
-    .eq("organization_id", orgId)
-    .maybeSingle();
+    .select(`
+      catalog_id,
+      catalogs(id, catalog_type, owner_id)
+    `)
+    .eq("organization_id", orgId);
 
   if (orgCatalogError) {
     console.error("getOrCreateCatalog fetch linked error:", orgCatalogError);
   }
 
-  let catId = orgCatalog?.catalog_id;
+  // Filtra em JavaScript para encontrar o catálogo próprio (não-CaaS / não-plataforma)
+  const ownCatalogLink = linkedCatalogs?.find(link => {
+    const cat = link.catalogs ? (Array.isArray(link.catalogs) ? link.catalogs[0] : link.catalogs) : null;
+    return cat && cat.catalog_type !== 'CaaS' && cat.catalog_type !== 'platform';
+  });
+
+  let catId = ownCatalogLink?.catalog_id;
 
   // 2. Se não existe, cria um catálogo padrão
   if (!catId) {

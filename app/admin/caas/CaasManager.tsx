@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Globe, Building2, Check, ChevronDown, Search, ExternalLink, Plus, Package, HelpCircle, Users2, BarChart3, Copy, Edit3, Trash2, X, Save, Settings, MessageSquare, Percent, ToggleLeft, ToggleRight, Loader2, Sparkles, Tag } from "lucide-react";
 import { assignMasterCatalog, createMasterCatalog, deleteMasterCatalog, duplicateMasterCatalog, updateMasterCatalog } from "./actions";
 import CaasAnalytics from "./CaasAnalytics";
@@ -30,6 +31,7 @@ interface CaasManagerProps {
 }
 
 export default function CaasManager({ masterCatalogs, organizations }: CaasManagerProps) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -205,7 +207,12 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
   const handleAssign = async (orgId: string, catalogId: string | null) => {
     setLoadingId(orgId);
     try {
-      await assignMasterCatalog(orgId, catalogId);
+      const res = await assignMasterCatalog(orgId, catalogId);
+      if (res && !res.success) {
+        alert(res.error || "Erro ao atribuir catálogo.");
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error(error);
       alert("Erro ao atribuir catálogo.");

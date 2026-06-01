@@ -178,6 +178,8 @@ export default function CatalogoPage() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [activeProductTab, setActiveProductTab] = useState<"my_products" | "caas_products">("my_products");
+  const [businessModel, setBusinessModel] = useState<string | null>(null);
+  const [hasMasterCatalog, setHasMasterCatalog] = useState<boolean>(true);
 
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -272,7 +274,7 @@ export default function CatalogoPage() {
     if (activeOrgId) {
       const { data: org } = await supabase
         .from("organizations")
-        .select("plan_id, plans(*)")
+        .select("plan_id, business_model, plans(*)")
         .eq("id", activeOrgId)
         .maybeSingle();
       
@@ -280,6 +282,9 @@ export default function CatalogoPage() {
       const plan = Array.isArray(orgData?.plans) ? orgData.plans[0] : orgData?.plans;
       if (plan) {
         setProductLimit(plan.max_products || 20);
+      }
+      if (orgData?.business_model) {
+        setBusinessModel(orgData.business_model);
       }
     }
 
@@ -432,9 +437,16 @@ export default function CatalogoPage() {
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
-      .select("catalog_id, catalogs(name, organization_id, organizations(name))")
+      .select("catalog_id, catalogs(name, organization_id, catalog_type, organizations(name))")
       .eq("organization_id", orgId)
       .eq("is_enabled", true);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hasPlatformCatalog = enabledCatalogs?.some((c: any) => {
+      const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+      return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+    });
+    setHasMasterCatalog(!!hasPlatformCatalog);
 
     if (enabledCatalogs && enabledCatalogs.length > 0) {
       const caasCatalogIds = enabledCatalogs.map(c => c.catalog_id);
@@ -512,11 +524,15 @@ export default function CatalogoPage() {
               override_id: override?.id,
               caas_owner_name: masterOrgName,
               // Apply overrides if they exist
-              price: override?.price !== undefined ? override.price : p.price,
-              compare_at_price: override?.compare_at_price !== undefined ? override.compare_at_price : p.compare_at_price,
-              wholesale_price: override?.wholesale_price !== undefined ? override.wholesale_price : p.wholesale_price,
-              is_in_stock: override?.is_in_stock !== undefined ? override.is_in_stock : p.is_in_stock,
-              is_active: override ? override.is_active : false,
+              price: (override?.price_b2c !== undefined && override?.price_b2c !== null) ? override.price_b2c : null,
+              compare_at_price: (override?.compare_at_price !== undefined && override?.compare_at_price !== null) ? override.compare_at_price : null,
+              wholesale_price: (override?.price_b2b !== undefined && override?.price_b2b !== null) ? override.price_b2b : null,
+              sku: null,
+              has_retail: (override?.has_retail !== undefined && override?.has_retail !== null) ? override.has_retail : p.has_retail,
+              has_wholesale: (override?.has_wholesale !== undefined && override?.has_wholesale !== null) ? override.has_wholesale : p.has_wholesale,
+              sort_order: (override?.sort_order !== undefined && override?.sort_order !== null) ? override.sort_order : p.sort_order,
+              is_in_stock: (override?.is_in_stock !== undefined && override?.is_in_stock !== null) ? override.is_in_stock : p.is_in_stock,
+              is_active: override ? (override.is_available ?? false) : false,
               is_new_from_master: !override,
               original_master_price: p.price,
               image_url: override?.image_url || p.image_url,
@@ -604,11 +620,39 @@ export default function CatalogoPage() {
 
     setSavingOrder(true);
     const supabase = createClient();
-    await Promise.all(
-      reordered.map((p, i) =>
-        supabase.from("products").update({ sort_order: i }).eq("id", p.id)
-      )
-    );
+    try {
+      await Promise.all(
+        reordered.map((p, i) => {
+          if (p.is_caas) {
+            if (!orgId) return Promise.resolve();
+            const overridePayload = {
+              organization_id: orgId,
+              product_id: p.id,
+              price_b2c: p.price,
+              price_b2b: p.wholesale_price,
+              compare_at_price: p.compare_at_price,
+              has_retail: p.has_retail,
+              has_wholesale: p.has_wholesale,
+              is_available: p.is_active,
+              is_in_stock: p.is_in_stock,
+              image_url: p.image_url || null,
+              image_urls: p.image_urls || [],
+              sort_order: i
+            };
+            return supabase
+              .from("organization_product_overrides")
+              .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+          } else {
+            return supabase
+              .from("products")
+              .update({ sort_order: i })
+              .eq("id", p.id);
+          }
+        })
+      );
+    } catch (err) {
+      console.error("Erro ao reordenar produtos via drop:", err);
+    }
     setSavingOrder(false);
   }
 
@@ -653,6 +697,36 @@ export default function CatalogoPage() {
 
   const performStatusUpdate = async (product: ProductRow, field: 'is_active' | 'is_in_stock', newValue: boolean) => {
     const supabase = createClient();
+
+    if (product.is_caas) {
+      if (!orgId) return;
+      const overridePayload = {
+        organization_id: orgId,
+        product_id: product.id,
+        price_b2c: product.price,
+        price_b2b: product.wholesale_price,
+        compare_at_price: product.compare_at_price,
+        has_retail: product.has_retail,
+        has_wholesale: product.has_wholesale,
+        is_available: field === 'is_active' ? newValue : (product.is_active ?? true),
+        is_in_stock: field === 'is_in_stock' ? newValue : (product.is_in_stock ?? true),
+        image_url: product.image_url || null,
+        image_urls: product.image_urls || []
+      };
+
+      const { error } = await supabase
+        .from("organization_product_overrides")
+        .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+
+      if (error) {
+        console.error(`Erro ao salvar override de ${field}:`, error.message);
+        return;
+      }
+
+      if (orgId) fetchProducts(orgId);
+      return;
+    }
+
     const { error } = await supabase
       .from("products")
       .update({ [field]: newValue })
@@ -687,24 +761,36 @@ export default function CatalogoPage() {
 
     // Persiste no banco
     const supabase = createClient();
-    const updates = newOrder.map((p, index) => ({
-      id: p.id,
-      sort_order: index
-    }));
-
-    // Atualização em lote via RPC ou múltiplas chamadas (Supabase update não suporta bulk update com IDs diferentes nativamente sem RPC customizado)
-    // Para simplificar e garantir funcionamento sem RPC novo, fazemos uma por uma ou um promise all
-    // No entanto, para performance em listas longas, o ideal é um RPC. 
-    // Como a lista costuma ser pequena (<100), faremos atualizações individuais controladas
     
     try {
       await Promise.all(
-        newOrder.map((p, index) => 
-          supabase
-            .from("products")
-            .update({ sort_order: index })
-            .eq("id", p.id)
-        )
+        newOrder.map((p, index) => {
+          if (p.is_caas) {
+            if (!orgId) return Promise.resolve();
+            const overridePayload = {
+              organization_id: orgId,
+              product_id: p.id,
+              price_b2c: p.price,
+              price_b2b: p.wholesale_price,
+              compare_at_price: p.compare_at_price,
+              has_retail: p.has_retail,
+              has_wholesale: p.has_wholesale,
+              is_available: p.is_active,
+              is_in_stock: p.is_in_stock,
+              image_url: p.image_url || null,
+              image_urls: p.image_urls || [],
+              sort_order: index
+            };
+            return supabase
+              .from("organization_product_overrides")
+              .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+          } else {
+            return supabase
+              .from("products")
+              .update({ sort_order: index })
+              .eq("id", p.id);
+          }
+        })
       );
     } catch (err) {
       console.error("Erro ao salvar ordem dos produtos:", err);
@@ -753,6 +839,28 @@ export default function CatalogoPage() {
 
   return (
     <div className="flex flex-col gap-10 pb-20">
+      {businessModel === 'CaaS' && !hasMasterCatalog && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-[32px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+              <AlertCircle size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-amber-800 dark:text-amber-400">
+                Catálogo Master Desvinculado
+              </h3>
+              <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed max-w-2xl">
+                O catálogo master (CaaS) foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header com Título e Limite */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -1091,14 +1199,16 @@ export default function CatalogoPage() {
                               </button>
                             )}
 
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
-                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
-                              title="Duplicar"
-                            >
-                              <Copy size={14} />
-                            </button>
+                            {!product.is_caas && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
+                                className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                title="Duplicar"
+                              >
+                                <Copy size={14} />
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleOpenEdit(product); }}
@@ -1107,14 +1217,16 @@ export default function CatalogoPage() {
                             >
                               <EditIcon size={14} />
                             </button>
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }}
-                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
-                              title="Excluir"
-                            >
-                              <TrashIcon size={14} />
-                            </button>
+                            {!product.is_caas && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }}
+                                className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
+                                title="Excluir"
+                              >
+                                <TrashIcon size={14} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

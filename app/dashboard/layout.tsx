@@ -41,24 +41,33 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user;
+  } catch (e) {
+    redirect("/entrar");
+  }
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("user_id", user.id)
-      .maybeSingle();
+  if (!user) {
+    redirect("/entrar");
+  }
 
-    if (profile?.role === "superadmin") {
-      // Se for Super Admin, só permite acesso ao /dashboard em Shadow Mode (simulação de cliente)
-      const cookieStore = await cookies();
-      const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-      if (!shadowOrgId) {
-        // Sem cookie de simulação → redireciona para o QG do Admin
-        redirect("/admin");
-      }
+  if (profile?.role === "superadmin") {
+    // Se for Super Admin, só permite acesso ao /dashboard em Shadow Mode (simulação de cliente)
+    const cookieStore = await cookies();
+    const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+    if (!shadowOrgId) {
+      // Sem cookie de simulação → redireciona para o QG do Admin
+      redirect("/admin");
     }
   }
 

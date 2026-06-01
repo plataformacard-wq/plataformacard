@@ -25,12 +25,16 @@ export default async function CaasAdminPage() {
   // 3. Fetch Assignments
   const { data: assignments } = await admin
     .from("organization_catalogs")
-    .select("organization_id, catalog_id")
+    .select("organization_id, catalog_id, catalogs(catalog_type)")
     .eq("is_enabled", true);
 
-  // Map assignments to organizations
+  // Map assignments to organizations, ensuring we match only the master/platform catalog
   const orgsWithAssignments = (organizations || []).map(org => {
-    const assignment = assignments?.find(a => a.organization_id === org.id);
+    const assignment = assignments?.find(a => {
+      if (a.organization_id !== org.id) return false;
+      const cat = Array.isArray(a.catalogs) ? a.catalogs[0] : a.catalogs;
+      return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+    });
     return {
       ...org,
       assigned_catalog_id: assignment?.catalog_id || null

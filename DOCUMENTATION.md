@@ -131,6 +131,14 @@ O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua c
    - **Produtos Próprios:** O franqueado tem CRUD total (pode criar, excluir, duplicar).
    - **Produtos CaaS (MAJ):** Ação restrita. Bloqueado para exclusão/duplicação. O franqueado manipula apenas seus Overrides (Preços, Status, Ordenação e Fotos Complementares).
 
+6. **Associação e Desvinculação Segura (Resiliência DB/UI):** Ao atribuir ou remover um catálogo master (CaaS), o sistema interage exclusivamente com registros do tipo `'platform'` ou `'CaaS'`. Isso impede a remoção inadvertida do catálogo próprio e produtos locais do franqueado. O mapeamento no Super Admin foi ajustado para isolar o catálogo master e o seletor utiliza atualização de rotas (`router.refresh()`) para refletir a persistência imediatamente.
+7. **Notificação de Ausência de Catálogo:** Se uma organização for do tipo `CaaS` (modelo franqueado) e estiver sem nenhum catálogo master vinculado, um banner informativo e elegante é exibido no topo do painel do franqueado instruindo a vinculação.
+
+- **2026-06-01:**
+  - **Correção da Desvinculação CaaS:** Ajustada a Server Action `assignMasterCatalog` para preservar o vínculo do catálogo próprio da franquia ao remover ou atualizar o catálogo master.
+  - **Auto-Cura de Catálogo Próprio:** Implementada re-ativação automática de catálogos próprios que porventura tenham sido desativados no banco de dados.
+  - **Dropdown do Super Admin:** Corrigido o mapeamento do seletor de CaaS no Super Admin para ignorar o catálogo próprio do franqueado, resolvendo o problema de seleções que "não ficavam" gravadas visualmente.
+  - **Banner de Alerta CaaS:** Adicionado banner interativo no painel do franqueado se a organização for CaaS mas não possuir catálogo master ativo.
 - **2026-05-19:**
   - **Overlays e Modais (React Portals):** Refatoração da arquitetura de popups no catálogo e perfil (`Consultor Indisponível`) usando `createPortal` para burlar isolamentos de z-index (Stacking Context).
   - **Tematização Sólida Absoluta:** Remoção de transparências em modais injetando leitura direta do DOM (`document.documentElement.getAttribute('data-theme')`) para cores `#ffffff` e `#18181b`.
@@ -144,7 +152,7 @@ O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua c
   - Auditoria completa de cores (Pre-Git Scan) removendo hexadecimais fixos e classes `zinc` residuais.
 
 ---
-*Última atualização: 2026-05-19*
+*Última atualização: 2026-06-01*
 
 > [!IMPORTANT]
-> Para acompanhar o progresso técnico e tarefas em aberto, consulte o arquivo [PENDENCIAS.md](file:///c:/Users/Start/plataformacard/PENDENCIAS.md).
+> Para acompanhar o progresso técnico e tarefas em aberto, consulte o arquivo [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/PlataformaCard/PENDENCIAS.md).

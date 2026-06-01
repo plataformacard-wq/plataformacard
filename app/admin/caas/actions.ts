@@ -3,28 +3,98 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+async function cleanupCaasOverrides(supabase: any, orgId: string) {
+  // Find all catalogs of type 'platform'
+  const { data: platformCatalogs } = await supabase
+    .from("catalogs")
+    .select("id")
+    .eq("catalog_type", "platform");
+  
+  if (platformCatalogs && platformCatalogs.length > 0) {
+    const catalogIds = platformCatalogs.map((c: any) => c.id);
+    
+    // Find all categories in these catalogs
+    const { data: categories } = await supabase
+      .from("categories")
+      .select("id")
+      .in("catalog_id", catalogIds);
+      
+    if (categories && categories.length > 0) {
+      const categoryIds = categories.map((c: any) => c.id);
+      
+      // Find all products in these categories
+      const { data: products } = await supabase
+        .from("products")
+        .select("id")
+        .in("category_id", categoryIds);
+        
+      if (products && products.length > 0) {
+        const productIds = products.map((p: any) => p.id);
+        
+        // Delete overrides for these products for this organization
+        await supabase
+          .from("organization_product_overrides")
+          .delete()
+          .eq("organization_id", orgId)
+          .in("product_id", productIds);
+      }
+    }
+  }
+}
+
 export async function assignMasterCatalog(orgId: string, catalogId: string | null) {
   const supabase = createAdminClient();
 
-  if (!catalogId) {
-    // Se catalogId for null, desativamos o catálogo master (removemos o vínculo platform)
+  // Limpa overrides de catálogo CaaS antigo para evitar herança de preço incorreta/antiga
+  try {
+    await cleanupCaasOverrides(supabase, orgId);
+  } catch (err) {
+    console.error("Error in cleanupCaasOverrides:", err);
+  }
+
+  // 1. Busca os vínculos de catálogo para identificar o catálogo mestre e o próprio
+  const { data: linked } = await supabase
+    .from("organization_catalogs")
+    .select("catalog_id, catalogs(catalog_type)")
+    .eq("organization_id", orgId);
+
+  const platformCatalogIds = linked
+    ?.filter((item: any) => {
+      const cat = Array.isArray(item.catalogs) ? item.catalogs[0] : item.catalogs;
+      return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+    })
+    .map((item: any) => item.catalog_id);
+
+  const ownCatalogLink = linked?.find((item: any) => {
+    const cat = Array.isArray(item.catalogs) ? item.catalogs[0] : item.catalogs;
+    return cat && cat.catalog_type !== 'platform' && cat.catalog_type !== 'CaaS';
+  });
+
+  // 2. Garante que o catálogo próprio esteja ativo (se existir) para corrigir desativações antigas
+  if (ownCatalogLink) {
+    await supabase
+      .from("organization_catalogs")
+      .update({ is_enabled: true })
+      .eq("organization_id", orgId)
+      .eq("catalog_id", ownCatalogLink.catalog_id);
+  }
+
+  // 3. Remove os vínculos de catálogo master antigos
+  if (platformCatalogIds && platformCatalogIds.length > 0) {
     const { error } = await supabase
       .from("organization_catalogs")
       .delete()
-      .match({ organization_id: orgId }); // Simplificado para este exemplo, pode precisar de mais filtros
-    
-    if (error) {
-      console.error("assignMasterCatalog delete error:", error);
-      return { success: false, error: "Falha ao remover catálogo." };
-    }
-  } else {
-    // Primeiro, desativamos catálogos anteriores da org para evitar conflitos (opcional dependendo da regra)
-    await supabase
-      .from("organization_catalogs")
-      .update({ is_enabled: false })
-      .eq("organization_id", orgId);
+      .eq("organization_id", orgId)
+      .in("catalog_id", platformCatalogIds);
 
-    // Inserimos ou atualizamos o vínculo
+    if (error) {
+      console.error("assignMasterCatalog delete platform error:", error);
+      return { success: false, error: "Falha ao remover catálogo master anterior." };
+    }
+  }
+
+  // 4. Se catalogId foi fornecido (novo catálogo master), insere/atualiza o vínculo
+  if (catalogId) {
     const { error } = await supabase
       .from("organization_catalogs")
       .upsert({

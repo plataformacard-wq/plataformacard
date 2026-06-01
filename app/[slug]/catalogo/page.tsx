@@ -301,7 +301,7 @@ export default async function Page(props: PageProps) {
     .in("id", catalogIds);
 
   const catalogs = (catalogsData || []) as Catalog[];
-  const primaryCatalog = catalogs.find(c => c.catalog_type !== 'CaaS') || catalogs[0];
+  const primaryCatalog = catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform') || catalogs[0];
   if (!primaryCatalog) return notFound();
 
   const catalog = primaryCatalog;
@@ -348,7 +348,7 @@ export default async function Page(props: PageProps) {
       overrides = overridesData || [];
     }
 
-    const caasCatalogIds = catalogs.filter(c => c.catalog_type === 'CaaS').map(c => c.id);
+    const caasCatalogIds = catalogs.filter(c => c.catalog_type === 'CaaS' || c.catalog_type === 'platform').map(c => c.id);
     const caasCategoryIds = categories.filter(c => caasCatalogIds.includes(c.catalog_id)).map(c => c.id);
 
     products = fetchedProducts.reduce((acc, product) => {
@@ -363,12 +363,15 @@ export default async function Page(props: PageProps) {
         // Aplica overrides
         acc.push({
           ...product,
-          price: override.price_b2c !== null ? override.price_b2c : product.price,
-          wholesale_price: override.price_b2b !== null ? override.price_b2b : product.wholesale_price,
+          price: (override.price_b2c !== null && override.price_b2c !== undefined) ? override.price_b2c : null,
+          wholesale_price: (override.price_b2b !== null && override.price_b2b !== undefined) ? override.price_b2b : null,
+          compare_at_price: (override.compare_at_price !== null && override.compare_at_price !== undefined) ? override.compare_at_price : null,
           has_retail: override.has_retail !== null ? override.has_retail : product.has_retail,
           has_wholesale: override.has_wholesale !== null ? override.has_wholesale : product.has_wholesale,
           sort_order: override.sort_order !== null ? override.sort_order : product.sort_order,
-          image_urls: override.extra_images ? [...(product.image_urls || []), ...override.extra_images] : product.image_urls
+          image_url: override.image_url !== null && override.image_url !== undefined ? override.image_url : product.image_url,
+          image_urls: override.image_urls !== null && override.image_urls !== undefined && override.image_urls.length > 0 ? override.image_urls : product.image_urls,
+          sku: null
         });
       } else {
         acc.push(product);

@@ -426,7 +426,7 @@ export default function ProductModal({
           const overridePayload = {
             organization_id: orgId,
             product_id: productId,
-            price_b2c: payload.price,
+            price_b2c: parsedPrice,
             price_b2b: payload.wholesale_price,
             compare_at_price: payload.compare_at_price,
             has_retail: payload.has_retail,

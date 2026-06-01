@@ -49,6 +49,8 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [hasShadowCookie, setHasShadowCookie] = useState(false);
   const [planOverages, setPlanOverages] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
   const [currentPlanName, setCurrentPlanName] = useState("");
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     // Tema
@@ -69,13 +71,37 @@ export function PanelLayout({ children }: PanelLayoutProps) {
 
     async function loadData() {
       try {
-        // Usamos getSession primeiro por ser mais rápido no cliente
-        const { data: { session } } = await supabase.auth.getSession();
-        let user = session?.user;
+        let session = null;
+        let user = null;
+        
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) {
+            console.warn("Sessão inválida, limpando cookies e redirecionando...", error.message);
+            await supabase.auth.signOut().catch(() => {});
+            router.push("/entrar");
+            return;
+          }
+          session = data?.session;
+          user = session?.user;
+        } catch (e) {
+          console.warn("Erro ao obter sessão:", e);
+        }
         
         if (!user) {
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          user = authUser || undefined;
+          try {
+            const { data, error } = await supabase.auth.getUser();
+            if (error) {
+              console.warn("Usuário inválido, limpando cookies e redirecionando...", error.message);
+              await supabase.auth.signOut().catch(() => {});
+              router.push("/entrar");
+              return;
+            }
+            user = data?.user || undefined;
+          } catch (e) {
+            console.warn("Erro ao obter usuário:", e);
+          }
+          
           if (!user) {
             router.push("/entrar");
             return;
@@ -187,6 +213,30 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           });
         } catch (cErr) {
           console.error("Erro ao buscar configs:", cErr);
+        }
+
+        // --- FETCH MASTER CATALOG NOTIFICATIONS ---
+        if (userRole !== "superadmin") {
+          try {
+            const { data: notifs, error: notifErr } = await supabase
+              .from("master_catalog_notifications")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .limit(10);
+            
+            if (notifs && notifs.length > 0 && !notifErr) {
+              const lastSeen = localStorage.getItem("last_seen_notification_time");
+              const latestTime = new Date(notifs[0].created_at).getTime();
+              
+              const hasNew = !lastSeen || latestTime > parseInt(lastSeen);
+              if (hasNew) {
+                setNotifications(notifs);
+                setShowNotificationModal(true);
+              }
+            }
+          } catch (errNotif) {
+            console.warn("Erro ao buscar notificações do catálogo master:", errNotif);
+          }
         }
 
         // --- REALTIME LEADS LISTENER ---
@@ -360,6 +410,100 @@ export function PanelLayout({ children }: PanelLayoutProps) {
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Notificações CaaS */}
+      <AnimatePresence>
+        {showNotificationModal && notifications.length > 0 && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-lg rounded-[32px] border p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[80vh] overflow-hidden"
+              style={{
+                background: "var(--dash-surface)",
+                borderColor: "var(--dash-border)",
+                color: "var(--dash-text-primary)",
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-6 border-b" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+                    <Bell className="animate-bounce" size={20} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-black uppercase tracking-tight">Atualizações do Catálogo</h3>
+                    <p className="text-[9px] font-black text-[var(--dash-text-muted)] uppercase tracking-widest">Estoque mestre atualizado</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const latestTime = new Date(notifications[0].created_at).getTime();
+                    localStorage.setItem("last_seen_notification_time", String(latestTime));
+                    setShowNotificationModal(false);
+                  }}
+                  className="rounded-xl p-2 hover:bg-[var(--dash-hover-bg)] transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto py-6 space-y-4 pr-1 scrollbar-thin text-left">
+                {notifications.map((n) => {
+                  const dateStr = new Date(n.created_at).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                  return (
+                    <div
+                      key={n.id}
+                      className="p-4 rounded-2xl border transition-all hover:bg-[var(--dash-hover-bg)] flex items-start gap-4"
+                      style={{ borderColor: "var(--dash-border)" }}
+                    >
+                      <div className="flex flex-col gap-1 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                            n.action_type === 'INSERT' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                            n.action_type === 'UPDATE' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                            'bg-red-500/10 text-red-500 border border-red-500/20'
+                          }`}>
+                            {n.action_type === 'INSERT' ? 'Novo Produto' :
+                             n.action_type === 'UPDATE' ? 'Produto Atualizado' :
+                             'Produto Removido'}
+                          </span>
+                          <span className="text-[9px] text-[var(--dash-text-muted)] font-medium">{dateStr}</span>
+                        </div>
+                        <p className="text-sm font-black mt-1.5 leading-tight">{n.product_name}</p>
+                        <p className="text-[9px] text-[var(--dash-text-muted)] font-bold uppercase tracking-wider mt-0.5">
+                          Origem: <span className="text-purple-500 font-black">{n.catalog_name}</span>
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div className="pt-6 border-t flex justify-end" style={{ borderColor: "var(--dash-border)" }}>
+                <button
+                  onClick={() => {
+                    const latestTime = new Date(notifications[0].created_at).getTime();
+                    localStorage.setItem("last_seen_notification_time", String(latestTime));
+                    setShowNotificationModal(false);
+                  }}
+                  className="px-8 py-3.5 bg-purple-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-purple-600 transition-all shadow-lg shadow-purple-500/20 active:scale-95"
+                >
+                  Entendi, fechar
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
