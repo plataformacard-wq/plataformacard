@@ -1,12 +1,14 @@
 "use server";
-
+ 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-
+import { verifySuperAdmin } from "@/lib/utils/auth-validation";
+ 
 export async function updateSystemConfig(key: string, value: string) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
-
+ 
   const { error } = await supabase
     .from("platform_config")
     .upsert({ 
@@ -14,12 +16,12 @@ export async function updateSystemConfig(key: string, value: string) {
       value,
       updated_at: new Date().toISOString()
     });
-
+ 
   if (error) {
     console.error(`Erro ao atualizar config [${key}]:`, error);
     return { error: `Falha ao salvar config ${key}.` };
   }
-
+ 
   // Se mudar o aviso, geramos um novo ID de versão para forçar a exibição para todos
   if (key === "system_notice_text") {
     await supabase.from("platform_config").upsert({
@@ -28,30 +30,33 @@ export async function updateSystemConfig(key: string, value: string) {
       updated_at: new Date().toISOString()
     });
   }
-
+ 
   revalidatePath("/admin");
   revalidatePath("/dashboard");
   revalidatePath("/cadastro");
   
   return { success: true };
 }
-
+ 
 export async function updateInviteCode(newCode: string) {
+  await verifySuperAdmin();
   return updateSystemConfig("beta_invite_code", newCode.trim().toUpperCase());
 }
-
+ 
 export async function getInviteCode() {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("platform_config")
     .select("value")
     .eq("key", "beta_invite_code")
     .maybeSingle();
-
+ 
   return data?.value || "MAJ2024";
 }
-
+ 
 export async function getFullPlatformConfig() {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
   const { data } = await supabase.from("platform_config").select("key, value");
   
@@ -62,25 +67,27 @@ export async function getFullPlatformConfig() {
   
   return config;
 }
-
+ 
 export async function updateOrganizationPlan(orgId: string, planId: string) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
-
+ 
   const { error } = await supabase
     .from("organizations")
     .update({ plan_id: planId })
     .eq("id", orgId);
-
+ 
   if (error) {
     console.error("Erro ao atualizar plano da org:", error);
     return { error: "Falha ao atualizar o plano." };
   }
-
+ 
   revalidatePath("/admin/clientes");
   return { success: true };
 }
-
+ 
 export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C') {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
   
   try {
@@ -88,9 +95,9 @@ export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C
       .from('organizations')
       .update({ business_model: model })
       .eq('id', orgId);
-
+ 
     if (error) throw error;
-
+ 
     // Também atualizamos o role de todos os admins dessa org para manter sincronia
     const newRole = model === 'B2B' ? 'b2b_admin' : 'b2c_admin';
     await supabase
@@ -98,7 +105,7 @@ export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C
       .update({ role: newRole })
       .eq('organization_id', orgId)
       .in('role', ['b2b_admin', 'b2c_admin', 'admin']);
-
+ 
     // revalidatePath("/admin"); // Removido para evitar race condition no modal
     return { success: true };
   } catch (error: any) {
@@ -288,18 +295,18 @@ export async function getOrganizationSellers(orgId: string, limit: number = 5) {
 }
 
 export async function startShadowAccess(orgId: string) {
+  await verifySuperAdmin();
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   
   // Apenas Super Admins podem usar shadow access
-  // Nota: A validação final ocorre no PanelLayout ou via RLS se necessário
   cookieStore.set("shadow_org_id", orgId, { 
     path: "/", 
     maxAge: 3600, // 1 hora de simulação
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production'
   });
-
+ 
   return { success: true };
 }
 

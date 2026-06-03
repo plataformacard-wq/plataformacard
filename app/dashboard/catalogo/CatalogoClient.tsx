@@ -180,6 +180,7 @@ export default function CatalogoPage() {
   const [activeProductTab, setActiveProductTab] = useState<"my_products" | "caas_products">("my_products");
   const [businessModel, setBusinessModel] = useState<string | null>(null);
   const [hasMasterCatalog, setHasMasterCatalog] = useState<boolean>(true);
+  const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
 
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -437,19 +438,29 @@ export default function CatalogoPage() {
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
-      .select("catalog_id, catalogs(name, organization_id, catalog_type, organizations(name))")
-      .eq("organization_id", orgId)
-      .eq("is_enabled", true);
+      .select("catalog_id, is_enabled, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
+      .eq("organization_id", orgId);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hasPlatformCatalog = enabledCatalogs?.some((c: any) => {
       const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
-      return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+      return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS') && !cat?.deleted_at;
     });
     setHasMasterCatalog(!!hasPlatformCatalog);
 
+    const hasAnyPlatformCatalog = enabledCatalogs?.some((c: any) => {
+      const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+      return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+    });
+    setShowUnlinkedWarning(!hasPlatformCatalog && !!hasAnyPlatformCatalog);
+
     if (enabledCatalogs && enabledCatalogs.length > 0) {
-      const caasCatalogIds = enabledCatalogs.map(c => c.catalog_id);
+      const caasCatalogIds = enabledCatalogs
+        .filter((c: any) => {
+          const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+          return c.is_enabled && cat && !cat.deleted_at;
+        })
+        .map(c => c.catalog_id);
       
       const { data: caasCategories } = await supabase
         .from("categories")
@@ -839,7 +850,7 @@ export default function CatalogoPage() {
 
   return (
     <div className="flex flex-col gap-10 pb-20">
-      {businessModel === 'CaaS' && !hasMasterCatalog && (
+      {showUnlinkedWarning && (
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

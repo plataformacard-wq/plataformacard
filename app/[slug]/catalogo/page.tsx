@@ -292,17 +292,43 @@ export default async function Page(props: PageProps) {
   }
 
   if (catalogIds.length === 0) {
-    return notFound();
+    return (
+      <ConsultantsBridge
+        profile={profile || { id: orgData?.id, organization_id: orgData?.id }}
+        orgName={orgData?.name || null}
+        orgLogo={(orgData as any)?.logo_url || null}
+        orgSlug={orgData?.slug || profile?.organization_id || ""}
+        accentColor={orgData?.accent_color || "#25D366"}
+        secondaryColor={orgData?.secondary_color || "#128C7E"}
+        reason="unavailable"
+      />
+    );
   }
 
   const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
-    .in("id", catalogIds);
+    .in("id", catalogIds)
+    .is("deleted_at", null);
 
   const catalogs = (catalogsData || []) as Catalog[];
   const primaryCatalog = catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform') || catalogs[0];
-  if (!primaryCatalog) return notFound();
+  if (!primaryCatalog) {
+    return (
+      <ConsultantsBridge
+        profile={profile || { id: orgData?.id, organization_id: orgData?.id }}
+        orgName={orgData?.name || null}
+        orgLogo={(orgData as any)?.logo_url || null}
+        orgSlug={orgData?.slug || profile?.organization_id || ""}
+        accentColor={orgData?.accent_color || "#25D366"}
+        secondaryColor={orgData?.secondary_color || "#128C7E"}
+        reason="unavailable"
+      />
+    );
+  }
+
+  // Filtra catalogIds para conter apenas os IDs dos catálogos que não estão na lixeira
+  catalogIds = catalogs.map(c => c.id);
 
   const catalog = primaryCatalog;
   // Se QUALQUER catálogo assinado estiver com hide_prices = true, consideramos verdadeiro.

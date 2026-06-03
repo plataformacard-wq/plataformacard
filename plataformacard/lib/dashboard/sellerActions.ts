@@ -1,7 +1,8 @@
 "use server";
-
+ 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { verifyOrgAdmin } from "@/lib/utils/auth-validation";
 
 export async function createSeller(formData: FormData) {
   const fullName = formData.get("fullName") as string;
@@ -129,29 +130,82 @@ export async function updateSeller(sellerId: string, profileData: any) {
     const supabaseServer = await createClient();
     const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
     if (!adminUser) return { error: "Não autenticado" };
-
+ 
     const adminAuthClient = createAdminClient();
+ 
+    // 1. Busca perfil do vendedor para identificar sua organização
+    const { data: sellerProfile, error: profileErr } = await adminAuthClient
+      .from("profiles")
+      .select("organization_id, role")
+      .eq("id", sellerId)
+      .maybeSingle();
+ 
+    if (profileErr || !sellerProfile) {
+      return { error: "Vendedor não encontrado." };
+    }
+ 
+    // 2. Valida se o usuário tem privilégios na organização do vendedor
+    await verifyOrgAdmin(sellerProfile.organization_id);
+ 
+    // 3. Sanitização: Apenas Super Admin pode alterar a organização ou promover para superadmin
+    const { data: callerProfile } = await adminAuthClient
+      .from("profiles")
+      .select("role")
+      .eq("id", adminUser.id)
+      .maybeSingle();
+ 
+    const isSuperAdmin = callerProfile?.role === "superadmin" || callerProfile?.role === "super_admin";
+    if (!isSuperAdmin) {
+      delete profileData.organization_id;
+      if (profileData.role && (profileData.role === "superadmin" || profileData.role === "super_admin")) {
+        delete profileData.role;
+      }
+    }
     
     const { error } = await adminAuthClient
       .from("profiles")
       .update(profileData)
       .eq("id", sellerId);
-
+ 
     if (error) return { error: error.message };
     return { success: true };
   } catch (e: any) {
     return { error: e.message };
   }
 }
-
+ 
 export async function toggleSellerStatus(sellerId: string, isAvailable: boolean) {
   try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+ 
     const adminAuthClient = createAdminClient();
+ 
+    // 1. Busca perfil do vendedor
+    const { data: sellerProfile, error: profileErr } = await adminAuthClient
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", sellerId)
+      .maybeSingle();
+ 
+    if (profileErr || !sellerProfile) {
+      return { error: "Vendedor não encontrado." };
+    }
+ 
+    // 2. Se não for o próprio vendedor, exige permissão de admin na organização dele
+    if (adminUser.id !== sellerId) {
+      await verifyOrgAdmin(sellerProfile.organization_id);
+    }
+ 
     const { error } = await adminAuthClient
       .from("profiles")
-      .update({ is_available: isAvailable })
+      .update({ 
+        is_available: isAvailable,
+        status: isAvailable ? 'active' : 'paused'
+      })
       .eq("id", sellerId);
-
+ 
     if (error) return { error: error.message };
     return { success: true };
   } catch (e: any) {

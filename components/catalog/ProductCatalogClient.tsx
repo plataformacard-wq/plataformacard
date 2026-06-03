@@ -637,6 +637,38 @@ export default function ProductCatalogClient({
             </div>
           )}
           <LayoutGroup>
+            {filteredCategories.length === 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center text-center p-12 sm:p-20 rounded-[32px] border border-dashed border-[var(--public-card-border)] bg-[var(--public-card-bg)] max-w-xl mx-auto shadow-sm"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 flex items-center justify-center mb-6">
+                  <Package size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-[var(--public-text-main)] mb-2">
+                  {searchQuery ? "Nenhum resultado encontrado" : "Catálogo Vazio ou Indisponível"}
+                </h3>
+                <p className="text-sm text-[var(--public-text-dim)] leading-relaxed mb-8 max-w-md">
+                  {searchQuery 
+                    ? `Não encontramos nenhum item correspondente a "${searchQuery}". Tente buscar por outros termos.`
+                    : "Nenhum produto foi publicado neste catálogo ainda. Por favor, entre em contato direto com o consultor para solicitar a lista de produtos ou mais informações."
+                  }
+                </p>
+                {!searchQuery && !hideCta && whatsappUrl && (
+                  <Link
+                    href={whatsappUrl}
+                    target="_blank"
+                    className="flex items-center justify-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-6 py-4 rounded-xl text-sm font-bold transition-all shadow-lg w-full"
+                    onClick={() => trackLead()}
+                  >
+                    <MessageCircle size={18} />
+                    Chamar no WhatsApp
+                  </Link>
+                )}
+              </motion.div>
+            )}
+
             {filteredCategories.map((category, idx) => (
               <motion.section 
                 key={category.id}
@@ -1365,6 +1397,10 @@ export default function ProductCatalogClient({
                         <Share2 size={16} />
                         Compartilhar este Produto
                       </button>
+                      
+                      <p className="text-[10px] text-center text-[var(--public-text-dim)] mt-3 opacity-60 leading-normal">
+                        Ao iniciar o contato, você concorda com o uso de seus dados estritamente para atendimento comercial, em conformidade com a LGPD.
+                      </p>
                     </div>
                   </div>
                 )}

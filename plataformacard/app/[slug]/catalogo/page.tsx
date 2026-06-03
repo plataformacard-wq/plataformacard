@@ -285,9 +285,14 @@ export default async function Page(props: PageProps) {
     .from("catalogs")
     .select("*")
     .eq("id", catalogId)
+    .is("deleted_at", null)
     .maybeSingle();
 
-  const catalog = (catalogData as Catalog) || { id: catalogId, name: "Catálogo", description: "" };
+  if (!catalogData) {
+    return notFound();
+  }
+
+  const catalog = catalogData as Catalog;
 
   const { data: categoriesData, error: catError } = await admin
     .from("categories")

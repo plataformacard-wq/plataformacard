@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2C");
   const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -130,6 +131,24 @@ export default function DashboardPage() {
             if (org?.business_model) {
               setBusinessModel(org.business_model as "B2B" | "B2C");
             }
+
+            // Verifica se o catálogo master foi desvinculado
+            const { data: orgCatalogs } = await supabase
+              .from("organization_catalogs")
+              .select("is_enabled, catalogs(catalog_type, deleted_at)")
+              .eq("organization_id", activeOrgId);
+
+            const hasActiveMaster = orgCatalogs?.some((c: any) => {
+              const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+              return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS') && !cat?.deleted_at;
+            });
+
+            const hasAnyMaster = orgCatalogs?.some((c: any) => {
+              const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+              return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+            });
+
+            setShowUnlinkedWarning(!hasActiveMaster && !!hasAnyMaster);
           }
 
           // Visitas via RPC
@@ -290,6 +309,29 @@ export default function DashboardPage() {
           </p>
         </div>
       </section>
+
+      {/* Warning Banner */}
+      {showUnlinkedWarning && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-[32px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+              <Package size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-amber-800 dark:text-amber-400">
+                Catálogo Master Desvinculado
+              </h3>
+              <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed max-w-2xl">
+                O catálogo master (CaaS) foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
 
       {/* KPI Grid */}

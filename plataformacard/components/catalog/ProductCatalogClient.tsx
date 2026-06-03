@@ -1344,6 +1344,10 @@ export default function ProductCatalogClient({
                         <Share2 size={16} />
                         Compartilhar este Produto
                       </button>
+                      
+                      <p className="text-[10px] text-center text-[var(--public-text-dim)] mt-3 opacity-60 leading-normal">
+                        Ao iniciar o contato, você concorda com o uso de seus dados estritamente para atendimento comercial, em conformidade com a LGPD.
+                      </p>
                     </div>
                   </div>
                 )}

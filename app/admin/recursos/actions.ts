@@ -1,7 +1,8 @@
 "use server";
-
+ 
 import { createAdminClient } from "@/lib/supabase/admin";
-
+import { verifySuperAdmin } from "@/lib/utils/auth-validation";
+ 
 export type ResourceMetrics = {
   totalSellers: number;
   totalProducts: number;
@@ -16,8 +17,9 @@ export type ResourceMetrics = {
   aiUsagePercent: number;
   lastUpdated: string;
 };
-
+ 
 export async function getSaaSResourceMetrics(): Promise<ResourceMetrics> {
+  await verifySuperAdmin();
   const admin = createAdminClient();
 
   // 1. Contagens Básicas e IA

@@ -140,6 +140,7 @@ if (!catalogId) {
     .from("catalogs")
     .select("id, name, description, catalog_type")
     .eq("id", catalogId)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (catalogError || !catalogData) {

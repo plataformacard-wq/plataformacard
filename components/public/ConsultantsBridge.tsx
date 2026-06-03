@@ -19,7 +19,7 @@ export default async function ConsultantsBridge({
   orgSlug: string;
   accentColor: string;
   secondaryColor: string;
-  reason: 'terminated' | 'paused';
+  reason: 'terminated' | 'paused' | 'unavailable';
 }) {
   const supabase = await createClient();
 
@@ -30,15 +30,25 @@ export default async function ConsultantsBridge({
     .eq("organization_id", profile.organization_id)
     .eq("status", "active")
     .eq("role", "seller") // Exclude admin, only show sellers
+    .neq("id", profile.id || "") // Exclui o próprio consultor da lista de alternativos
     .limit(4);
 
   const isTerminated = reason === 'terminated';
+  const isUnavailable = reason === 'unavailable';
 
-  const title = isTerminated ? "Consultor Indisponível" : "Consultor Ausente";
+  const title = isTerminated 
+    ? "Consultor Indisponível" 
+    : isUnavailable 
+      ? "Catálogo Indisponível" 
+      : "Consultor Ausente";
   
   const description = isTerminated 
     ? `Este consultor não atende mais por este link. Mas não se preocupe, a equipe de vendas continua pronta para te atender!`
-    : `O consultor ${profile.full_name || ''} está temporariamente ausente. Mas não se preocupe, a equipe continua pronta para te atender!`;
+    : isUnavailable
+      ? profile?.full_name 
+        ? `O catálogo do consultor ${profile.full_name} está temporariamente indisponível. Mas você ainda pode falar com ele diretamente pelo WhatsApp ou falar com outro consultor da equipe.`
+        : `Este catálogo está temporariamente indisponível. Mas você ainda pode falar com a equipe de vendas.`
+      : `O consultor ${profile.full_name || ''} está temporariamente ausente. Mas não se preocupe, a equipe continua pronta para te atender!`;
 
   return (
     <>
@@ -87,6 +97,20 @@ export default async function ConsultantsBridge({
                 <PublicRecessTimer endsAt={profile.recess_ends_at} />
               )}
             </div>
+
+            {isUnavailable && profile?.whatsapp && profile?.full_name && (
+              <div className="mb-8">
+                <Link
+                  href={`https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  className="flex items-center justify-center gap-3 w-full py-4 px-5 rounded-2xl text-sm font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                  style={{ background: accentColor, boxShadow: `0 8px 20px -8px ${accentColor}` }}
+                >
+                  <Phone size={18} />
+                  Falar com {profile.full_name.split(" ")[0]} no WhatsApp
+                </Link>
+              </div>
+            )}
 
             {activeSellers && activeSellers.length > 0 && (
               <div className="mb-8 space-y-3">

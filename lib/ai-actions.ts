@@ -1,6 +1,7 @@
 "use server";
-
+ 
 import { createClient } from "@/lib/supabase/server";
+import { verifyAuthenticated } from "@/lib/utils/auth-validation";
 
 /**
  * Função interna para logar o uso de tokens no banco de dados.
@@ -41,6 +42,12 @@ export async function enhanceDescriptionWithAI(payload: {
   price?: string;
   specs?: { chave: string; valor: string }[];
 }) {
+  try {
+    await verifyAuthenticated();
+  } catch (err: any) {
+    return { error: err.message || "Não autorizado." };
+  }
+ 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -112,6 +119,12 @@ export async function enhanceDescriptionWithAI(payload: {
  * Corrige a ortografia de múltiplos campos com explicação.
  */
 export async function fixProductOrthography(payload: { name: string; highlight?: string; description: string }) {
+  try {
+    await verifyAuthenticated();
+  } catch (err: any) {
+    return { error: err.message || "Não autorizado." };
+  }
+ 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -178,6 +191,12 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
  * Gera sugestões de SEO (Título e Descrição) usando Google Gemini 1.5 Flash
  */
 export async function generateSEOWithAI(orgName: string, businessType: string = "comércio") {
+  try {
+    await verifyAuthenticated();
+  } catch (err: any) {
+    return { error: err.message || "Não autorizado." };
+  }
+ 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { error: "API Key do Gemini não configurada." };
 

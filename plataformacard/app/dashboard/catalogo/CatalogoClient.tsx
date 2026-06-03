@@ -182,6 +182,7 @@ export default function CatalogoPage() {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ product: ProductRow, field: 'is_active' | 'is_in_stock' } | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
+  const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
 
   const stripHtml = (html: string) => {
     if (!html) return "";
@@ -425,6 +426,28 @@ export default function CatalogoPage() {
       const prodList = (data ?? []) as unknown as ProductRow[];
       setProducts(prodList);
       setProductUsageCount(prodList.length);
+    }
+
+    // Check if master catalog was unlinked/disabled
+    try {
+      const { data: enabledCatalogs } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id, is_enabled, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
+        .eq("organization_id", orgId);
+
+      const hasPlatformCatalog = enabledCatalogs?.some((c: any) => {
+        const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+        return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS') && !cat?.deleted_at;
+      });
+
+      const hasAnyPlatformCatalog = enabledCatalogs?.some((c: any) => {
+        const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+        return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
+      });
+
+      setShowUnlinkedWarning(!hasPlatformCatalog && !!hasAnyPlatformCatalog);
+    } catch (err) {
+      console.error("Erro ao verificar catálogo master desvinculado:", err);
     }
 
     setLoadingProducts(false);
@@ -677,6 +700,29 @@ export default function CatalogoPage() {
           </p>
         </div>
       </div>
+
+      {/* Warning Banner */}
+      {showUnlinkedWarning && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-[32px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+              <Package size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-amber-800 dark:text-amber-400">
+                Catálogo Master Desvinculado
+              </h3>
+              <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed max-w-2xl">
+                O catálogo master (CaaS) foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {!loadingProducts && !loadingCategories && !catalogId ? (
         <div className="mt-8 flex flex-col items-center justify-center text-center p-16 border-2 border-dashed rounded-[40px]" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>

@@ -12,8 +12,15 @@ export default async function CaasAdminPage() {
   // 1. Fetch Master Catalogs (catalog_type = 'platform')
   const { data: masterCatalogs } = await admin
     .from("catalogs")
-    .select("id, name, description")
-    .eq("catalog_type", "platform");
+    .select("*")
+    .eq("catalog_type", "platform")
+    .is("deleted_at", null);
+
+  const { data: deletedCatalogs } = await admin
+    .from("catalogs")
+    .select("*")
+    .eq("catalog_type", "platform")
+    .not("deleted_at", "is", null);
 
   // 2. Fetch Organizations
   const { data: organizations } = await admin
@@ -87,6 +94,7 @@ export default async function CaasAdminPage() {
       {/* Gerenciador Principal */}
       <CaasManager 
         masterCatalogs={(masterCatalogs || []) as any[]} 
+        deletedCatalogs={(deletedCatalogs || []) as any[]}
         organizations={orgsWithAssignments} 
       />
     </div>

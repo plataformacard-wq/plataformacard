@@ -117,7 +117,10 @@ export default async function EmbedPage(props: PageProps) {
     .from("catalogs")
     .select("*")
     .eq("id", catalogId)
+    .is("deleted_at", null)
     .maybeSingle();
+
+  if (!catalogData) return notFound();
 
   const { data: categoriesData } = await admin
     .from("categories")

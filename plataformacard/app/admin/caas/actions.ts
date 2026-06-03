@@ -1,20 +1,22 @@
 "use server";
-
+ 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifySuperAdmin } from "@/lib/utils/auth-validation";
 
 export async function assignMasterCatalog(orgId: string, catalogId: string | null) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
 
   if (!catalogId) {
     // Se catalogId for null, desativamos o catálogo master (removemos o vínculo platform)
     const { error } = await supabase
       .from("organization_catalogs")
-      .delete()
+      .update({ is_enabled: false })
       .match({ organization_id: orgId }); // Simplificado para este exemplo, pode precisar de mais filtros
     
     if (error) {
-      console.error("assignMasterCatalog delete error:", error);
+      console.error("assignMasterCatalog update error:", error);
       return { success: false, error: "Falha ao remover catálogo." };
     }
   } else {
@@ -45,6 +47,7 @@ export async function assignMasterCatalog(orgId: string, catalogId: string | nul
 }
 
 export async function createMasterCatalog(name: string, description: string) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
 
   // Busca o perfil do Super Admin para ser o dono do catálogo master
@@ -78,6 +81,7 @@ export async function createMasterCatalog(name: string, description: string) {
 }
 
 export async function getMasterCatalogAnalytics(catalogId: string) {
+  await verifySuperAdmin();
   const admin = createAdminClient();
 
   // 1. Total de Cliques no WhatsApp (Leads) por Organização
@@ -114,6 +118,7 @@ export async function updateMasterCatalog(
   whatsappTemplate: string | null = '',
   hideCta: boolean = false
 ) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("catalogs")
@@ -133,6 +138,35 @@ export async function updateMasterCatalog(
 }
 
 export async function deleteMasterCatalog(id: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("catalogs")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/admin/caas");
+  revalidatePath("/[slug]/catalogo", "layout");
+  return { success: true };
+}
+
+export async function restoreMasterCatalog(id: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("catalogs")
+    .update({ deleted_at: null })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/admin/caas");
+  revalidatePath("/[slug]/catalogo", "layout");
+  return { success: true };
+}
+
+export async function permanentlyDeleteMasterCatalog(id: string) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
   // Nota: Relações (categories, products) devem ter ON DELETE CASCADE no banco
   // ou precisamos deletar manualmente aqui.
@@ -143,10 +177,12 @@ export async function deleteMasterCatalog(id: string) {
 
   if (error) throw error;
   revalidatePath("/admin/caas");
+  revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
 
 export async function duplicateMasterCatalog(sourceId: string) {
+  await verifySuperAdmin();
   const supabase = createAdminClient();
 
   // 1. Busca catálogo original

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Building2, Check, ChevronDown, Search, ExternalLink, Plus, Package, HelpCircle, Users2, BarChart3, Copy, Edit3, Trash2, X, Save, Settings, MessageSquare, Percent, ToggleLeft, ToggleRight, Loader2, Sparkles, Tag } from "lucide-react";
-import { assignMasterCatalog, createMasterCatalog, deleteMasterCatalog, duplicateMasterCatalog, updateMasterCatalog } from "./actions";
+import { Globe, Building2, Check, ChevronDown, Search, ExternalLink, Plus, Package, HelpCircle, Users2, BarChart3, Copy, Edit3, Trash2, X, Save, Settings, MessageSquare, Percent, ToggleLeft, ToggleRight, Loader2, Sparkles, Tag, RotateCcw, AlertTriangle } from "lucide-react";
+import { assignMasterCatalog, createMasterCatalog, deleteMasterCatalog, duplicateMasterCatalog, updateMasterCatalog, restoreMasterCatalog, permanentlyDeleteMasterCatalog } from "./actions";
 import CaasAnalytics from "./CaasAnalytics";
 import { createClient } from "@/lib/supabase/client";
 import BulkPromoModal from "@/components/dashboard/BulkPromoModal";
@@ -14,6 +14,7 @@ interface MasterCatalog {
   type?: "product" | "service" | "hybrid" | null;
   whatsapp_template?: string | null;
   hide_cta?: boolean | null;
+  deleted_at?: string | null;
 }
 
 interface Organization {
@@ -26,16 +27,18 @@ interface Organization {
 
 interface CaasManagerProps {
   masterCatalogs: MasterCatalog[];
+  deletedCatalogs: MasterCatalog[];
   organizations: Organization[];
 }
 
-export default function CaasManager({ masterCatalogs, organizations }: CaasManagerProps) {
+export default function CaasManager({ masterCatalogs, deletedCatalogs, organizations }: CaasManagerProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [viewingAnalyticsId, setViewingAnalyticsId] = useState<string | null>(null);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
   
   // Estados para Edição rápida (nome/descrição)
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -169,6 +172,30 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
       if (viewingAnalyticsId === id) setViewingAnalyticsId(null);
     } catch (error) {
       alert("Erro ao excluir catálogo.");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    setLoadingId(id);
+    try {
+      await restoreMasterCatalog(id);
+    } catch (error) {
+      alert("Erro ao restaurar catálogo.");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!confirm("AVISO: Esta ação é permanente e excluirá DEFINITIVAMENTE o catálogo, suas categorias e todos os produtos associados de forma irrecuperável. Deseja continuar?")) return;
+    setLoadingId(id);
+    try {
+      await permanentlyDeleteMasterCatalog(id);
+      if (viewingAnalyticsId === id) setViewingAnalyticsId(null);
+    } catch (error) {
+      alert("Erro ao excluir catálogo permanentemente.");
     } finally {
       setLoadingId(null);
     }
@@ -412,6 +439,71 @@ export default function CaasManager({ masterCatalogs, organizations }: CaasManag
                 {masterCatalogs.length === 0 && (
                   <p className="text-xs px-2" style={{ color: "var(--dash-text-muted)" }}>Nenhum catálogo master criado ainda.</p>
                 )}
+              </div>
+
+             {/* Lixeira (Recycle Bin) */}
+             <div className="pt-4 border-t border-[var(--dash-border)]">
+               <button
+                 type="button"
+                 onClick={() => setIsTrashOpen(!isTrashOpen)}
+                 className="flex items-center justify-between w-full px-2 py-2 text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-red-500 transition-colors"
+               >
+                 <div className="flex items-center gap-2">
+                   <Trash2 size={14} className={deletedCatalogs.length > 0 ? "text-red-500" : "text-zinc-500"} />
+                   <span>Lixeira ({deletedCatalogs.length})</span>
+                 </div>
+                 <ChevronDown 
+                   size={14} 
+                   className={`transform transition-transform duration-200 ${isTrashOpen ? "rotate-180" : ""}`} 
+                 />
+               </button>
+
+               {isTrashOpen && (
+                 <div className="mt-3 grid gap-3 animate-in fade-in slide-in-from-top-2">
+                   {deletedCatalogs.map(cat => (
+                     <div 
+                       key={cat.id} 
+                       className="p-4 rounded-2xl border bg-red-500/5 border-red-500/10 hover:border-red-500/20 transition-all flex items-center justify-between"
+                     >
+                       <div className="flex items-center gap-3 flex-1">
+                         <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
+                           <Globe size={16} />
+                         </div>
+                         <div>
+                           <p className="font-bold text-sm text-dash-text-primary">{cat.name}</p>
+                           {cat.deleted_at && (
+                             <p className="text-[9px] text-zinc-500 font-medium">
+                               Deletado em: {new Date(cat.deleted_at).toLocaleString('pt-BR')}
+                             </p>
+                           )}
+                         </div>
+                       </div>
+                       
+                       <div className="flex items-center gap-1">
+                         <button 
+                           onClick={() => handleRestore(cat.id)}
+                           disabled={loadingId === cat.id}
+                           className="p-2 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all disabled:opacity-50"
+                           title="Restaurar Catálogo"
+                         >
+                           <RotateCcw size={14} />
+                         </button>
+                         <button 
+                           onClick={() => handlePermanentDelete(cat.id)}
+                           disabled={loadingId === cat.id}
+                           className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
+                           title="Excluir Definitivamente"
+                         >
+                           <AlertTriangle size={14} />
+                         </button>
+                       </div>
+                     </div>
+                   ))}
+                   {deletedCatalogs.length === 0 && (
+                     <p className="text-xs px-2 text-zinc-500 italic">A lixeira está vazia.</p>
+                   )}
+                 </div>
+               )}
              </div>
           </div>
 

@@ -5,7 +5,7 @@ Este protocolo DEVE ser executado integralmente antes de qualquer `git push` par
 ## 1. Auditoria de Tipagem (Build Resilience)
 - [x] **Proibição do `any`:** Realizar busca global por `as any` ou `: any` em componentes JSX. (Identificados em Sidebar e Modais, controlados).
 - [x] **Checks de Nulidade (Null Safety):** Garantir que objetos vindos de `maybeSingle()` ou rascunhos usem optional chaining (`?.`). (OK em Destaques e IA).
-- [ ] **Escopo de Variáveis:** Verificar se variáveis dentro de blocos `try/catch` não estão sendo usadas fora deles.
+- [x] **Escopo de Variáveis:** Verificar se variáveis dentro de blocos `try/catch` não estão sendo usadas fora deles. (Verificado: variáveis como userId e outras declaradas fora dos blocos com let).
 - [x] **Unificação de Tipos:** Garantir que tipos com o mesmo nome sejam idênticos. (OK em ProductRow).
 - [x] **Sincronização de Interfaces:** Garantir que as interfaces contenham todos os campos retornados pelo banco. (OK).
 

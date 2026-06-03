@@ -1,7 +1,8 @@
 "use server";
-
+ 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { verifyOrgAdmin } from "@/lib/utils/auth-validation";
 
 export async function createSeller(formData: FormData) {
   const fullName = formData.get("fullName") as string;
@@ -140,24 +141,74 @@ export async function updateSeller(sellerId: string, profileData: any) {
     const supabaseServer = await createClient();
     const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
     if (!adminUser) return { error: "Não autenticado" };
-
+ 
     const adminAuthClient = createAdminClient();
+ 
+    // 1. Busca perfil do vendedor para identificar sua organização
+    const { data: sellerProfile, error: profileErr } = await adminAuthClient
+      .from("profiles")
+      .select("organization_id, role")
+      .eq("id", sellerId)
+      .maybeSingle();
+ 
+    if (profileErr || !sellerProfile) {
+      return { error: "Vendedor não encontrado." };
+    }
+ 
+    // 2. Valida se o usuário tem privilégios na organização do vendedor
+    await verifyOrgAdmin(sellerProfile.organization_id);
+ 
+    // 3. Sanitização: Apenas Super Admin pode alterar a organização ou promover para superadmin
+    const { data: callerProfile } = await adminAuthClient
+      .from("profiles")
+      .select("role")
+      .eq("id", adminUser.id)
+      .maybeSingle();
+ 
+    const isSuperAdmin = callerProfile?.role === "superadmin" || callerProfile?.role === "super_admin";
+    if (!isSuperAdmin) {
+      delete profileData.organization_id;
+      if (profileData.role && (profileData.role === "superadmin" || profileData.role === "super_admin")) {
+        delete profileData.role;
+      }
+    }
     
     const { error } = await adminAuthClient
       .from("profiles")
       .update(profileData)
       .eq("id", sellerId);
-
+ 
     if (error) return { error: error.message };
     return { success: true };
   } catch (e: any) {
     return { error: e.message };
   }
 }
-
+ 
 export async function toggleSellerStatus(sellerId: string, isAvailable: boolean) {
   try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+ 
     const adminAuthClient = createAdminClient();
+ 
+    // 1. Busca perfil do vendedor
+    const { data: sellerProfile, error: profileErr } = await adminAuthClient
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", sellerId)
+      .maybeSingle();
+ 
+    if (profileErr || !sellerProfile) {
+      return { error: "Vendedor não encontrado." };
+    }
+ 
+    // 2. Se não for o próprio vendedor, exige permissão de admin na organização dele
+    if (adminUser.id !== sellerId) {
+      await verifyOrgAdmin(sellerProfile.organization_id);
+    }
+ 
     const { error } = await adminAuthClient
       .from("profiles")
       .update({ 
@@ -165,7 +216,7 @@ export async function toggleSellerStatus(sellerId: string, isAvailable: boolean)
         status: isAvailable ? 'active' : 'paused'
       })
       .eq("id", sellerId);
-
+ 
     if (error) return { error: error.message };
     return { success: true };
   } catch (e: any) {
@@ -362,15 +413,15 @@ export async function updateSellerPermissions(userId: string, canCustomizeHours:
 }
 
 export async function getOrCreateCatalog(orgId: string) {
-  const supabaseServer = await createClient();
-  const { data: { user } } = await supabaseServer.auth.getUser();
-
-  if (!user) {
-    return { error: "Usuário não autenticado." };
+  let userId: string;
+  try {
+    userId = await verifyOrgAdmin(orgId);
+  } catch (err: any) {
+    return { error: err.message || "Não autorizado." };
   }
-
+ 
   const adminClient = createAdminClient();
-
+ 
   // 1. Tenta pegar todos os catálogos vinculados à organização
   const { data: linkedCatalogs, error: orgCatalogError } = await adminClient
     .from("organization_catalogs")
@@ -379,30 +430,30 @@ export async function getOrCreateCatalog(orgId: string) {
       catalogs(id, catalog_type, owner_id)
     `)
     .eq("organization_id", orgId);
-
+ 
   if (orgCatalogError) {
     console.error("getOrCreateCatalog fetch linked error:", orgCatalogError);
   }
-
+ 
   // Filtra em JavaScript para encontrar o catálogo próprio (não-CaaS / não-plataforma)
   const ownCatalogLink = linkedCatalogs?.find(link => {
     const cat = link.catalogs ? (Array.isArray(link.catalogs) ? link.catalogs[0] : link.catalogs) : null;
     return cat && cat.catalog_type !== 'CaaS' && cat.catalog_type !== 'platform';
   });
-
+ 
   let catId = ownCatalogLink?.catalog_id;
-
+ 
   // 2. Se não existe, cria um catálogo padrão
   if (!catId) {
     console.log("Criando catálogo automático via Server Action...");
-
+ 
     // Criar o catálogo
     const { data: newCatalog, error: catError } = await adminClient
       .from("catalogs")
       .insert({
         name: "Meu Catálogo",
         description: "Catálogo principal de produtos",
-        owner_id: user.id
+        owner_id: userId
       })
       .select()
       .single();
