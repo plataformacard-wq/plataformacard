@@ -1,21 +1,18 @@
-1: # 🟦 PROMPT DE CONTINUIDADE: Refinamento da Vitrine Pura (Sessão 3)
-2: 
-3: **Contexto da Última Sessão:**
-4: Realizamos a reorganização estratégica do Dashboard. Removemos o seletor de **Modelo de Negócio** da página de configurações do catálogo, centralizando essa configuração na página da Empresa. Implementamos uma nova interface "Premium" para a **Identidade Visual**, que foi ocultada temporariamente (comentada no código) enquanto uma estratégia de branding mais sólida é definida.
-5: 
-6: **Estado Técnico Atual:**
-7: - **Configurações do Catálogo:** Interface limpa, focada em informações básicas. Sessão de Branding preservada no código (`ConfiguracoesClient.tsx`), mas oculta (`{/* ... */}`).
-8: - **Empresa:** Centraliza agora a definição do Modelo de Negócio (B2B, B2C, CaaS).
-9: - **UX:** Servidor Next.js estabilizado e rodando via PowerShell com bypass de CWD para garantir resolução de dependências em ambientes híbridos (Google Drive/Local).
-10: 
-11: **📝 Backlog de Pendências (O que falta):**
-12: 
-13: 1.  **Branding Estratégico:**
-14:     *   Definir se a Identidade Visual deve morar na página da Empresa ou se deve ser um módulo de "Temas" global.
-15:     *   Reativar/Ajustar a UI Premium conforme a nova estratégia.
-16: 2.  **Catálogo Público (Ajustes de UI):**
-17:     *   **Refinamentos Adicionais:** Continuar o ajuste fino do layout "Vitrine Pura" caso surjam novas necessidades de responsividade ou design.
-18: 3.  **Auditoria CaaS:**
-19:     *   Validar o modo Embed (iFrame) com as novas alterações de cabeçalho persistente.
-20: 
-21: **Git:** Sincronizado e documentado no `DOCUMENTATION.md`.
+# 🟩 RELATÓRIO DE CONTINUIDADE: Estabilização e Testes de UX com Catálogo Real (MAJ Mobilidade)
+
+**Contexto da Sessão Atual (06/06/2026):**
+Estamos no processo de cadastrar e testar um catálogo real, com produtos e categorias reais da **MAJ Mobilidade Elétrica** (como a scooter *MAJ X15 PRO*), com o objetivo de realizar testes reais de UX e comportamento de layout.
+
+Durante a sessão, resolvemos dois problemas críticos que bloqueavam esse teste de UX:
+1. **Runtime ChunkLoadError (react-quill-new):** O carregamento dinâmico direto do editor Quill em múltiplos locais gerava falha de carregamento de chunk no Turbopack (modo dev). Corrigimos isso criando o componente wrapper centralizado [RichTextEditor.tsx](file:///c:/Users/Start/plataformacard/components/dashboard/RichTextEditor.tsx) importado com `ssr: false`, e limpamos imports não utilizados em [CatalogoClient.tsx](file:///c:/Users/Start/plataformacard/app/dashboard/catalogo/CatalogoClient.tsx).
+2. **Ocultação de Produtos no Catálogo Master (Bug de CaaS)**: O catálogo master recém-criado para a MAJ aparecia como "Vazio ou Indisponível" no catálogo público. Descobrimos dois problemas na lógica do servidor:
+   - O filtro CaaS exigia *overrides* de forma indiscriminada, ocultando os produtos do catálogo master do próprio criador (Super Admin). Ajustamos em [page.tsx](file:///c:/Users/Start/plataformacard/app/[slug]/catalogo/page.tsx) para ignorar o filtro de CaaS se o visualizador for o próprio dono (`owner_id` ou `organization_id`).
+   - Havia múltiplos catálogos na conta do Super Admin e a busca no fallback pegava arbitrariamente um catálogo antigo vazio por falta de ordenação. Ajustamos a query no Fallback 3 do servidor para filtrar apenas catálogos não deletados (`deleted_at IS NULL`) e ordenar pelo mais recente (`created_at DESC`).
+
+**Estado Técnico Atual:**
+- **Servidor Dev:** Rodando em segundo plano (`npm run dev`) e acessível em `http://localhost:3000/start-super-admin/catalogo`.
+- **Compilação:** O build de produção do Next.js 16 (Turbopack) está **100% aprovado** e compilando sem erros de TypeScript ou agrupamento de chunks.
+- **Banco de Dados**: Produto real `MAJ X15 PRO` cadastrado e renderizado com sucesso no catálogo público do slug `start-super-admin`.
+
+**🔮 Próximo Passo:**
+Realizar uma **auditoria detalhada no modal de produtos do catálogo público** para validar o design, usabilidade, responsividade dos detalhes e a integridade do layout premium.

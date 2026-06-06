@@ -134,6 +134,9 @@ O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua c
 6. **Associação e Desvinculação Segura (Resiliência DB/UI):** Ao atribuir ou remover um catálogo master (CaaS), o sistema interage exclusivamente com registros do tipo `'platform'` ou `'CaaS'`. Isso impede a remoção inadvertida do catálogo próprio e produtos locais do franqueado. O mapeamento no Super Admin foi ajustado para isolar o catálogo master e o seletor utiliza atualização de rotas (`router.refresh()`) para refletir a persistência imediatamente.
 7. **Notificação de Ausência de Catálogo:** Se uma organização for do tipo `CaaS` (modelo franqueado) e estiver sem nenhum catálogo master vinculado, um banner informativo e elegante é exibido no topo do painel do franqueado instruindo a vinculação.
 
+- **2026-06-06:**
+  - **Correção do ChunkLoadError (react-quill-new):** Isolado o carregamento de `react-quill-new` em um componente wrapper dedicado (`RichTextEditor.tsx`) importado dinamicamente com `ssr: false` para evitar erros de hidratação e falhas de carregamento de chunk no Turbopack (modo dev) sob rotas dinâmicas como o editor CaaS. Removidos imports não utilizados do editor em `CatalogoClient.tsx`.
+
 - **2026-06-01:**
   - **Correção da Desvinculação CaaS:** Ajustada a Server Action `assignMasterCatalog` para preservar o vínculo do catálogo próprio da franquia ao remover ou atualizar o catálogo master.
   - **Auto-Cura de Catálogo Próprio:** Implementada re-ativação automática de catálogos próprios que porventura tenham sido desativados no banco de dados.

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import 'react-quill-new/dist/quill.snow.css';
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { 
   X as XIcon, 
@@ -33,8 +32,8 @@ import { enhanceDescriptionWithAI, fixProductOrthography } from "@/lib/ai-action
 import AiReviewModal from "./AiReviewModal";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
-// Carregamento dinâmico do Quill
-const ReactQuill = nextDynamic(() => import("react-quill-new"), { 
+// Carregamento dinâmico do editor RichTextEditor wrapper para evitar erros de SSR e ChunkLoadError
+const RichTextEditor = nextDynamic(() => import("./RichTextEditor"), { 
   ssr: false,
   loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
 });
@@ -383,7 +382,7 @@ export default function ProductModal({
     try {
       const parsedPrice = parsePrice(productPrice);
       const payload = {
-        organization_id: orgId,
+        organization_id: orgId || null,
         category_id: selectedCategoryId,
         name: productName.trim(),
         description: productDescription.trim(),
@@ -716,7 +715,7 @@ export default function ProductModal({
                   <div className="mb-2 flex items-center justify-between">
                     <label className="text-sm font-black uppercase tracking-wider">Descrição</label>
                   </div>
-                  <ReactQuill theme="snow" value={productDescription} onChange={setProductDescription} readOnly={isCaaS} className={`quill-premium ${isCaaS ? "opacity-60" : ""}`} />
+                  <RichTextEditor theme="snow" value={productDescription} onChange={setProductDescription} readOnly={isCaaS} className={`quill-premium ${isCaaS ? "opacity-60" : ""}`} />
                 </div>
               </div>
             </div>

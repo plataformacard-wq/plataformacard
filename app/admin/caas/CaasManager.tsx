@@ -144,10 +144,13 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     if (!newName) return;
     setLoadingId("creating");
     try {
-      await createMasterCatalog(newName, newDesc);
+      const res = await createMasterCatalog(newName, newDesc);
       setIsCreating(false);
       setNewName("");
       setNewDesc("");
+      if (res && res.id) {
+        router.push(`/admin/caas/editor?catalogId=${res.id}`);
+      }
     } catch (error) {
       alert("Erro ao criar catálogo.");
     } finally {
@@ -406,6 +409,13 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                         </div>
                         
                         <div className="flex items-center gap-1">
+                          <button 
+                            onClick={() => router.push(`/admin/caas/editor?catalogId=${cat.id}`)}
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all"
+                            title="Gerenciar Produtos do Catálogo"
+                          >
+                            <Package size={14} />
+                          </button>
                           <button 
                             onClick={() => handleOpenConfig(cat)}
                             className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all"

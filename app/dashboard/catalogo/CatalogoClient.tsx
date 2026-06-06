@@ -6,13 +6,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateCatalog } from "@/lib/dashboard/sellerActions";
-import 'react-quill-new/dist/quill.snow.css';
-
-// Carregamento dinÃƒÂ¢mico do Quill para evitar erros de SSR
-const ReactQuill = nextDynamic(() => import("react-quill-new"), { 
-  ssr: false,
-  loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
-});
 
 import Link from "next/link";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
@@ -154,7 +147,7 @@ function revokePreviewIfBlob(url: string | null) {
   }
 }
 
-export default function CatalogoPage() {
+export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId?: string | null }) {
   const [canCreateProduct, setCanCreateProduct] = useState<boolean | null>(null);
   const [productLimit, setProductLimit] = useState<number>(0);
   const [productUsageCount, setProductUsageCount] = useState<number>(0);
@@ -212,6 +205,76 @@ export default function CatalogoPage() {
 
   // Color logic moved to ProductModal
 
+  async function fetchProductsForAdminCatalog(catalogId: string) {
+    const supabase = createClient();
+    setLoadingProducts(true);
+
+    const { data: cats } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("catalog_id", catalogId);
+
+    const catIds = cats?.map(c => c.id) || [];
+
+    if (catIds.length === 0) {
+      setProducts([]);
+      setProductUsageCount(0);
+      setLoadingProducts(false);
+      return;
+    }
+
+    const { data: ownData, error: ownError } = await supabase
+      .from("products")
+      .select(
+        `
+      id,
+      organization_id,
+      category_id,
+      name,
+      description,
+      specs,
+      price,
+      compare_at_price,
+      sku,
+      has_retail,
+      has_wholesale,
+      wholesale_price,
+      wholesale_min_quantity,
+      image_url,
+      image_urls,
+      is_active,
+      is_in_stock,
+      price_display_mode,
+      highlight_text,
+      show_highlight,
+      type,
+      sort_order,
+      created_at,
+      categories (
+        id,
+        name
+      )
+    `
+      )
+      .in("category_id", catIds)
+      .is("deleted_at", null)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    const prodList = (ownData ?? []) as unknown as ProductRow[];
+    setProducts(prodList);
+    setProductUsageCount(prodList.length);
+    setLoadingProducts(false);
+  }
+
+  const refreshProductList = useCallback(() => {
+    if (adminCatalogId) {
+      fetchProductsForAdminCatalog(adminCatalogId);
+    } else if (orgId) {
+      fetchProducts(orgId);
+    }
+  }, [adminCatalogId, orgId]);
+
   useEffect(() => {
     async function initialize() {
       try {
@@ -220,15 +283,40 @@ export default function CatalogoPage() {
         
         if (!user) return;
 
-        const oid = await fetchOrganizationId();
-        
-        if (oid) {
-          setOrgId(oid);
-          const cid = await fetchCatalog(oid);
+        if (adminCatalogId) {
+          setCatalogId(adminCatalogId);
+          setOrgId(null);
+          setCanCreateProduct(true);
           
-          if (cid) {
-            setCatalogId(cid);
-            await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid), fetchUserSlug(user.id)]);
+          const { data: catData } = await supabase
+            .from("catalogs")
+            .select("id, name, description, catalog_type, type, whatsapp_template")
+            .eq("id", adminCatalogId)
+            .single();
+
+          if (catData) {
+            setCatalog(catData as any);
+            setCatalogDescription(catData.description || "");
+            setCatalogType(catData.type as any || "product");
+            setWhatsappTemplate(catData.whatsapp_template || "");
+          }
+
+          await Promise.all([
+            fetchCategories(adminCatalogId),
+            fetchProductsForAdminCatalog(adminCatalogId),
+            fetchUserSlug(user.id)
+          ]);
+        } else {
+          const oid = await fetchOrganizationId();
+          
+          if (oid) {
+            setOrgId(oid);
+            const cid = await fetchCatalog(oid);
+            
+            if (cid) {
+              setCatalogId(cid);
+              await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid), fetchUserSlug(user.id)]);
+            }
           }
         }
       } catch (err) {
@@ -241,7 +329,7 @@ export default function CatalogoPage() {
     }
 
     initialize();
-  }, []);
+  }, [adminCatalogId]);
 
   async function fetchOrganizationId(): Promise<string | null> {
     const supabase = createClient();
@@ -748,7 +836,7 @@ export default function CatalogoPage() {
       return;
     }
 
-    if (orgId) fetchProducts(orgId);
+    refreshProductList();
   };
 
   const toggleProductStatus = async (product: ProductRow, field: 'is_active' | 'is_in_stock') => {
@@ -876,10 +964,12 @@ export default function CatalogoPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tight" style={{ color: "var(--dash-text-primary)" }}>
-            Catálogo
+            {adminCatalogId ? `Master: ${catalog?.name || 'Carregando...'}` : 'Catálogo'}
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
-            Gerencie seus {catalogType === 'service' ? 'serviços' : catalogType === 'hybrid' ? 'produtos e serviços' : 'produtos'}, categorias e a vitrine digital da sua marca.
+            {adminCatalogId 
+              ? 'Gerenciamento centralizado de categorias e produtos deste Catálogo Master para distribuição CaaS.'
+              : `Gerencie seus ${catalogType === 'service' ? 'serviços' : catalogType === 'hybrid' ? 'produtos e serviços' : 'produtos'}, categorias e a vitrine digital da sua marca.`}
           </p>
 
           <div className="mt-4 flex items-center gap-2">
@@ -908,26 +998,39 @@ export default function CatalogoPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
-            <span>Limite de Produtos</span>
-            <span className={productLimit > 0 && productUsageCount >= productLimit ? "text-red-500" : "text-emerald-500"}>
-              {productUsageCount} / {productLimit > 0 ? productLimit : "∞"}
-            </span>
+        {!adminCatalogId ? (
+          <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
+              <span>Limite de Produtos</span>
+              <span className={productLimit > 0 && productUsageCount >= productLimit ? "text-red-500" : "text-emerald-500"}>
+                {productUsageCount} / {productLimit > 0 ? productLimit : "∞"}
+              </span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${productLimit > 0 ? Math.min((productUsageCount / productLimit) * 100, 100) : 0}%` }}
+                className={`h-full rounded-full transition-all duration-1000 ${
+                  productLimit > 0 && productUsageCount >= productLimit ? "bg-red-500" : "bg-emerald-500"
+                }`}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-center" style={{ color: "var(--dash-text-muted)" }}>
+              {productLimit > 0 ? Math.round((productUsageCount / productLimit) * 100) : 0}% da sua capacidade utilizada
+            </p>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${productLimit > 0 ? Math.min((productUsageCount / productLimit) * 100, 100) : 0}%` }}
-              className={`h-full rounded-full transition-all duration-1000 ${
-                productLimit > 0 && productUsageCount >= productLimit ? "bg-red-500" : "bg-emerald-500"
-              }`}
-            />
+        ) : (
+          <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm bg-purple-500/5 border-purple-500/10" style={{ borderColor: "rgba(168, 85, 247, 0.3)" }}>
+            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-purple-500">
+              <span>Status do Estoque Master</span>
+              <span className="text-purple-500">Ativo</span>
+            </div>
+            <p className="text-xl font-black text-purple-500" style={{ color: "rgb(168, 85, 247)" }}>{productUsageCount} Itens Cadastrados</p>
+            <p className="text-[10px] font-bold" style={{ color: "var(--dash-text-muted)" }}>
+              Catálogo Master CaaS (Disponível para franquias)
+            </p>
           </div>
-          <p className="text-[10px] font-bold text-center" style={{ color: "var(--dash-text-muted)" }}>
-            {productLimit > 0 ? Math.round((productUsageCount / productLimit) * 100) : 0}% da sua capacidade utilizada
-          </p>
-        </div>
+        )}
       </div>
 
       {!loadingProducts && !loadingCategories && !catalogId ? (
@@ -1254,7 +1357,7 @@ export default function CatalogoPage() {
         isOpen={showModal}
         onClose={handleCloseModal}
         onSuccess={() => {
-          if (orgId) fetchProducts(orgId);
+          refreshProductList();
           refreshLimit();
         }}
         editingProduct={editingProduct}

@@ -132,14 +132,16 @@ export async function createMasterCatalog(name: string, description: string) {
     throw new Error("Falha ao identificar autoridade mestre.");
   }
 
-  const { error } = await supabase
+  const { data: inserted, error } = await supabase
     .from("catalogs")
     .insert({
       name,
       description,
       catalog_type: "platform",
       owner_id: profile.id
-    });
+    })
+    .select("id")
+    .single();
 
   if (error) {
     console.error("createMasterCatalog error:", error);
@@ -147,7 +149,7 @@ export async function createMasterCatalog(name: string, description: string) {
   }
 
   revalidatePath("/admin/caas");
-  return { success: true };
+  return { success: true, id: inserted.id };
 }
 
 export async function getMasterCatalogAnalytics(catalogId: string) {

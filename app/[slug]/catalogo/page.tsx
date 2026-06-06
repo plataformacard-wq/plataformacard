@@ -50,6 +50,8 @@ type Catalog = {
   whatsapp_template: string | null;
   hide_cta?: boolean | null;
   hide_prices?: boolean | null;
+  owner_id?: string | null;
+  organization_id?: string | null;
 };
 
 type Category = {
@@ -263,6 +265,8 @@ export default async function Page(props: PageProps) {
       .from("catalogs")
       .select("id")
       .eq("organization_id", targetOrgId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
@@ -273,6 +277,8 @@ export default async function Page(props: PageProps) {
         .from("catalogs")
         .select("id")
         .eq("owner_id", targetOrgId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -283,6 +289,8 @@ export default async function Page(props: PageProps) {
           .from("catalogs")
           .select("id")
           .eq("owner_id", profile.id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -374,7 +382,16 @@ export default async function Page(props: PageProps) {
       overrides = overridesData || [];
     }
 
-    const caasCatalogIds = catalogs.filter(c => c.catalog_type === 'CaaS' || c.catalog_type === 'platform').map(c => c.id);
+    const caasCatalogIds = catalogs
+      .filter(c => {
+        const isCaasType = c.catalog_type === 'CaaS' || c.catalog_type === 'platform';
+        if (!isCaasType) return false;
+        
+        // Se for do próprio perfil ou organização que está visualizando, não é CaaS para ele
+        const isOwner = (profile && c.owner_id === profile.id) || (orgData && c.organization_id === orgData.id);
+        return !isOwner;
+      })
+      .map(c => c.id);
     const caasCategoryIds = categories.filter(c => caasCatalogIds.includes(c.catalog_id)).map(c => c.id);
 
     products = fetchedProducts.reduce((acc, product) => {

@@ -87,8 +87,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         subItems: [
           { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
           { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
-          { href: "/admin/catalogos", label: "Gestão de Catálogos", icon: BookOpen },
-          { href: "/admin/caas", label: "Gestão CaaS (QG)", icon: Globe },
+          { href: "/admin/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
           { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
         ]
       },
@@ -116,7 +115,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/admin", label: "Dashboard (QG)", icon: LayoutDashboard },
           { href: "/admin/analytics?tab=b2b", label: "BI & Analytics", icon: BarChart3 },
           { href: "/admin/clientes", label: "Gestão de Empresas", icon: Users },
-          { href: "/admin/catalogos", label: "Gestão de Catálogos", icon: BookOpen },
+          { href: "/admin/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
           { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
           { href: "/admin/maintenance", label: "Manutenção Global", icon: Info },
           { href: "/admin/settings", label: "Configurações Globais", icon: Settings },
