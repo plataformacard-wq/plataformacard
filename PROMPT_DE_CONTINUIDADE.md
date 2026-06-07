@@ -1,18 +1,20 @@
 # 🟩 RELATÓRIO DE CONTINUIDADE: Estabilização e Testes de UX com Catálogo Real (MAJ Mobilidade)
 
-**Contexto da Sessão Atual (06/06/2026):**
-Estamos no processo de cadastrar e testar um catálogo real, com produtos e categorias reais da **MAJ Mobilidade Elétrica** (como a scooter *MAJ X15 PRO*), com o objetivo de realizar testes reais de UX e comportamento de layout.
+**Contexto da Sessão Atual (07/06/2026):**
+Estamos no processo de realizar testes reais de UX, comportamento de layout e refinamentos de design no catálogo público com produtos da **MAJ Mobilidade Elétrica**.
 
-Durante a sessão, resolvemos dois problemas críticos que bloqueavam esse teste de UX:
-1. **Runtime ChunkLoadError (react-quill-new):** O carregamento dinâmico direto do editor Quill em múltiplos locais gerava falha de carregamento de chunk no Turbopack (modo dev). Corrigimos isso criando o componente wrapper centralizado [RichTextEditor.tsx](file:///c:/Users/Start/plataformacard/components/dashboard/RichTextEditor.tsx) importado com `ssr: false`, e limpamos imports não utilizados em [CatalogoClient.tsx](file:///c:/Users/Start/plataformacard/app/dashboard/catalogo/CatalogoClient.tsx).
-2. **Ocultação de Produtos no Catálogo Master (Bug de CaaS)**: O catálogo master recém-criado para a MAJ aparecia como "Vazio ou Indisponível" no catálogo público. Descobrimos dois problemas na lógica do servidor:
-   - O filtro CaaS exigia *overrides* de forma indiscriminada, ocultando os produtos do catálogo master do próprio criador (Super Admin). Ajustamos em [page.tsx](file:///c:/Users/Start/plataformacard/app/[slug]/catalogo/page.tsx) para ignorar o filtro de CaaS se o visualizador for o próprio dono (`owner_id` ou `organization_id`).
-   - Havia múltiplos catálogos na conta do Super Admin e a busca no fallback pegava arbitrariamente um catálogo antigo vazio por falta de ordenação. Ajustamos a query no Fallback 3 do servidor para filtrar apenas catálogos não deletados (`deleted_at IS NULL`) e ordenar pelo mais recente (`created_at DESC`).
+Durante as sessões recentes, resolvemos os seguintes pontos:
+1. **Unificação do Singleton do Supabase (Analytics)**: Descobrimos que o módulo **[analytics.ts](file:///c:/Users/Start/plataformacard/lib/analytics.ts)** estava instanciando um cliente paralelo do Supabase (`createClient` de `@supabase/supabase-js`) no navegador. Isso entrava em conflito de chaves concorrentes no `localStorage` com a conexão padrão, disparando o warning `Multiple GoTrueClient instances`. Unificamos a chamada em `analytics.ts` para usar o singleton unificado, limpando definitivamente esse alerta do DevTools.
+2. **Instância de Client Singleton do Supabase**: Implementamos o padrão Singleton em [client.ts](file:///c:/Users/Start/plataformacard/lib/supabase/client.ts) salvando a conexão ativa no `globalThis`. Isso resolve o problema de múltiplas instâncias concorrentes criadas pelo Fast Refresh/Hot Module Replacement no modo de desenvolvimento do Next.js (Turbopack), limpando o console de warnings de autenticação.
+3. **Correção de Retângulo de Preço Vazio (Bug no Modal)**: Corrigimos um bug em [ProductCatalogClient.tsx](file:///c:/Users/Start/plataformacard/components/catalog/ProductCatalogClient.tsx) onde um contêiner cinza vazio (o retângulo de preços) era renderizado para produtos sem preços cadastrados (como os cadastrados para negociação direta no WhatsApp, sem varejo/atacado). Ajustamos a condicional do container para renderizar apenas se `hidePrices` for ativo ou se houver pelo menos um preço válido de varejo ou atacado cadastrado.
+4. **Suavização de Arredondamentos (Design Clean/Premium)**: O arredondamento de cantos (`border-radius`) da modal de detalhes do produto e dos elementos internos foi considerado muito agressivo (ex: card de preço de atacado com `rounded-3xl` e contêineres/botões gerais com `rounded-2xl`). Atenuamos todos os arredondamentos em [ProductCatalogClient.tsx](file:///c:/Users/Start/plataformacard/components/catalog/ProductCatalogClient.tsx) para uma escala mais sóbria e moderna (`rounded-3xl`/`rounded-2xl` -> `rounded-xl`, `rounded-xl` -> `rounded-lg`, `rounded-lg` -> `rounded-md`, e `rounded-md` -> `rounded-sm`).
+5. **Runtime ChunkLoadError (react-quill-new):** O carregamento dinâmico direto do editor Quill gerava falha de carregamento de chunk no Turbopack. Corrigimos isso criando o wrapper centralizado [RichTextEditor.tsx](file:///c:/Users/Start/plataformacard/components/dashboard/RichTextEditor.tsx) (`ssr: false`) e limpamos imports em [CatalogoClient.tsx](file:///c:/Users/Start/plataformacard/app/dashboard/catalogo/CatalogoClient.tsx).
+6. **Ocultação de Produtos no Catálogo Master (Bug de CaaS)**: Ajustamos [page.tsx](file:///c:/Users/Start/plataformacard/app/[slug]/catalogo/page.tsx) para ignorar o filtro de CaaS se o visualizador for o próprio dono, e ordenamos a query de fallbacks por `created_at DESC` para obter o catálogo mais recente.
 
 **Estado Técnico Atual:**
 - **Servidor Dev:** Rodando em segundo plano (`npm run dev`) e acessível em `http://localhost:3000/start-super-admin/catalogo`.
-- **Compilação:** O build de produção do Next.js 16 (Turbopack) está **100% aprovado** e compilando sem erros de TypeScript ou agrupamento de chunks.
-- **Banco de Dados**: Produto real `MAJ X15 PRO` cadastrado e renderizado com sucesso no catálogo público do slug `start-super-admin`.
+- **Compilação:** O build de produção do Next.js 16 (Turbopack) está **100% aprovado** e compilou sem nenhum erro de TypeScript ou agrupamento de chunks após a suavização dos cantos.
+- **Banco de Dados**: Produto real `MAJ X15 PRO` renderizando corretamente.
 
 **🔮 Próximo Passo:**
-Realizar uma **auditoria detalhada no modal de produtos do catálogo público** para validar o design, usabilidade, responsividade dos detalhes e a integridade do layout premium.
+Continuar com os testes visuais e de interação na vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///c:/Users/Start/plataformacard/PENDENCIAS.md), como a auditoria de cadastro B2C ou lógica de recesso temporário.

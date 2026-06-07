@@ -550,7 +550,7 @@ export default function ProductCatalogClient({
                       window.open(whatsappUrl, "_blank");
                     }
                   }}
-                  className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg"
+                  className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg"
                 >
                   <MessageCircle size={14} />
                   WhatsApp
@@ -619,7 +619,7 @@ export default function ProductCatalogClient({
               placeholder="Buscar produtos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl py-3 sm:py-4 pl-10 sm:pl-12 pr-4 sm:pr-6 text-sm sm:text-base text-[var(--public-text-main)] placeholder:text-[var(--public-text-dim)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
+              className="w-full bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-xl py-3 sm:py-4 pl-10 sm:pl-12 pr-4 sm:pr-6 text-sm sm:text-base text-[var(--public-text-main)] placeholder:text-[var(--public-text-dim)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
             />
           </motion.div>
         </section>
@@ -627,7 +627,7 @@ export default function ProductCatalogClient({
         <div className="space-y-16 relative">
           {sellerStatus === 'paused' && (
             <div className="mb-8 w-full">
-              <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-2xl text-center shadow-sm">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl text-center shadow-sm">
                 <span className="font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   Indisponível para atendimento imediato
@@ -641,9 +641,9 @@ export default function ProductCatalogClient({
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center text-center p-12 sm:p-20 rounded-[32px] border border-dashed border-[var(--public-card-border)] bg-[var(--public-card-bg)] max-w-xl mx-auto shadow-sm"
+                className="flex flex-col items-center justify-center text-center p-12 sm:p-20 rounded-2xl border border-dashed border-[var(--public-card-border)] bg-[var(--public-card-bg)] max-w-xl mx-auto shadow-sm"
               >
-                <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 flex items-center justify-center mb-6">
+                <div className="w-16 h-16 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 flex items-center justify-center mb-6">
                   <Package size={32} />
                 </div>
                 <h3 className="text-xl font-bold text-[var(--public-text-main)] mb-2">
@@ -659,7 +659,7 @@ export default function ProductCatalogClient({
                   <Link
                     href={whatsappUrl}
                     target="_blank"
-                    className="flex items-center justify-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-6 py-4 rounded-xl text-sm font-bold transition-all shadow-lg w-full"
+                    className="flex items-center justify-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-6 py-4 rounded-lg text-sm font-bold transition-all shadow-lg w-full"
                     onClick={() => trackLead()}
                   >
                     <MessageCircle size={18} />
@@ -687,7 +687,7 @@ export default function ProductCatalogClient({
                       <p className="text-[var(--public-text-dim)] text-xs sm:text-sm mt-1 sm:mt-2 ml-5">{category.description}</p>
                     )}
                   </div>
-                  <span className="text-[10px] sm:text-xs font-bold text-[var(--public-text-dim)] uppercase tracking-widest bg-[var(--public-card-bg)] px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-2xl border border-[var(--public-card-border)] shadow-sm w-fit">
+                  <span className="text-[10px] sm:text-xs font-bold text-[var(--public-text-dim)] uppercase tracking-widest bg-[var(--public-card-bg)] px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-[var(--public-card-border)] shadow-sm w-fit">
                     {category.products.length} {category.products.every(p => p.type === 'service') ? 'serviços' : category.products.some(p => p.type === 'service') ? 'itens' : 'produtos'}
                   </span>
                 </div>
@@ -724,7 +724,7 @@ export default function ProductCatalogClient({
                           if (!isExpanded) handleOpenProduct(product);
                         }}
                         whileHover={sellerStatus === 'paused' ? {} : { y: -4 }}
-                        className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-2xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
+                        className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
                       >
                         <div className={`aspect-square relative overflow-hidden bg-[var(--public-card-bg)] flex items-center justify-center ${isExpanded ? 'p-4' : 'p-0'}`}>
                           {isExpanded && (
@@ -754,7 +754,7 @@ export default function ProductCatalogClient({
 
                           <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                             {product.type === 'service' && (
-                              <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-lg shadow-lg border border-emerald-400/30 uppercase tracking-widest">
+                              <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-md shadow-lg border border-emerald-400/30 uppercase tracking-widest">
                                 Serviço
                               </span>
                             )}
@@ -790,7 +790,7 @@ export default function ProductCatalogClient({
                                 <button 
                                   key={idx} 
                                   onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
-                                  className={`h-12 w-12 sm:h-16 sm:w-16 rounded-xl border-2 flex-shrink-0 overflow-hidden cursor-pointer ${selectedImageIndex === idx ? 'border-emerald-500 scale-105' : 'border-[var(--public-card-border)] opacity-60'}`}
+                                  className={`h-12 w-12 sm:h-16 sm:w-16 rounded-lg border-2 flex-shrink-0 overflow-hidden cursor-pointer ${selectedImageIndex === idx ? 'border-emerald-500 scale-105' : 'border-[var(--public-card-border)] opacity-60'}`}
                                 >
                                   <img src={url} alt="" className="w-full h-full object-cover" />
                                 </button>
@@ -801,11 +801,11 @@ export default function ProductCatalogClient({
 
                         <div className="p-4 sm:p-6 flex flex-col flex-1 relative">
                           <div className="mb-2 sm:mb-4 flex flex-col gap-1.5 sm:gap-2 items-start relative z-10">
-                            <h3 className="inline-block text-sm sm:text-base font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl sm:rounded-2xl shadow-sm break-words-strategy">
+                            <h3 className="inline-block text-sm sm:text-base font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg sm:rounded-xl shadow-sm break-words-strategy">
                                {product.name}
                             </h3>
                             {product.show_highlight && product.highlight_text && (
-                              <div className="bg-emerald-500/10 text-emerald-500 text-[8px] sm:text-[9px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg border border-emerald-500/20 flex items-center gap-1 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
+                              <div className="bg-emerald-500/10 text-emerald-500 text-[8px] sm:text-[9px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-emerald-500/20 flex items-center gap-1 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
                                 <Tag size={10} className="sm:w-3 sm:h-3 animate-pulse" />
                                 {sanitizeText(product.highlight_text)}
                               </div>
@@ -837,7 +837,7 @@ export default function ProductCatalogClient({
                               </h4>
                               <div className="grid gap-2">
                                 {product.specs.map((spec, i) => (
-                                  <div key={i} className="flex items-center justify-between bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-xl px-3 py-2">
+                                  <div key={i} className="flex items-center justify-between bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-lg px-3 py-2">
                                     <span className="text-xs text-[var(--public-text-dim)] font-bold">{spec.chave}</span>
                                     <span className="text-sm text-[var(--public-text-main)] font-bold">{spec.valor}</span>
                                   </div>
@@ -895,7 +895,7 @@ export default function ProductCatalogClient({
                                     e.stopPropagation();
                                     handleOpenProduct(product);
                                   }}
-                                  className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 bg-transparent border border-[var(--primary-color)] hover:bg-[var(--primary-color)]/5 text-[var(--primary-color)] font-bold rounded-xl transition-all text-xs uppercase tracking-wider cursor-pointer"
+                                  className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 bg-transparent border border-[var(--primary-color)] hover:bg-[var(--primary-color)]/5 text-[var(--primary-color)] font-bold rounded-lg transition-all text-xs uppercase tracking-wider cursor-pointer"
                                 >
                                   Saiba mais
                                 </button>
@@ -922,7 +922,7 @@ export default function ProductCatalogClient({
                                             metadata: { slug, productName: product.name, priceMode }
                                           });
                                         }}
-                                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider"
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-lg shadow-sm transition-all text-xs uppercase tracking-wider"
                                       >
                                         <MessageCircle size={16} />
                                         Pedir no WhatsApp
@@ -940,7 +940,7 @@ export default function ProductCatalogClient({
                                             metadata: { slug, productName: product.name, priceMode }
                                           });
                                         }}
-                                        className="flex flex-col items-center justify-center gap-0.5 w-full py-2 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                                        className="flex flex-col items-center justify-center gap-0.5 w-full py-2 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-lg border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
                                       >
                                         <div className="flex items-center justify-center gap-1 font-black text-[9px] uppercase tracking-wider">
                                           <Clock size={12} className="text-slate-400" />
@@ -949,7 +949,7 @@ export default function ProductCatalogClient({
                                       </div>
                                     )
                                   ) : (
-                                    <div className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
+                                    <div className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-lg border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
                                       <Package size={16} />
                                       Indisponível
                                     </div>
@@ -982,7 +982,7 @@ export default function ProductCatalogClient({
                                           metadata: { slug, productName: product.name, priceMode }
                                         });
                                       }}
-                                      className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-lg transition-all text-xs uppercase tracking-wider"
+                                      className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-lg shadow-lg transition-all text-xs uppercase tracking-wider"
                                     >
                                       <MessageCircle size={18} />
                                       Fazer Pedido via WhatsApp
@@ -1000,7 +1000,7 @@ export default function ProductCatalogClient({
                                           metadata: { slug, productName: product.name, priceMode }
                                         });
                                       }}
-                                      className="flex flex-col items-center justify-center gap-1 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                                      className="flex flex-col items-center justify-center gap-1 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-lg border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
                                     >
                                       <div className="flex items-center gap-1.5 font-black text-[10px] uppercase tracking-wider">
                                         <Clock size={14} />
@@ -1010,7 +1010,7 @@ export default function ProductCatalogClient({
                                     </div>
                                   )
                                 ) : (
-                                  <div className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
+                                  <div className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-lg border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
                                     <Package size={16} />
                                     Produto Indisponível
                                   </div>
@@ -1027,7 +1027,7 @@ export default function ProductCatalogClient({
                                     `${baseUrl}#${product.id}`
                                   );
                                 }}
-                                className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-transparent border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-xl hover:bg-[var(--public-bg)] transition-all text-[10px] uppercase tracking-widest cursor-pointer"
+                                className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-transparent border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-lg hover:bg-[var(--public-bg)] transition-all text-[10px] uppercase tracking-widest cursor-pointer"
                               >
                                 <Share2 size={14} />
                                 Compartilhar este Produto
@@ -1080,7 +1080,7 @@ export default function ProductCatalogClient({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-[95%] sm:w-full max-w-2xl bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[95vh] public-modal-content z-10"
+              className="relative w-[95%] sm:w-full max-w-2xl bg-[var(--public-card-bg)] border border-[var(--public-card-border)] rounded-xl shadow-2xl flex flex-col overflow-hidden max-h-[95vh] public-modal-content z-10"
             >
               {/* Pinned Close Button */}
               <button 
@@ -1141,7 +1141,7 @@ export default function ProductCatalogClient({
                       <button 
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`h-14 w-14 rounded-2xl border-2 flex-shrink-0 transition-all overflow-hidden ${
+                        className={`h-14 w-14 rounded-lg border-2 flex-shrink-0 transition-all overflow-hidden ${
                           selectedImageIndex === idx ? "border-emerald-500 scale-105" : "border-[var(--public-card-border)] opacity-60 hover:opacity-100"
                         }`}
                       >
@@ -1163,7 +1163,7 @@ export default function ProductCatalogClient({
                       <motion.div 
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm w-fit break-words-strategy"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm w-fit break-words-strategy"
                       >
                         <Tag size={14} className="animate-pulse" />
                         {selectedProduct.highlight_text}
@@ -1179,14 +1179,14 @@ export default function ProductCatalogClient({
                           {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
                         </span>
                         {selectedProduct.sku && (
-                          <span className="px-2 py-1 rounded-lg bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-widest">
+                          <span className="px-2 py-1 rounded-md bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-widest">
                             REF: {selectedProduct.sku}
                           </span>
                         )}
                       </div>
 
                       {selectedProduct.show_colors && selectedProduct.colors && selectedProduct.colors.length > 0 && (
-                        <div className="flex items-center gap-3 bg-[var(--public-bg)] px-3 py-1.5 rounded-xl border border-[var(--public-card-border)]">
+                        <div className="flex items-center gap-3 bg-[var(--public-bg)] px-3 py-1.5 rounded-lg border border-[var(--public-card-border)]">
                           <span className="text-[9px] font-black text-[var(--public-text-dim)] uppercase tracking-widest">Cores disponíveis</span>
                           <div className="flex items-center gap-1.5">
                             {selectedProduct.colors.map((color, i) => (
@@ -1201,8 +1201,12 @@ export default function ProductCatalogClient({
 
                 <div className="px-6 sm:px-10 py-8 pb-12 min-w-0">
                   {selectedProduct.is_in_stock !== false && (
+                    hidePrices || 
+                    (selectedProduct.has_retail !== false && selectedProduct.price !== null) || 
+                    (selectedProduct.has_wholesale && selectedProduct.wholesale_price !== null)
+                  ) && (
                     <div className="space-y-6 mb-8">
-                      <div className="bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-2xl p-6">
+                      <div className="bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-xl p-6">
                         <div className="space-y-6">
                           {hidePrices ? (
                             <div className="flex flex-col items-center text-center p-4">
@@ -1214,7 +1218,7 @@ export default function ProductCatalogClient({
                               {selectedProduct.has_retail !== false && (!isB2B || !selectedProduct.has_wholesale) && (
                                 <div 
                                   onClick={() => setPriceMode("retail")}
-                                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
                                     priceMode === "retail" ? "bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
                                   }`}
                                 >
@@ -1244,7 +1248,7 @@ export default function ProductCatalogClient({
                               {selectedProduct.has_wholesale && (
                                 <div 
                                   onClick={() => setPriceMode("wholesale")}
-                                  className={`p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${
+                                  className={`p-4 sm:p-6 rounded-xl border-2 transition-all duration-300 ${
                                     priceMode === "wholesale" ? "bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-500 shadow-lg shadow-emerald-500/10" : "bg-[var(--public-card-bg)] border-[var(--public-card-border)] opacity-60 hover:opacity-100"
                                   }`}
                                 >
@@ -1259,7 +1263,7 @@ export default function ProductCatalogClient({
                                   </p>
                                   {selectedProduct.wholesale_min_quantity && (
                                     <div className="mt-2">
-                                      <span className="inline-block bg-emerald-500 !text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
+                                      <span className="inline-block bg-emerald-500 !text-white text-[9px] font-black px-2 py-0.5 rounded-sm shadow-lg shadow-emerald-500/20 uppercase tracking-wider">
                                         Mínimo de {selectedProduct.wholesale_min_quantity} unidades
                                       </span>
                                     </div>
@@ -1306,7 +1310,7 @@ export default function ProductCatalogClient({
                         </h4>
                         <div className="grid gap-2">
                           {selectedProduct.specs.map((spec, i) => (
-                            <div key={i} className="flex items-center justify-between bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-2xl px-4 py-3">
+                            <div key={i} className="flex items-center justify-between bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-xl px-4 py-3">
                               <span className="text-sm text-[var(--public-text-dim)] font-bold">{spec.chave}</span>
                               <span className="text-base text-[var(--public-text-main)] font-bold">{spec.valor}</span>
                             </div>
@@ -1347,7 +1351,7 @@ export default function ProductCatalogClient({
                                   metadata: { slug, productName: selectedProduct.name, priceMode }
                                 });
                               }}
-                              className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:opacity-90 text-white font-black rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider"
+                              className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:opacity-90 text-white font-black rounded-xl shadow-xl transition-all text-sm uppercase tracking-wider"
                               style={{ boxShadow: `0 10px 30px #25D36633` }}
                             >
                               <MessageCircle size={20} />
@@ -1366,7 +1370,7 @@ export default function ProductCatalogClient({
                                   metadata: { slug, productName: selectedProduct.name, priceMode }
                                 });
                               }}
-                              className="flex flex-col items-center justify-center gap-1 w-full py-3 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-2xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                              className="flex flex-col items-center justify-center gap-1 w-full py-3 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-xl border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
                             >
                               <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
                                 <Clock size={16} />
@@ -1376,7 +1380,7 @@ export default function ProductCatalogClient({
                             </div>
                           )
                         ) : (
-                          <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-2xl border border-[var(--public-card-border)] transition-all text-sm uppercase tracking-wider cursor-not-allowed opacity-60">
+                          <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-xl border border-[var(--public-card-border)] transition-all text-sm uppercase tracking-wider cursor-not-allowed opacity-60">
                             <Package size={20} />
                             Produto Indisponível
                           </div>
@@ -1392,7 +1396,7 @@ export default function ProductCatalogClient({
                             `${baseUrl}#${selectedProduct.id}`
                           );
                         }}
-                        className="mt-4 flex items-center justify-center gap-2 w-full py-3 px-6 bg-[var(--public-card-bg)] border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-xl hover:bg-[var(--public-bg)] hover:text-[var(--public-text-main)] transition-all text-xs uppercase tracking-widest"
+                        className="mt-4 flex items-center justify-center gap-2 w-full py-3 px-6 bg-[var(--public-card-bg)] border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-lg hover:bg-[var(--public-bg)] hover:text-[var(--public-text-main)] transition-all text-xs uppercase tracking-widest"
                       >
                         <Share2 size={16} />
                         Compartilhar este Produto
