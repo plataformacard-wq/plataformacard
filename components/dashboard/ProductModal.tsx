@@ -70,6 +70,8 @@ interface ProductRow {
   override_id?: string;
   original_master_price?: number | null;
   caas_owner_name?: string;
+  original_category_id?: string | null;
+  categories?: { id: string; name: string } | { id: string; name: string }[] | null;
 }
 
 interface Category {
@@ -433,7 +435,8 @@ export default function ProductModal({
             is_available: payload.is_active,
             is_in_stock: payload.is_in_stock,
             image_url: finalUrls[0] || null,
-            image_urls: finalUrls
+            image_urls: finalUrls,
+            category_id: selectedCategoryId === editingProduct?.original_category_id ? null : selectedCategoryId
           };
           
           const { error } = await supabase
@@ -569,14 +572,29 @@ export default function ProductModal({
                     <Tag size={16} className="text-emerald-500" /> Categoria
                   </label>
                   <select
-                    disabled={isCaaS}
                     value={selectedCategoryId}
                     onChange={(e) => setSelectedCategoryId(e.target.value)}
                     className="w-full rounded-2xl border px-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500/50"
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   >
                     <option value="" style={{ background: "var(--dash-input-bg)" }}>Selecione uma categoria</option>
-                    {categories.map((c) => <option key={c.id} value={c.id} style={{ background: "var(--dash-input-bg)" }}>{c.name}</option>)}
+                    {isCaaS && editingProduct?.original_category_id && (
+                      <option value={editingProduct.original_category_id} style={{ background: "var(--dash-input-bg)" }}>
+                        Categoria Padrão ({
+                          Array.isArray(editingProduct?.categories)
+                            ? (editingProduct.categories[0]?.name || "Mestre")
+                            : (editingProduct?.categories as { id: string; name: string })?.name || "Mestre"
+                        })
+                      </option>
+                    )}
+                    {categories.map((c) => {
+                      if (isCaaS && c.id === editingProduct?.original_category_id) return null;
+                      return (
+                        <option key={c.id} value={c.id} style={{ background: "var(--dash-input-bg)" }}>
+                          {c.name}
+                        </option>
+                      );
+                    })}
                   </select>
                   {categoryError && <p className="mt-1.5 text-xs text-red-500">{categoryError}</p>}
                 </div>
@@ -1138,17 +1156,26 @@ export default function ProductModal({
                   type="button"
                   onClick={async () => {
                     if (!productName) return alert("Dê um nome ao produto primeiro.");
+
+                    const validSpecs = specs.filter(s => s.chave.trim() && s.valor.trim());
+                    const hasMinSpecs = validSpecs.length >= 3;
+                    const hasDescription = !!productDescription?.trim();
+
+                    if (!hasDescription && !hasMinSpecs) {
+                      return alert("Para gerar uma descrição com a IA, insira pelo menos 3 especificações técnicas na ficha técnica ou escreva um rascunho de descrição.");
+                    }
+
                     setAiLoadingType('description');
                     try {
                       const result = await enhanceDescriptionWithAI({
                         name: productName,
                         currentDescription: productDescription,
-                        specs
+                        specs: validSpecs
                       });
                       if (result.success && result.data) {
                         setReviewData({
                           type: 'description',
-                          title: 'Melhoria de Descrição',
+                          title: hasDescription ? 'Melhoria de Descrição' : 'Geração de Descrição',
                           explanation: result.data.explanation,
                           original: productDescription,
                           proposed: result.data.proposed
@@ -1162,8 +1189,14 @@ export default function ProductModal({
                   className="flex items-center justify-between p-6 rounded-3xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
                 >
                   <div className="text-left">
-                    <p className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">Melhorar Legenda</p>
-                    <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">IA cria um texto de alta conversão</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">
+                      {productDescription?.trim() ? "Melhorar Legenda" : "Gerar Descrição"}
+                    </p>
+                    <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">
+                      {productDescription?.trim() 
+                        ? "IA cria um texto de alta conversão" 
+                        : "Criar descrição a partir da Ficha Técnica"}
+                    </p>
                   </div>
                   <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
                     {aiLoadingType === 'description' ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}

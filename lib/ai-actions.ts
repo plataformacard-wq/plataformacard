@@ -72,12 +72,13 @@ export async function enhanceDescriptionWithAI(payload: {
     5. AO FINAL, inclua 3 hashtags relevantes.
     6. JAMAIS cite o preço do produto no texto. 
     7. NÃO gere títulos ou campos extras.
+    8. Se a "Descrição atual" for "Vazia", crie uma descrição totalmente nova, cativante e completa do zero a partir do nome do produto e das especificações técnicas fornecidas.
 
     RETORNO:
     Retorne APENAS um JSON no formato:
     {
       "proposed": "HTML da nova descrição",
-      "explanation": "Uma breve explicação do que foi melhorado (ex: 'Tornei o texto mais direto e foquei na potência do motor')."
+      "explanation": "Uma breve explicação do que foi feito (ex: 'Criei uma descrição comercial focada nas especificações técnicas fornecidas' ou 'Melhorei a legibilidade do texto e foquei na potência')."
     }
   `;
 

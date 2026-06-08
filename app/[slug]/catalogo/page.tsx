@@ -406,6 +406,7 @@ export default async function Page(props: PageProps) {
         // Aplica overrides
         acc.push({
           ...product,
+          category_id: override.category_id !== null && override.category_id !== undefined ? override.category_id : product.category_id,
           price: (override.price_b2c !== null && override.price_b2c !== undefined) ? override.price_b2c : null,
           wholesale_price: (override.price_b2b !== null && override.price_b2b !== undefined) ? override.price_b2b : null,
           compare_at_price: (override.compare_at_price !== null && override.compare_at_price !== undefined) ? override.compare_at_price : null,

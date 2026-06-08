@@ -98,6 +98,7 @@ type ProductRow = {
   original_master_price?: number | null;
   caas_owner_name?: string;
   override_id?: string;
+  original_category_id?: string | null;
   created_at: string;
   sort_order: number | null;
   categories:
@@ -113,6 +114,7 @@ type ProductRow = {
 };
 
 function getProductCategoryId(product: ProductRow): string {
+  if (product.category_id) return product.category_id;
   const c = product.categories;
   if (Array.isArray(c)) return c[0]?.id ?? "";
   return c?.id ?? "";
@@ -622,6 +624,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
               is_caas: true,
               override_id: override?.id,
               caas_owner_name: masterOrgName,
+              original_category_id: p.category_id,
+              category_id: override?.category_id || p.category_id,
               // Apply overrides if they exist
               price: (override?.price_b2c !== undefined && override?.price_b2c !== null) ? override.price_b2c : null,
               compare_at_price: (override?.compare_at_price !== undefined && override?.compare_at_price !== null) ? override.compare_at_price : null,
@@ -736,7 +740,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
               is_in_stock: p.is_in_stock,
               image_url: p.image_url || null,
               image_urls: p.image_urls || [],
-              sort_order: i
+              sort_order: i,
+              category_id: p.category_id === p.original_category_id ? null : p.category_id
             };
             return supabase
               .from("organization_product_overrides")
@@ -810,7 +815,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         is_available: field === 'is_active' ? newValue : (product.is_active ?? true),
         is_in_stock: field === 'is_in_stock' ? newValue : (product.is_in_stock ?? true),
         image_url: product.image_url || null,
-        image_urls: product.image_urls || []
+        image_urls: product.image_urls || [],
+        category_id: product.category_id === product.original_category_id ? null : product.category_id
       };
 
       const { error } = await supabase
@@ -878,7 +884,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
               is_in_stock: p.is_in_stock,
               image_url: p.image_url || null,
               image_urls: p.image_urls || [],
-              sort_order: index
+              sort_order: index,
+              category_id: p.category_id === p.original_category_id ? null : p.category_id
             };
             return supabase
               .from("organization_product_overrides")
