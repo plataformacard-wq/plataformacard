@@ -21,6 +21,7 @@ type Catalog = {
   name: string;
   description: string | null;
   catalog_type: string | null;
+  banners?: any[] | null;
 };
 
 type Category = {
@@ -138,7 +139,7 @@ if (!catalogId) {
 
   const { data: catalogData, error: catalogError } = await supabase
     .from("catalogs")
-    .select("id, name, description, catalog_type")
+    .select("id, name, description, catalog_type, banners")
     .eq("id", catalogId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -195,6 +196,7 @@ if (!catalogId) {
       products={products}
       whatsapp={profile.whatsapp}
       bio={profile.bio}
+      banners={catalog.banners}
     />
   );
 }

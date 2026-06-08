@@ -28,22 +28,28 @@ export default async function ConfiguracoesPage() {
     return <div>Organização não encontrada.</div>;
   }
 
-  const { data: orgCatalog } = await supabase
+  const { data: orgCatalogs } = await supabase
     .from("organization_catalogs")
     .select("catalog_id")
     .eq("organization_id", activeOrgId)
-    .eq("is_enabled", true)
-    .maybeSingle();
+    .eq("is_enabled", true);
 
-  if (!orgCatalog?.catalog_id) {
+  if (!orgCatalogs || orgCatalogs.length === 0) {
     return <div>Nenhum catálogo ativo encontrado.</div>;
   }
 
-  const { data: catalogData } = await supabase
+  const catalogIds = orgCatalogs.map((c) => c.catalog_id);
+  const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
-    .eq("id", orgCatalog.catalog_id)
-    .single();
+    .in("id", catalogIds);
+
+  const ownCatalog = catalogsData?.find((c) => c.catalog_type !== "CaaS" && c.catalog_type !== "platform");
+  const catalogData = ownCatalog || catalogsData?.[0];
+
+  if (!catalogData) {
+    return <div>Nenhum catálogo ativo encontrado.</div>;
+  }
 
   const { data: orgData } = await supabase
     .from("organizations")

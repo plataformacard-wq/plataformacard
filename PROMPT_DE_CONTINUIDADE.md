@@ -16,5 +16,10 @@ Durante as sessões recentes, resolvemos os seguintes pontos:
 - **Compilação:** O build de produção do Next.js 16 (Turbopack) está **100% aprovado** e compilou sem nenhum erro de TypeScript ou agrupamento de chunks após a suavização dos cantos.
 - **Banco de Dados**: Produto real `MAJ X15 PRO` renderizando corretamente.
 
-**🔮 Próximo Passo:**
-Continuar com os testes visuais e de interação na vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///c:/Users/Start/plataformacard/PENDENCIAS.md), como a auditoria de cadastro B2C ou lógica de recesso temporário.
+**🔮 Próximos Passos:**
+1. **Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolver no menu de configurações do catálogo (em `app/dashboard/catalogo/configuracoes/` e `ConfiguracoesClient.tsx`) uma área dedicada para cadastrar as imagens do banner.
+   - Integrar upload de imagens para o Supabase Storage.
+   - Permitir associar Título, Descrição, Texto do Botão de Ação e Link de Destino (URL externa ou ID de produto para rolagem âncora) a cada banner.
+   - Exibir a lista de banners salvos na coluna `banners` (JSONB) da tabela `catalogs`.
+   - Permitir ordenar, editar e remover as imagens dos banners cadastrados.
+2. Continuar com os testes de vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/PlataformaCard/PENDENCIAS.md).

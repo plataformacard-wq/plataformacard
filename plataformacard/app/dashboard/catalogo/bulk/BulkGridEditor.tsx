@@ -85,9 +85,15 @@ const EditableCell = ({
     setValue(initialValue);
   }, [initialValue]);
 
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
+  const isReadOnly = row.original.is_caas && (id === "name" || id === "sku");
+
+  if (isReadOnly) {
+    return (
+      <span className="text-sm p-1 opacity-60 select-none block truncate" title="Este campo pertence ao catálogo mestre e não pode ser editado.">
+        {value ?? "—"}
+      </span>
+    );
+  }
 
   if (type === "select") {
     return (
@@ -208,12 +214,13 @@ export default function BulkGridEditor() {
         if (profileError) throw profileError;
         if (!profile?.organization_id) return;
 
+        const activeOrgId = profile.organization_id;
         setUserId(user.id);
         setUserName(profile.full_name || "Membro");
-        setOrgId(profile.organization_id);
+        setOrgId(activeOrgId);
         
-        // 1. Fetch products (primary data)
-        const { data: prods, error: prodsError } = await supabase
+        // 1. Fetch own products
+        const { data: ownData, error: prodsError } = await supabase
           .from("products")
           .select(`
             id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
@@ -221,34 +228,110 @@ export default function BulkGridEditor() {
             highlight_text, show_highlight,
             categories (id, name)
           `)
-          .eq("organization_id", profile.organization_id)
+          .eq("organization_id", activeOrgId)
           .is("deleted_at", null)
           .order("sort_order", { ascending: true });
 
         if (prodsError) throw prodsError;
 
-        setData(prods || []);
+        let prodList = (ownData ?? []) as any[];
 
         // 2. Fetch Catalog & Categories
-        const { data: orgCatalog } = await supabase
+        const { data: orgCatalogs, error: orgCatalogError } = await supabase
           .from("organization_catalogs")
           .select("catalog_id")
-          .eq("organization_id", profile.organization_id)
-          .eq("is_enabled", true)
-          .maybeSingle();
+          .eq("organization_id", activeOrgId)
+          .eq("is_enabled", true);
 
-        if (orgCatalog?.catalog_id) {
-          setCatalogId(orgCatalog.catalog_id);
+        if (orgCatalogError) throw orgCatalogError;
+
+        if (orgCatalogs && orgCatalogs.length > 0) {
+          const catalogIds = orgCatalogs.map((c) => c.catalog_id);
+
+          // Fetch catalog details to identify types
+          const { data: catalogsData } = await supabase
+            .from("catalogs")
+            .select("id, name, catalog_type")
+            .in("id", catalogIds);
+
+          const caasCatalog = catalogsData?.find((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform");
+          const primaryCatalog = caasCatalog || catalogsData?.[0];
+
+          if (primaryCatalog) {
+            setCatalogId(primaryCatalog.id);
+          }
+
           const { data: cats } = await supabase
             .from("categories")
-            .select("id, name, specs_title, show_specs, show_colors, colors")
-            .eq("catalog_id", orgCatalog.catalog_id);
+            .select("id, name, catalog_id")
+            .in("catalog_id", catalogIds);
           
           console.log(`[BulkEditor] Categorias carregadas: ${cats?.length || 0}`, cats);
-          setCategories(cats || []);
+          const activeCats = cats || [];
+          setCategories(activeCats);
+
+          // Check if any catalog is CaaS/platform
+          const caasCatalogIds = catalogsData
+            ?.filter((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform")
+            .map((c) => c.id) || [];
+
+          const caasCats = activeCats.filter((c) => caasCatalogIds.includes(c.catalog_id));
+
+          if (caasCats.length > 0) {
+            const { data: caasProductsData } = await supabase
+              .from("products")
+              .select(`
+                id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
+                has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, 
+                is_active, is_in_stock, highlight_text, show_highlight, sort_order, created_at,
+                categories (id, name)
+              `)
+              .in("category_id", caasCats.map((c) => c.id))
+              .eq("is_active", true)
+              .is("deleted_at", null);
+
+            if (caasProductsData && caasProductsData.length > 0) {
+              const { data: overridesData } = await supabase
+                .from("organization_product_overrides")
+                .select("*")
+                .eq("organization_id", activeOrgId)
+                .in("product_id", caasProductsData.map((p) => p.id));
+              
+              const overrides = overridesData || [];
+
+              const caasProductsList = caasProductsData.map((p: any) => {
+                const override = overrides.find((o) => o.product_id === p.id);
+                return {
+                  ...p,
+                  is_caas: true,
+                  override_id: override?.id,
+                  original_category_id: p.category_id,
+                  category_id: override?.category_id || p.category_id,
+                  price: (override?.price_b2c !== undefined && override?.price_b2c !== null) ? override.price_b2c : null,
+                  compare_at_price: (override?.compare_at_price !== undefined && override?.compare_at_price !== null) ? override.compare_at_price : null,
+                  wholesale_price: (override?.price_b2b !== undefined && override?.price_b2b !== null) ? override.price_b2b : null,
+                  sku: p.sku,
+                  has_retail: (override?.has_retail !== undefined && override?.has_retail !== null) ? override.has_retail : p.has_retail,
+                  has_wholesale: (override?.has_wholesale !== undefined && override?.has_wholesale !== null) ? override.has_wholesale : p.has_wholesale,
+                  sort_order: (override?.sort_order !== undefined && override?.sort_order !== null) ? override.sort_order : p.sort_order,
+                  is_in_stock: (override?.is_in_stock !== undefined && override?.is_in_stock !== null) ? override.is_in_stock : p.is_in_stock,
+                  is_active: override ? (override.is_available ?? false) : false,
+                  image_url: override?.image_url || p.image_url,
+                  image_urls: override?.image_urls || p.image_urls
+                };
+              });
+
+              prodList = [...prodList, ...caasProductsList];
+            }
+          }
         } else {
           console.warn("[BulkEditor] Nenhum catálogo ativo encontrado para esta organização.");
         }
+
+        setData(prodList.map(p => ({
+          ...p,
+          has_wholesale: !!p.has_wholesale
+        })));
       } catch (err) {
         console.error("Erro ao carregar dados do Bulk Editor:", err);
       } finally {
@@ -267,24 +350,114 @@ export default function BulkGridEditor() {
     setLoading(true);
     try {
       console.log(`[BulkEditor] Forçando atualização para Org: ${orgId}`);
-      const { data: prods, error: prodsError } = await supabase
+      
+      // 1. Fetch own products
+      const { data: ownData, error: ownError } = await supabase
         .from("products")
         .select(`
           id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
-          category_id, updated_at, image_url, image_urls, specs, is_in_stock,
+          category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock,
           highlight_text, show_highlight,
           categories (id, name)
         `)
         .eq("organization_id", orgId)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .order("sort_order", { ascending: true });
 
-      if (prodsError) {
-        console.error("[BulkEditor] Erro crítico no Refresh:", prodsError);
-        throw prodsError;
+      if (ownError) throw ownError;
+
+      let prodList = (ownData ?? []) as any[];
+
+      // 2. Fetch Catalog & Categories
+      const { data: orgCatalogs, error: orgCatalogError } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("organization_id", orgId)
+        .eq("is_enabled", true);
+
+      if (orgCatalogError) throw orgCatalogError;
+
+      if (orgCatalogs && orgCatalogs.length > 0) {
+        const catalogIds = orgCatalogs.map((c) => c.catalog_id);
+
+        // Fetch catalog details to identify types
+        const { data: catalogsData } = await supabase
+          .from("catalogs")
+          .select("id, name, catalog_type")
+          .in("id", catalogIds);
+
+        const caasCatalog = catalogsData?.find((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform");
+        const primaryCatalog = caasCatalog || catalogsData?.[0];
+
+        if (primaryCatalog) {
+          setCatalogId(primaryCatalog.id);
+        }
+
+        const { data: cats } = await supabase
+          .from("categories")
+          .select("id, name, catalog_id")
+          .in("catalog_id", catalogIds);
+        
+        const activeCats = cats || [];
+        setCategories(activeCats);
+
+        // Check if any catalog is CaaS/platform
+        const caasCatalogIds = catalogsData
+          ?.filter((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform")
+          .map((c) => c.id) || [];
+
+        const caasCats = activeCats.filter((c) => caasCatalogIds.includes(c.catalog_id));
+
+        if (caasCats.length > 0) {
+          const { data: caasProductsData } = await supabase
+            .from("products")
+            .select(`
+              id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
+              has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, 
+              is_active, is_in_stock, highlight_text, show_highlight, sort_order, created_at,
+              categories (id, name)
+            `)
+            .in("category_id", caasCats.map((c) => c.id))
+            .eq("is_active", true)
+            .is("deleted_at", null);
+
+          if (caasProductsData && caasProductsData.length > 0) {
+            const { data: overridesData } = await supabase
+              .from("organization_product_overrides")
+              .select("*")
+              .eq("organization_id", orgId)
+              .in("product_id", caasProductsData.map((p) => p.id));
+            
+            const overrides = overridesData || [];
+
+            const caasProductsList = caasProductsData.map((p: any) => {
+              const override = overrides.find((o) => o.product_id === p.id);
+              return {
+                ...p,
+                is_caas: true,
+                override_id: override?.id,
+                original_category_id: p.category_id,
+                category_id: override?.category_id || p.category_id,
+                price: (override?.price_b2c !== undefined && override?.price_b2c !== null) ? override.price_b2c : null,
+                compare_at_price: (override?.compare_at_price !== undefined && override?.compare_at_price !== null) ? override.compare_at_price : null,
+                wholesale_price: (override?.price_b2b !== undefined && override?.price_b2b !== null) ? override.price_b2b : null,
+                sku: p.sku,
+                has_retail: (override?.has_retail !== undefined && override?.has_retail !== null) ? override.has_retail : p.has_retail,
+                has_wholesale: (override?.has_wholesale !== undefined && override?.has_wholesale !== null) ? override.has_wholesale : p.has_wholesale,
+                sort_order: (override?.sort_order !== undefined && override?.sort_order !== null) ? override.sort_order : p.sort_order,
+                is_in_stock: (override?.is_in_stock !== undefined && override?.is_in_stock !== null) ? override.is_in_stock : p.is_in_stock,
+                is_active: override ? (override.is_available ?? false) : false,
+                image_url: override?.image_url || p.image_url,
+                image_urls: override?.image_urls || p.image_urls
+              };
+            });
+
+            prodList = [...prodList, ...caasProductsList];
+          }
+        }
       }
       
-      setData((prods || []).map(p => ({
+      setData(prodList.map(p => ({
         ...p,
         has_wholesale: !!p.has_wholesale
       })));
@@ -597,20 +770,53 @@ export default function BulkGridEditor() {
 
     setSaving(true);
     try {
-      const productsToUpsert = data.map((p, index) => {
-        const { isNew, updated_at, categories, ...cleanProd } = p as any;
-        return {
-          ...cleanProd,
-          organization_id: orgId,
-          sort_order: index, // A nova ordem é o índice atual na lista
-        };
-      });
+      const ownProducts = data.filter(p => !p.is_caas);
+      const caasProducts = data.filter(p => p.is_caas);
 
-      const { error: upsertError } = await supabase
-        .from("products")
-        .upsert(productsToUpsert, { onConflict: 'id' });
+      // Save own products
+      if (ownProducts.length > 0) {
+        const productsToUpsert = ownProducts.map((p, index) => {
+          const { isNew, updated_at, categories, ...cleanProd } = p as any;
+          return {
+            ...cleanProd,
+            organization_id: orgId,
+            sort_order: index,
+          };
+        });
 
-      if (upsertError) throw upsertError;
+        const { error: upsertError } = await supabase
+          .from("products")
+          .upsert(productsToUpsert, { onConflict: 'id' });
+
+        if (upsertError) throw upsertError;
+      }
+
+      // Save CaaS overrides
+      if (caasProducts.length > 0) {
+        const overridesToUpsert = caasProducts.map((p, index) => {
+          return {
+            organization_id: orgId,
+            product_id: p.id,
+            price_b2c: p.price,
+            price_b2b: p.wholesale_price,
+            compare_at_price: p.compare_at_price,
+            has_retail: p.has_retail,
+            has_wholesale: p.has_wholesale,
+            is_available: p.is_active,
+            is_in_stock: p.is_in_stock,
+            sort_order: index,
+            category_id: p.category_id === p.original_category_id ? null : p.category_id,
+            image_url: p.image_url || null,
+            image_urls: p.image_urls || []
+          };
+        });
+
+        const { error: overrideError } = await supabase
+          .from("organization_product_overrides")
+          .upsert(overridesToUpsert, { onConflict: 'organization_id, product_id' });
+
+        if (overrideError) throw overrideError;
+      }
 
       alert("Alterações salvas com sucesso!");
       await refreshData();

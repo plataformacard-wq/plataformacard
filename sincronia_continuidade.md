@@ -54,10 +54,14 @@ Corrigimos com sucesso uma série de erros críticos de TypeScript que impediam 
 ---
 
 ## 4. Próximos Passos & Diretrizes para Você (Novo Agente)
-Quando o usuário solicitar novas tarefas, siga estas regras e boas práticas do projeto:
 
-1.  **Preservação das Diretrizes de UI**: A estética e design dos cartões de produto e modais do catálogo público (`ProductCatalogClient.tsx`) devem se manter premium, responsivos, com gradientes elegantes e suporte a tema escuro/claro.
-2.  **Tratamento de Textos e Typos**: A função `sanitizeText` em `ProductCatalogClient.tsx` corrige automaticamente typos comuns (como transformar "ENPLACAMENTO" em "EMPLACAMENTO") e limpa marcas de edição. Preserve-a.
-3.  **Qualidade de Código**: Sempre valide as mudanças rodando `npm run build` localmente no terminal antes de finalizar para garantir que nenhuma regressão de tipagem seja introduzida.
+### A. O que foi Concluído Recentemente:
+* **Nova Diagramação e Banner:** Grade de produtos alterada para 4 colunas em telas desktop grandes, largura máxima ajustada para `max-w-6xl` e carrossel de 150px-220px de altura integrado com adesivo de texto fosco (sticker) adaptável a temas Claro/Escuro.
+* **Priorização do Catálogo Master:** Ajustamos o loader de páginas para dar prioridade ao catálogo CaaS/platform quando associado, fazendo o título da vitrine herdar dinamicamente o nome correto (ex: `"CATALOGO DE PRODUTOS - MAJ MOBILIDADE ELÉTRICA"`).
 
-**Agora, confirme para o usuário que você absorveu o contexto e pergunte qual é a próxima tarefa a ser executada no ambiente Windows!**
+### B. Próximo Sprint (Prioritário):
+1. **Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolver no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/page.tsx` e `ConfiguracoesClient.tsx`) uma área dedicada para cadastrar as imagens do banner.
+   - Deve suportar upload de imagens para o Supabase Storage.
+   - Permitir associar Título, Descrição, Texto do Botão de Ação e Link de Destino (URL externa ou ID de produto para rolagem/âncora) a cada banner.
+   - Exibir a lista de banners cadastrados (salvos na coluna `banners` JSONB de `catalogs`) permitindo ordenar, editar e remover banners.
+2. **Qualidade de Código**: Sempre valide as mudanças rodando `npm run build` localmente no terminal antes de finalizar para garantir que nenhuma regressão de tipagem seja introduzida.

@@ -52,6 +52,7 @@ type Catalog = {
   hide_prices?: boolean | null;
   owner_id?: string | null;
   organization_id?: string | null;
+  banners?: any[] | null;
 };
 
 type Category = {
@@ -320,7 +321,9 @@ export default async function Page(props: PageProps) {
     .is("deleted_at", null);
 
   const catalogs = (catalogsData || []) as Catalog[];
-  const primaryCatalog = catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform') || catalogs[0];
+  const primaryCatalog = catalogs.find(c => c.catalog_type === 'CaaS' || c.catalog_type === 'platform')
+    || catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform')
+    || catalogs[0];
   if (!primaryCatalog) {
     return (
       <ConsultantsBridge
@@ -493,6 +496,7 @@ export default async function Page(props: PageProps) {
         sellerStatus={profile?.status}
         recessEndsAt={profile?.recess_ends_at}
         hideCta={!!catalog?.hide_cta}
+        banners={catalog.banners}
       />
     </>
   );

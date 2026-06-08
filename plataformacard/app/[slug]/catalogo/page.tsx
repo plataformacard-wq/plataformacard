@@ -45,6 +45,7 @@ type Catalog = {
   catalog_type: string | null;
   whatsapp_template?: string | null;
   hide_cta?: boolean | null;
+  banners?: any[] | null;
 };
 
 type Category = {
@@ -372,6 +373,7 @@ export default async function Page(props: PageProps) {
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
         hideCta={!!catalog?.hide_cta}
+        banners={catalog.banners}
       />
     </>
   );

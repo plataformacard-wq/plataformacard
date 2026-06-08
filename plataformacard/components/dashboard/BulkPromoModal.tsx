@@ -67,12 +67,90 @@ export default function BulkPromoModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // CaaS and multi-channel pricing states
+  const [targetChannel, setTargetChannel] = useState<"b2c" | "b2b" | "both">("both");
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [isCatalogCaas, setIsCatalogCaas] = useState(false);
+
   const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
+
+  // Fetch CaaS products and overrides if we are in a CaaS tenant context
+  useEffect(() => {
+    if (!isOpen || !catalogId) return;
+
+    async function checkAndFetchProducts() {
+      // If we don't have an orgId, we are either editing a master catalog directly as admin, or it's a standard catalog without org context
+      if (!orgId) {
+        setLocalProducts(products);
+        setIsCatalogCaas(false);
+        return;
+      }
+
+      setLoadingProducts(true);
+      try {
+        // Check if catalog is CaaS/platform type
+        const { data: catData } = await supabase
+          .from("catalogs")
+          .select("catalog_type")
+          .eq("id", catalogId)
+          .maybeSingle();
+
+        const isCaasType = catData?.catalog_type === "CaaS" || catData?.catalog_type === "platform";
+        setIsCatalogCaas(isCaasType);
+
+        if (isCaasType) {
+          // Fetch master catalog products
+          const { data: masterProds } = await supabase
+            .from("products")
+            .select("id, name, price, compare_at_price, category_id, sku, wholesale_price, has_retail, has_wholesale")
+            .in("category_id", categories.map(c => c.id))
+            .eq("is_active", true)
+            .is("deleted_at", null);
+
+          if (masterProds && masterProds.length > 0) {
+            // Fetch overrides for this organization
+            const { data: overrides } = await supabase
+              .from("organization_product_overrides")
+              .select("*")
+              .eq("organization_id", orgId)
+              .in("product_id", masterProds.map(p => p.id));
+
+            const merged = masterProds.map(p => {
+              const o = overrides?.find(ov => ov.product_id === p.id);
+              return {
+                ...p,
+                is_caas: true,
+                price: (o?.price_b2c !== undefined && o?.price_b2c !== null) ? o.price_b2c : p.price,
+                compare_at_price: (o?.compare_at_price !== undefined && o?.compare_at_price !== null) ? o.compare_at_price : p.compare_at_price,
+                wholesale_price: (o?.price_b2b !== undefined && o?.price_b2b !== null) ? o.price_b2b : p.wholesale_price,
+                has_retail: o?.has_retail !== null && o?.has_retail !== undefined ? o.has_retail : p.has_retail,
+                has_wholesale: o?.has_wholesale !== null && o?.has_wholesale !== undefined ? o.has_wholesale : p.has_wholesale,
+                is_active: o ? (o.is_available ?? false) : false
+              };
+            });
+            setLocalProducts(merged);
+          } else {
+            setLocalProducts([]);
+          }
+        } else {
+          setLocalProducts(products);
+        }
+      } catch (err) {
+        console.error("Error fetching/checking products for bulk adjustments:", err);
+        setLocalProducts(products);
+      } finally {
+        setLoadingProducts(false);
+      }
+    }
+
+    void checkAndFetchProducts();
+  }, [isOpen, catalogId, orgId, products, categories]);
 
   // Reset values when modal opens/closes or action type changes
   useEffect(() => {
@@ -84,20 +162,20 @@ export default function BulkPromoModal({
       if (categories.length > 0 && !selectedCategoryId) {
         setSelectedCategoryId(categories[0].id);
       }
-      if (products.length > 0 && !selectedProductId) {
-        setSelectedProductId(products[0].id);
+      if (localProducts.length > 0 && !selectedProductId) {
+        setSelectedProductId(localProducts[0].id);
       }
     }
-  }, [isOpen, actionType, categories, products]);
+  }, [isOpen, actionType, categories, localProducts]);
 
   // Filter products for the search dropdown in product scope
   const filteredSearchProducts = useMemo(() => {
-    if (!productSearch) return products.slice(0, 100);
-    return products.filter(p => 
+    if (!productSearch) return localProducts.slice(0, 100);
+    return localProducts.filter(p => 
       p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
       (p.sku && p.sku.toLowerCase().includes(productSearch.toLowerCase()))
     ).slice(0, 100);
-  }, [products, productSearch]);
+  }, [localProducts, productSearch]);
 
   // Set the first matching product ID when search updates if not already selected
   useEffect(() => {
@@ -118,7 +196,7 @@ export default function BulkPromoModal({
     const valueNum = Number(adjustValue);
 
     // 1. Filter products by scope
-    const targets = products.filter(p => {
+    const targets = localProducts.filter(p => {
       if (scope === "all") return true;
       if (scope === "category") return p.category_id === selectedCategoryId;
       if (scope === "product") return p.id === selectedProductId;
@@ -127,29 +205,55 @@ export default function BulkPromoModal({
 
     // 2. Map and calculate new prices
     const mapped = targets.map(p => {
-      const currentPrice = p.price ?? 0;
-      let newPrice = currentPrice;
+      const currentB2c = p.price ?? 0;
+      const currentB2b = (p as any).wholesale_price ?? 0;
+      let newB2c = currentB2c;
+      let newB2b = currentB2b;
 
       if (actionType === "revert") {
-        newPrice = (p.compare_at_price !== undefined && p.compare_at_price !== null) ? p.compare_at_price : currentPrice;
+        newB2c = (p.compare_at_price !== undefined && p.compare_at_price !== null) ? p.compare_at_price : currentB2c;
+        newB2b = currentB2b; // Revert de promoção não afeta atacado
       } else {
-        // For promo we subtract, for markup we add
         const multiplier = actionType === "apply_promo" ? -1 : 1;
         const adjustment = multiplier * Math.abs(valueNum);
 
-        if (valueType === "percentage") {
-          newPrice = currentPrice * (1 + adjustment / 100);
+        if (isCatalogCaas) {
+          if (targetChannel === "b2c" || targetChannel === "both") {
+            if (p.price !== null && p.price !== undefined) {
+              if (valueType === "percentage") {
+                newB2c = currentB2c * (1 + adjustment / 100);
+              } else {
+                newB2c = currentB2c + adjustment;
+              }
+            }
+          }
+          if (targetChannel === "b2b" || targetChannel === "both") {
+            if ((p as any).wholesale_price !== null && (p as any).wholesale_price !== undefined) {
+              if (valueType === "percentage") {
+                newB2b = currentB2b * (1 + adjustment / 100);
+              } else {
+                newB2b = currentB2b + adjustment;
+              }
+            }
+          }
         } else {
-          newPrice = currentPrice + adjustment;
+          // Catálogo padrão
+          if (valueType === "percentage") {
+            newB2c = currentB2c * (1 + adjustment / 100);
+          } else {
+            newB2c = currentB2c + adjustment;
+          }
         }
       }
 
       return {
         id: p.id,
         name: p.name,
-        currentPrice,
-        compareAtPrice: p.compare_at_price ?? null,
-        newPrice: Math.max(0, Number(newPrice.toFixed(2)))
+        currentB2c,
+        newB2c: Math.max(0, Number(newB2c.toFixed(2))),
+        currentB2b,
+        newB2b: Math.max(0, Number(newB2b.toFixed(2))),
+        compareAtPrice: p.compare_at_price ?? null
       };
     });
 
@@ -157,7 +261,7 @@ export default function BulkPromoModal({
       affectedCount: mapped.length,
       items: mapped.slice(0, 5) // Show top 5 preview items
     };
-  }, [actionType, scope, selectedCategoryId, selectedProductId, valueType, adjustValue, products]);
+  }, [actionType, scope, selectedCategoryId, selectedProductId, valueType, adjustValue, localProducts, isCatalogCaas, targetChannel]);
 
   // Submit Handler
   const handleSubmit = async () => {
@@ -173,34 +277,69 @@ export default function BulkPromoModal({
       const categoryIdParam = scope === "category" ? selectedCategoryId : null;
       const productIdParam = scope === "product" ? selectedProductId : null;
 
-      if (actionType === "revert") {
-        const { error: rpcError } = await supabase.rpc("revert_bulk_promotions", {
-          p_catalog_id: catalogId,
-          p_category_id: categoryIdParam,
-          p_product_id: productIdParam
-        });
+      if (isCatalogCaas) {
+        if (actionType === "revert") {
+          const { error: rpcError } = await supabase.rpc("revert_bulk_promotions_caas", {
+            p_org_id: orgId,
+            p_catalog_id: catalogId,
+            p_category_id: categoryIdParam,
+            p_product_id: productIdParam
+          });
 
-        if (rpcError) throw rpcError;
-      } else {
-        const rawVal = Number(adjustValue);
-        if (isNaN(rawVal) || rawVal <= 0) {
-          throw new Error("Por favor, digite um valor maior que zero.");
+          if (rpcError) throw rpcError;
+        } else {
+          const rawVal = Number(adjustValue);
+          if (isNaN(rawVal) || rawVal <= 0) {
+            throw new Error("Por favor, digite um valor maior que zero.");
+          }
+
+          // Promo is negative value (discount), markup is positive value (increase)
+          const finalValue = actionType === "apply_promo" ? -rawVal : rawVal;
+          const isPromotion = actionType === "apply_promo";
+
+          const { error: rpcError } = await supabase.rpc("apply_bulk_price_adjustment_caas", {
+            p_org_id: orgId,
+            p_catalog_id: catalogId,
+            p_category_id: categoryIdParam,
+            p_product_id: productIdParam,
+            p_adjustment_type: valueType,
+            p_value: finalValue,
+            p_is_promotion: isPromotion,
+            p_target_channel: targetChannel
+          });
+
+          if (rpcError) throw rpcError;
         }
+      } else {
+        if (actionType === "revert") {
+          const { error: rpcError } = await supabase.rpc("revert_bulk_promotions", {
+            p_catalog_id: catalogId,
+            p_category_id: categoryIdParam,
+            p_product_id: productIdParam
+          });
 
-        // Promo is negative value (discount), markup is positive value (increase)
-        const finalValue = actionType === "apply_promo" ? -rawVal : rawVal;
-        const isPromotion = actionType === "apply_promo";
+          if (rpcError) throw rpcError;
+        } else {
+          const rawVal = Number(adjustValue);
+          if (isNaN(rawVal) || rawVal <= 0) {
+            throw new Error("Por favor, digite um valor maior que zero.");
+          }
 
-        const { error: rpcError } = await supabase.rpc("apply_bulk_price_adjustment", {
-          p_catalog_id: catalogId,
-          p_category_id: categoryIdParam,
-          p_product_id: productIdParam,
-          p_adjustment_type: valueType,
-          p_value: finalValue,
-          p_is_promotion: isPromotion
-        });
+          // Promo is negative value (discount), markup is positive value (increase)
+          const finalValue = actionType === "apply_promo" ? -rawVal : rawVal;
+          const isPromotion = actionType === "apply_promo";
 
-        if (rpcError) throw rpcError;
+          const { error: rpcError } = await supabase.rpc("apply_bulk_price_adjustment", {
+            p_catalog_id: catalogId,
+            p_category_id: categoryIdParam,
+            p_product_id: productIdParam,
+            p_adjustment_type: valueType,
+            p_value: finalValue,
+            p_is_promotion: isPromotion
+          });
+
+          if (rpcError) throw rpcError;
+        }
       }
 
       setSuccess(true);
@@ -264,7 +403,12 @@ export default function BulkPromoModal({
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <AnimatePresence mode="wait">
-              {success ? (
+              {loadingProducts ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <p className="text-sm font-semibold text-[var(--dash-text-secondary)]">Carregando catálogo e overrides...</p>
+                </div>
+              ) : success ? (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -465,6 +609,50 @@ export default function BulkPromoModal({
                     </div>
                   )}
 
+                  {/* Canal de Preço (Apenas para CaaS) */}
+                  {isCatalogCaas && actionType !== "revert" && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
+                        Canal de Preço a Reajustar
+                      </label>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setTargetChannel("both")}
+                          className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition-all ${
+                            targetChannel === "both"
+                              ? "bg-primary border-primary text-white font-bold"
+                              : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
+                          }`}
+                        >
+                          Ambos (B2C & B2B)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTargetChannel("b2c")}
+                          className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition-all ${
+                            targetChannel === "b2c"
+                              ? "bg-primary border-primary text-white font-bold"
+                              : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
+                          }`}
+                        >
+                          Apenas Varejo (B2C)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTargetChannel("b2b")}
+                          className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition-all ${
+                            targetChannel === "b2b"
+                              ? "bg-primary border-primary text-white font-bold"
+                              : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
+                          }`}
+                        >
+                          Apenas Atacado (B2B)
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Step 4: Preview Area */}
                   <div className="space-y-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-2xl">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)] flex items-center justify-between">
@@ -476,28 +664,64 @@ export default function BulkPromoModal({
 
                     {previewData.affectedCount > 0 ? (
                       <div className="space-y-2 pt-2">
-                        <div className="text-[11px] font-bold text-[var(--dash-text-muted)] uppercase grid grid-cols-3 border-b border-[var(--dash-border)] pb-1.5 px-2">
-                          <span>Nome do Produto</span>
-                          <span className="text-right">Preço Atual</span>
-                          <span className="text-right">Novo Preço</span>
-                        </div>
+                        {!isCatalogCaas ? (
+                          <div className="text-[11px] font-bold text-[var(--dash-text-muted)] uppercase grid grid-cols-3 border-b border-[var(--dash-border)] pb-1.5 px-2">
+                            <span>Nome do Produto</span>
+                            <span className="text-right">Preço Atual</span>
+                            <span className="text-right">Novo Preço</span>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] font-bold text-[var(--dash-text-muted)] uppercase flex justify-between border-b border-[var(--dash-border)] pb-1.5 px-2">
+                            <span>Nome do Produto</span>
+                            <span>Simulação de Reajuste (B2C / B2B)</span>
+                          </div>
+                        )}
                         <div className="divide-y divide-[var(--dash-border)]">
-                          {previewData.items.map((item) => (
-                            <div key={item.id} className="grid grid-cols-3 text-xs py-2 px-2 items-center hover:bg-[var(--dash-hover-bg)]/30 rounded-lg">
-                              <span className="font-semibold truncate pr-4">{item.name}</span>
-                              <span className="text-right text-[var(--dash-text-secondary)]">
-                                R$ {item.currentPrice.toFixed(2)}
-                              </span>
-                              <span className="text-right font-bold text-emerald-500 flex items-center justify-end gap-1">
-                                {actionType === "apply_promo" && item.compareAtPrice === null && (
-                                  <span className="line-through text-[var(--dash-text-muted)] text-[10px] font-normal mr-1">
-                                    R$ {item.currentPrice.toFixed(2)}
-                                  </span>
-                                )}
-                                R$ {item.newPrice.toFixed(2)}
-                              </span>
-                            </div>
-                          ))}
+                          {previewData.items.map((item) => {
+                            if (isCatalogCaas) {
+                              return (
+                                <div key={item.id} className="py-2 px-2 hover:bg-[var(--dash-hover-bg)]/30 rounded-lg">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <span className="font-semibold truncate text-xs flex-1 text-left">{item.name}</span>
+                                    <div className="text-right space-y-1">
+                                      {(targetChannel === "b2c" || targetChannel === "both") && item.currentB2c > 0 && (
+                                        <div className="flex items-center justify-end gap-1 text-[10px]">
+                                          <span className="text-[8px] text-[var(--dash-text-muted)] uppercase font-bold">Varejo:</span>
+                                          <span className="text-[var(--dash-text-secondary)] line-through opacity-60">R$ {item.currentB2c.toFixed(2)}</span>
+                                          <span className="font-bold text-emerald-500">R$ {item.newB2c.toFixed(2)}</span>
+                                        </div>
+                                      )}
+                                      {(targetChannel === "b2b" || targetChannel === "both") && item.currentB2b > 0 && (
+                                        <div className="flex items-center justify-end gap-1 text-[10px]">
+                                          <span className="text-[8px] text-emerald-600 uppercase font-bold">Atacado:</span>
+                                          <span className="text-[var(--dash-text-secondary)] line-through opacity-60">R$ {item.currentB2b.toFixed(2)}</span>
+                                          <span className="font-bold text-emerald-500">R$ {item.newB2b.toFixed(2)}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            // Render padrão para catálogo não-CaaS
+                            return (
+                              <div key={item.id} className="grid grid-cols-3 text-xs py-2 px-2 items-center hover:bg-[var(--dash-hover-bg)]/30 rounded-lg">
+                                <span className="font-semibold truncate pr-4">{item.name}</span>
+                                <span className="text-right text-[var(--dash-text-secondary)]">
+                                  R$ {item.currentB2c.toFixed(2)}
+                                </span>
+                                <span className="text-right font-bold text-emerald-500 flex items-center justify-end gap-1">
+                                  {actionType === "apply_promo" && item.compareAtPrice === null && (
+                                    <span className="line-through text-[var(--dash-text-muted)] text-[10px] font-normal mr-1">
+                                      R$ {item.currentB2c.toFixed(2)}
+                                    </span>
+                                  )}
+                                  R$ {item.newB2c.toFixed(2)}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                         {previewData.affectedCount > 5 && (
                           <p className="text-[10px] text-[var(--dash-text-muted)] text-center pt-2 italic">

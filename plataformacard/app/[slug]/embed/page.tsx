@@ -176,6 +176,7 @@ export default async function EmbedPage(props: PageProps) {
         whatsapp={finalWhatsapp}
         businessHours={orgData?.business_hours}
         hideCta={!!catalogData?.hide_cta}
+        banners={catalogData?.banners}
       />
     </div>
   );

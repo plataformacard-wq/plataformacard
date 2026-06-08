@@ -102,6 +102,7 @@ type ProductCatalogClientProps = {
   hideCta?: boolean;
   isB2B?: boolean;
   hidePrices?: boolean;
+  banners?: any[] | null;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -125,6 +126,178 @@ const formatPrice = (price: number | null | undefined) => {
     style: "currency",
     currency: "BRL",
   }).format(price);
+};
+
+// Banner / Carousel Component
+const CatalogBannerCarousel = ({ 
+  banners, 
+  highlightProducts, 
+  primaryColor,
+  handleOpenProduct
+}: { 
+  banners: any[] | null, 
+  highlightProducts: any[], 
+  primaryColor: string,
+  handleOpenProduct: (product: any) => void
+}) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const items = useMemo(() => {
+    if (banners && banners.length > 0) {
+      return banners;
+    }
+    return highlightProducts.map(p => ({
+      image_url: p.image_url,
+      title: p.name,
+      description: p.description ? (() => {
+        const cleanText = sanitizeText(p.description).replace(/<[^>]*>/g, '');
+        return cleanText.substring(0, 120) + (cleanText.length > 120 ? '...' : '');
+      })() : '',
+      button_text: p.type === 'service' ? 'Ver Serviço' : 'Ver Produto',
+      is_product: true,
+      product: p
+    }));
+  }, [banners, highlightProducts]);
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [items]);
+
+  if (items.length === 0) return null;
+
+  const currentItem = items[currentIndex];
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
+  };
+
+  const handleAction = () => {
+    if (currentItem.is_product && currentItem.product) {
+      handleOpenProduct(currentItem.product);
+    } else if (currentItem.button_link) {
+      if (currentItem.button_link.startsWith('#')) {
+        const targetId = currentItem.button_link.substring(1);
+        const targetProd = highlightProducts.find(p => p.id === targetId);
+        if (targetProd) {
+          handleOpenProduct(targetProd);
+        } else {
+          window.location.hash = targetId;
+        }
+      } else {
+        window.open(currentItem.button_link, "_blank");
+      }
+    }
+  };
+
+  return (
+    <div className="relative w-full h-[150px] sm:h-[180px] md:h-[220px] rounded-3xl overflow-hidden mb-8 shadow-sm border border-[var(--public-card-border)] bg-[var(--public-card-bg)] group select-none">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="absolute inset-0 w-full h-full"
+        >
+          {/* Background Image */}
+          <div 
+            className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
+              currentItem.is_product 
+                ? 'blur-[2px] opacity-40 scale-105' 
+                : 'blur-none opacity-100 scale-100'
+            }`}
+            style={{ backgroundImage: `url(${currentItem.image_url})` }}
+          />
+
+          {/* Text readability overlay for custom banners with text */}
+          {!currentItem.is_product && (currentItem.title || currentItem.description) && (
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-10" />
+          )}
+
+          {/* Banner Layout */}
+          <div className="relative w-full h-full flex items-center justify-between z-10 px-6 sm:px-12">
+            {/* Left side text overlay */}
+            <div className="flex flex-col justify-center max-w-[65%] sm:max-w-[55%] z-20">
+              <h2 className={`text-base sm:text-lg md:text-xl font-black tracking-tight leading-tight line-clamp-1 ${
+                currentItem.is_product ? 'text-[var(--public-text-main)]' : 'text-white'
+              }`}>
+                {currentItem.title}
+              </h2>
+              {currentItem.description && (
+                <div className="mt-1.5 backdrop-blur-md px-3 py-1.5 rounded-xl border shadow-sm w-fit max-w-full description-sticker">
+                  <p className={`text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-relaxed font-medium ${
+                    currentItem.is_product ? 'text-[var(--public-text-dim)]' : 'text-zinc-200'
+                  }`}>
+                    {currentItem.description}
+                  </p>
+                </div>
+              )}
+              <button
+                onClick={handleAction}
+                className="mt-3 px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-black w-fit transition-all flex items-center gap-1.5 hover:opacity-90 active:scale-95 text-white border-none shadow-sm cursor-pointer"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {currentItem.button_text || "Ver mais"}
+                <ArrowRight size={12} className="sm:w-3 sm:h-3" />
+              </button>
+            </div>
+
+            {/* Right side floating image */}
+            {currentItem.is_product && (
+              <div className="relative h-[85%] aspect-square flex items-center justify-center z-20 hidden sm:flex rounded-2xl overflow-hidden shadow-md bg-white border border-black/5">
+                <img 
+                  src={currentItem.image_url} 
+                  alt={currentItem.title} 
+                  className="max-h-full max-w-full object-contain transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation Arrows */}
+      {items.length > 1 && (
+        <>
+          <button
+            onClick={handlePrev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={handleNext}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </>
+      )}
+
+      {/* Indicators/Dots */}
+      {items.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex gap-1.5">
+          {items.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`h-1.5 rounded-full transition-all border-none cursor-pointer ${currentIndex === idx ? 'w-4' : 'w-1.5 opacity-40'}`}
+              style={{ backgroundColor: currentIndex === idx ? primaryColor : 'var(--public-text-main)' }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default function ProductCatalogClient({
@@ -155,6 +328,7 @@ export default function ProductCatalogClient({
   hideCta = false,
   isB2B = false,
   hidePrices = false,
+  banners,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -164,6 +338,34 @@ export default function ProductCatalogClient({
   const [priceMode, setPriceMode] = useState<"retail" | "wholesale">("retail");
   const [showWarning, setShowWarning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const [localBanners, setLocalBanners] = useState<any[] | null>(banners || null);
+
+  useEffect(() => {
+    if (banners) {
+      setLocalBanners(banners);
+      return;
+    }
+    if (!catalogId) return;
+
+    const fetchBanners = async () => {
+      const { data } = await supabase
+        .from("catalogs")
+        .select("banners")
+        .eq("id", catalogId)
+        .maybeSingle();
+      if (data?.banners) {
+        setLocalBanners(data.banners);
+      } else {
+        setLocalBanners([]);
+      }
+    };
+    fetchBanners();
+  }, [catalogId, banners]);
+
+  const highlightProducts = useMemo(() => {
+    return products.filter(p => p.is_active !== false && p.show_highlight && p.image_url);
+  }, [products]);
 
   const businessStatus = useMemo(() => {
     const hasCustomSchedule = customBusinessHours && 
@@ -572,7 +774,13 @@ export default function ProductCatalogClient({
         </motion.header>
       )}
       
-      <main className={`${isEmbed ? 'w-full px-4 sm:px-6 relative' : 'max-w-5xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
+      <main className={`${isEmbed ? 'w-full px-4 sm:px-6 relative' : 'max-w-6xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
+        <CatalogBannerCarousel 
+          banners={localBanners} 
+          highlightProducts={highlightProducts} 
+          primaryColor={primaryColor}
+          handleOpenProduct={handleOpenProduct}
+        />
         <section className="mb-12">
           {/* Status Badge for Embed Mode */}
           {isEmbed && (
@@ -692,7 +900,7 @@ export default function ProductCatalogClient({
                   </span>
                 </div>
 
-                <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"}`}>
+                <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"}`}>
                   {category.products.map((product) => {
                     const isExpanded = isEmbed && isMobile && selectedProductId === product.id;
                     const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
@@ -1416,6 +1624,14 @@ export default function ProductCatalogClient({
       )}
 
       <style jsx global>{`
+        .description-sticker {
+          background-color: rgba(255, 255, 255, 0.75);
+          border-color: rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="dark"] .description-sticker {
+          background-color: rgba(20, 20, 20, 0.75);
+          border-color: rgba(255, 255, 255, 0.08);
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
