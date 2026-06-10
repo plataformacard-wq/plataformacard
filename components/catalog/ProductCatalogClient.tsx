@@ -397,8 +397,9 @@ export default function ProductCatalogClient({
   bannerInitialIndex = 0,
   showBanners = true,
 }: ProductCatalogClientProps) {
-  const primaryColor = accentColor || "var(--public-success)";
+  const primaryColor = accentColor || "#25D366";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [modalY, setModalY] = useState<number>(0);
   const [expandedDescriptionId, setExpandedDescriptionId] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -652,7 +653,7 @@ export default function ProductCatalogClient({
     setZoomOrigin(`${x}% ${y}%`);
   };
 
-  const handleOpenProduct = (product: Product) => {
+  const handleOpenProduct = (product: Product, event?: React.MouseEvent) => {
     if (sellerStatus === 'paused') {
       return; // Bloqueia abertura do modal se o vendedor estiver pausado
     }
@@ -660,7 +661,14 @@ export default function ProductCatalogClient({
     setSelectedProductId(product.id);
     window.location.hash = product.id;
     
-    if (isEmbed) {
+    if (event) {
+      setModalY(event.pageY);
+    } else {
+      const el = document.getElementById(product.id);
+      setModalY(el ? el.offsetTop + el.offsetHeight / 2 : 0);
+    }
+    
+    if (isEmbed && isMobile) {
       setTimeout(() => {
         const el = document.getElementById(product.id);
         if (el) {
@@ -979,7 +987,7 @@ export default function ProductCatalogClient({
 
                 <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"}`}>
                   {category.products.map((product) => {
-                    const isExpanded = isEmbed && selectedProductId === product.id;
+                    const isExpanded = isEmbed && isMobile && selectedProductId === product.id;
                     const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
                     const productGallery = product.image_url ? [product.image_url, ...(product.image_urls || [])] : (product.image_urls || []);
                     
@@ -1005,8 +1013,8 @@ export default function ProductCatalogClient({
                         layout
                         key={product.id}
                         id={product.id}
-                        onClick={() => {
-                          if (!isExpanded) handleOpenProduct(product);
+                        onClick={(e) => {
+                          if (!isExpanded) handleOpenProduct(product, e);
                         }}
                         whileHover={sellerStatus === 'paused' ? {} : { y: -4 }}
                         className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
@@ -1178,7 +1186,7 @@ export default function ProductCatalogClient({
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleOpenProduct(product);
+                                    handleOpenProduct(product, e);
                                   }}
                                   className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 bg-transparent border border-[var(--primary-color)] hover:bg-[var(--primary-color)]/5 text-[var(--primary-color)] font-bold rounded-lg transition-all text-xs uppercase tracking-wider cursor-pointer"
                                 >
@@ -1352,8 +1360,14 @@ export default function ProductCatalogClient({
 
       {hasMounted && createPortal(
         <AnimatePresence>
-          {!isEmbed && selectedProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
+          {(!isEmbed || !isMobile) && selectedProduct && (
+          <div 
+            className="fixed inset-0 z-50 flex justify-center p-4 sm:p-8"
+            style={{
+              alignItems: isEmbed ? 'flex-start' : 'center',
+              paddingTop: isEmbed ? Math.max(20, modalY - 250) : undefined
+            }}
+          >
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
