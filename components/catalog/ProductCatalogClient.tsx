@@ -614,8 +614,8 @@ export default function ProductCatalogClient({
     const itemTerm = selectedProduct.type === 'service' ? 'serviço' : 'produto';
     const modeText = priceMode === "wholesale" ? "Atacado" : "Varejo";
     const priceText = priceMode === "wholesale" 
-      ? formatPrice(selectedProduct.wholesale_price) 
-      : formatPrice(selectedProduct.price);
+      ? (selectedProduct.wholesale_price ? formatPrice(selectedProduct.wholesale_price) : "")
+      : (selectedProduct.price ? formatPrice(selectedProduct.price) : "");
 
     const message = formatWhatsAppMessage(whatsappTemplate, {
       item_name: selectedProduct.name,
@@ -987,8 +987,8 @@ export default function ProductCatalogClient({
                       if (!whatsapp) return null;
                       const cleanNumber = whatsapp.replace(/\D/g, "");
                       const priceText = priceMode === "wholesale" 
-                        ? formatPrice(product.wholesale_price) 
-                        : formatPrice(product.price);
+                        ? (product.wholesale_price ? formatPrice(product.wholesale_price) : "")
+                        : (product.price ? formatPrice(product.price) : "");
                       const message = formatWhatsAppMessage(whatsappTemplate, {
                         item_name: product.name,
                         item_price: priceText || "",
