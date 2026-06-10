@@ -62,6 +62,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [ ] **Auditoria de Tipagem:** Remoção de `any` e unificação de interfaces (`ProductRow`, etc).
 - [ ] **Auditoria de Tema:** Varredura de cores hardcoded e classes Tailwind residuais.
 - [x] **Gestão de Recursos (Super Admin):** Monitoração de consumo de tokens da IA (Gemini) integrada ao dashboard de infraestrutura.
+- [ ] **[Prioridade Média] Teste de Desvinculação CaaS:** Validar o fluxo completo de permissão do Super Admin, edição estrutural no painel do Inquilino, geração do clone de produto na base e restauração da versão mestre original.
 
 ---
 

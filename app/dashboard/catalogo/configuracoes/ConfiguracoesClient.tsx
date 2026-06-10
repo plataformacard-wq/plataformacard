@@ -52,9 +52,10 @@ interface ConfiguracoesClientProps {
   catalog: Catalog;
   slug: string;
   products?: { id: string; name: string; image_url?: string }[];
+  categoryCount?: number;
 }
 
-export default function ConfiguracoesClient({ catalog: initialCatalog, slug, products = [] }: ConfiguracoesClientProps) {
+export default function ConfiguracoesClient({ catalog: initialCatalog, slug, products = [], categoryCount = 0 }: ConfiguracoesClientProps) {
   const [catalog, setCatalog] = useState(initialCatalog);
   const [activeTab, setActiveTab] = useState<"geral" | "implementar" | "banners">("geral");
   const [saving, setSaving] = useState(false);
@@ -73,9 +74,13 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const [tempBanner, setTempBanner] = useState<any>({});
   const [uploadMode, setUploadMode] = useState<"desktop" | "mobile" | null>(null);
   
-  // Customization State for Embed
   const [embedWidth, setEmbedWidth] = useState("100%");
   const [embedHeight, setEmbedHeight] = useState("800px");
+
+  // Cálculo Dinâmico de Altura
+  const estimatedRows = Math.ceil((products?.length || 0) / 3);
+  const estimatedCategories = categoryCount || 1;
+  const recommendedHeight = 1150 + (estimatedCategories * 100) + (estimatedRows * 500);
 
   const supabase = createClient();
 
@@ -437,6 +442,19 @@ ${iframeResizerCode}
                       className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
                       placeholder="ex: 800px"
                     />
+                    <div className="pt-2 flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                        <Sparkles size={12} className="text-emerald-500" />
+                        <span>Tamanho ideal baseado no seu catálogo atual:</span>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => setEmbedHeight(`${recommendedHeight}px`)}
+                        className="self-start px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500/20 border border-emerald-500/20 transition-all active:scale-95"
+                      >
+                        Usar {recommendedHeight}px
+                      </button>
+                    </div>
                   </div>
 
                   <div className="pt-4 border-t border-[var(--dash-border)] space-y-4">

@@ -91,5 +91,5 @@ export default async function ConfiguracoesPage() {
     products = fetchedProducts || [];
   }
 
-  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} />;
+  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} categoryCount={categoryIds.length} />;
 }
