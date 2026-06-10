@@ -137,9 +137,9 @@ export default function DashboardPage() {
             // Warning de WhatsApp
             const hasProfileWhatsapp = !!profile.whatsapp;
             const hasOrgWhatsapp = !!org?.whatsapp;
-            const hasCatalog = (pCount ?? 0) > 0 && !!profile.slug;
+            const hasPublishedLink = !!profile.slug;
             
-            if (hasCatalog && !hasProfileWhatsapp && !hasOrgWhatsapp) {
+            if (hasPublishedLink && !hasProfileWhatsapp && !hasOrgWhatsapp) {
               setShowNoWhatsappWarning(true);
             }
 
