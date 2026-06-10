@@ -1404,13 +1404,13 @@ export default function ProductCatalogClient({
                       initial={{ opacity: 0, scale: 1.1 }}
                       animate={{ opacity: 1, scale: isZoomed ? 2.5 : 1 }}
                       transition={{ 
-                        scale: { duration: 0.5, ease: "easeInOut" },
-                        opacity: { duration: 0.3 }
+                        scale: { type: "spring", stiffness: 200, damping: 25 },
+                        opacity: { duration: 0.2 }
                       }}
                       src={selectedImageUrl} 
                       alt={selectedProduct.name}
                       style={{ transformOrigin: zoomOrigin }}
-                      className={`w-full h-full object-contain transition-all ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                      className={`w-full h-full object-contain ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
                       onClick={() => setIsZoomed(!isZoomed)}
                     />
                   ) : (
