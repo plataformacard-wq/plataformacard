@@ -548,6 +548,21 @@ ${iframeResizerCode}
                       </div>
                     ))}
                  </div>
+
+                 <details className="mt-8 group cursor-pointer">
+                   <summary className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-emerald-500 transition-colors list-none select-none">
+                     <ChevronRight size={14} className="group-open:rotate-90 transition-transform" />
+                     Dicas Avançadas para Mobile / Wix
+                   </summary>
+                   <div className="mt-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+                     <p className="text-xs text-[var(--dash-text-primary)] font-medium leading-relaxed">
+                       Se o seu construtor de sites (ex: Wix, WordPress) não suportar auto-ajuste de altura (Resizer), 
+                       e o catálogo estiver sendo cortado no celular, defina a configuração de rolagem (<code className="bg-zinc-800/10 px-1 py-0.5 rounded">overflow</code>) 
+                       do Container / Box do seu site hospedeiro para <strong className="text-emerald-500">"Scroll"</strong> ou <strong className="text-emerald-500">"Auto"</strong>. 
+                       Isso criará uma barra de rolagem exclusiva para o catálogo na tela do cliente.
+                     </p>
+                   </div>
+                 </details>
               </div>
             </div>
           </motion.div>
