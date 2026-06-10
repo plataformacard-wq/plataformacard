@@ -23,7 +23,9 @@ import {
   Check,
   Clock,
   Share2,
-  Copy
+  Copy,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import { getBusinessStatus } from "@/lib/utils/time";
@@ -1393,10 +1395,8 @@ export default function ProductCatalogClient({
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 <div className="w-full bg-[var(--public-card-bg)] flex flex-col relative shrink-0">
                 <div 
-                  className="relative aspect-[16/10] overflow-hidden flex items-center justify-center p-4"
-                  onMouseMove={handleImageZoomMove}
-                  onMouseEnter={() => setIsZoomed(true)}
-                  onMouseLeave={() => setIsZoomed(false)}
+                  className="relative aspect-[16/10] overflow-hidden flex items-center justify-center p-4 group"
+                  onMouseMove={isZoomed ? handleImageZoomMove : undefined}
                 >
                   {selectedImageUrl ? (
                     <motion.img 
@@ -1404,16 +1404,27 @@ export default function ProductCatalogClient({
                       initial={{ opacity: 0, scale: 1.1 }}
                       animate={{ opacity: 1, scale: isZoomed ? 2.5 : 1 }}
                       transition={{ 
-                        scale: { duration: 0.2, ease: "easeOut" },
+                        scale: { duration: 0.5, ease: "easeInOut" },
                         opacity: { duration: 0.3 }
                       }}
                       src={selectedImageUrl} 
                       alt={selectedProduct.name}
                       style={{ transformOrigin: zoomOrigin }}
-                      className="w-full h-full object-contain cursor-zoom-in"
+                      className={`w-full h-full object-contain transition-all ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                      onClick={() => setIsZoomed(!isZoomed)}
                     />
                   ) : (
                     <Package size={100} className="text-[var(--public-text-dim)]" />
+                  )}
+
+                  {selectedImageUrl && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }}
+                      className={`absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded-full backdrop-blur-md transition-all border border-white/10 shadow-lg cursor-pointer ${isZoomed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    >
+                      {isZoomed ? <ZoomOut size={16} /> : <ZoomIn size={16} />}
+                      <span className="text-xs font-bold uppercase tracking-wider">{isZoomed ? "Voltar" : "Lupa"}</span>
+                    </button>
                   )}
 
                   {hasMultipleImages && (
