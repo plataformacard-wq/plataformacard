@@ -58,72 +58,106 @@ export default async function EmbedPage(props: PageProps) {
   const trackingProfileId = (profile?.id || orgData?.id) || "";
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
-  let catalogId: string | null = null;
+  let catalogIds: string[] = [];
 
-  // Busca catálogo (mesma lógica do catalogo/page.tsx)
-  // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
+  // PRIORIDADE 1: Catálogos Master/Próprios habilitados
   if (targetOrgId) {
-    const { data: enabledCatalog } = await supabase
+    const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", targetOrgId)
-      .eq("is_enabled", true)
-      .maybeSingle();
-
-    if (enabledCatalog?.catalog_id) {
-      catalogId = enabledCatalog.catalog_id;
+      .eq("is_enabled", true);
+      
+    if (enabledCatalogs && enabledCatalogs.length > 0) {
+      catalogIds = enabledCatalogs.map(c => c.catalog_id);
     }
   }
 
-  // FALLBACK 2: Busca direta por organization_id ou owner_id
-  if (!catalogId && targetOrgId) {
+  // PRIORIDADE 2: Vínculo Individual do Perfil
+  if (catalogIds.length === 0 && profile) {
+    const { data: profileCatalogData } = await supabase
+      .from("profile_catalogs")
+      .select("organization_catalog_id")
+      .eq("profile_id", profile.id)
+      .eq("is_selected", true)
+      .maybeSingle();
+
+    if (profileCatalogData?.organization_catalog_id) {
+      const { data: orgCatalogFromProfile } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("id", profileCatalogData.organization_catalog_id)
+        .maybeSingle();
+
+      if (orgCatalogFromProfile?.catalog_id) {
+        catalogIds.push(orgCatalogFromProfile.catalog_id);
+      }
+    }
+  }
+
+  // FALLBACK 3: Busca direta por organization_id ou owner_id
+  if (catalogIds.length === 0 && targetOrgId) {
     const { data: orgCatalog } = await supabase
       .from("catalogs")
       .select("id")
       .eq("organization_id", targetOrgId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (orgCatalog?.id) {
-      catalogId = orgCatalog.id;
+      catalogIds.push(orgCatalog.id);
     } else {
       const { data: ownerCatalog } = await supabase
         .from("catalogs")
         .select("id")
         .eq("owner_id", targetOrgId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (ownerCatalog?.id) {
-        catalogId = ownerCatalog.id;
+        catalogIds.push(ownerCatalog.id);
       } else if (profile?.id) {
         const { data: profileCatalog } = await supabase
           .from("catalogs")
           .select("id")
           .eq("owner_id", profile.id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        catalogId = profileCatalog?.id ?? null;
+        if (profileCatalog?.id) catalogIds.push(profileCatalog.id);
       }
     }
   }
 
-  if (!catalogId) return notFound();
+  if (catalogIds.length === 0) return notFound();
 
-  const { data: catalogData } = await supabase
+  const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
-    .eq("id", catalogId)
-    .is("deleted_at", null)
-    .maybeSingle();
+    .in("id", catalogIds)
+    .is("deleted_at", null);
 
-  if (!catalogData) return notFound();
+  const catalogs = (catalogsData || []) as any[];
+  const primaryCatalog = catalogs.find(c => c.catalog_type === 'CaaS' || c.catalog_type === 'platform')
+    || catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform')
+    || catalogs[0];
+
+  if (!primaryCatalog) return notFound();
+
+  catalogIds = catalogs.map(c => c.id);
+  const catalogData = primaryCatalog;
+  const catalogId = primaryCatalog.id;
 
   const { data: categoriesData } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
-    .eq("catalog_id", catalogId)
+    .in("catalog_id", catalogIds)
     .order("sort_order", { ascending: true });
 
   let productsData: any[] = [];
