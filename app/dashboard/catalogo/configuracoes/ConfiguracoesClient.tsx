@@ -78,9 +78,10 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const [embedHeight, setEmbedHeight] = useState("800px");
 
   // Cálculo Dinâmico de Altura
-  const estimatedRows = Math.ceil((products?.length || 0) / 3);
+  const estimatedRowsDesktop = Math.ceil((products?.length || 0) / 3);
   const estimatedCategories = categoryCount || 1;
-  const recommendedHeight = 1150 + (estimatedCategories * 100) + (estimatedRows * 500);
+  const recommendedHeightDesktop = 1150 + (estimatedCategories * 100) + (estimatedRowsDesktop * 500);
+  const recommendedHeightMobile = 1150 + (estimatedCategories * 100) + ((products?.length || 0) * 500);
 
   const supabase = createClient();
 
@@ -442,18 +443,29 @@ ${iframeResizerCode}
                       className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
                       placeholder="ex: 800px"
                     />
-                    <div className="pt-2 flex flex-col gap-1">
+                    <div className="pt-2 flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                         <Sparkles size={12} className="text-emerald-500" />
                         <span>Tamanho ideal baseado no seu catálogo atual:</span>
                       </div>
-                      <button 
-                        type="button" 
-                        onClick={() => setEmbedHeight(`${recommendedHeight}px`)}
-                        className="self-start px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500/20 border border-emerald-500/20 transition-all active:scale-95"
-                      >
-                        Usar {recommendedHeight}px
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          type="button" 
+                          onClick={() => setEmbedHeight(`${recommendedHeightDesktop}px`)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/50 border border-[var(--dash-border)] transition-all active:scale-95"
+                          title="Para exibições em computadores e notebooks"
+                        >
+                          <Layout size={12} /> Desktop: {recommendedHeightDesktop}px
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setEmbedHeight(`${recommendedHeightMobile}px`)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-bold text-[10px] uppercase tracking-widest hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-500/50 border border-[var(--dash-border)] transition-all active:scale-95"
+                          title="Para exibições exclusivas em celulares"
+                        >
+                          <Smartphone size={12} /> Mobile: {recommendedHeightMobile}px
+                        </button>
+                      </div>
                     </div>
                   </div>
 
