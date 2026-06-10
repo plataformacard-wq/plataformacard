@@ -30,7 +30,8 @@ import {
   Search,
   RefreshCw,
   Database,
-  Tags
+  Tags,
+  Megaphone
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { motion, AnimatePresence } from "framer-motion";
@@ -690,6 +691,18 @@ export default function BulkGridEditor() {
         size: 80,
       },
       {
+        accessorKey: "show_highlight",
+        header: "No Banner?",
+        cell: (props) => <EditableCell {...props} updateData={updateData} type="checkbox" />,
+        size: 90,
+      },
+      {
+        accessorKey: "highlight_text",
+        header: "Texto Destaque",
+        cell: (props) => <EditableCell {...props} updateData={updateData} />,
+        size: 150,
+      },
+      {
         accessorKey: "compare_at_price",
         header: "Preço De (R$)",
         cell: (props) => {
@@ -930,7 +943,7 @@ export default function BulkGridEditor() {
             Importar & Sync
           </button>
 
-          <div className="flex bg-[var(--dash-hover-bg)] rounded-xl border border-[var(--dash-border)] p-1">
+          <div className="flex bg-[var(--dash-hover-bg)] rounded-xl border border-[var(--dash-border)] p-1 overflow-x-auto custom-scrollbar">
             <button
               onClick={() => {
                 if (confirm("Deseja ATIVAR todos os produtos carregados nesta lista?")) {
@@ -952,6 +965,32 @@ export default function BulkGridEditor() {
               title="Desativar todos os produtos"
             >
               <X size={14} /> Desativar Produtos
+            </button>
+            
+            <div className="w-px h-6 bg-[var(--dash-border)] mx-1 self-center" />
+
+            <button
+              onClick={() => {
+                const text = prompt("Digite o texto de destaque para o Banner Promocional (ex: OFERTA, NOVIDADE):", "DESTAQUE");
+                if (text !== null) {
+                  setData(data.map(p => ({ ...p, show_highlight: true, highlight_text: text })));
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-amber-600 hover:bg-amber-500/10 transition-all font-bold text-xs whitespace-nowrap"
+              title="Destacar todos os produtos no Banner Promocional"
+            >
+              <Megaphone size={14} /> Ativar no Banner
+            </button>
+            <button
+              onClick={() => {
+                if (confirm("Deseja REMOVER todos os produtos do Banner Promocional?")) {
+                  setData(data.map(p => ({ ...p, show_highlight: false, highlight_text: null })));
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:bg-slate-500/10 transition-all font-bold text-xs whitespace-nowrap"
+              title="Remover todos os produtos do Banner Promocional"
+            >
+              <X size={14} /> Remover do Banner
             </button>
           </div>
 
