@@ -61,7 +61,7 @@ export default function ProfileWhatsAppButton({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  className="relative border border-[var(--public-card-border)] rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl"
+                  className="relative border border-[var(--public-card-border)] rounded-xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl"
                   style={{ backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#18181b' : '#ffffff' }}
                   onClick={(e) => e.stopPropagation()}
                 >

@@ -68,7 +68,7 @@ export default async function ConsultantsBridge({
           />
         </div>
 
-        <div className="public-card w-full max-w-md relative z-10 rounded-[32px] overflow-hidden backdrop-blur-2xl">
+        <div className="public-card w-full max-w-md relative z-10 rounded-xl overflow-hidden backdrop-blur-2xl">
           <div
             style={{
               height: 4,

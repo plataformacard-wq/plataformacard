@@ -126,7 +126,7 @@ export default function ImageUploadModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-white/10 bg-zinc-900 shadow-2xl"
+          className="relative w-full max-w-xl overflow-hidden rounded-xl border border-white/10 bg-zinc-900 shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/5 px-8 py-6">

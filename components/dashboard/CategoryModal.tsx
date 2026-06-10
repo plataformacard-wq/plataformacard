@@ -111,7 +111,7 @@ export default function CategoryModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl border"
+            className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl border"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="relative px-8 py-6 border-b" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface-secondary)" }}>

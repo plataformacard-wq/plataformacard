@@ -505,7 +505,7 @@ export default function ProductModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
       <div 
-        className="w-full max-w-2xl rounded-[32px] border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
+        className="w-full max-w-2xl rounded-xl border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
       >
         {/* Header */}
@@ -940,7 +940,7 @@ export default function ProductModal({
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-8 rounded-[32px] border-2 space-y-6"
+                  className="p-8 rounded-xl border-2 space-y-6"
                   style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
                 >
                   <div className="flex items-center justify-between">

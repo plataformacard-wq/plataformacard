@@ -421,7 +421,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-lg rounded-[32px] border p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[80vh] overflow-hidden"
+              className="w-full max-w-lg rounded-xl border p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[80vh] overflow-hidden"
               style={{
                 background: "var(--dash-surface)",
                 borderColor: "var(--dash-border)",

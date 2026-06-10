@@ -398,7 +398,7 @@ export default function ProductDetailDrawer({
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute right-0 bottom-full mb-4 z-[70] p-6 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.5)] border min-w-[280px]"
+                            className="absolute right-0 bottom-full mb-4 z-[70] p-6 rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.5)] border min-w-[280px]"
                             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                           >
                             <div className="space-y-5">

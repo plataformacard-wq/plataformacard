@@ -152,7 +152,7 @@ export default function ImageEditorModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border shadow-2xl"
+          className="relative w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl"
           style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
         >
           {/* Header */}
