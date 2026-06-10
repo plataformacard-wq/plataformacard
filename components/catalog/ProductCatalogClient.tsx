@@ -660,7 +660,7 @@ export default function ProductCatalogClient({
     setSelectedProductId(product.id);
     window.location.hash = product.id;
     
-    if (isEmbed && isMobile) {
+    if (isEmbed) {
       setTimeout(() => {
         const el = document.getElementById(product.id);
         if (el) {
@@ -979,7 +979,7 @@ export default function ProductCatalogClient({
 
                 <div className={`grid ${isEmbed ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"}`}>
                   {category.products.map((product) => {
-                    const isExpanded = isEmbed && isMobile && selectedProductId === product.id;
+                    const isExpanded = isEmbed && selectedProductId === product.id;
                     const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
                     const productGallery = product.image_url ? [product.image_url, ...(product.image_urls || [])] : (product.image_urls || []);
                     
@@ -1352,7 +1352,7 @@ export default function ProductCatalogClient({
 
       {hasMounted && createPortal(
         <AnimatePresence>
-          {(!isEmbed || !isMobile) && selectedProduct && (
+          {!isEmbed && selectedProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
             <motion.div 
               initial={{ opacity: 0 }}
