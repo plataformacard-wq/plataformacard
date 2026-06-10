@@ -25,7 +25,9 @@ import {
   Sparkles,
   Loader2,
   Check,
-  BellRing
+  BellRing,
+  RotateCcw,
+  AlertTriangle
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { enhanceDescriptionWithAI, fixProductOrthography } from "@/lib/ai-actions";
@@ -68,6 +70,7 @@ interface ProductRow {
   type?: "product" | "service";
   is_caas?: boolean;
   override_id?: string;
+  source_caas_id?: string | null;
   original_master_price?: number | null;
   caas_owner_name?: string;
   original_category_id?: string | null;
@@ -93,6 +96,7 @@ interface ProductModalProps {
   orgId: string;
   canCreateProduct: boolean;
   catalogType: "product" | "service" | "hybrid";
+  allowCaasDetachment?: boolean;
 }
 
 export default function ProductModal({ 
@@ -103,7 +107,8 @@ export default function ProductModal({
   categories, 
   orgId,
   canCreateProduct,
-  catalogType 
+  catalogType,
+  allowCaasDetachment
 }: ProductModalProps) {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
@@ -160,6 +165,7 @@ export default function ProductModal({
 
   const isEditMode = !!editingProduct;
   const isCaaS = editingProduct?.is_caas === true;
+  const isCaasLocked = isCaaS && !allowCaasDetachment;
 
   // Initialize form and load last saved data
   useEffect(() => {
@@ -423,27 +429,66 @@ export default function ProductModal({
         }
         
         if (isCaaS) {
-          // Upsert override
-          const overridePayload = {
-            organization_id: orgId,
-            product_id: productId,
-            price_b2c: parsedPrice,
-            price_b2b: payload.wholesale_price,
-            compare_at_price: payload.compare_at_price,
-            has_retail: payload.has_retail,
-            has_wholesale: payload.has_wholesale,
-            is_available: payload.is_active,
-            is_in_stock: payload.is_in_stock,
-            image_url: finalUrls[0] || null,
-            image_urls: finalUrls,
-            category_id: selectedCategoryId === editingProduct?.original_category_id ? null : selectedCategoryId
-          };
-          
-          const { error } = await supabase
-            .from("organization_product_overrides")
-            .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+          // Check for structural changes
+          const hasStructuralChanges = 
+            allowCaasDetachment && (
+              productName !== editingProduct.name.toUpperCase() ||
+              productDescription !== (editingProduct.description ?? "") ||
+              sku !== (editingProduct.sku ?? "") ||
+              productHighlightText !== (editingProduct.highlight_text ?? "") ||
+              showHighlight !== (editingProduct.show_highlight ?? false) ||
+              selectedCategoryId !== (editingProduct.category_id || "") ||
+              JSON.stringify(specs) !== JSON.stringify(editingProduct.specs ?? [])
+            );
+
+          if (hasStructuralChanges) {
+            // DETACHMENT (CLONING)
+            const { data: cloned, error: cloneError } = await supabase
+              .from("products")
+              .insert({
+                ...payload,
+                source_caas_id: productId,
+                image_url: finalUrls[0] || null,
+                image_urls: finalUrls
+              })
+              .select("id")
+              .single();
+
+            if (cloneError) throw cloneError;
+
+            // Hide the original CaaS via override
+            const { error: hideError } = await supabase
+              .from("organization_product_overrides")
+              .upsert({
+                organization_id: orgId,
+                product_id: productId,
+                is_available: false
+              }, { onConflict: 'organization_id, product_id' });
+              
+            if (hideError) throw hideError;
+          } else {
+            // NORMAL CAAS OVERRIDE
+            const overridePayload = {
+              organization_id: orgId,
+              product_id: productId,
+              price_b2c: parsedPrice,
+              price_b2b: payload.wholesale_price,
+              compare_at_price: payload.compare_at_price,
+              has_retail: payload.has_retail,
+              has_wholesale: payload.has_wholesale,
+              is_available: payload.is_active,
+              is_in_stock: payload.is_in_stock,
+              image_url: finalUrls[0] || null,
+              image_urls: finalUrls,
+              category_id: selectedCategoryId === editingProduct?.original_category_id ? null : selectedCategoryId
+            };
             
-          if (error) throw error;
+            const { error } = await supabase
+              .from("organization_product_overrides")
+              .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+              
+            if (error) throw error;
+          }
         } else {
           const { error } = await supabase
             .from("products")
@@ -526,10 +571,47 @@ export default function ProductModal({
                     <Copy size={12} /> Copiar dados do último
                   </button>
                 )}
+                {isEditMode && editingProduct?.source_caas_id && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm("Isso excluirá permanentemente suas modificações locais e restaurará o produto mestre original para a vitrine. Deseja continuar?")) return;
+                      try {
+                        setSaving(true);
+                        // 1. Delete the clone
+                        const { error: delError } = await supabase.from("products").delete().eq("id", editingProduct.id);
+                        if (delError) throw delError;
+                        // 2. Reactivate the original CaaS override
+                        await supabase.from("organization_product_overrides")
+                          .update({ is_available: true })
+                          .eq("organization_id", orgId)
+                          .eq("product_id", editingProduct.source_caas_id);
+                        onSuccess();
+                        onClose();
+                      } catch (e: any) {
+                        alert("Erro ao restaurar: " + e.message);
+                        setSaving(false);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black hover:bg-red-500/20 transition-all border border-red-500/20 uppercase tracking-wider mr-10"
+                    title="Este produto é um clone. Clique para restaurar ao original."
+                  >
+                    <RotateCcw size={12} /> Restaurar Vínculo
+                  </button>
+                )}
               </div>
               <p className="mt-1 text-sm font-medium" style={{ color: "var(--dash-text-muted)" }}>
                 Gerencie os detalhes e a apresentação do seu item.
               </p>
+              {isCaaS && allowCaasDetachment && (
+                <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+                  <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs font-bold text-amber-500">
+                    Você tem permissão para editar a estrutura deste produto. Se alterar o Nome, Descrição, SKU ou Categoria, 
+                    este produto será desvinculado (clonado) e deixará de receber atualizações do catálogo mestre.
+                  </p>
+                </div>
+              )}
             </div>
             <button onClick={onClose} className="rounded-2xl p-3 transition-colors" style={{ background: "var(--dash-surface)", color: "var(--dash-text-muted)" }}>
               <XIcon size={24} />
@@ -602,7 +684,7 @@ export default function ProductModal({
                   <label className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-wider" style={{ color: "var(--dash-text-muted)" }}>Nome</label>
                   <input
                     type="text"
-                    disabled={isCaaS}
+                    disabled={isCaasLocked}
                     value={productName}
                     onChange={(e) => setProductName(e.target.value.toUpperCase())}
                     className="w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
@@ -627,7 +709,7 @@ export default function ProductModal({
                     type="text"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    disabled={!enableSku || isCaaS}
+                    disabled={!enableSku || isCaasLocked}
                     placeholder="Ex: SERV-01, PROD-99..."
                     className={`w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
@@ -661,7 +743,7 @@ export default function ProductModal({
                       if (val.length <= 35) setProductHighlightText(val);
                     }}
                     placeholder={itemType === 'service' ? 'Ex: ATENDIMENTO EM 24H, GARANTIA TOTAL...' : 'Ex: PRODUTO EXCLUSIVO, SEM CNH...'}
-                    disabled={!showHighlight || isCaaS}
+                    disabled={!showHighlight || isCaasLocked}
                     className={`w-full rounded-2xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
                     style={{ background: showHighlight ? "rgba(16, 185, 129, 0.02)" : "var(--dash-input-bg)", borderColor: showHighlight ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
@@ -733,7 +815,7 @@ export default function ProductModal({
                   <div className="mb-2 flex items-center justify-between">
                     <label className="text-sm font-black uppercase tracking-wider">Descrição</label>
                   </div>
-                  <RichTextEditor theme="snow" value={productDescription} onChange={setProductDescription} readOnly={isCaaS} className={`quill-premium ${isCaaS ? "opacity-60" : ""}`} />
+                  <RichTextEditor theme="snow" value={productDescription} onChange={setProductDescription} readOnly={isCaasLocked} className={`quill-premium ${isCaasLocked ? "opacity-60" : ""}`} />
                 </div>
               </div>
             </div>

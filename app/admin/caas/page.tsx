@@ -42,7 +42,7 @@ export default async function CaasAdminPage({ searchParams }: PageProps) {
   // 3. Fetch Assignments
   const { data: assignments } = await admin
     .from("organization_catalogs")
-    .select("organization_id, catalog_id, catalogs(catalog_type)")
+    .select("organization_id, catalog_id, allow_caas_detachment, catalogs(catalog_type)")
     .eq("is_enabled", true);
 
   // Map assignments to organizations
@@ -54,7 +54,8 @@ export default async function CaasAdminPage({ searchParams }: PageProps) {
     });
     return {
       ...org,
-      assigned_catalog_id: assignment?.catalog_id || null
+      assigned_catalog_id: assignment?.catalog_id || null,
+      allow_caas_detachment: assignment?.allow_caas_detachment || false
     };
   });
 

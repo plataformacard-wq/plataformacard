@@ -333,3 +333,19 @@ export async function duplicateMasterCatalog(sourceId: string) {
   revalidatePath("/admin/caas");
   return { success: true };
 }
+
+export async function toggleCaasDetachmentPermission(orgId: string, isAllowed: boolean) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("organization_catalogs")
+    .update({ allow_caas_detachment: isAllowed })
+    .eq("organization_id", orgId)
+    .eq("is_enabled", true);
+
+  if (error) {
+    console.error("toggleCaasDetachmentPermission error:", error);
+    throw new Error("Erro ao atualizar permissão de desvinculação.");
+  }
+  revalidatePath("/admin/caas");
+  return { success: true };
+}

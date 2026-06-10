@@ -176,6 +176,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
   const [businessModel, setBusinessModel] = useState<string | null>(null);
   const [hasMasterCatalog, setHasMasterCatalog] = useState<boolean>(true);
   const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
+  const [allowCaasDetachment, setAllowCaasDetachment] = useState(false);
 
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -528,7 +529,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
-      .select("catalog_id, is_enabled, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
+      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
       .eq("organization_id", orgId);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -543,6 +544,12 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       return cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS';
     });
     setShowUnlinkedWarning(!hasPlatformCatalog && !!hasAnyPlatformCatalog);
+
+    const activeCaaS = enabledCatalogs?.find((c: any) => {
+      const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+      return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS');
+    });
+    setAllowCaasDetachment(!!activeCaaS?.allow_caas_detachment);
 
     if (enabledCatalogs && enabledCatalogs.length > 0) {
       const caasCatalogIds = enabledCatalogs
@@ -1338,7 +1345,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                             >
                               <EditIcon size={14} />
                             </button>
-                            {!product.is_caas && (
+                            {(!product.is_caas || allowCaasDetachment) && (
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }}
@@ -1362,6 +1369,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
 
       <ProductModal
         isOpen={showModal}
+        allowCaasDetachment={allowCaasDetachment}
         onClose={handleCloseModal}
         onSuccess={() => {
           refreshProductList();

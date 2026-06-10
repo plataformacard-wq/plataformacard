@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Globe, Building2, Check, ChevronDown, Search, ExternalLink, Plus, Package, HelpCircle, Users2, BarChart3, Copy, Edit3, Trash2, X, Save, Settings, MessageSquare, Percent, ToggleLeft, ToggleRight, Loader2, Sparkles, Tag, RotateCcw, AlertTriangle } from "lucide-react";
-import { assignMasterCatalog, createMasterCatalog, deleteMasterCatalog, duplicateMasterCatalog, updateMasterCatalog, restoreMasterCatalog, permanentlyDeleteMasterCatalog } from "./actions";
+import { assignMasterCatalog, createMasterCatalog, deleteMasterCatalog, duplicateMasterCatalog, updateMasterCatalog, restoreMasterCatalog, permanentlyDeleteMasterCatalog, toggleCaasDetachmentPermission } from "./actions";
 import CaasAnalytics from "./CaasAnalytics";
 import { createClient } from "@/lib/supabase/client";
 import BulkPromoModal from "@/components/dashboard/BulkPromoModal";
@@ -24,6 +24,7 @@ interface Organization {
   slug: string;
   business_model: string;
   assigned_catalog_id?: string | null;
+  allow_caas_detachment?: boolean;
 }
 
 interface CaasManagerProps {
@@ -246,6 +247,17 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     } catch (error) {
       console.error(error);
       alert("Erro ao atribuir catálogo.");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleToggleDetachment = async (orgId: string, current: boolean) => {
+    setLoadingId(`toggle-${orgId}`);
+    try {
+      await toggleCaasDetachmentPermission(orgId, !current);
+    } catch (error) {
+      alert("Erro ao alterar permissão.");
     } finally {
       setLoadingId(null);
     }
@@ -604,6 +616,26 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--dash-text-muted)]" size={14} />
                     </div>
+
+                    {/* Toggle de Permissão CaaS (só exibe se tiver catálogo) */}
+                    {org.assigned_catalog_id && (
+                      <div className="flex flex-col items-center gap-1 border-l border-[var(--dash-border)] pl-4">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-[var(--dash-text-muted)] text-center">Permitir<br/>Desvincular</span>
+                        <button 
+                          type="button"
+                          onClick={() => handleToggleDetachment(org.id, !!org.allow_caas_detachment)}
+                          disabled={loadingId === `toggle-${org.id}`}
+                          className="transition-transform hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
+                          title="Permite que este inquilino desvincule (clone) e edite totalmente produtos CaaS"
+                        >
+                          {org.allow_caas_detachment ? (
+                            <ToggleRight size={28} className="text-emerald-500" />
+                          ) : (
+                            <ToggleLeft size={28} className="text-[var(--dash-text-muted)]" />
+                          )}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Link para Visualização */}
                     <a 
