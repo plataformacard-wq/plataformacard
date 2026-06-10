@@ -53,6 +53,8 @@ type Catalog = {
   owner_id?: string | null;
   organization_id?: string | null;
   banners?: any[] | null;
+  banner_speed_seconds?: number | null;
+  banner_initial_index?: number | null;
 };
 
 type Category = {
@@ -348,6 +350,13 @@ export default async function Page(props: PageProps) {
     catalog.hide_prices = true;
   }
 
+  // Banners prioritization: User's custom catalog takes precedence over CaaS master catalog
+  const customCatalog = catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform');
+  const catalogWithBanners = (customCatalog && customCatalog.banners && customCatalog.banners.length > 0) ? customCatalog : catalog;
+  const finalBanners = catalogWithBanners.banners || [];
+  const finalBannerSpeed = catalogWithBanners.banner_speed_seconds || 5;
+  const finalBannerInitialIndex = catalogWithBanners.banner_initial_index || 0;
+
   const { data: categoriesData, error: catError } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
@@ -496,7 +505,9 @@ export default async function Page(props: PageProps) {
         sellerStatus={profile?.status}
         recessEndsAt={profile?.recess_ends_at}
         hideCta={!!catalog?.hide_cta}
-        banners={catalog.banners}
+        banners={finalBanners}
+        bannerSpeedSeconds={finalBannerSpeed}
+        bannerInitialIndex={finalBannerInitialIndex}
       />
     </>
   );

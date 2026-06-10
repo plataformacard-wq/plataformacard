@@ -180,6 +180,8 @@ export default async function EmbedPage(props: PageProps) {
         businessHours={orgData?.business_hours}
         hideCta={!!catalogData?.hide_cta}
         banners={catalogData?.banners}
+        bannerSpeedSeconds={catalogData?.banner_speed_seconds || 5}
+        bannerInitialIndex={catalogData?.banner_initial_index || 0}
       />
     </div>
   );

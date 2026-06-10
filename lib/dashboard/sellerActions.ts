@@ -4,6 +4,72 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { verifyOrgAdmin } from "@/lib/utils/auth-validation";
 
+export async function uploadStorageFile(formData: FormData) {
+  const file = formData.get("file") as File;
+  const bucket = formData.get("bucket") as string;
+  const path = formData.get("path") as string;
+
+  if (!file || !bucket || !path) {
+    return { error: "Parâmetros inválidos para upload." };
+  }
+
+  const supabaseServer = await createClient();
+  const { data: { user } } = await supabaseServer.auth.getUser();
+
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  const adminClient = createAdminClient();
+  
+  const { error } = await adminClient.storage
+    .from(bucket)
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  const { data: { publicUrl } } = adminClient.storage
+    .from(bucket)
+    .getPublicUrl(path);
+
+  return { success: true, publicUrl };
+}
+
+export async function updateCatalogConfig(catalogId: string, payload: any, orgId?: string, orgPayload?: any) {
+  const supabaseServer = await createClient();
+  const { data: { user } } = await supabaseServer.auth.getUser();
+
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  const adminClient = createAdminClient();
+  
+  const { error: catError } = await adminClient
+    .from("catalogs")
+    .update(payload)
+    .eq("id", catalogId);
+
+  if (catError) {
+    return { error: catError.message };
+  }
+
+  if (orgId && orgPayload) {
+    const { error: orgError } = await adminClient
+      .from("organizations")
+      .update(orgPayload)
+      .eq("id", orgId);
+      
+    if (orgError) {
+      return { error: orgError.message };
+    }
+  }
+
+  return { success: true };
+}
+
 export async function createSeller(formData: FormData) {
   const fullName = formData.get("fullName") as string;
   const slug = formData.get("slug") as string;

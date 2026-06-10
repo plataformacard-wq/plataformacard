@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
+  CheckCircle,
   Image as ImageIcon,
   ChevronDown,
   GripVertical,
@@ -683,6 +684,12 @@ export default function BulkGridEditor() {
         size: 80,
       },
       {
+        accessorKey: "is_active",
+        header: "Ativo?",
+        cell: (props) => <EditableCell {...props} updateData={updateData} type="checkbox" />,
+        size: 80,
+      },
+      {
         accessorKey: "compare_at_price",
         header: "Preço De (R$)",
         cell: (props) => {
@@ -848,10 +855,21 @@ export default function BulkGridEditor() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
+      <div className="md:hidden flex flex-col items-center justify-center p-8 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-3xl text-center space-y-4 shadow-sm my-10">
+        <div className="h-16 w-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-2">
+          <AlertCircle size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Dispositivo não Suportado</h2>
+        <p className="text-sm text-[var(--dash-text-secondary)]">
+          O gerenciamento em massa requer uma tela maior para exibir a grade de dados adequadamente. Por favor, acesse esta ferramenta pelo computador ou tablet.
+        </p>
+      </div>
+
+      <div className="hidden md:flex flex-col gap-4">
       {/* --- Toolbar --- */}
-      <div className="flex items-center justify-between bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-2xl shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Edição Manual */}
           <button
             onClick={addRow}
@@ -911,6 +929,31 @@ export default function BulkGridEditor() {
             <Database size={18} />
             Importar & Sync
           </button>
+
+          <div className="flex bg-[var(--dash-hover-bg)] rounded-xl border border-[var(--dash-border)] p-1">
+            <button
+              onClick={() => {
+                if (confirm("Deseja ATIVAR todos os produtos carregados nesta lista?")) {
+                  setData(data.map(p => ({ ...p, is_active: true })));
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-emerald-600 hover:bg-emerald-500/10 transition-all font-bold text-xs whitespace-nowrap"
+              title="Ativar todos os produtos"
+            >
+              <CheckCircle size={14} /> Ativar Produtos
+            </button>
+            <button
+              onClick={() => {
+                if (confirm("Deseja DESATIVAR todos os produtos carregados nesta lista?")) {
+                  setData(data.map(p => ({ ...p, is_active: false })));
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-all font-bold text-xs whitespace-nowrap"
+              title="Desativar todos os produtos"
+            >
+              <X size={14} /> Desativar Produtos
+            </button>
+          </div>
 
           <button
             onClick={() => setShowPromoModal(true)}
@@ -1113,5 +1156,6 @@ export default function BulkGridEditor() {
         />
       )}
     </div>
+    </>
   );
 }

@@ -58,6 +58,8 @@ export default function ImageUploadModal({
       const croppedBlob = await getCroppedImg(image, croppedAreaPixels);
       if (!croppedBlob) throw new Error("Falha no recorte");
 
+      const imageFile = new File([croppedBlob], "image.webp", { type: "image/webp" });
+
       // 2. Compress
       const options = {
         maxSizeMB: 0.5,
@@ -66,27 +68,29 @@ export default function ImageUploadModal({
         fileType: "image/webp"
       };
       
-      const compressedFile = await imageCompression(croppedBlob as File, options);
+      const compressedFile = await imageCompression(imageFile, options);
 
-      // 3. Upload to Supabase
-      const supabase = createClient();
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+      // 3. Upload to Supabase via Server Action to bypass restrictive RLS
+      const formData = new FormData();
+      formData.append("file", compressedFile);
+      formData.append("bucket", bucket);
       
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, compressedFile, {
-          contentType: "image/webp",
-          upsert: true
-        });
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
 
-      if (error) throw error;
+      // O fileName agora pode ter qualquer profundidade!
+      const fileName = `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+      formData.append("path", fileName);
 
-      // 4. Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
+      const { uploadStorageFile } = await import("@/lib/dashboard/sellerActions");
+      const result = await uploadStorageFile(formData);
 
-      onUploadSuccess(publicUrl);
+      if (result.error || !result.publicUrl) {
+        throw new Error(result.error || "Erro no upload");
+      }
+
+      onUploadSuccess(result.publicUrl);
       handleReset();
       onClose();
     } catch (err) {

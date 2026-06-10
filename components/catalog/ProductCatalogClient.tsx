@@ -103,6 +103,8 @@ type ProductCatalogClientProps = {
   isB2B?: boolean;
   hidePrices?: boolean;
   banners?: any[] | null;
+  bannerSpeedSeconds?: number;
+  bannerInitialIndex?: number;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -133,43 +135,95 @@ const CatalogBannerCarousel = ({
   banners, 
   highlightProducts, 
   primaryColor,
-  handleOpenProduct
+  handleOpenProduct,
+  bannerSpeedSeconds = 5,
+  bannerInitialIndex = 0,
+  products = []
 }: { 
   banners: any[] | null, 
   highlightProducts: any[], 
   primaryColor: string,
-  handleOpenProduct: (product: any) => void
+  handleOpenProduct: (product: any) => void,
+  bannerSpeedSeconds?: number,
+  bannerInitialIndex?: number,
+  products?: any[]
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
   const items = useMemo(() => {
+    let finalItems: any[] = [];
+    
+    // 1. Process custom banners first
     if (banners && banners.length > 0) {
-      return banners;
+      const processedBanners = banners.filter(b => b.active !== false).reduce((acc: any[], b) => {
+        if (b.type === 'product' && b.product_id && products) {
+          const p = products.find(prod => prod.id === b.product_id);
+          if (p) {
+            acc.push({
+              image_url: p.image_url,
+              title: p.name,
+              description: p.description ? (() => {
+                const cleanText = sanitizeText(p.description).replace(/<[^>]*>/g, '');
+                return cleanText.substring(0, 120) + (cleanText.length > 120 ? '...' : '');
+              })() : '',
+              button_text: p.type === 'service' ? 'Ver Serviço' : 'Ver Produto',
+              is_product: true,
+              product: p
+            });
+          }
+        } else {
+          acc.push({
+            ...b,
+            image_url: b.image_desktop_url, // fallback
+            is_product: false
+          });
+        }
+        return acc;
+      }, []);
+      finalItems = [...processedBanners];
     }
-    return highlightProducts.map(p => ({
-      image_url: p.image_url,
-      title: p.name,
-      description: p.description ? (() => {
-        const cleanText = sanitizeText(p.description).replace(/<[^>]*>/g, '');
-        return cleanText.substring(0, 120) + (cleanText.length > 120 ? '...' : '');
-      })() : '',
-      button_text: p.type === 'service' ? 'Ver Serviço' : 'Ver Produto',
-      is_product: true,
-      product: p
-    }));
-  }, [banners, highlightProducts]);
+
+    // 2. Append highlight products that aren't already explicitly added as a custom banner
+    const existingProductIds = finalItems.filter(item => item.is_product).map(item => item.product?.id);
+    
+    const highlightItems = highlightProducts
+      .filter(p => !existingProductIds.includes(p.id))
+      .map(p => ({
+        image_url: p.image_url,
+        title: p.name,
+        description: p.description ? (() => {
+          const cleanText = sanitizeText(p.description).replace(/<[^>]*>/g, '');
+          return cleanText.substring(0, 120) + (cleanText.length > 120 ? '...' : '');
+        })() : '',
+        button_text: p.type === 'service' ? 'Ver Serviço' : 'Ver Produto',
+        is_product: true,
+        product: p
+      }));
+
+    return [...finalItems, ...highlightItems];
+  }, [banners, highlightProducts, products]);
+
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    if (items.length === 0) return 0;
+    if (bannerInitialIndex === -1) {
+      return Math.floor(Math.random() * items.length);
+    }
+    return Math.min(Math.max(0, bannerInitialIndex), items.length - 1);
+  });
 
   useEffect(() => {
     if (items.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length);
-    }, 5000);
+    }, (bannerSpeedSeconds || 5) * 1000);
     return () => clearInterval(interval);
-  }, [items]);
+  }, [items, bannerSpeedSeconds]);
 
   if (items.length === 0) return null;
 
-  const currentItem = items[currentIndex];
+  // Garantir que currentIndex está dentro dos limites caso items mude ou seja inicializado errado
+  const safeCurrentIndex = isNaN(currentIndex) ? 0 : Math.max(0, Math.min(currentIndex, items.length - 1));
+  const currentItem = items[safeCurrentIndex];
+
+  if (!currentItem) return null;
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length);
@@ -201,7 +255,7 @@ const CatalogBannerCarousel = ({
     <div className="relative w-full h-[150px] sm:h-[180px] md:h-[220px] rounded-3xl overflow-hidden mb-8 shadow-sm border border-[var(--public-card-border)] bg-[var(--public-card-bg)] group select-none">
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentIndex}
+          key={safeCurrentIndex}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -215,8 +269,17 @@ const CatalogBannerCarousel = ({
                 ? 'blur-[2px] opacity-40 scale-105' 
                 : 'blur-none opacity-100 scale-100'
             }`}
-            style={{ backgroundImage: `url(${currentItem.image_url})` }}
-          />
+          >
+            {/* Responsividade para Banners Customizados */}
+            {currentItem.is_product ? (
+              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${currentItem.image_url})` }} />
+            ) : (
+              <picture>
+                <source media="(min-width: 640px)" srcSet={currentItem.image_desktop_url} />
+                <img src={currentItem.image_mobile_url || currentItem.image_desktop_url} alt={currentItem.title || "Banner"} className="w-full h-full object-cover" />
+              </picture>
+            )}
+          </div>
 
           {/* Text readability overlay for custom banners with text */}
           {!currentItem.is_product && (currentItem.title || currentItem.description) && (
@@ -329,6 +392,8 @@ export default function ProductCatalogClient({
   isB2B = false,
   hidePrices = false,
   banners,
+  bannerSpeedSeconds = 5,
+  bannerInitialIndex = 0,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -776,10 +841,13 @@ export default function ProductCatalogClient({
       
       <main className={`${isEmbed ? 'w-full px-4 sm:px-6 relative' : 'max-w-6xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
         <CatalogBannerCarousel 
-          banners={localBanners} 
+          banners={banners || []}
           highlightProducts={highlightProducts} 
-          primaryColor={primaryColor}
+          products={products}
+          primaryColor={primaryColor} 
           handleOpenProduct={handleOpenProduct}
+          bannerSpeedSeconds={bannerSpeedSeconds}
+          bannerInitialIndex={bannerInitialIndex}
         />
         <section className="mb-12">
           {/* Status Badge for Embed Mode */}

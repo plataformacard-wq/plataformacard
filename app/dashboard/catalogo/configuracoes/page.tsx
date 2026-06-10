@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import ConfiguracoesClient from "./ConfiguracoesClient";
+import { getOrCreateCatalog } from "@/lib/dashboard/sellerActions";
 
 export default async function ConfiguracoesPage() {
   const supabase = await createClient();
@@ -34,11 +35,16 @@ export default async function ConfiguracoesPage() {
     .eq("organization_id", activeOrgId)
     .eq("is_enabled", true);
 
-  if (!orgCatalogs || orgCatalogs.length === 0) {
-    return <div>Nenhum catálogo ativo encontrado.</div>;
-  }
+  let catalogIds = orgCatalogs?.map((c) => c.catalog_id) || [];
 
-  const catalogIds = orgCatalogs.map((c) => c.catalog_id);
+  if (catalogIds.length === 0) {
+    const res = await getOrCreateCatalog(activeOrgId);
+    if (res?.catalog?.id) {
+      catalogIds.push(res.catalog.id);
+    } else {
+      return <div>Nenhum catálogo ativo encontrado.</div>;
+    }
+  }
   const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
@@ -65,5 +71,25 @@ export default async function ConfiguracoesPage() {
 
   const finalSlug = (isSuperAdmin && shadowOrgId) ? (orgData?.slug || "") : (profile?.slug || "");
 
-  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} />;
+  // Fetch active products to allow linking them in banners (using assigned catalogs, for CaaS support)
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id")
+    .in("catalog_id", catalogIds);
+    
+  const categoryIds = categories?.map(c => c.id) || [];
+  let products: any[] = [];
+  
+  if (categoryIds.length > 0) {
+    const { data: fetchedProducts } = await supabase
+      .from("products")
+      .select("id, name, image_url")
+      .in("category_id", categoryIds)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    products = fetchedProducts || [];
+  }
+
+  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} />;
 }
