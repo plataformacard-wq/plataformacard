@@ -179,7 +179,7 @@ export default function ImageEditorModal({
             {!imageSrc ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="group flex cursor-pointer flex-col items-center justify-center rounded-[24px] border-2 border-dashed p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface-secondary)" }}
               >
                 <div className="mb-4 rounded-2xl p-5 shadow-sm transition-transform group-hover:scale-110" style={{ background: "var(--dash-surface)" }}>

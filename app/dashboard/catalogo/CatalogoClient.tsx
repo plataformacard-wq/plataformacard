@@ -1391,7 +1391,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md overflow-hidden rounded-xl border shadow-2xl"
+              className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl"
               style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
             >
               <div className="p-8 text-center">

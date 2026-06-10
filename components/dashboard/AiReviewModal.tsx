@@ -89,7 +89,7 @@ export default function AiReviewModal({
             {changes ? (
               <div className="space-y-6">
                 {changes.map((change, i) => (
-                  <div key={i} className={`space-y-3 p-4 rounded-3xl border-2 transition-all ${acceptedFields[change.id] ? 'border-emerald-500/20 bg-emerald-500/[0.01]' : 'border-zinc-500/10 opacity-60'}`}>
+                  <div key={i} className={`space-y-3 p-4 rounded-2xl border-2 transition-all ${acceptedFields[change.id] ? 'border-emerald-500/20 bg-emerald-500/[0.01]' : 'border-zinc-500/10 opacity-60'}`}>
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">{change.field}</p>
                       <button 

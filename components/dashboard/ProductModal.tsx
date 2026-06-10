@@ -746,7 +746,7 @@ export default function ProductModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* VAREJO */}
                 <div 
-                  className={`relative p-8 rounded-[40px] border-2 transition-all duration-500 ${
+                  className={`relative p-8 rounded-2xl border-2 transition-all duration-500 ${
                     hasRetail 
                       ? 'border-emerald-500 bg-emerald-500/[0.05] shadow-[0_20px_40px_rgba(16,185,129,0.12)]' 
                       : 'opacity-20 grayscale'
@@ -797,7 +797,7 @@ export default function ProductModal({
                         value={productPrice} 
                         onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-3xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
+                        className="w-full rounded-2xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
                         style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       {editingProduct?.is_caas && editingProduct.original_master_price != null && parsePrice(productPrice) !== editingProduct.original_master_price && (
@@ -830,7 +830,7 @@ export default function ProductModal({
 
                 {/* ATACADO */}
                 <div 
-                  className={`relative p-8 rounded-[40px] border-2 transition-all duration-500 ${
+                  className={`relative p-8 rounded-2xl border-2 transition-all duration-500 ${
                     hasWholesale 
                       ? 'border-emerald-500 bg-emerald-500/[0.05] shadow-[0_20px_40px_rgba(16,185,129,0.12)]' 
                       : 'opacity-20 grayscale'
@@ -870,7 +870,7 @@ export default function ProductModal({
                         value={wholesalePrice} 
                         onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-3xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
+                        className="w-full rounded-2xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
                         style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
@@ -1186,7 +1186,7 @@ export default function ProductModal({
                     }
                   }}
                   disabled={!!aiLoadingType}
-                  className="flex items-center justify-between p-6 rounded-3xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
+                  className="flex items-center justify-between p-6 rounded-2xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
                 >
                   <div className="text-left">
                     <p className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">
@@ -1232,7 +1232,7 @@ export default function ProductModal({
                     }
                   }}
                   disabled={!!aiLoadingType}
-                  className="flex items-center justify-between p-6 rounded-3xl border-2 border-dashed border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] hover:border-blue-500/40 transition-all group disabled:opacity-50"
+                  className="flex items-center justify-between p-6 rounded-2xl border-2 border-dashed border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] hover:border-blue-500/40 transition-all group disabled:opacity-50"
                 >
                   <div className="text-left">
                     <p className="text-xs font-black uppercase tracking-widest text-blue-500 mb-1">Corretor Profissional</p>

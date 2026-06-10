@@ -185,7 +185,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-xl shadow-2xl border border-[var(--dash-border)]"
+          className="relative w-full max-w-2xl overflow-hidden rounded-[40px] shadow-2xl border border-[var(--dash-border)]"
           style={{ background: "var(--dash-surface)" }}
         >
           {/* Header Color Bar */}

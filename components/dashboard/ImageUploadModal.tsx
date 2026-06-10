@@ -145,7 +145,7 @@ export default function ImageUploadModal({
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="group relative flex flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-white/10 bg-white/5 px-6 py-12 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-white/5 px-6 py-12 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
               >
                 <input
                   type="file"
