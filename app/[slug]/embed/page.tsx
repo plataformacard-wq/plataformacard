@@ -36,7 +36,7 @@ export default async function EmbedPage(props: PageProps) {
     if (profile.organization_id) {
       const { data: orgRaw } = await supabase
         .from("organizations")
-        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads")
+        .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads, whatsapp")
         .eq("id", profile.organization_id)
         .maybeSingle();
       if (orgRaw) orgData = orgRaw;
@@ -44,7 +44,7 @@ export default async function EmbedPage(props: PageProps) {
   } else {
     const { data: orgRaw } = await supabase
       .from("organizations")
-      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads")
+      .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, business_hours, centralize_leads, whatsapp")
       .ilike("slug", slug)
       .maybeSingle();
 

@@ -39,6 +39,7 @@ export default function SEOPage() {
     logo_url: "",
     og_image_url: "",
     centralize_leads: false,
+    whatsapp: "",
   });
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -86,6 +87,7 @@ export default function SEOPage() {
               logo_url: org.logo_url || "",
               og_image_url: org.og_image_url || "",
               centralize_leads: !!org.centralize_leads,
+              whatsapp: org.whatsapp || "",
             });
           }
         }
@@ -193,6 +195,7 @@ export default function SEOPage() {
         logo_url: newLogoUrl,
         og_image_url: newOgImageUrl,
         centralize_leads: formData.centralize_leads,
+        whatsapp: formData.whatsapp,
       })
       .eq("id", orgId);
 
@@ -422,6 +425,26 @@ export default function SEOPage() {
                     }`}
                   />
                 </button>
+              </div>
+
+              {/* Input WhatsApp Central da Empresa */}
+              <div className="mt-6 pt-5 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                <label className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
+                  Número de WhatsApp da Empresa (Opcional)
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.whatsapp}
+                  onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                  placeholder="(00) 00000-0000"
+                  className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all"
+                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                />
+                <p className="text-[10px] mt-1.5" style={{ color: "var(--dash-text-muted)" }}>
+                  {formData.centralize_leads 
+                    ? "Este número receberá TODOS os leads da empresa (Centralização Ativa)." 
+                    : "Este número servirá como reserva caso algum vendedor esqueça de preencher o próprio WhatsApp."}
+                </p>
               </div>
             </div>
           </section>
