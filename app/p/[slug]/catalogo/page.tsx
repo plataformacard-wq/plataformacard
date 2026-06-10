@@ -22,6 +22,9 @@ type Catalog = {
   description: string | null;
   catalog_type: string | null;
   banners?: any[] | null;
+  banner_speed_seconds?: number | null;
+  banner_initial_index?: number | null;
+  show_banners?: boolean | null;
 };
 
 type Category = {
@@ -139,7 +142,7 @@ if (!catalogId) {
 
   const { data: catalogData, error: catalogError } = await supabase
     .from("catalogs")
-    .select("id, name, description, catalog_type, banners")
+    .select("id, name, description, catalog_type, banners, banner_speed_seconds, banner_initial_index, show_banners")
     .eq("id", catalogId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -197,6 +200,9 @@ if (!catalogId) {
       whatsapp={profile.whatsapp}
       bio={profile.bio}
       banners={catalog.banners}
+      bannerSpeedSeconds={catalog.banner_speed_seconds || 5}
+      bannerInitialIndex={catalog.banner_initial_index || 0}
+      showBanners={catalog.show_banners !== false}
     />
   );
 }

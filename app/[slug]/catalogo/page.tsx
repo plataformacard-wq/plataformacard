@@ -55,6 +55,7 @@ type Catalog = {
   banners?: any[] | null;
   banner_speed_seconds?: number | null;
   banner_initial_index?: number | null;
+  show_banners?: boolean | null;
 };
 
 type Category = {
@@ -356,6 +357,7 @@ export default async function Page(props: PageProps) {
   const finalBanners = catalogWithBanners.banners || [];
   const finalBannerSpeed = catalogWithBanners.banner_speed_seconds || 5;
   const finalBannerInitialIndex = catalogWithBanners.banner_initial_index || 0;
+  const finalShowBanners = catalogWithBanners.show_banners !== false;
 
   const { data: categoriesData, error: catError } = await supabase
     .from("categories")
@@ -508,6 +510,7 @@ export default async function Page(props: PageProps) {
         banners={finalBanners}
         bannerSpeedSeconds={finalBannerSpeed}
         bannerInitialIndex={finalBannerInitialIndex}
+        showBanners={finalShowBanners}
       />
     </>
   );

@@ -105,6 +105,7 @@ type ProductCatalogClientProps = {
   banners?: any[] | null;
   bannerSpeedSeconds?: number;
   bannerInitialIndex?: number;
+  showBanners?: boolean;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -394,6 +395,7 @@ export default function ProductCatalogClient({
   banners,
   bannerSpeedSeconds = 5,
   bannerInitialIndex = 0,
+  showBanners = true,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "var(--public-success)";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -405,6 +407,11 @@ export default function ProductCatalogClient({
   const [isMobile, setIsMobile] = useState(false);
 
   const [localBanners, setLocalBanners] = useState<any[] | null>(banners || null);
+  const [localShowBanners, setLocalShowBanners] = useState<boolean>(showBanners !== false);
+
+  useEffect(() => {
+    setLocalShowBanners(showBanners !== false);
+  }, [showBanners]);
 
   useEffect(() => {
     if (banners) {
@@ -416,13 +423,13 @@ export default function ProductCatalogClient({
     const fetchBanners = async () => {
       const { data } = await supabase
         .from("catalogs")
-        .select("banners")
+        .select("banners, show_banners")
         .eq("id", catalogId)
         .maybeSingle();
-      if (data?.banners) {
-        setLocalBanners(data.banners);
-      } else {
-        setLocalBanners([]);
+      if (data) {
+        if (data.banners) setLocalBanners(data.banners);
+        else setLocalBanners([]);
+        setLocalShowBanners(data.show_banners !== false);
       }
     };
     fetchBanners();
@@ -840,15 +847,17 @@ export default function ProductCatalogClient({
       )}
       
       <main className={`${isEmbed ? 'w-full px-4 sm:px-6 relative' : 'max-w-6xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
-        <CatalogBannerCarousel 
-          banners={banners || []}
-          highlightProducts={highlightProducts} 
-          products={products}
-          primaryColor={primaryColor} 
-          handleOpenProduct={handleOpenProduct}
-          bannerSpeedSeconds={bannerSpeedSeconds}
-          bannerInitialIndex={bannerInitialIndex}
-        />
+        {localShowBanners && (
+          <CatalogBannerCarousel 
+            banners={localBanners || []}
+            highlightProducts={highlightProducts} 
+            products={products}
+            primaryColor={primaryColor} 
+            handleOpenProduct={handleOpenProduct}
+            bannerSpeedSeconds={bannerSpeedSeconds}
+            bannerInitialIndex={bannerInitialIndex}
+          />
+        )}
         <section className="mb-12">
           {/* Status Badge for Embed Mode */}
           {isEmbed && (

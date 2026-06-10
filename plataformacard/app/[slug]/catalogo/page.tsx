@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
+import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,6 +23,10 @@ type Profile = {
   is_available: boolean | null;
   custom_business_hours: any;
   can_customize_hours: boolean | null;
+  whatsapp_template: string | null;
+  status: string | null;
+  redirect_leads: boolean | null;
+  recess_ends_at: string | null;
 };
 
 type Organization = {
@@ -43,9 +47,15 @@ type Catalog = {
   name: string;
   description: string | null;
   catalog_type: string | null;
-  whatsapp_template?: string | null;
+  whatsapp_template: string | null;
   hide_cta?: boolean | null;
+  hide_prices?: boolean | null;
+  owner_id?: string | null;
+  organization_id?: string | null;
   banners?: any[] | null;
+  banner_speed_seconds?: number | null;
+  banner_initial_index?: number | null;
+  show_banners?: boolean | null;
 };
 
 type Category = {
@@ -99,7 +109,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const searchParams = await props.searchParams;
   const isEmbed = searchParams.embed === "true";
   
-  const admin = createAdminClient();
+  const supabase = await createClient();
 
   // Se for embed, evitamos indexação pesada ou títulos genéricos
   if (isEmbed) {
@@ -109,7 +119,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     };
   }
 
-  const { data: profile } = await admin
+  const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, bio, organization_id")
     .ilike("slug", slug)
@@ -117,14 +127,14 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   let orgData = null;
   if (profile?.organization_id) {
-    const { data: org } = await admin
+    const { data: org } = await supabase
       .from("organizations")
       .select("name, meta_title, meta_description, favicon_url")
       .eq("id", profile.organization_id)
       .maybeSingle();
     orgData = org;
   } else {
-    const { data: org } = await admin
+    const { data: org } = await supabase
       .from("organizations")
       .select("name, meta_title, meta_description, favicon_url")
       .ilike("slug", slug)
@@ -154,7 +164,6 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function Page(props: PageProps) {
-  const admin = createAdminClient();
   const supabase = await createClient();
   
   const { slug } = await props.params;
@@ -162,31 +171,26 @@ export default async function Page(props: PageProps) {
   let profile: Profile | null = null;
   let orgData: Organization | null = null;
 
-  const { data: profileData } = await admin
+  const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, is_available, custom_business_hours, can_customize_hours")
+    .select("*")
     .ilike("slug", slug)
     .maybeSingle();
 
   if (profileData) {
     profile = profileData as Profile;
     if (profile.organization_id) {
-      const { data: brandingData } = await admin
+      const { data: brandingData } = await supabase
         .from("organizations")
         .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color, business_hours, centralize_leads")
         .eq("id", profile.organization_id)
         .maybeSingle();
       if (brandingData) {
         orgData = brandingData as any;
-        console.log(`[DEBUG SERVER] Org found for ${slug}:`, { 
-          id: orgData?.id, 
-          accent: orgData?.accent_color,
-          raw: brandingData.accent_color 
-        });
       }
     }
   } else {
-    const { data: brandingData } = await admin
+    const { data: brandingData } = await supabase
       .from("organizations")
       .select("id, slug, name, favicon_url, logo_url, business_model, accent_color, secondary_color, business_hours, centralize_leads")
       .ilike("slug", slug)
@@ -194,37 +198,52 @@ export default async function Page(props: PageProps) {
       
     if (brandingData) {
       orgData = brandingData as any;
-      console.log(`[DEBUG SERVER] Org found directly for slug ${slug}:`, { 
-        id: orgData?.id, 
-        accent: orgData?.accent_color 
-      });
     } else {
       return notFound();
     }
   }
 
+  const isRecessActive = profile?.recess_ends_at && new Date(profile.recess_ends_at) > new Date();
+  const isTerminated = profile?.status === 'terminated';
+  const isPaused = profile?.status === 'paused' || isRecessActive;
+  const isRedirecting = !!profile?.redirect_leads;
+
+  if (profile && (isTerminated || (isPaused && isRedirecting))) {
+    return (
+      <ConsultantsBridge
+        profile={profile}
+        orgName={orgData?.name || null}
+        orgLogo={(orgData as any)?.logo_url || null}
+        orgSlug={orgData?.slug || profile.organization_id}
+        accentColor={orgData?.accent_color || "#25D366"}
+        secondaryColor={orgData?.secondary_color || "#128C7E"}
+        reason={isTerminated ? 'terminated' : 'paused'}
+      />
+    );
+  }
+
   const trackingProfileId = (profile?.id || orgData?.id) || "";
   const targetOrgId = profile?.organization_id || orgData?.id || profile?.id;
 
-  let catalogId: string | null = null;
+  let catalogIds: string[] = [];
+  let primaryCatalogId: string | null = null;
 
-  // PRIORIDADE 1: Catálogo Master da Organização (CaaS/B2B Master)
+  // PRIORIDADE 1: Catálogos Master/Próprios habilitados
   if (targetOrgId) {
-    const { data: enabledCatalog } = await admin
+    const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
       .eq("organization_id", targetOrgId)
-      .eq("is_enabled", true)
-      .maybeSingle();
-
-    if (enabledCatalog?.catalog_id) {
-      catalogId = enabledCatalog.catalog_id;
+      .eq("is_enabled", true);
+      
+    if (enabledCatalogs && enabledCatalogs.length > 0) {
+      catalogIds = enabledCatalogs.map(c => c.catalog_id);
     }
   }
 
-  // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja Master)
-  if (!catalogId && profile) {
-    const { data: profileCatalogData } = await admin
+  // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja catálogos habilitados na ORG)
+  if (catalogIds.length === 0 && profile) {
+    const { data: profileCatalogData } = await supabase
       .from("profile_catalogs")
       .select("organization_catalog_id")
       .eq("profile_id", profile.id)
@@ -232,83 +251,129 @@ export default async function Page(props: PageProps) {
       .maybeSingle();
 
     if (profileCatalogData?.organization_catalog_id) {
-      const { data: orgCatalogFromProfile } = await admin
+      const { data: orgCatalogFromProfile } = await supabase
         .from("organization_catalogs")
         .select("catalog_id")
         .eq("id", profileCatalogData.organization_catalog_id)
         .maybeSingle();
 
-      catalogId = orgCatalogFromProfile?.catalog_id ?? null;
-    }
-  }
-
-  // FALLBACK 3: Busca direta por organization_id ou owner_id
-  if (!catalogId && targetOrgId) {
-    const { data: orgCatalog } = await admin
-      .from("catalogs")
-      .select("id")
-      .eq("organization_id", targetOrgId)
-      .limit(1)
-      .maybeSingle();
-
-    if (orgCatalog?.id) {
-      catalogId = orgCatalog.id;
-    } else {
-      const { data: ownerCatalog } = await admin
-        .from("catalogs")
-        .select("id")
-        .eq("owner_id", targetOrgId)
-        .limit(1)
-        .maybeSingle();
-
-      if (ownerCatalog?.id) {
-        catalogId = ownerCatalog.id;
-      } else if (profile?.id) {
-        const { data: profileCatalog } = await admin
-          .from("catalogs")
-          .select("id")
-          .eq("owner_id", profile.id)
-          .limit(1)
-          .maybeSingle();
-
-        catalogId = profileCatalog?.id ?? null;
+      if (orgCatalogFromProfile?.catalog_id) {
+        catalogIds.push(orgCatalogFromProfile.catalog_id);
       }
     }
   }
 
-  if (!catalogId) {
-    return notFound();
+  // FALLBACK 3: Busca direta por organization_id ou owner_id
+  if (catalogIds.length === 0 && targetOrgId) {
+    const { data: orgCatalog } = await supabase
+      .from("catalogs")
+      .select("id")
+      .eq("organization_id", targetOrgId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (orgCatalog?.id) {
+      catalogIds.push(orgCatalog.id);
+    } else {
+      const { data: ownerCatalog } = await supabase
+        .from("catalogs")
+        .select("id")
+        .eq("owner_id", targetOrgId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (ownerCatalog?.id) {
+        catalogIds.push(ownerCatalog.id);
+      } else if (profile?.id) {
+        const { data: profileCatalog } = await supabase
+          .from("catalogs")
+          .select("id")
+          .eq("owner_id", profile.id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (profileCatalog?.id) catalogIds.push(profileCatalog.id);
+      }
+    }
   }
 
+  if (catalogIds.length === 0) {
+    return (
+      <ConsultantsBridge
+        profile={profile || { id: orgData?.id, organization_id: orgData?.id }}
+        orgName={orgData?.name || null}
+        orgLogo={(orgData as any)?.logo_url || null}
+        orgSlug={orgData?.slug || profile?.organization_id || ""}
+        accentColor={orgData?.accent_color || "#25D366"}
+        secondaryColor={orgData?.secondary_color || "#128C7E"}
+        reason="unavailable"
+      />
+    );
+  }
 
-
-  const { data: catalogData } = await admin
+  const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
-    .eq("id", catalogId)
-    .is("deleted_at", null)
-    .maybeSingle();
+    .in("id", catalogIds)
+    .is("deleted_at", null);
 
-  if (!catalogData) {
-    return notFound();
+  const catalogs = (catalogsData || []) as Catalog[];
+  const primaryCatalog = catalogs.find(c => c.catalog_type === 'CaaS' || c.catalog_type === 'platform')
+    || catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform')
+    || catalogs[0];
+  if (!primaryCatalog) {
+    return (
+      <ConsultantsBridge
+        profile={profile || { id: orgData?.id, organization_id: orgData?.id }}
+        orgName={orgData?.name || null}
+        orgLogo={(orgData as any)?.logo_url || null}
+        orgSlug={orgData?.slug || profile?.organization_id || ""}
+        accentColor={orgData?.accent_color || "#25D366"}
+        secondaryColor={orgData?.secondary_color || "#128C7E"}
+        reason="unavailable"
+      />
+    );
   }
 
-  const catalog = catalogData as Catalog;
+  // Filtra catalogIds para conter apenas os IDs dos catálogos que não estão na lixeira
+  catalogIds = catalogs.map(c => c.id);
 
-  const { data: categoriesData, error: catError } = await admin
+  const catalog = primaryCatalog;
+  // Se QUALQUER catálogo assinado estiver com hide_prices = true, consideramos verdadeiro.
+  const anyHidePrices = catalogs.some(c => c.hide_prices);
+  if (anyHidePrices) {
+    catalog.hide_prices = true;
+  }
+
+  // Banners prioritization: User's custom catalog takes precedence over CaaS master catalog
+  const customCatalog = catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform');
+  const catalogWithBanners = (customCatalog && customCatalog.banners && customCatalog.banners.length > 0) ? customCatalog : catalog;
+  const finalBanners = catalogWithBanners.banners || [];
+  const finalBannerSpeed = catalogWithBanners.banner_speed_seconds || 5;
+  const finalBannerInitialIndex = catalogWithBanners.banner_initial_index || 0;
+  const finalShowBanners = catalogWithBanners.show_banners !== false;
+
+  const { data: categoriesData, error: catError } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
-    .eq("catalog_id", catalogId)
+    .in("catalog_id", catalogIds)
     .order("sort_order", { ascending: true });
 
   const categories = (categoriesData ?? []) as Category[];
 
   let products: Product[] = [];
+  let overrides: any[] = [];
 
   if (categories.length > 0) {
     const categoryIds = categories.map(c => c.id);
     
-    const { data: productsData } = await admin
+    const { data: productsData } = await supabase
       .from("products")
       .select(
         "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
@@ -318,7 +383,59 @@ export default async function Page(props: PageProps) {
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });
 
-    products = (productsData ?? []) as Product[];
+    const fetchedProducts = (productsData ?? []) as Product[];
+
+    // Fetch overrides se o usuário pertence a uma organização
+    if (targetOrgId) {
+      const { data: overridesData } = await supabase
+        .from("organization_product_overrides")
+        .select("*")
+        .eq("organization_id", targetOrgId)
+        .in("product_id", fetchedProducts.map(p => p.id));
+        
+      overrides = overridesData || [];
+    }
+
+    const caasCatalogIds = catalogs
+      .filter(c => {
+        const isCaasType = c.catalog_type === 'CaaS' || c.catalog_type === 'platform';
+        if (!isCaasType) return false;
+        
+        // Se for do próprio perfil ou organização que está visualizando, não é CaaS para ele
+        const isOwner = (profile && c.owner_id === profile.id) || (orgData && c.organization_id === orgData.id);
+        return !isOwner;
+      })
+      .map(c => c.id);
+    const caasCategoryIds = categories.filter(c => caasCatalogIds.includes(c.catalog_id)).map(c => c.id);
+
+    products = fetchedProducts.reduce((acc, product) => {
+      const isCaasProduct = caasCategoryIds.includes(product.category_id);
+      
+      if (isCaasProduct) {
+        const override = overrides.find(o => o.product_id === product.id);
+        if (!override || override.is_available === false) {
+          return acc; // Não renderiza se não tem override ou está desativado pelo franqueado
+        }
+        
+        // Aplica overrides
+        acc.push({
+          ...product,
+          category_id: override.category_id !== null && override.category_id !== undefined ? override.category_id : product.category_id,
+          price: (override.price_b2c !== null && override.price_b2c !== undefined) ? override.price_b2c : null,
+          wholesale_price: (override.price_b2b !== null && override.price_b2b !== undefined) ? override.price_b2b : null,
+          compare_at_price: (override.compare_at_price !== null && override.compare_at_price !== undefined) ? override.compare_at_price : null,
+          has_retail: override.has_retail !== null ? override.has_retail : product.has_retail,
+          has_wholesale: override.has_wholesale !== null ? override.has_wholesale : product.has_wholesale,
+          sort_order: override.sort_order !== null ? override.sort_order : product.sort_order,
+          image_url: override.image_url !== null && override.image_url !== undefined ? override.image_url : product.image_url,
+          image_urls: override.image_urls !== null && override.image_urls !== undefined && override.image_urls.length > 0 ? override.image_urls : product.image_urls,
+          sku: null
+        });
+      } else {
+        acc.push(product);
+      }
+      return acc;
+    }, [] as Product[]);
   }
 
   // Triple-check fallback para o WhatsApp
@@ -332,7 +449,7 @@ export default async function Page(props: PageProps) {
 
   if (!finalWhatsapp && targetOrgId) {
     // Busca o WhatsApp de qualquer admin dessa organização
-    const { data: adminProfile } = await admin
+    const { data: adminProfile } = await supabase
       .from("profiles")
       .select("whatsapp")
       .eq("organization_id", targetOrgId)
@@ -350,6 +467,18 @@ export default async function Page(props: PageProps) {
 
   return (
     <>
+      {isEmbed && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          body { margin: 0; padding: 0; }
+          main { 
+            max-width: 1200px !important; 
+            width: 100% !important; 
+            margin: 0 auto !important; 
+            box-sizing: border-box; 
+          }
+          main .max-w-5xl, main .max-w-6xl, main .max-w-2xl, main .max-w-xl { max-width: 100% !important; width: 100% !important; }
+        ` }} />
+      )}
       <ProductCatalogClient
         profileId={trackingProfileId}
         catalogId={catalog.id || ""}
@@ -358,6 +487,8 @@ export default async function Page(props: PageProps) {
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
         logoUrl={(orgData as any)?.logo_url}
         isPureCatalog={(orgData as any)?.business_model === "CaaS"}
+        isB2B={(orgData as any)?.business_model === "B2B"}
+        hidePrices={catalog.hide_prices || false}
         isEmbed={isEmbed}
         accentColor={orgData?.accent_color || (orgData as any)?.accent_color}
         secondaryColor={orgData?.secondary_color || (orgData as any)?.secondary_color}
@@ -372,8 +503,14 @@ export default async function Page(props: PageProps) {
         customBusinessHours={profile?.custom_business_hours}
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
+        whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
+        sellerStatus={profile?.status}
+        recessEndsAt={profile?.recess_ends_at}
         hideCta={!!catalog?.hide_cta}
-        banners={catalog.banners}
+        banners={finalBanners}
+        bannerSpeedSeconds={finalBannerSpeed}
+        bannerInitialIndex={finalBannerInitialIndex}
+        showBanners={finalShowBanners}
       />
     </>
   );

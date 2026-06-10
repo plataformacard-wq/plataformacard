@@ -182,6 +182,7 @@ export default async function EmbedPage(props: PageProps) {
         banners={catalogData?.banners}
         bannerSpeedSeconds={catalogData?.banner_speed_seconds || 5}
         bannerInitialIndex={catalogData?.banner_initial_index || 0}
+        showBanners={catalogData?.show_banners !== false}
       />
     </div>
   );

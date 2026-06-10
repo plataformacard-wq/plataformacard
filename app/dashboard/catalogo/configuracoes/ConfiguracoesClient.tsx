@@ -67,6 +67,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const [localBanners, setLocalBanners] = useState<any[]>(initialCatalog.banners || []);
   const [bannerSpeed, setBannerSpeed] = useState<number>(initialCatalog.banner_speed_seconds || 5);
   const [bannerInitialIndex, setBannerInitialIndex] = useState<number>(initialCatalog.banner_initial_index || 0);
+  const [showBanners, setShowBanners] = useState<boolean>(initialCatalog.show_banners !== false);
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [editingBannerIndex, setEditingBannerIndex] = useState<number | null>(null);
   const [tempBanner, setTempBanner] = useState<any>({});
@@ -135,7 +136,8 @@ ${iframeResizerCode}
         hide_prices: hidePrices,
         banners: localBanners,
         banner_speed_seconds: bannerSpeed,
-        banner_initial_index: bannerInitialIndex
+        banner_initial_index: bannerInitialIndex,
+        show_banners: showBanners
       };
 
       const orgPayload = catalog.organization_id ? {
@@ -543,6 +545,22 @@ ${iframeResizerCode}
                   className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
                   <Plus size={16} /> Adicionar Banner
+                </button>
+              </div>
+
+              {/* Toggle Exibir Banners */}
+              <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px]">
+                <div className="space-y-1 pr-6">
+                  <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Exibir Banners no Catálogo Público</label>
+                  <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
+                    Ative ou desative a exibição do carrossel de banners (banners customizados ou produtos em destaque) no topo da vitrine pública.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowBanners(!showBanners)}
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${showBanners ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${showBanners ? 'translate-x-2' : '-translate-x-2'}`} />
                 </button>
               </div>
 
