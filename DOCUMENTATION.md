@@ -82,8 +82,10 @@ Para garantir uma experiência de navegação otimizada e evitar bugs de rolagem
      - **Rolagem**: Não bloqueia a rolagem do body. Ao ser aberto, a aplicação executa um scroll suave (`scrollIntoView`) para centralizar o card expandido na tela do smartphone após 150ms.
      - **Vantagem**: Evita glitches visuais, quebras de layout dentro de iframes pequenos e barras de rolagem duplas.
    - **Desktop (`isMobile === false`)**:
-     - **Comportamento**: Abre o **Modal Popup Tradicional** dentro dos limites do iFrame.
-     - **Características**: Mantém o fundo escurecido e o card de detalhes centralizado com margens (padding), permitindo ver o catálogo ao fundo. Trava a rolagem do body dentro do iframe para permitir a navegação limpa na descrição do produto.
+     - **Comportamento**: Abre o **Modal Popup Tradicional** sobreposto no iFrame, utilizando um sistema de **Posicionamento Relativo Dinâmico (Smart Y-Axis Positioning)**.
+     - **O Problema do iFrame Gigante**: iFrames responsivos costumam ter alturas colossais (ex: 5000px) para acomodar todos os produtos sem barra de rolagem interna. Usar o alinhamento clássico (`fixed` + `items-center`) faz o modal ser desenhado no meio exato do iFrame, ficando "escondido" lá embaixo caso o usuário tenha clicado num produto do topo.
+     - **A Solução UX**: O sistema intercepta a coordenada exata do clique do mouse (`e.pageY`). O fundo escurecido continua preenchendo os 5000px para isolar a vitrine, mas um `paddingTop` dinâmico é injetado no contêiner da modal.
+     - **Características**: A caixa da modal flutua inteligentemente na mesma altura visual do cursor do cliente, garantindo navegação limpa, sem pulos de tela e mantendo as margens (padding) laterais para ver o catálogo desfocado ao fundo.
 
 ## 10. Gestão de Recursos e Escalabilidade (Plano Free)
 O sistema possui duas camadas de monitoramento no Super Admin:
