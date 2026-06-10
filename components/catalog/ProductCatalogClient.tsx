@@ -763,7 +763,7 @@ export default function ProductCatalogClient({
         <motion.header 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-50 bg-[var(--public-glass-bg)] border-b border-[var(--public-card-border)] px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-xl shadow-sm"
+          className="sticky top-0 z-50 bg-[var(--public-glass-bg)] border-b border-[var(--public-card-border)] px-8 sm:px-6 py-3 sm:py-4 backdrop-blur-xl shadow-sm"
         >
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
             <Link href={`/${slug}`} className="flex items-center gap-1.5 group text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] transition-colors shrink-0">
@@ -856,7 +856,7 @@ export default function ProductCatalogClient({
         </motion.header>
       )}
       
-      <main className={`${isEmbed ? 'w-full px-4 sm:px-6 relative' : 'max-w-6xl mx-auto px-4 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
+      <main className={`${isEmbed ? 'w-full px-8 sm:px-6 relative' : 'max-w-6xl mx-auto px-8 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'}`}>
         {localShowBanners && (
           <CatalogBannerCarousel 
             banners={localBanners || []}
