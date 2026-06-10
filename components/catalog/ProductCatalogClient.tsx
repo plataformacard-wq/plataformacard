@@ -1195,6 +1195,11 @@ export default function ProductCatalogClient({
                                         rel="noopener noreferrer"
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          if (!wpUrl) {
+                                            e.preventDefault();
+                                            alert("O vendedor ainda não configurou um número de WhatsApp.");
+                                            return;
+                                          }
                                           console.log("🖱️ Clique WhatsApp Card detectado:", product.name);
                                           void trackLead(product.name);
                                           void trackAnalyticsEvent({
@@ -1255,6 +1260,11 @@ export default function ProductCatalogClient({
                                       rel="noopener noreferrer"
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        if (!wpUrl) {
+                                          e.preventDefault();
+                                          alert("O vendedor ainda não configurou um número de WhatsApp.");
+                                          return;
+                                        }
                                         console.log("🖱️ Clique WhatsApp Produto detectado:", product.name);
                                         void trackLead(product.name);
                                         void trackAnalyticsEvent({
