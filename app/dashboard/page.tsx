@@ -11,7 +11,8 @@ import {
   TrendingUp,
   ArrowUpRight,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  MessageCircle
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
+  const [showNoWhatsappWarning, setShowNoWhatsappWarning] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -121,15 +123,24 @@ export default function DashboardPage() {
             setSellerCount(sCount ?? 0);
             setSellers(sData ?? []);
 
-            // Buscar modelo de negócio
+            // Buscar modelo de negócio e whatsapp
             const { data: org } = await supabase
               .from("organizations")
-              .select("business_model")
+              .select("business_model, whatsapp")
               .eq("id", activeOrgId)
               .maybeSingle();
             
             if (org?.business_model) {
               setBusinessModel(org.business_model as "B2B" | "B2C");
+            }
+
+            // Warning de WhatsApp
+            const hasProfileWhatsapp = !!profile.whatsapp;
+            const hasOrgWhatsapp = !!org?.whatsapp;
+            const hasCatalog = (pCount ?? 0) > 0 && !!profile.slug;
+            
+            if (hasCatalog && !hasProfileWhatsapp && !hasOrgWhatsapp) {
+              setShowNoWhatsappWarning(true);
             }
 
             // Verifica se o catálogo master foi desvinculado
@@ -327,6 +338,30 @@ export default function DashboardPage() {
               </h3>
               <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed max-w-2xl">
                 O catálogo master (CaaS) foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Warning WhatsApp */}
+      {showNoWhatsappWarning && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-[32px] border border-red-500/20 bg-red-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+              <MessageCircle size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-red-800 dark:text-red-400">
+                Atenção: Catálogo sem Contato
+              </h3>
+              <p className="text-xs text-red-700/80 dark:text-red-400/80 mt-1 leading-relaxed max-w-2xl">
+                Seu catálogo está publicado, mas nenhum número de WhatsApp foi configurado! Seus clientes não conseguirão fazer pedidos. 
+                {isB2B ? " Configure o WhatsApp Central em Configurações > SEO e Marca, ou no Perfil do vendedor." : " Configure no seu Perfil."}
               </p>
             </div>
           </div>

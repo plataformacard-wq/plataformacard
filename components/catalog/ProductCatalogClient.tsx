@@ -1185,21 +1185,16 @@ export default function ProductCatalogClient({
                                   Saiba mais
                                 </button>
 
-                                {/* Botão do WhatsApp sempre visível */}
-                                {!hideCta && (
+                                {/* Botão do WhatsApp sempre visível se houver número */}
+                                {!hideCta && wpUrl && (
                                   product.is_in_stock !== false ? (
                                     businessStatus.isAvailableNow ? (
                                       <a
-                                        href={wpUrl || '#'}
+                                        href={wpUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          if (!wpUrl) {
-                                            e.preventDefault();
-                                            alert("O vendedor ainda não configurou um número de WhatsApp.");
-                                            return;
-                                          }
                                           console.log("🖱️ Clique WhatsApp Card detectado:", product.name);
                                           void trackLead(product.name);
                                           void trackAnalyticsEvent({
@@ -1251,20 +1246,15 @@ export default function ProductCatalogClient({
 
                           {isExpanded && (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 pt-5 border-t border-[var(--public-card-border)] relative z-20">
-                              {!hideCta && (
+                              {!hideCta && wpUrl && (
                                 product.is_in_stock !== false ? (
                                   businessStatus.isAvailableNow ? (
                                     <a
-                                      href={wpUrl || '#'}
+                                      href={wpUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        if (!wpUrl) {
-                                          e.preventDefault();
-                                          alert("O vendedor ainda não configurou um número de WhatsApp.");
-                                          return;
-                                        }
                                         console.log("🖱️ Clique WhatsApp Produto detectado:", product.name);
                                         void trackLead(product.name);
                                         void trackAnalyticsEvent({
