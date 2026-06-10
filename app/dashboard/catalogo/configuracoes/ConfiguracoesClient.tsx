@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Save,
@@ -85,7 +85,15 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
 
   const supabase = createClient();
 
-  const embedUrl = `https://anotameucontato.com.br/${slug}/embed`;
+  const [siteUrl, setSiteUrl] = useState("https://anotameucontato.com.br");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSiteUrl(window.location.origin);
+    }
+  }, []);
+
+  const embedUrl = `${siteUrl}/${slug}/embed`;
   
   const iframeResizerCode = `<script>
   window.addEventListener('message', function(e) {
