@@ -101,16 +101,7 @@ type ProductRow = {
   original_category_id?: string | null;
   created_at: string;
   sort_order: number | null;
-  categories:
-    | {
-        id: string;
-        name: string;
-      }
-    | {
-        id: string;
-        name: string;
-      }[]
-    | null;
+  categories: any;
 };
 
 function getProductCategoryId(product: ProductRow): string {
@@ -373,7 +364,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       const orgData = Array.isArray(org) ? org[0] : org;
       const plan = Array.isArray(orgData?.plans) ? orgData.plans[0] : orgData?.plans;
       if (plan) {
-        setProductLimit(plan.max_products || 20);
+        setProductLimit(plan.max_products !== undefined && plan.max_products !== null ? plan.max_products : 20);
       }
       if (orgData?.business_model) {
         setBusinessModel(orgData.business_model);
@@ -567,7 +558,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       if (caasCategories && caasCategories.length > 0) {
         const caasCategoryIds = caasCategories.map(c => c.id);
         
-        const { data: caasProductsData } = await supabase
+        let query = supabase
           .from("products")
           .select(
             `
@@ -596,13 +587,25 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           created_at,
           categories (
             id,
-            name
+            name,
+            catalog_id,
+            catalogs (
+              id,
+              name,
+              catalog_type
+            )
           )
         `
           )
           .in("category_id", caasCategoryIds)
           .eq("is_active", true) // Only active master products
           .is("deleted_at", null);
+
+        if (orgId) {
+          query = query.or(`organization_id.is.null,organization_id.neq.${orgId}`); // Exclude cloned products from CaaS stream
+        }
+
+        const { data: caasProductsData } = await query;
 
         if (caasProductsData && caasProductsData.length > 0) {
           // Fetch overrides
@@ -616,9 +619,19 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
 
           const caasProductsList = caasProductsData.map((p: any) => {
             const override = overrides.find(o => o.product_id === p.id);
+            
+            const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
+            const catalog = Array.isArray(category?.catalogs) ? category.catalogs[0] : category?.catalogs;
+            
+            // A product is CaaS ONLY if the catalog it belongs to is of type 'platform' or 'CaaS'
+            // AND the catalog does not belong to the current organization.
+            const isCaaSProduct = catalog 
+              ? (catalog.catalog_type === 'platform' || catalog.catalog_type === 'CaaS') && catalog.organization_id !== orgId
+              : true;
+
             const catalogLink = (enabledCatalogs as any[]).find(ec => {
               const cat = Array.isArray(ec.catalogs) ? ec.catalogs[0] : ec.catalogs;
-              return cat?.organization_id === p.organization_id;
+              return cat?.id === catalog?.id;
             });
             const masterOrgName = (() => {
               const cat = Array.isArray(catalogLink?.catalogs) ? catalogLink?.catalogs[0] : catalogLink?.catalogs;
@@ -628,7 +641,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             
             return {
               ...p,
-              is_caas: true,
+              is_caas: isCaaSProduct,
               override_id: override?.id,
               caas_owner_name: masterOrgName,
               original_category_id: p.category_id,
@@ -795,9 +808,19 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       setProductListError("Você atingiu o limite do seu plano. Faça upgrade para continuar.");
       return;
     }
-    // Para duplicar, abrimos o modal enviando o produto mas sem o ID (ou com flag de cópia)
-    // No momento, vamos apenas limpar a lógica quebrada para o build passar.
-    const productCopy = { ...product, id: "", name: `${product.name.toUpperCase()} (CÓPIA)` };
+    // Para duplicar, abrimos o modal enviando o produto mas sem o ID.
+    // Se for CaaS, removemos as propriedades específicas para tratá-lo como um novo produto próprio.
+    const productCopy = { 
+      ...product, 
+      id: "", 
+      name: `${product.name.toUpperCase()} (CÓPIA)`,
+      is_caas: false,
+      override_id: undefined,
+      caas_owner_name: undefined,
+      original_category_id: undefined,
+      original_master_price: undefined,
+      source_caas_id: undefined
+    };
     setEditingProduct(productCopy as any);
     setShowModal(true);
   }
@@ -921,11 +944,45 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     setPendingStatusUpdate(null);
   };
 
-  async function handleDelete(id: string) {
+  async function handleDelete(product: ProductRow) {
+    const isCaaSProduct = product.is_caas === true;
+    
+    if (isCaaSProduct) {
+      if (!confirm("Este é um produto herdado (CaaS). Ele não pode ser excluído permanentemente, mas será desativado e ocultado da sua vitrine. Deseja desativá-lo?")) return;
+      
+      const supabase = createClient();
+      const overridePayload = {
+        organization_id: orgId,
+        product_id: product.id,
+        price_b2c: product.price,
+        price_b2b: product.wholesale_price,
+        compare_at_price: product.compare_at_price,
+        has_retail: product.has_retail,
+        has_wholesale: product.has_wholesale,
+        is_available: false, // Desativa
+        is_in_stock: product.is_in_stock,
+        image_url: product.image_url || null,
+        image_urls: product.image_urls || [],
+        category_id: product.category_id === product.original_category_id ? null : product.category_id
+      };
+      
+      const { error } = await supabase
+        .from("organization_product_overrides")
+        .upsert(overridePayload, { onConflict: 'organization_id, product_id' });
+        
+      if (error) {
+        alert("Erro ao desativar produto herdado: " + error.message);
+      } else {
+        if (orgId) fetchProducts(orgId);
+      }
+      return;
+    }
+
     if (!confirm("Tem certeza que deseja excluir este produto?")) return;
     const supabase = createClient();
-    const { error } = await supabase.from("products").delete().eq("id", id);
+    const { error } = await supabase.from("products").delete().eq("id", product.id);
     if (error) {
+      alert("Erro ao excluir produto: " + error.message);
       console.error("Erro ao excluir produto:", error);
       return;
     }
@@ -1327,7 +1384,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                               </button>
                             )}
 
-                            {!product.is_caas && (
+                            {(!product.is_caas || allowCaasDetachment) && (
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
@@ -1348,7 +1405,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                             {(!product.is_caas || allowCaasDetachment) && (
                               <button
                                 type="button"
-                                onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }}
+                                onClick={(e) => { e.stopPropagation(); handleDelete(product); }}
                                 className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
                                 title="Excluir"
                               >

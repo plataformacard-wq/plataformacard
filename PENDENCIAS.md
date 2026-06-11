@@ -81,6 +81,7 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
     - [x] Remoção automática de dados sensíveis (foto/nome) do perfil desligado.
 - [ ] **Auditoria no Cadastro de Catálogo B2C:** Realizar auditoria técnica e validação completa no processo de criação/vinculação automática de catálogos para perfis com nível de acesso B2C (individual seller) para prevenir falhas de RLS.
 - [ ] **Recesso Temporário B2C (Férias):** Implementar a lógica de recesso programado (dias/horas) para usuários individuais B2C na aba de Edição de Cartão Público (Perfil), conforme o plano de implementação aprovado.
+- [ ] **Separação de Ambientes Supabase (Staging vs. Produção):** Criar um novo projeto no Supabase para Staging/Dev, aplicando as migrações existentes. Configurar variáveis de ambiente locais e branches de preview da Vercel para este novo banco, mantendo o banco de dados atual (com o catálogo da MAJ) exclusivo para Produção (Vercel Production). Isso é imprescindível para viabilizar testes online seguros.
 
 ### 5.1 Pendências do Catálogo IFrame
 - [x] **01 - Criar um loader de carregamento personalizado:** Desenvolver um indicador de carregamento customizado e de alta qualidade estética para o catálogo embarcado.
@@ -100,4 +101,4 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [x] **Remoção de Seletor de Modelo de Negócio Obsoleto:** Removido o card de seleção de Modelo de Negócio da página de configurações da Empresa no dashboard (obsoleto).
 
 ---
-*Última atualização: 2026-05-27*
+*Última atualização: 2026-06-11*

@@ -247,7 +247,7 @@ export default function CatalogoPage() {
       const plan = Array.isArray(org?.plans) ? org.plans[0] : org?.plans;
       
       if (plan) {
-        setProductLimit(plan.max_products || 20);
+        setProductLimit(plan.max_products !== undefined && plan.max_products !== null ? plan.max_products : 20);
       }
     }
 
@@ -682,21 +682,21 @@ export default function CatalogoPage() {
         <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
             <span>Limite de Produtos</span>
-            <span className={productUsageCount >= productLimit ? "text-red-500" : "text-emerald-500"}>
-              {productUsageCount} / {productLimit}
+            <span className={productLimit > 0 && productUsageCount >= productLimit ? "text-red-500" : "text-emerald-500"}>
+              {productUsageCount} / {productLimit > 0 ? productLimit : "∞"}
             </span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
             <motion.div 
               initial={{ width: 0 }}
-              animate={{ width: `${Math.min((productUsageCount / productLimit) * 100, 100)}%` }}
+              animate={{ width: `${productLimit > 0 ? Math.min((productUsageCount / productLimit) * 100, 100) : 0}%` }}
               className={`h-full rounded-full transition-all duration-1000 ${
-                productUsageCount >= productLimit ? "bg-red-500" : "bg-emerald-500"
+                productLimit > 0 && productUsageCount >= productLimit ? "bg-red-500" : "bg-emerald-500"
               }`}
             />
           </div>
           <p className="text-[10px] font-bold text-center" style={{ color: "var(--dash-text-muted)" }}>
-            {Math.round((productUsageCount / productLimit) * 100)}% da sua capacidade utilizada
+            {productLimit > 0 ? Math.round((productUsageCount / productLimit) * 100) : 0}% da sua capacidade utilizada
           </p>
         </div>
       </div>
