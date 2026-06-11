@@ -220,7 +220,7 @@ ${iframeResizerCode}
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       {/* Header Premium */}
-      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[40px] p-10 shadow-sm group/header">
+      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity group-hover/header:opacity-100" />
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -264,7 +264,7 @@ ${iframeResizerCode}
             className="grid gap-8"
           >
             {/* Informações Básicas */}
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[40px] p-10 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm space-y-8">
               <div className="flex items-center gap-4 border-b border-[var(--dash-border)] pb-8">
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <BookOpen size={28} />
@@ -281,22 +281,22 @@ ${iframeResizerCode}
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
                     <Zap size={14} className="text-primary" /> Tipo de Catálogo
                   </label>
-                  <div className="flex flex-wrap p-1.5 rounded-[24px] bg-[var(--dash-hover-bg)] border border-[var(--dash-border)]">
+                  <div className="flex flex-wrap p-1.5 rounded-xl bg-[var(--dash-hover-bg)] border border-[var(--dash-border)]">
                     <button
                       onClick={() => setCatalogType("product")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Package size={18} /> Produto
                     </button>
                     <button
                       onClick={() => setCatalogType("service")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Settings size={18} /> Serviço
                     </button>
                     <button
                       onClick={() => setCatalogType("hybrid")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Sparkles size={18} /> Híbrido
                     </button>
@@ -317,7 +317,7 @@ ${iframeResizerCode}
                       value={catalog.description || ""}
                       onChange={(e) => setCatalog({ ...catalog, description: e.target.value })}
                       rows={6}
-                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px] focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
                       placeholder="Descreva seu negócio para seus clientes e para o Google..."
                     />
                   </div>
@@ -338,7 +338,7 @@ ${iframeResizerCode}
                       value={whatsappTemplate}
                       onChange={(e) => setWhatsappTemplate(e.target.value)}
                       rows={6}
-                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px] focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
                       placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e gostaria de saber mais..."
                     />
                     
@@ -360,7 +360,7 @@ ${iframeResizerCode}
 
                 {/* Seção Ocultação de Preços */}
                 <div className="pt-4 border-t border-[var(--dash-border)]">
-                  <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px]">
+                  <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
                     <div className="space-y-1 pr-6">
                       <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Ocultar Preços (Negociação via WhatsApp)</label>
                       <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
@@ -410,7 +410,7 @@ ${iframeResizerCode}
           >
             {/* Controles de Customização */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[40px] p-8 shadow-sm space-y-6">
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Layout size={20} />
@@ -427,7 +427,7 @@ ${iframeResizerCode}
                       type="text" 
                       value={embedWidth}
                       onChange={(e) => setEmbedWidth(e.target.value)}
-                      className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
+                      className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
                       placeholder="ex: 100%"
                     />
                   </div>
@@ -440,7 +440,7 @@ ${iframeResizerCode}
                       type="text" 
                       value={embedHeight}
                       onChange={(e) => setEmbedHeight(e.target.value)}
-                      className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
+                      className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
                       placeholder="ex: 800px"
                     />
                     <div className="pt-2 flex flex-col gap-1.5">
@@ -489,7 +489,7 @@ ${iframeResizerCode}
               <a 
                 href={embedUrl} 
                 target="_blank" 
-                className="group flex items-center justify-between w-full p-6 bg-emerald-500 text-white rounded-[32px] font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
+                className="group flex items-center justify-between w-full p-6 bg-emerald-500 text-white rounded-xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
               >
                 <div className="flex items-center gap-3">
                    <ExternalLink size={20} />
@@ -501,7 +501,7 @@ ${iframeResizerCode}
 
             {/* Código e Instruções */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[40px] p-8 shadow-sm space-y-6 relative overflow-hidden">
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 shadow-sm space-y-6 relative overflow-hidden">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-zinc-500/10 flex items-center justify-center text-[var(--dash-text-primary)]">
@@ -511,7 +511,7 @@ ${iframeResizerCode}
                   </div>
                   <button 
                     onClick={copyToClipboard}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                       copied ? "bg-emerald-500 text-white" : "bg-black text-white hover:bg-zinc-800"
                     }`}
                   >
@@ -520,14 +520,14 @@ ${iframeResizerCode}
                   </button>
                 </div>
 
-                <div className="bg-zinc-950 rounded-3xl p-6 font-mono text-xs text-emerald-400 border border-white/5 leading-relaxed overflow-x-auto shadow-inner">
+                <div className="bg-zinc-950 rounded-2xl p-6 font-mono text-xs text-emerald-400 border border-white/5 leading-relaxed overflow-x-auto shadow-inner">
                    <pre className="whitespace-pre-wrap break-all">
                      {iframeCode}
                    </pre>
                 </div>
               </div>
 
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[40px] p-8 shadow-sm">
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 shadow-sm">
                  <h3 className="text-lg font-black tracking-tight mb-8 flex items-center gap-3">
                    <Layers size={20} className="text-emerald-500" />
                    Guia de Implementação
@@ -574,7 +574,7 @@ ${iframeResizerCode}
             exit={{ opacity: 0, y: -10 }}
             className="grid gap-8"
           >
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[40px] p-10 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm space-y-8">
               <div className="flex items-center justify-between border-b border-[var(--dash-border)] pb-8">
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
@@ -587,14 +587,14 @@ ${iframeResizerCode}
                 </div>
                 <button
                   onClick={handleAddBanner}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
                   <Plus size={16} /> Adicionar Banner
                 </button>
               </div>
 
               {/* Toggle Exibir Banners */}
-              <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px]">
+              <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
                 <div className="space-y-1 pr-6">
                   <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Exibir Banners no Catálogo Público</label>
                   <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
@@ -610,7 +610,7 @@ ${iframeResizerCode}
               </div>
 
               {/* Configurações do Carrossel */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[24px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
                 <div className="space-y-3">
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
                     Tempo de Transição (Segundos)
@@ -621,7 +621,7 @@ ${iframeResizerCode}
                     max="30"
                     value={bannerSpeed}
                     onChange={(e) => setBannerSpeed(parseInt(e.target.value) || 5)}
-                    className="w-full p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[16px] focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm"
+                    className="w-full p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm"
                   />
                 </div>
                 <div className="space-y-3">
@@ -631,7 +631,7 @@ ${iframeResizerCode}
                   <select
                     value={bannerInitialIndex}
                     onChange={(e) => setBannerInitialIndex(parseInt(e.target.value))}
-                    className="w-full p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[16px] focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm"
+                    className="w-full p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm"
                   >
                     <option value="-1">Aleatório (Sorteio)</option>
                     {localBanners.map((_, i) => (
@@ -644,13 +644,13 @@ ${iframeResizerCode}
               {/* Lista de Banners */}
               <div className="space-y-4">
                 {localBanners.length === 0 ? (
-                  <div className="text-center p-12 border-2 border-dashed border-[var(--dash-border)] rounded-[24px]">
+                  <div className="text-center p-12 border-2 border-dashed border-[var(--dash-border)] rounded-xl">
                     <ImageIcon size={48} className="mx-auto text-[var(--dash-text-muted)] opacity-50 mb-4" />
                     <p className="text-[var(--dash-text-muted)] font-medium">Nenhum banner configurado.</p>
                   </div>
                 ) : (
                   localBanners.map((banner, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[24px] hover:border-primary/50 transition-colors">
+                    <div key={index} className="flex items-center gap-4 p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl hover:border-primary/50 transition-colors">
                       <div className="flex flex-col gap-1">
                         <button disabled={index === 0} onClick={() => handleMoveBanner(index, 'up')} className="p-1 text-[var(--dash-text-muted)] hover:text-white disabled:opacity-20"><ArrowUp size={16} /></button>
                         <button disabled={index === localBanners.length - 1} onClick={() => handleMoveBanner(index, 'down')} className="p-1 text-[var(--dash-text-muted)] hover:text-white disabled:opacity-20"><ArrowDown size={16} /></button>
@@ -748,7 +748,7 @@ ${iframeResizerCode}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[32px] p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="relative bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             >
               <h2 className="text-2xl font-black tracking-tight mb-8 text-[var(--dash-text-primary)]">
                 {editingBannerIndex !== null ? "Editar Banner" : "Novo Banner"}
