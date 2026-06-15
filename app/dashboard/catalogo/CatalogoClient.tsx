@@ -532,7 +532,11 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       created_at,
       categories (
         id,
-        name
+        name,
+        catalog_id,
+        catalogs (
+          deleted_at
+        )
       )
     `
       )
@@ -542,6 +546,16 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       .order("created_at", { ascending: false });
 
     let prodList = (ownData ?? []) as unknown as ProductRow[];
+
+    // Filter out products belonging to deleted catalogs
+    prodList = prodList.filter(p => {
+      if (!p.category_id) return true;
+      const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
+      if (!category) return false;
+      const catalog = Array.isArray(category.catalogs) ? category.catalogs[0] : category.catalogs;
+      if (catalog && catalog.deleted_at) return false;
+      return true;
+    });
 
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
