@@ -469,12 +469,16 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         .eq("organization_id", targetOrgId);
 
       if (enabledCatalogs && enabledCatalogs.length > 0) {
-        const caasCatalogIds = enabledCatalogs
-          .filter((c: any) => {
+        const caasCatalogIds = (enabledCatalogs as unknown as {
+          catalog_id: string;
+          is_enabled: boolean;
+          catalogs: { deleted_at: string | null } | { deleted_at: string | null }[] | null;
+        }[])
+          .filter(c => {
             const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
             return c.is_enabled && cat && !cat.deleted_at;
           })
-          .map((c: any) => c.catalog_id);
+          .map(c => c.catalog_id);
         
         caasCatalogIds.forEach((id: string) => {
           if (!catalogIds.includes(id)) {
