@@ -44,6 +44,7 @@ import CategoryModal from "@/components/dashboard/CategoryModal";
 
 type Category = {
   id: string;
+  catalog_id?: string | null;
   name: string;
   description?: string | null;
   sort_order?: number | null;
@@ -309,7 +310,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             
             if (cid) {
               setCatalogId(cid);
-              await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid), fetchUserSlug(user.id)]);
+              await Promise.all([refreshLimit(), fetchCategories(cid, oid), fetchProducts(oid), fetchUserSlug(user.id)]);
             }
           }
         }
@@ -456,12 +457,37 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     setLoadingLimit(false);
   }
 
-  async function fetchCategories(catalogId: string) {
+  async function fetchCategories(catalogId: string, customOrgId?: string | null) {
     const supabase = createClient();
+    const targetOrgId = customOrgId || orgId;
+    let catalogIds = [catalogId];
+
+    if (targetOrgId) {
+      const { data: enabledCatalogs } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id, is_enabled, catalogs(deleted_at)")
+        .eq("organization_id", targetOrgId);
+
+      if (enabledCatalogs && enabledCatalogs.length > 0) {
+        const caasCatalogIds = enabledCatalogs
+          .filter((c: any) => {
+            const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+            return c.is_enabled && cat && !cat.deleted_at;
+          })
+          .map((c: any) => c.catalog_id);
+        
+        caasCatalogIds.forEach((id: string) => {
+          if (!catalogIds.includes(id)) {
+            catalogIds.push(id);
+          }
+        });
+      }
+    }
+
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name, description, sort_order")
-      .eq("catalog_id", catalogId)
+      .select("id, catalog_id, name, description, sort_order")
+      .in("catalog_id", catalogIds)
       .order("sort_order", { ascending: true });
 
     if (error) {
@@ -711,7 +737,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     if (error) {
       alert("Erro ao excluir categoria.");
     } else {
-      if (catalogId) await fetchCategories(catalogId);
+      if (catalogId) await fetchCategories(catalogId, orgId);
     }
   }
 
@@ -1194,12 +1220,12 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                 Array(4).fill(0).map((_, i) => (
                   <div key={i} className="h-24 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800" />
                 ))
-              ) : categories.length === 0 ? (
+              ) : categories.filter(c => c.catalog_id === catalogId).length === 0 ? (
                 <div className="col-span-full p-12 text-center rounded-[32px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
                   <p className="text-sm italic" style={{ color: "var(--dash-text-secondary)" }}>Nenhuma categoria cadastrada.</p>
                 </div>
               ) : (
-                categories.map((cat, idx) => (
+                categories.filter(c => c.catalog_id === catalogId).map((cat, idx) => (
                   <div
                     key={cat.id}
                     className="group flex flex-col justify-between p-5 rounded-[32px] border transition-all hover:shadow-lg hover:border-primary/30"
@@ -1687,7 +1713,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           refreshLimit();
         }}
         editingProduct={editingProduct}
-        categories={categories}
+        categories={categories.filter(c => c.catalog_id === catalogId)}
         orgId={orgId || ""}
         canCreateProduct={(canCreateProduct ?? false) || productLimit <= 0}
         catalogType={catalogType}
@@ -1697,7 +1723,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
         onSuccess={() => {
-          if (catalogId) fetchCategories(catalogId);
+          if (catalogId) fetchCategories(catalogId, orgId);
         }}
         editingCategory={editingCategory}
         catalogId={catalogId}
