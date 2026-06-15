@@ -32,6 +32,11 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
     - [x] Refinar prompts para evitar citação de preços e focar em "papo reto" técnico.
     - [x] Implementar "Corretor com IA" multicanal (Nome, Destaque e Descrição).
 
+- [x] **Organização e Melhoria do Catálogo (Solicitações Recentes):**
+    - [x] **Agrupamento por Categoria (Dashboard):** Organizar os produtos em seções elegantes de categoria no admin, em vez de ficarem misturados.
+    - [x] **Ordenação Inteligente de Esgotados:** Opção global em "Configurações do Catálogo" para enviar itens sem estoque para o fim de cada seção.
+    - [x] **Tratamento de Órfãos de Catálogos Excluídos:** Filtragem automática de produtos antigos oriundos de catálogos deletados para evitar lixo visual no painel.
+
 ### 2.2 Sistemas de Compartilhamento
 - [x] **Social Share - Cartão Público:** Botões de WhatsApp, Link e Redes Sociais.
 - [x] **Social Share - Catálogo:** Botão flutuante ou fixo para compartilhar a vitrine.
@@ -101,4 +106,4 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [x] **Remoção de Seletor de Modelo de Negócio Obsoleto:** Removido o card de seleção de Modelo de Negócio da página de configurações da Empresa no dashboard (obsoleto).
 
 ---
-*Última atualização: 2026-06-11*
+*Última atualização: 2026-06-15*
