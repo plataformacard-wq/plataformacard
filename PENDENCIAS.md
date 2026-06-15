@@ -6,8 +6,8 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 
 ## 🚨 1. Pendências Imediatas e Críticas (Showstoppers)
 
-- [ ] **Crítico: iFrame no Site Real (MAJ):** Resolver bugs de integração, redimensionamento ou bloqueio no site da MAJ.
-- [ ] **Segurança de Dados:** Elaborar relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD).
+- [x] **Crítico: iFrame no Site Real (MAJ):** Resolver bugs de integração, redimensionamento ou bloqueio no site da MAJ. (Resolvido com o script de postMessage e auto-resizer embutido no ConfiguracoesClient)
+- [x] **Segurança de Dados:** Elaborar relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD). (Resolvido no documento RELATORIO_SEGURANCA_LGPD.md)
 - [ ] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
 - [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" e dados de teste. O jogo vai começar!
 - [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
