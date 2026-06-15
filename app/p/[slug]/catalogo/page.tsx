@@ -25,6 +25,7 @@ type Catalog = {
   banner_speed_seconds?: number | null;
   banner_initial_index?: number | null;
   show_banners?: boolean | null;
+  out_of_stock_at_end?: boolean | null;
 };
 
 type Category = {
@@ -142,7 +143,7 @@ if (!catalogId) {
 
   const { data: catalogData, error: catalogError } = await supabase
     .from("catalogs")
-    .select("id, name, description, catalog_type, banners, banner_speed_seconds, banner_initial_index, show_banners")
+    .select("id, name, description, catalog_type, banners, banner_speed_seconds, banner_initial_index, show_banners, out_of_stock_at_end")
     .eq("id", catalogId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -203,6 +204,7 @@ if (!catalogId) {
       bannerSpeedSeconds={catalog.banner_speed_seconds || 5}
       bannerInitialIndex={catalog.banner_initial_index || 0}
       showBanners={catalog.show_banners !== false}
+      outOfStockAtEnd={catalog.out_of_stock_at_end || false}
     />
   );
 }
