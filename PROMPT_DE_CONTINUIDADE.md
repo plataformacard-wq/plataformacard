@@ -17,9 +17,9 @@ Durante as sessões recentes, resolvemos os seguintes pontos:
 - **Banco de Dados**: Produto real `MAJ X15 PRO` renderizando corretamente.
 
 **🔮 Próximos Passos:**
-1. **Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolver no menu de configurações do catálogo (em `app/dashboard/catalogo/configuracoes/` e `ConfiguracoesClient.tsx`) uma área dedicada para cadastrar as imagens do banner.
-   - Integrar upload de imagens para o Supabase Storage.
-   - Permitir associar Título, Descrição, Texto do Botão de Ação e Link de Destino (URL externa ou ID de produto para rolagem âncora) a cada banner.
-   - Exibir a lista de banners salvos na coluna `banners` (JSONB) da tabela `catalogs`.
-   - Permitir ordenar, editar e remover as imagens dos banners cadastrados.
+1. **[CONCLUÍDO] Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolvido no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/`) uma área dedicada para cadastrar as imagens do banner.
+   - Integrado upload de imagens para o Supabase Storage.
+   - Permitido associar Título, Descrição, Texto do Botão de Ação e Link de Destino (URL externa ou ID de produto para rolagem âncora) a cada banner.
+   - Exibindo a lista de banners salvos na coluna `banners` (JSONB) da tabela `catalogs`.
+   - Permitido ordenar, editar e remover as imagens dos banners cadastrados.
 2. Continuar com os testes de vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/PlataformaCard/PENDENCIAS.md).

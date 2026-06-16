@@ -8,7 +8,8 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 
 - [x] **Crítico: iFrame no Site Real (MAJ):** Resolver bugs de integração, redimensionamento ou bloqueio no site da MAJ. (Resolvido com o script de postMessage e auto-resizer embutido no ConfiguracoesClient)
 - [x] **Segurança de Dados:** Elaborar relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD). (Resolvido no documento RELATORIO_SEGURANCA_LGPD.md)
-- [ ] **Crítico: Validação de Cadastro via OTP (E-mail):** Substituir o fluxo de link de confirmação por envio de código numérico (OTP) de 6 dígitos no cadastro de clientes, criando a tela de verificação no frontend. (Plano aprovado, pendente para a próxima sessão)
+- [x] **Crítico: Validação de Cadastro via OTP (E-mail):** Substituir o fluxo de link de confirmação por envio de código numérico (OTP) de 6 dígitos no cadastro de clientes, criando a tela de verificação no frontend. (Resolvido na interface de cadastro)
+- [ ] **Crítico: Validação Manual do Sistema OTP:** Realizar um teste de ponta a ponta: criar uma conta de teste, checar o recebimento do e-mail com a tag `{{ .Token }}` e validar a inserção do código na interface.
 - [ ] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
 - [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" e dados de teste. O jogo vai começar!
 - [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
