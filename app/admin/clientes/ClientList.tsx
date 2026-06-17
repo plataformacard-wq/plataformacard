@@ -58,7 +58,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
       />
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[var(--dash-surface)] p-4 rounded-3xl border border-[var(--dash-border)] shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[var(--dash-surface)] p-4 rounded-xl border border-[var(--dash-border)] shadow-sm">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
           <input 
@@ -66,19 +66,19 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
             placeholder="Buscar por nome ou slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-2.5 rounded-2xl border outline-none text-sm transition-all focus:ring-2 focus:ring-primary/20"
+            className="w-full pl-12 pr-4 py-2.5 rounded-lg border outline-none text-sm transition-all focus:ring-2 focus:ring-primary/20"
             style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           />
         </div>
 
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[var(--dash-text-muted)]" />
-          <div className="flex bg-[var(--dash-bg)] p-1 rounded-xl border border-[var(--dash-border)]">
+          <div className="flex bg-[var(--dash-bg)] p-1 rounded-lg border border-[var(--dash-border)]">
             {(["ALL", "B2B", "B2C"] as const).map((model) => (
               <button
                 key={model}
                 onClick={() => setFilterModel(model)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
                   filterModel === model 
                     ? "bg-[var(--dash-text-primary)] text-[var(--dash-bg)] shadow-sm" 
                     : "text-[var(--dash-text-secondary)] hover:text-[var(--dash-text-primary)]"
@@ -102,7 +102,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
             >
               {/* 1. Identidade da Empresa (Esquerda) */}
               <div className="flex items-center gap-5 md:w-72 shrink-0">
-                <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+                <div className={`h-16 w-16 rounded-lg flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
                   <Building2 size={32} />
                 </div>
                 <div className="min-w-0">
@@ -135,15 +135,15 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                 {/* SELETOR B2B / B2C ULTRA EVIDENTE */}
                 <div className="flex flex-col items-center min-w-[120px]">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-2">Modelo de Operação</p>
-                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative scale-90 md:scale-100">
+                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-lg border border-[var(--dash-border)] relative scale-90 md:scale-100">
                     {updatingId === org.id && (
-                      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-lg z-10 flex items-center justify-center">
                         <RefreshCw size={12} className="animate-spin text-white" />
                       </div>
                     )}
                     <button 
                       onClick={() => org.business_model !== 'B2B' && handleModelToggle(org.id, 'B2C')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
                         org.business_model === 'B2B' 
                           ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                           : 'text-[var(--dash-text-muted)] hover:text-blue-500'
@@ -153,7 +153,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                     </button>
                     <button 
                       onClick={() => org.business_model !== 'B2C' && handleModelToggle(org.id, 'B2B')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
                         org.business_model === 'B2C' 
                           ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                           : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
@@ -176,7 +176,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
               <div className="flex items-center gap-3 md:w-64 justify-end shrink-0 w-full md:w-auto">
                  <button 
                   onClick={() => handleOpenDetails(org)}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-xs font-black bg-[var(--dash-bg)] border transition-all hover:bg-primary/10 hover:border-primary/30 active:scale-95"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-lg text-xs font-black bg-[var(--dash-bg)] border transition-all hover:bg-primary/10 hover:border-primary/30 active:scale-95"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                  >
                    VER RAIO-X
@@ -184,7 +184,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                  <a 
                   href={`/${org.slug}`}
                   target="_blank"
-                  className="p-4 rounded-2xl bg-[var(--dash-bg)] border text-[var(--dash-text-muted)] hover:text-primary transition-all flex-shrink-0"
+                  className="p-4 rounded-lg bg-[var(--dash-bg)] border text-[var(--dash-text-muted)] hover:text-primary transition-all flex-shrink-0"
                   style={{ borderColor: "var(--dash-border)" }}
                  >
                    <ExternalLink size={18} />

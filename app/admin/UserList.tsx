@@ -120,7 +120,7 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
                   <button
                     onClick={() => toggleBusinessModel(p.id, p.organization_id, currentModel)}
                     disabled={loadingId === p.id || !p.organization_id}
-                    className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-bold transition-all ${
                       currentModel === "B2B" 
                         ? "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" 
                         : "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
@@ -145,7 +145,7 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
                     <button
                       onClick={() => authorizeOnboarding(p.id)}
                       disabled={loadingId === p.id}
-                      className="ml-3 inline-flex items-center rounded-lg bg-violet-600 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition-all hover:bg-violet-500 active:scale-95 disabled:opacity-50"
+                      className="ml-3 inline-flex items-center rounded-md bg-violet-600 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition-all hover:bg-violet-500 active:scale-95 disabled:opacity-50"
                     >
                       {loadingId === p.id ? "..." : "Liberar Onboarding"}
                     </button>

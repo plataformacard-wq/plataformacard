@@ -12,15 +12,21 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("organization_id")
+    .select("organization_id, role")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (profile?.organization_id) {
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+  const isSuperAdmin = profile?.role === "superadmin";
+  const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+  if (activeOrgId) {
     const { data: org } = await supabase
       .from("organizations")
       .select("name, favicon_url")
-      .eq("id", profile.organization_id)
+      .eq("id", activeOrgId)
       .maybeSingle();
 
     if (org?.favicon_url) {

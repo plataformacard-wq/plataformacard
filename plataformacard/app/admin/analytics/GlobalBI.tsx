@@ -37,20 +37,20 @@ export default function GlobalBI({ stats }: GlobalBIProps) {
   return (
     <div className="space-y-10">
       {/* 1. Funil de Conversão Global */}
-      <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] p-8 shadow-sm">
+      <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-8">
           <Target className="text-primary" size={24} />
           <h3 className="font-bold text-lg" style={{ color: "var(--dash-text-primary)" }}>Funil de Conversão Global (SaaS)</h3>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3 relative">
-          <div className="p-6 rounded-2xl bg-[var(--dash-bg)] border border-[var(--dash-border)] text-center relative overflow-hidden group">
+          <div className="p-6 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] text-center relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
             <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-widest mb-1">Total de Visitas</p>
             <p className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>{stats.globalFunnel.views}</p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-[var(--dash-bg)] border border-[var(--dash-border)] text-center relative overflow-hidden group">
+          <div className="p-6 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] text-center relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
             <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-widest mb-1">Visualizações de Catálogo</p>
             <p className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>{stats.globalFunnel.catalog}</p>
@@ -59,7 +59,7 @@ export default function GlobalBI({ stats }: GlobalBIProps) {
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl bg-[var(--dash-bg)] border border-[var(--dash-border)] text-center relative overflow-hidden group">
+          <div className="p-6 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] text-center relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
             <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-widest mb-1">Leads (WhatsApp)</p>
             <p className="text-3xl font-black text-emerald-500">{stats.globalFunnel.leads}</p>
@@ -72,7 +72,7 @@ export default function GlobalBI({ stats }: GlobalBIProps) {
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* 2. Crescimento de Usuários */}
-        <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] p-8 shadow-sm">
+        <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <TrendingUp className="text-primary" size={24} />
@@ -85,7 +85,7 @@ export default function GlobalBI({ stats }: GlobalBIProps) {
             {stats.growthData.map((d, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
                 <div 
-                  className="w-full bg-primary/10 border-t-2 border-primary rounded-t-lg transition-all hover:bg-primary/20 relative"
+                  className="w-full bg-primary/10 border-t-2 border-primary rounded-t-md transition-all hover:bg-primary/20 relative"
                   style={{ height: `${(d.count / maxGrowth) * 100}%`, minHeight: '4px' }}
                 >
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -99,7 +99,7 @@ export default function GlobalBI({ stats }: GlobalBIProps) {
         </div>
 
         {/* 3. Distribuição de Modelo de Negócio */}
-        <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] p-8 shadow-sm">
+        <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-8">
             <PieChart className="text-primary" size={24} />
             <h3 className="font-bold text-lg" style={{ color: "var(--dash-text-primary)" }}>Market Share (B2B vs B2C)</h3>

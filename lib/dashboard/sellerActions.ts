@@ -561,3 +561,48 @@ export async function getOrCreateCatalog(orgId: string) {
   return { success: true, catalog: catalogData };
 }
 
+export async function updateOrganizationSEO(orgId: string, payload: {
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string;
+  favicon_url: string;
+  logo_url: string;
+  og_image_url: string;
+  centralize_leads?: boolean;
+  whatsapp?: string;
+}) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+
+    if (!user) {
+      return { error: "Não autenticado" };
+    }
+
+    const { data: profile } = await supabaseServer
+      .from("profiles")
+      .select("organization_id, role")
+      .eq("user_id", user.id)
+      .single();
+
+    const isSuperAdmin = profile?.role === "superadmin" || profile?.role === "super_admin";
+    if (profile?.organization_id !== orgId && !isSuperAdmin) {
+      return { error: "Sem permissão para atualizar esta organização." };
+    }
+
+    const adminClient = createAdminClient();
+    const { error } = await adminClient
+      .from("organizations")
+      .update(payload)
+      .eq("id", orgId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message };
+  }
+}
+

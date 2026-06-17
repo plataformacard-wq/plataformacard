@@ -31,11 +31,11 @@ export default async function ClientesPage() {
         </div>
 
         <div className="flex gap-4">
-          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-2xl flex items-center gap-3">
+          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-lg flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-blue-500" />
             <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalB2B} B2B</span>
           </div>
-          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-2xl flex items-center gap-3">
+          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-lg flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-emerald-500" />
             <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalB2C} B2C</span>
           </div>

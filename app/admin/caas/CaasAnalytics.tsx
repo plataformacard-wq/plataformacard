@@ -53,7 +53,7 @@ export default function CaasAnalytics({ catalogId, catalogName }: CaasAnalyticsP
           </h3>
           <p className="text-xs font-bold text-dash-text-secondary">Distribuição de Leads (WhatsApp) por vendedor.</p>
         </div>
-        <div className="bg-purple-500/10 border border-purple-500/20 px-4 py-2 rounded-xl text-center">
+        <div className="bg-purple-500/10 border border-purple-500/20 px-4 py-2 rounded-lg text-center">
           <p className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Total de Leads</p>
           <p className="text-xl font-black text-dash-text-primary">{totalLeads}</p>
         </div>
@@ -63,11 +63,11 @@ export default function CaasAnalytics({ catalogId, catalogName }: CaasAnalyticsP
         {data.length > 0 ? data.map((item, idx) => (
           <div 
             key={item.slug} 
-            className="bg-dash-bg border border-border p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500/30 transition-all"
+            className="bg-dash-bg border border-border p-4 rounded-lg flex items-center justify-between group hover:border-purple-500/30 transition-all"
           >
             <div className="flex items-center gap-4">
               <span className="text-xs font-black w-4 text-dash-text-muted">{item.slug === "unknown" ? "?" : idx + 1}.</span>
-              <div className="h-10 w-10 rounded-xl bg-zinc-500/10 flex items-center justify-center text-zinc-500">
+              <div className="h-10 w-10 rounded-lg bg-zinc-500/10 flex items-center justify-center text-zinc-500">
                 <Users size={18} />
               </div>
               <div>
@@ -93,7 +93,7 @@ export default function CaasAnalytics({ catalogId, catalogName }: CaasAnalyticsP
             </div>
           </div>
         )) : (
-          <div className="py-10 text-center border-2 border-dashed border-[var(--dash-border)] rounded-3xl">
+          <div className="py-10 text-center border-2 border-dashed border-[var(--dash-border)] rounded-xl">
             <p className="text-sm font-bold text-[var(--dash-text-muted)]">Nenhum lead registrado para este catálogo ainda.</p>
           </div>
         )}

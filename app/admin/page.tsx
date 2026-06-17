@@ -61,7 +61,7 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-5 py-3 rounded-2xl flex items-center gap-3">
+        <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-5 py-3 rounded-lg flex items-center gap-3">
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Operação em Tempo Real</span>
@@ -76,7 +76,7 @@ export default async function AdminDashboardPage() {
          <div className="rounded-[32px] border p-8 flex flex-col justify-between group hover:border-blue-500/30 transition-all" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
            <div>
              <div className="flex items-center gap-3 mb-6">
-               <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+               <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
                  <Building2 size={24} />
                </div>
                <div>
@@ -102,7 +102,7 @@ export default async function AdminDashboardPage() {
          <div className="rounded-[32px] border p-8 flex flex-col justify-between group hover:border-emerald-500/30 transition-all" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
            <div>
              <div className="flex items-center gap-3 mb-6">
-               <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+               <div className="h-12 w-12 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                  <Users size={24} />
                </div>
                <div>
@@ -128,7 +128,7 @@ export default async function AdminDashboardPage() {
          <div className="rounded-[32px] border p-8 flex flex-col justify-between group hover:border-purple-500/30 transition-all" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
            <div>
              <div className="flex items-center gap-3 mb-6">
-               <div className="h-12 w-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+               <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
                  <Globe size={24} />
                </div>
                <div>
@@ -154,33 +154,33 @@ export default async function AdminDashboardPage() {
       {/* Grid de Planos e Infraestrutura */}
       <div className="grid gap-6 md:grid-cols-4">
           {/* Starter Plan */}
-          <div className="bg-[var(--dash-surface)] p-6 rounded-3xl border border-[var(--dash-border)]">
+          <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
-                <div className="h-8 w-8 rounded-xl bg-zinc-500/10 flex items-center justify-center text-zinc-500"><CreditCard size={16} /></div>
+                <div className="h-8 w-8 rounded-lg bg-zinc-500/10 flex items-center justify-center text-zinc-500"><CreditCard size={16} /></div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Starter</p>
              </div>
              <p className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>{starterCount || 0}</p>
           </div>
           {/* Pro Plan */}
-          <div className="bg-[var(--dash-surface)] p-6 rounded-3xl border border-[var(--dash-border)]">
+          <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
-                <div className="h-8 w-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Zap size={16} /></div>
+                <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><Zap size={16} /></div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Pro</p>
              </div>
              <p className="text-3xl font-black text-blue-500">{proCount || 0}</p>
           </div>
           {/* Enterprise Plan */}
-          <div className="bg-[var(--dash-surface)] p-6 rounded-3xl border border-[var(--dash-border)]">
+          <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
-                <div className="h-8 w-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500"><TrendingUp size={16} /></div>
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500"><TrendingUp size={16} /></div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Master</p>
              </div>
              <p className="text-3xl font-black text-amber-500">{enterpriseCount || 0}</p>
           </div>
           {/* Infra Global */}
-          <div className="bg-[var(--dash-surface)] p-6 rounded-3xl border border-[var(--dash-border)]">
+          <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
-                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><LayoutDashboard size={16} /></div>
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><LayoutDashboard size={16} /></div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Infra Global</p>
              </div>
              <p className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>{productCount || 0}</p>

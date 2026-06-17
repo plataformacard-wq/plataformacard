@@ -13,11 +13,13 @@ import {
   ChevronRight,
   TrendingUp,
   Mail,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess } from "@/lib/admin-actions";
+import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS } from "@/lib/plans";
 
 interface ClientDetailModalProps {
   isOpen: boolean;
@@ -42,6 +44,9 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const [updatingModel, setUpdatingModel] = useState(false);
   const [showSellers, setShowSellers] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
+  // Estado para o painel de confirmação de downgrade
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [downgradeConflicts, setDowngradeConflicts] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
 
   // Sincronizar estado quando a organização mudar (abertura do modal)
   useEffect(() => {
@@ -93,15 +98,42 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
     }
   }, [isOpen, organization?.id, supabase]);
 
-  const handlePlanChange = async (newPlan: string) => {
+  const handlePlanChange = async (newPlanId: string) => {
+    if (!newPlanId || newPlanId === currentPlan) return;
+
+    // Verifica se o downgrade causa conflitos de recursos
+    const conflicts = detectDowngradeConflicts(newPlanId, {
+      products: stats.productCount,
+      sellers: stats.userCount,
+    });
+
+    if (conflicts.length > 0) {
+      // Pausa a troca e exibe o painel de confirmação
+      setPendingPlanId(newPlanId);
+      setDowngradeConflicts(conflicts);
+      return;
+    }
+
+    // Sem conflitos: aplica diretamente
+    await applyPlanChange(newPlanId);
+  };
+
+  const applyPlanChange = async (planId: string) => {
     setUpdatingPlan(true);
-    const result = await updateOrganizationPlan(organization.id, newPlan);
+    const result = await updateOrganizationPlan(organization.id, planId);
     if (result.success) {
-      setCurrentPlan(newPlan);
+      setCurrentPlan(planId);
     } else {
       alert("Erro ao atualizar plano: " + result.error);
     }
+    setPendingPlanId(null);
+    setDowngradeConflicts([]);
     setUpdatingPlan(false);
+  };
+
+  const cancelDowngrade = () => {
+    setPendingPlanId(null);
+    setDowngradeConflicts([]);
   };
 
 
@@ -113,8 +145,6 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
       const result = await updateOrganizationModel(organization.id, newModel);
       if (result.success) {
         setBusinessModel(newModel);
-        // Feedback visual de sucesso
-        console.log(`Modelo alterado para ${newModel}`);
       } else {
         alert("Erro ao atualizar modelo: " + result.error);
       }
@@ -171,7 +201,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           <div className="p-8 sm:p-12 max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* Top Info */}
             <div className="flex items-center gap-6 mb-10">
-              <div className={`h-20 w-20 rounded-3xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+              <div className={`h-20 w-20 rounded-xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
                 <Building2 size={40} />
               </div>
               <div>
@@ -184,15 +214,15 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     {/* AÇÕES DE COMANDO UNIFICADAS NO MODAL */}
                     <div className="flex flex-wrap items-center gap-4 py-2">
                        {/* Seletor B2B/B2C */}
-                       <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative">
+                       <div className="flex p-1 bg-[var(--dash-bg)] rounded-lg border border-[var(--dash-border)] relative">
                         {updatingModel && (
-                          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
+                          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-lg z-10 flex items-center justify-center">
                             <RefreshCw size={10} className="animate-spin text-white" />
                           </div>
                         )}
                         <button 
                           onClick={() => handleModelToggle('B2B')}
-                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                          className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
                             businessModel === 'B2B' 
                               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                               : 'text-[var(--dash-text-muted)] hover:text-blue-500'
@@ -202,7 +232,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         </button>
                         <button 
                           onClick={() => handleModelToggle('B2C')}
-                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                          className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
                             businessModel === 'B2C' 
                               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                               : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
@@ -218,11 +248,11 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           value={currentPlan || ''}
                           disabled={updatingPlan}
                           onChange={(e) => handlePlanChange(e.target.value)}
-                          className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                          className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
                         >
                           <option value="">SELECIONE UM PLANO</option>
-                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: ESSENTIAL</option>
-                          <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: PRO BUSINESS</option>
+                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: START</option>
+                          <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: BASIC</option>
                           <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">PLANO: ENTERPRISE</option>
                         </select>
                         {updatingPlan && (
@@ -232,6 +262,53 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         )}
                       </div>
                     </div>
+
+                    {/* PAINEL DE CONFIRMAÇÃO DE DOWNGRADE */}
+                    {downgradeConflicts.length > 0 && pendingPlanId && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full mt-3 p-4 rounded-lg border border-amber-500/30 bg-amber-500/10"
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <AlertTriangle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-xs font-black text-amber-600 mb-1">
+                              Conflito de Recursos — Downgrade para {getPlanName(pendingPlanId)}
+                            </p>
+                            <p className="text-[10px] text-amber-600/70 leading-relaxed">
+                              O cliente possui mais recursos do que o novo plano permite. Os dados existentes <strong>não serão removidos</strong>, mas novos cadastros ficarão bloqueados.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {downgradeConflicts.map((c) => (
+                            <div key={c.resource} className="flex items-center gap-1.5 text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-500 px-2.5 py-1 rounded-md">
+                              <span>{c.label}:</span>
+                              <span>{c.current} ativos</span>
+                              <span className="opacity-50">/</span>
+                              <span>limite {c.limit}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={cancelDowngrade}
+                            className="flex-1 py-2 rounded-lg border border-[var(--dash-border)] text-[10px] font-black uppercase text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-all"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => pendingPlanId && applyPlanChange(pendingPlanId)}
+                            disabled={updatingPlan}
+                            className="flex-1 py-2 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          >
+                            {updatingPlan ? <RefreshCw size={10} className="animate-spin" /> : null}
+                            Confirmar Downgrade
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
                 </div>
               </div>
             </div>
@@ -239,7 +316,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
               {/* 01 - Vendedores */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <Users className="text-blue-500 mb-2" size={18} />
                 <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.userCount}
@@ -248,7 +325,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               </div>
 
               {/* 02 - Categorias */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <TrendingUp className="text-purple-500 mb-2" size={18} />
                 <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.categoryCount}
@@ -257,7 +334,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               </div>
 
               {/* 03 - Produtos */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <Package className="text-primary mb-2" size={18} />
                 <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.productCount}
@@ -266,7 +343,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               </div>
 
               {/* 04 - Saúde */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <ShieldAlert className="text-emerald-500 mb-2" size={18} />
                 <p className="text-xl font-black text-emerald-500">Alta</p>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Saúde</p>
@@ -276,13 +353,13 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             {/* Details Section */}
             <div className="space-y-4 mb-10">
                {/* URL / CARTÕES - VISÃO HÍBRIDA B2B/B2C */}
-               <div className="flex flex-col rounded-2xl border border-[var(--dash-border)] overflow-hidden">
+               <div className="flex flex-col rounded-lg border border-[var(--dash-border)] overflow-hidden">
                   <div 
                     onClick={() => businessModel === 'B2B' && setShowSellers(!showSellers)}
                     className={`flex items-center justify-between p-4 bg-[var(--dash-surface)] transition-all ${businessModel === 'B2B' ? 'cursor-pointer hover:bg-primary/5' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
                         {businessModel === 'B2B' ? <Users size={16} /> : <Globe size={16} />}
                       </div>
                       <div>
@@ -314,7 +391,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     >
                       <div className="p-2 space-y-1">
                         {stats.sellers.length > 0 ? stats.sellers.map((seller, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-lg hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
                             <div className="min-w-0">
                               <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{seller.full_name}</p>
                               <p className="text-xs font-bold text-[var(--dash-text-muted)] truncate lowercase tracking-tight">
@@ -324,7 +401,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                             <a 
                               href={`/${seller.slug}`} 
                               target="_blank" 
-                              className="p-2.5 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-muted)] group-hover:text-primary transition-all shadow-sm group-hover:scale-110 active:scale-95"
+                              className="p-2.5 rounded-lg bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-muted)] group-hover:text-primary transition-all shadow-sm group-hover:scale-110 active:scale-95"
                             >
                               <ExternalLink size={14} />
                             </a>
@@ -340,13 +417,13 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                </div>
 
                {/* LISTA DE PRODUTOS */}
-               <div className="flex flex-col rounded-2xl border border-[var(--dash-border)] overflow-hidden">
+               <div className="flex flex-col rounded-lg border border-[var(--dash-border)] overflow-hidden">
                   <div 
                     onClick={() => setShowProducts(!showProducts)}
                     className="flex items-center justify-between p-4 bg-[var(--dash-surface)] cursor-pointer hover:bg-primary/5 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
                         <Package size={16} />
                       </div>
                       <div>
@@ -367,14 +444,14 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     >
                       <div className="p-2 space-y-1">
                         {stats.productsList.length > 0 ? stats.productsList.map((product, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-lg hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
                             <div className="min-w-0">
                               <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{product.name}</p>
                               <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">
                                 {product.price ? `R$ ${product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Preço sob consulta'}
                               </p>
                             </div>
-                            <div className="text-[9px] font-bold text-[var(--dash-text-muted)] bg-[var(--dash-surface)] px-2 py-1 rounded-lg border border-[var(--dash-border)]">
+                            <div className="text-[9px] font-bold text-[var(--dash-text-muted)] bg-[var(--dash-surface)] px-2 py-1 rounded-md border border-[var(--dash-border)]">
                               {new Date(product.created_at).toLocaleDateString("pt-BR")}
                             </div>
                           </div>
@@ -396,11 +473,11 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                {/* CONTRATO */}
                <div 
                   onClick={() => setShowContract(!showContract)}
-                  className="flex flex-col p-4 rounded-2xl border border-[var(--dash-border)] group cursor-pointer hover:bg-primary/5 transition-all"
+                  className="flex flex-col p-4 rounded-lg border border-[var(--dash-border)] group cursor-pointer hover:bg-primary/5 transition-all"
                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
                         <Calendar size={16} />
                       </div>
                       <div>
@@ -446,12 +523,12 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                       window.location.href = "/dashboard";
                     }
                   }}
-                  className="flex-1 py-4 rounded-2xl bg-primary text-white font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                  className="flex-1 py-4 rounded-lg bg-primary text-white font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                 >
                   <Globe size={18} />
                   ACESSAR DASHBOARD (SIMULAR)
                 </button>
-                <button className="flex-1 py-4 rounded-2xl border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
+                <button className="flex-1 py-4 rounded-lg border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
                   <ShieldAlert size={18} />
                   Suspender Conta
                 </button>

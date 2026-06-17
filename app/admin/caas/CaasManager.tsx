@@ -267,7 +267,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     <div className="space-y-6">
       {/* Guia de Operação CaaS */}
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="bg-purple-500/5 border border-purple-500/10 p-5 rounded-3xl">
+        <div className="bg-purple-500/5 border border-purple-500/10 p-5 rounded-xl">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-6 w-6 rounded-full bg-purple-500 text-white text-[10px] font-black flex items-center justify-center">01</span>
             <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">Criar Master</span>
@@ -277,7 +277,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
           </p>
         </div>
 
-        <div className="bg-blue-500/5 border border-blue-500/10 p-5 rounded-3xl">
+        <div className="bg-blue-500/5 border border-blue-500/10 p-5 rounded-xl">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-6 w-6 rounded-full bg-blue-500 text-white text-[10px] font-black flex items-center justify-center">02</span>
             <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Abastecer Itens</span>
@@ -287,7 +287,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
           </p>
         </div>
 
-        <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-3xl">
+        <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-xl">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-6 w-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center">03</span>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Vincular Org</span>
@@ -297,7 +297,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
           </p>
         </div>
 
-        <div className="bg-amber-500/5 border border-amber-500/10 p-5 rounded-3xl">
+        <div className="bg-amber-500/5 border border-amber-500/10 p-5 rounded-xl">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-6 w-6 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center">04</span>
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Rastrear Leads</span>
@@ -312,7 +312,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
       <div className="bg-[var(--dash-surface)] p-6 rounded-[32px] border border-[var(--dash-border)]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+            <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
               <Plus size={20} />
             </div>
             <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Novo Catálogo Master</h2>
@@ -331,7 +331,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
               <input 
                 type="text" 
                 placeholder="Nome do Catálogo (Ex: MAJ Mobilidade)"
-                className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
+                className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
                 style={{ color: "var(--dash-text-primary)" }}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -340,7 +340,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
               <input 
                 type="text" 
                 placeholder="Descrição breve..."
-                className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
+                className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
                 style={{ color: "var(--dash-text-primary)" }}
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
@@ -349,7 +349,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
             <button 
               type="submit"
               disabled={loadingId === "creating"}
-              className="w-full bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-purple-600 transition-all disabled:opacity-50"
+              className="w-full bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-lg hover:bg-purple-600 transition-all disabled:opacity-50"
             >
               {loadingId === "creating" ? "Criando..." : "Salvar Catálogo Master"}
             </button>
@@ -370,7 +370,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                 {masterCatalogs.map(cat => (
                   <div 
                     key={cat.id} 
-                    className={`p-4 rounded-2xl border transition-all ${
+                    className={`p-4 rounded-lg border transition-all ${
                       viewingAnalyticsId === cat.id 
                         ? "bg-purple-500/10 border-purple-500 shadow-lg" 
                         : "bg-[var(--dash-surface)] border-[var(--dash-border)] hover:border-purple-500/30"
@@ -380,22 +380,22 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                       <form onSubmit={handleUpdate} className="space-y-3">
                         <input 
                           type="text" 
-                          className="w-full bg-dash-bg border border-border rounded-lg px-3 py-1.5 text-xs font-bold text-dash-text-primary"
+                          className="w-full bg-dash-bg border border-border rounded-md px-3 py-1.5 text-xs font-bold text-dash-text-primary"
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
                           autoFocus
                         />
                         <input 
                           type="text" 
-                          className="w-full bg-dash-bg border border-border rounded-lg px-3 py-1.5 text-[10px] font-bold text-dash-text-secondary"
+                          className="w-full bg-dash-bg border border-border rounded-md px-3 py-1.5 text-[10px] font-bold text-dash-text-secondary"
                           value={editDesc}
                           onChange={(e) => setEditDesc(e.target.value)}
                         />
                         <div className="flex gap-2">
-                           <button type="submit" className="flex-1 bg-purple-500 text-white text-[10px] font-black py-1.5 rounded-lg flex items-center justify-center gap-1">
+                           <button type="submit" className="flex-1 bg-purple-500 text-white text-[10px] font-black py-1.5 rounded-md flex items-center justify-center gap-1">
                               <Save size={12} /> SALVAR
                            </button>
-                           <button type="button" onClick={() => setEditingId(null)} className="px-3 bg-zinc-500/10 text-zinc-500 rounded-lg">
+                           <button type="button" onClick={() => setEditingId(null)} className="px-3 bg-zinc-500/10 text-zinc-500 rounded-md">
                               <X size={12} />
                            </button>
                         </div>
@@ -406,14 +406,14 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                           className="flex items-center gap-3 cursor-pointer flex-1"
                           onClick={() => setViewingAnalyticsId(viewingAnalyticsId === cat.id ? null : cat.id)}
                         >
-                          <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                          <div className="h-8 w-8 rounded-md bg-purple-500/10 flex items-center justify-center text-purple-500">
                             <Globe size={16} />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-bold text-sm text-dash-text-primary">{cat.name}</p>
                               {cat.hide_cta && (
-                                <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-md uppercase">Vitrine Pura</span>
+                                <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-sm uppercase">Vitrine Pura</span>
                               )}
                             </div>
                             {cat.description && <p className="text-[10px] text-dash-text-muted font-medium line-clamp-1">{cat.description}</p>}
@@ -423,14 +423,14 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                         <div className="flex items-center gap-1">
                           <button 
                             onClick={() => router.push(`/admin/caas/editor?catalogId=${cat.id}`)}
-                            className="p-2 text-[var(--dash-text-muted)] hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all"
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-emerald-500 hover:bg-emerald-500/10 rounded-md transition-all"
                             title="Gerenciar Produtos do Catálogo"
                           >
                             <Package size={14} />
                           </button>
                           <button 
                             onClick={() => handleOpenConfig(cat)}
-                            className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all"
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-md transition-all"
                             title="Configurações Avançadas (B2B/CaaS)"
                           >
                             <Settings size={14} />
@@ -438,14 +438,14 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                           <button 
                             onClick={() => handleDuplicate(cat.id)}
                             disabled={loadingId === cat.id}
-                            className="p-2 text-[var(--dash-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all disabled:opacity-50"
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 rounded-md transition-all disabled:opacity-50"
                             title="Duplicar"
                           >
                             <Copy size={14} />
                           </button>
                           <button 
                             onClick={() => handleStartEdit(cat)}
-                            className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all"
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 rounded-md transition-all"
                             title="Editar Nome"
                           >
                             <Edit3 size={14} />
@@ -453,7 +453,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                           <button 
                             onClick={() => handleDelete(cat.id)}
                             disabled={loadingId === cat.id}
-                            className="p-2 text-[var(--dash-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
+                            className="p-2 text-[var(--dash-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all disabled:opacity-50"
                             title="Excluir"
                           >
                             <Trash2 size={14} />
@@ -492,10 +492,10 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                    {deletedCatalogs.map(cat => (
                      <div 
                        key={cat.id} 
-                       className="p-4 rounded-2xl border bg-red-500/5 border-red-500/10 hover:border-red-500/20 transition-all flex items-center justify-between"
+                       className="p-4 rounded-lg border bg-red-500/5 border-red-500/10 hover:border-red-500/20 transition-all flex items-center justify-between"
                      >
                        <div className="flex items-center gap-3 flex-1">
-                         <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
+                         <div className="h-8 w-8 rounded-md bg-red-500/10 flex items-center justify-center text-red-500">
                            <Globe size={16} />
                          </div>
                          <div>
@@ -512,7 +512,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                          <button 
                            onClick={() => handleRestore(cat.id)}
                            disabled={loadingId === cat.id}
-                           className="p-2 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all disabled:opacity-50"
+                           className="p-2 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-md transition-all disabled:opacity-50"
                            title="Restaurar Catálogo"
                          >
                            <RotateCcw size={14} />
@@ -520,7 +520,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                          <button 
                            onClick={() => handlePermanentDelete(cat.id)}
                            disabled={loadingId === cat.id}
-                           className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
+                           className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all disabled:opacity-50"
                            title="Excluir Definitivamente"
                          >
                            <AlertTriangle size={14} />
@@ -560,7 +560,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
               <p className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Vincule as organizações aos catálogos master para herança de estoque.</p>
             </div>
             
-            <div className="flex items-center gap-4 bg-[var(--dash-surface)] px-4 py-2.5 rounded-2xl border border-[var(--dash-border)]">
+            <div className="flex items-center gap-4 bg-[var(--dash-surface)] px-4 py-2.5 rounded-lg border border-[var(--dash-border)]">
               <Search className="text-[var(--dash-text-muted)]" size={18} />
               <input 
                 type="text" 
@@ -581,7 +581,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                   className="bg-[var(--dash-surface)] border border-[var(--dash-border)] p-6 rounded-[24px] flex items-center justify-between group hover:border-purple-500/30 transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                    <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
                       <Building2 size={24} />
                     </div>
                     <div>
@@ -602,7 +602,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                     <div className="relative group/select">
                       <select 
                         disabled={loadingId === org.id}
-                        className="appearance-none bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl px-4 py-2.5 pr-10 text-xs font-bold focus:outline-none focus:ring-2 ring-purple-500/20 disabled:opacity-50 transition-all"
+                        className="appearance-none bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg px-4 py-2.5 pr-10 text-xs font-bold focus:outline-none focus:ring-2 ring-purple-500/20 disabled:opacity-50 transition-all"
                         style={{ color: "var(--dash-text-primary)" }}
                         value={org.assigned_catalog_id || ""}
                         onChange={(e) => handleAssign(org.id, e.target.value || null)}
@@ -642,7 +642,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                       href={`/${org.slug}/catalogo`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-10 w-10 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)] flex items-center justify-center text-[var(--dash-text-secondary)] hover:text-purple-500 hover:border-purple-500/50 transition-all"
+                      className="h-10 w-10 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] flex items-center justify-center text-[var(--dash-text-secondary)] hover:text-purple-500 hover:border-purple-500/50 transition-all"
                       title="Ver Vitrine"
                     >
                       <ExternalLink size={18} />
@@ -675,7 +675,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
             {/* Header */}
             <div className="p-8 border-b flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
                   <Settings size={24} />
                 </div>
                 <div>
@@ -685,22 +685,22 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
               </div>
 
               {/* Tabs Navigation (Estilo B2B) */}
-              <div className="flex bg-[var(--dash-hover-bg)] p-1 rounded-xl border border-[var(--dash-border)]">
+              <div className="flex bg-[var(--dash-hover-bg)] p-1 rounded-lg border border-[var(--dash-border)]">
                 <button
                   onClick={() => setConfigTab("geral")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "geral" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "geral" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                 >
                   Geral
                 </button>
                 <button
                   onClick={() => setConfigTab("mensagem")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "mensagem" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "mensagem" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                 >
                   Mensagem
                 </button>
                 <button
                   onClick={() => setConfigTab("reajustes")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "reajustes" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all ${configTab === "reajustes" ? "bg-white text-black shadow-md" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                 >
                   Reajustes
                 </button>
@@ -718,7 +718,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                         type="text" 
                         value={configName}
                         onChange={(e) => setConfigName(e.target.value)}
-                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
+                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
                         style={{ color: "var(--dash-text-primary)" }}
                         required
                       />
@@ -729,7 +729,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                         type="text" 
                         value={configDesc}
                         onChange={(e) => setConfigDesc(e.target.value)}
-                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
+                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-2 ring-purple-500/20"
                         style={{ color: "var(--dash-text-primary)" }}
                       />
                     </div>
@@ -743,19 +743,19 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                     <div className="flex p-1.5 rounded-[20px] bg-[var(--dash-hover-bg)] border border-[var(--dash-border)]">
                       <button
                         onClick={() => setConfigType("product")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${configType === "product" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configType === "product" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                       >
                         <Package size={14} /> Produto
                       </button>
                       <button
                         onClick={() => setConfigType("service")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${configType === "service" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configType === "service" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                       >
                         <Settings size={14} /> Serviço
                       </button>
                       <button
                         onClick={() => setConfigType("hybrid")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${configType === "hybrid" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${configType === "hybrid" ? "bg-white text-black shadow-sm" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                       >
                         <Sparkles size={14} /> Híbrido
                       </button>
@@ -763,7 +763,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                   </div>
 
                   {/* Toggle Habilitar CTA */}
-                  <div className="pt-6 border-t border-[var(--dash-border)] flex items-center justify-between bg-purple-500/5 border border-purple-500/10 p-5 rounded-2xl">
+                  <div className="pt-6 border-t border-[var(--dash-border)] flex items-center justify-between bg-purple-500/5 border border-purple-500/10 p-5 rounded-lg">
                     <div>
                       <h4 className="text-sm font-bold text-[var(--dash-text-primary)]">Habilitar Botões de WhatsApp (CTA)</h4>
                       <p className="text-xs text-[var(--dash-text-muted)] mt-1 max-w-lg">
@@ -807,7 +807,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                         key={tag}
                         type="button"
                         onClick={() => setConfigWhatsappTemplate(prev => prev + `{${tag}}`)}
-                        className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
+                        className="px-4 py-2 rounded-lg bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
                       >
                         {`{${tag}}`}
                       </button>
@@ -818,7 +818,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
 
               {configTab === "reajustes" && (
                 <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="bg-purple-500/5 border border-purple-500/10 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="bg-purple-500/5 border border-purple-500/10 p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="space-y-1 text-center md:text-left">
                       <h4 className="text-lg font-bold text-[var(--dash-text-primary)]">Reajustes e Promoções em Massa</h4>
                       <p className="text-xs text-[var(--dash-text-muted)] max-w-md mt-1 leading-relaxed">
@@ -829,7 +829,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                     <button
                       type="button"
                       onClick={() => setIsBulkPromoOpen(true)}
-                      className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-black uppercase tracking-widest px-6 py-4 rounded-xl shadow-lg transition-all"
+                      className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-black uppercase tracking-widest px-6 py-4 rounded-lg shadow-lg transition-all"
                     >
                       <Percent size={14} />
                       Configurar Reajuste
@@ -837,13 +837,13 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-[var(--dash-bg)] border border-[var(--dash-border)] p-4 rounded-2xl text-center">
+                    <div className="bg-[var(--dash-bg)] border border-[var(--dash-border)] p-4 rounded-lg text-center">
                       <span className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Categorias</span>
                       <p className="text-2xl font-black text-purple-500 mt-1">
                         {loadingConfigData ? "..." : configCategories.length}
                       </p>
                     </div>
-                    <div className="bg-[var(--dash-bg)] border border-[var(--dash-border)] p-4 rounded-2xl text-center">
+                    <div className="bg-[var(--dash-bg)] border border-[var(--dash-border)] p-4 rounded-lg text-center">
                       <span className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Produtos Ativos</span>
                       <p className="text-2xl font-black text-emerald-500 mt-1">
                         {loadingConfigData ? "..." : configProducts.length}
@@ -858,7 +858,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
             <div className="p-8 border-t flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
               <button
                 onClick={() => setIsConfigOpen(false)}
-                className="px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-colors"
+                className="px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-colors"
                 disabled={savingConfig}
               >
                 Fechar
@@ -867,7 +867,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
               <button
                 onClick={handleSaveConfigSettings}
                 disabled={savingConfig}
-                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-black uppercase tracking-widest px-8 py-3.5 rounded-xl shadow-lg transition-all"
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-black uppercase tracking-widest px-8 py-3.5 rounded-lg shadow-lg transition-all"
               >
                 {savingConfig ? (
                   <>

@@ -401,7 +401,7 @@ export default function DashboardPage() {
             {/* Subtle background glow on hover */}
             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-all" />
           </motion.div>
-        ))}StatCard
+        ))}
       </motion.div>
 
       {/* Main Content Grid */}

@@ -10,7 +10,8 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 - [x] **Segurança de Dados:** Elaborar relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD). (Resolvido no documento RELATORIO_SEGURANCA_LGPD.md)
 - [x] **Crítico: Validação de Cadastro via OTP (E-mail):** Substituir o fluxo de link de confirmação por envio de código numérico (OTP) de 6 dígitos no cadastro de clientes, criando a tela de verificação no frontend. (Resolvido na interface de cadastro)
 - [ ] **Crítico: Validação Manual do Sistema OTP:** Realizar um teste de ponta a ponta: criar uma conta de teste, checar o recebimento do e-mail com a tag `{{ .Token }}` e validar a inserção do código na interface.
-- [ ] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
+- [x] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
+- [ ] **Validação do Favicon (Simulação Super Admin):** Testar se a invalidação de cache com timestamp (`?t=...`) carrega o ícone correto no navegador ao alternar entre organizações simuladas.
 - [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" e dados de teste. O jogo vai começar!
 - [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
 - [ ] **Sino de Notificações:** Implementar funcionalidade real para o ícone de sino no dashboard (alertas de leads, sistema ou atualizações). Atualmente é apenas estético.

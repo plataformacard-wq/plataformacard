@@ -63,8 +63,8 @@ export default async function CartoesPage() {
         </div>
 
         <div className="flex gap-4">
-          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-3xl flex items-center gap-4">
-            <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-xl flex items-center gap-4">
+            <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
               <Eye size={20} />
             </div>
             <div>
@@ -72,8 +72,8 @@ export default async function CartoesPage() {
               <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>{globalViews}</p>
             </div>
           </div>
-          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-3xl flex items-center gap-4">
-            <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-xl flex items-center gap-4">
+            <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
               <MessageCircle size={20} />
             </div>
             <div>

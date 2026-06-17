@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Send,
-  Zap
+  Zap,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { updateSystemConfig } from "@/lib/admin-actions";
 
@@ -25,6 +27,8 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
 
   // States
   const [inviteCode, setInviteCode] = useState(configs.beta_invite_code || "MAJ2024");
+  const [geminiApiKey, setGeminiApiKey] = useState(configs.gemini_api_key || "");
+  const [showApiKey, setShowApiKey] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(configs.maintenance_mode === "true");
   const [noticeText, setNoticeText] = useState(configs.system_notice_text || "");
   const [noticeActive, setNoticeActive] = useState(configs.system_notice_active === "true");
@@ -49,7 +53,7 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
   return (
     <div className="max-w-4xl space-y-8 pb-20">
       {/* Seção 1: Segurança */}
-      <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
+      <div className="rounded-lg border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
         <div className="px-8 py-6 border-b border-[var(--dash-border)] bg-primary/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Lock className="text-primary" size={24} />
@@ -62,22 +66,54 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
             <div className="flex gap-4">
               <input 
                 type="text" value={inviteCode} onChange={e => setInviteCode(e.target.value.toUpperCase())}
-                className="flex-1 px-4 py-3 rounded-2xl border outline-none bg-[var(--dash-bg)]" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                className="flex-1 px-4 py-3 rounded-md border outline-none bg-[var(--dash-bg)]" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
               <button 
                 onClick={() => handleSave("beta_invite_code", inviteCode)}
                 disabled={loading === "beta_invite_code"}
-                className="px-6 py-3 bg-black text-white rounded-2xl font-bold text-sm"
+                className="px-6 py-3 bg-black text-white rounded-md font-bold text-sm hover:opacity-90 transition-opacity"
               >
                 {loading === "beta_invite_code" ? "..." : "Salvar"}
               </button>
             </div>
           </div>
+
+          <div className="pt-6 border-t border-[var(--dash-border)]">
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--dash-text-muted)" }}>Chave de API do Gemini (Google AI)</label>
+            <div className="flex gap-4">
+              <div className="relative flex-1">
+                <input 
+                  type={showApiKey ? "text" : "password"} 
+                  value={geminiApiKey} 
+                  onChange={e => setGeminiApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full pl-4 pr-12 py-3 rounded-md border outline-none bg-[var(--dash-bg)] transition-all" 
+                  style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-zinc-500/10 rounded-sm transition-colors"
+                  style={{ color: "var(--dash-text-secondary)" }}
+                >
+                  {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <button 
+                onClick={() => handleSave("gemini_api_key", geminiApiKey)}
+                disabled={loading === "gemini_api_key"}
+                className="px-6 py-3 bg-black text-white rounded-md font-bold text-sm hover:opacity-90 transition-opacity"
+              >
+                {loading === "gemini_api_key" ? "..." : "Salvar"}
+              </button>
+            </div>
+            <p className="text-[10px] text-zinc-500 mt-2">Utilizada para geração automática de SEO, descrição de produtos e revisão ortográfica de forma global.</p>
+          </div>
         </div>
       </div>
 
       {/* Seção 2: Manutenção */}
-      <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
+      <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
         <div className="px-8 py-6 border-b border-[var(--dash-border)] bg-amber-500/5">
           <div className="flex items-center gap-3">
             <AlertTriangle className="text-amber-500" size={24} />
@@ -85,7 +121,7 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
           </div>
         </div>
         <div className="p-8">
-          <div className="flex items-center justify-between p-6 rounded-3xl bg-amber-500/10 border border-amber-500/20">
+          <div className="flex items-center justify-between p-6 rounded-xl bg-amber-500/10 border border-amber-500/20">
             <div>
               <p className="font-bold text-amber-600">Ativar Bloqueio Total</p>
               <p className="text-xs text-amber-700/70">Apenas Super Admins poderão acessar o sistema.</p>
@@ -105,7 +141,7 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
       </div>
 
       {/* Seção 3: Alerta Global */}
-      <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
+      <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
         <div className="px-8 py-6 border-b border-[var(--dash-border)] bg-blue-500/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -130,7 +166,7 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
               <button 
                 key={t.label} 
                 onClick={() => setNoticeText(t.text)}
-                className="px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider hover:bg-blue-50 transition-colors"
+                className="px-3 py-1.5 rounded-md border text-[10px] font-bold uppercase tracking-wider hover:bg-blue-50 transition-colors"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
               >
                 <Zap size={10} className="inline mr-1" /> {t.label}
@@ -143,12 +179,12 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
               value={noticeText}
               onChange={e => setNoticeText(e.target.value)}
               placeholder="Sua mensagem para todos os usuários..."
-              className="w-full p-5 rounded-3xl border outline-none bg-[var(--dash-bg)] min-h-[120px] text-sm"
+              className="w-full p-5 rounded-xl border outline-none bg-[var(--dash-bg)] min-h-[120px] text-sm"
               style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
             />
             <button 
               onClick={() => handleSave("system_notice_text", noticeText)}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-lg font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all"
             >
               <Send size={18} />
               Publicar Notificação Global
@@ -158,7 +194,7 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
       </div>
 
       {message && (
-        <div className="fixed bottom-10 right-10 flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl shadow-2xl animate-bounce z-50">
+        <div className="fixed bottom-10 right-10 flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-lg shadow-2xl animate-bounce z-50">
           <CheckCircle2 size={20} />
           <span className="text-sm font-bold">{message}</span>
         </div>

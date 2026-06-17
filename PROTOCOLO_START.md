@@ -1,6 +1,6 @@
-# 🟢 Protocolo de Inicialização
+# 🟢 Protocolo Start
 
-Este documento define as diretrizes obrigatórias que o agente de IA deve executar sempre que o usuário iniciar uma nova sessão ou solicitar explicitamente a execução do **"Protocolo de Inicialização"**.
+Este documento define as diretrizes obrigatórias que o agente de IA deve executar sempre que o usuário iniciar uma nova sessão ou solicitar explicitamente a execução do **"Protocolo Start"**.
 
 ---
 
@@ -10,8 +10,9 @@ Quando este protocolo for acionado, o agente deve seguir rigorosamente a seguint
 
 ### 01. Iniciar o Servidor Local de Desenvolvimento
 Antes de qualquer outra verificação ou análise, o agente deve garantir que o servidor de desenvolvimento local está rodando.
-* **Ação**: Executar o comando `npm run dev` em segundo plano.
+* **Ação**: Executar o comando `npm run dev` em segundo plano (especificando a porta `-p 3000` se necessário para isolamento).
 * **Verificação**: Confirmar que o processo foi iniciado com sucesso.
+* **Link de Acesso Local (Isolado)**: [http://127.0.0.1:3000](http://127.0.0.1:3000)
 
 ---
 
@@ -36,8 +37,8 @@ Após garantir a sincronização do repositório, o agente deve mapear o context
    * Rodar `git log -n 3 --stat` para ver quais foram os últimos arquivos alterados e comitados na sessão recente.
    * Se aplicável, olhar o status do repositório para ver quais arquivos foram editados recentemente.
 2. **Consultar Fontes de Contexto**:
-   * Ler e analisar o arquivo [PROMPT_DE_CONTINUIDADE.md](file:///c:/Users/Start/plataformacard/PROMPT_DE_CONTINUIDADE.md) para capturar o contexto de negócios, bugs resolvidos recentes e o próximo passo imediato sugerido.
-   * Analisar o arquivo [PENDENCIAS.md](file:///c:/Users/Start/plataformacard/PENDENCIAS.md) para cruzar os próximos passos com a lista global de pendências urgentes e bloqueadoras de lançamento.
+   * Ler e analisar o arquivo [PROMPT_DE_CONTINUIDADE.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/PROMPT_DE_CONTINUIDADE.md) para capturar o contexto de negócios, bugs resolvidos recentes e o próximo passo imediato sugerido.
+   * Analisar o arquivo [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/PENDENCIAS.md) para cruzar os próximos passos com a lista global de pendências urgentes e bloqueadoras de lançamento.
 3. **Apresentar Diagnóstico e Sugestão**:
    * Apresentar um resumo claro de onde o projeto parou.
    * Sugerir de 1 a 3 caminhos lógicos imediatos de continuidade com base no que leu, pedindo a confirmação do usuário.
@@ -46,4 +47,4 @@ Após garantir a sincronização do repositório, o agente deve mapear o context
 
 ## 📝 Como Acionar este Protocolo
 Para ativar este protocolo, o usuário só precisa enviar a mensagem:
-> *"Executar o protocolo de inicialização"*
+> *"Executar o protocolo start"*

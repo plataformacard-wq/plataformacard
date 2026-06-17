@@ -34,7 +34,7 @@ export default function CardList({ cards: initialCards }: CardListProps) {
           placeholder="Buscar por nome ou slug..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 rounded-2xl border outline-none text-sm shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
+          className="w-full pl-12 pr-4 py-3 rounded-lg border outline-none text-sm shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
           style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
         />
       </div>
@@ -44,11 +44,11 @@ export default function CardList({ cards: initialCards }: CardListProps) {
         {filteredCards?.map((card) => (
           <div 
             key={card.id} 
-            className="group flex flex-col md:flex-row items-center gap-6 rounded-3xl border p-5 transition-all hover:bg-[var(--dash-hover-bg)]" 
+            className="group flex flex-col md:flex-row items-center gap-6 rounded-xl border p-5 transition-all hover:bg-[var(--dash-hover-bg)]" 
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             {/* Avatar */}
-            <div className="h-16 w-16 rounded-2xl overflow-hidden bg-[var(--dash-bg)] border border-[var(--dash-border)] flex-shrink-0">
+            <div className="h-16 w-16 rounded-lg overflow-hidden bg-[var(--dash-bg)] border border-[var(--dash-border)] flex-shrink-0">
               {card.avatar_url ? (
                 <img src={card.avatar_url} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -101,7 +101,7 @@ export default function CardList({ cards: initialCards }: CardListProps) {
             {/* Ação */}
             <button 
               onClick={() => window.open(`/${card.slug}`, '_blank')}
-              className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:bg-primary hover:text-white hover:border-primary"
+              className="px-4 py-2 rounded-lg text-xs font-bold border transition-all hover:bg-primary hover:text-white hover:border-primary"
               style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}
             >
               Ver Link
@@ -111,7 +111,7 @@ export default function CardList({ cards: initialCards }: CardListProps) {
       </div>
 
       {filteredCards?.length === 0 && (
-        <div className="text-center py-20 bg-[var(--dash-surface)] rounded-3xl border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+        <div className="text-center py-20 bg-[var(--dash-surface)] rounded-xl border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
           <p style={{ color: "var(--dash-text-muted)" }}>Nenhum cartão encontrado.</p>
         </div>
       )}

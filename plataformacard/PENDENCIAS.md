@@ -8,7 +8,8 @@ Este documento centraliza todas as tarefas, melhorias técnicas e auditorias pen
 
 - [ ] **Crítico: iFrame no Site Real (MAJ):** Resolver bugs de integração, redimensionamento ou bloqueio no site da MAJ.
 - [ ] **Segurança de Dados:** Elaborar relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD).
-- [ ] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
+- [x] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente.
+- [ ] **Validação do Favicon (Simulação Super Admin):** Testar se a invalidação de cache com timestamp (`?t=...`) carrega o ícone correto no navegador ao alternar entre organizações simuladas.
 - [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" e dados de teste. O jogo vai começar!
 - [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
 

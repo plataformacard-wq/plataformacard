@@ -24,7 +24,7 @@ export default function CatalogAnalysis({ stats }: CatalogAnalysisProps) {
     <div className="space-y-10">
       {/* Grid de Métricas Globais */}
       <div className="grid gap-6 md:grid-cols-3">
-        <div className="rounded-3xl border p-6 bg-[var(--dash-surface)] border-[var(--dash-border)]">
+        <div className="rounded-xl border p-6 bg-[var(--dash-surface)] border-[var(--dash-border)]">
           <div className="flex items-center gap-3 mb-4 text-[var(--dash-text-muted)]">
             <Package size={20} />
             <span className="text-xs font-bold uppercase tracking-widest">Produtos Totais</span>
@@ -40,7 +40,7 @@ export default function CatalogAnalysis({ stats }: CatalogAnalysisProps) {
           </div>
         </div>
 
-        <div className="rounded-3xl border p-6 bg-[var(--dash-surface)] border-[var(--dash-border)]">
+        <div className="rounded-xl border p-6 bg-[var(--dash-surface)] border-[var(--dash-border)]">
           <div className="flex items-center gap-3 mb-4 text-[var(--dash-text-muted)]">
             <Tags size={20} />
             <span className="text-xs font-bold uppercase tracking-widest">Categorias Únicas</span>
@@ -52,7 +52,7 @@ export default function CatalogAnalysis({ stats }: CatalogAnalysisProps) {
           </div>
         </div>
 
-        <div className="rounded-3xl border p-6 bg-primary/5 border-primary/20">
+        <div className="rounded-xl border p-6 bg-primary/5 border-primary/20">
           <div className="flex items-center gap-3 mb-4 text-primary">
             <ImageIcon size={20} />
             <span className="text-xs font-bold uppercase tracking-widest">Média por Catálogo</span>
@@ -68,7 +68,7 @@ export default function CatalogAnalysis({ stats }: CatalogAnalysisProps) {
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Top Categorias */}
-        <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
+        <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
           <div className="px-6 py-5 border-b border-[var(--dash-border)] flex items-center gap-2">
             <PieChart size={18} className="text-primary" />
             <h3 className="font-bold" style={{ color: "var(--dash-text-primary)" }}>Nicho de Mercado (Top Categorias)</h3>
@@ -92,7 +92,7 @@ export default function CatalogAnalysis({ stats }: CatalogAnalysisProps) {
         </div>
 
         {/* Atividade de Inventário */}
-        <div className="rounded-3xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
+        <div className="rounded-xl border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
           <div className="px-6 py-5 border-b border-[var(--dash-border)] flex items-center gap-2">
             <Layers size={18} className="text-primary" />
             <h3 className="font-bold" style={{ color: "var(--dash-text-primary)" }}>Últimos Itens Cadastrados</h3>
@@ -102,7 +102,7 @@ export default function CatalogAnalysis({ stats }: CatalogAnalysisProps) {
               {stats.recentProducts.map((prod) => (
                 <div key={prod.id} className="px-6 py-4 flex items-center justify-between hover:bg-[var(--dash-hover-bg)] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)] flex items-center justify-center text-[var(--dash-text-muted)] overflow-hidden">
+                    <div className="h-10 w-10 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] flex items-center justify-center text-[var(--dash-text-muted)] overflow-hidden">
                       {prod.image_url ? (
                         <img src={prod.image_url} alt="" className="h-full w-full object-cover" />
                       ) : (
