@@ -18,7 +18,8 @@ import {
   Clock,
   Info,
   Globe,
-  HardDrive
+  HardDrive,
+  CreditCard
 } from "lucide-react";
 
 interface SidebarProps {
@@ -138,9 +139,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Catálogo", 
         icon: BookOpen,
         subItems: [
+          { href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings },
           { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
           { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
-          { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
         ]
       });
 
@@ -177,9 +178,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           label: "Catálogo", 
           icon: BookOpen,
           subItems: [
+            { href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings },
             { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
             { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
-            { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
           ]
         } as any);
       }
@@ -189,6 +190,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       }
     }
 
+    navLinks.push({ href: "/dashboard/assinatura", label: "Minha Assinatura", icon: CreditCard });
     navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
     
     // ANALYTICS SEMPRE POR ÚLTIMO (Protocolo B2C)

@@ -193,8 +193,8 @@ export default function CadastroPage() {
     event.preventDefault();
     setOtpError("");
 
-    if (otpCode.length < 6) {
-      setOtpError("O código deve ter 6 dígitos.");
+    if (otpCode.length < 6 || otpCode.length > 8) {
+      setOtpError("O código deve ter entre 6 e 8 dígitos.");
       return;
     }
 
@@ -235,7 +235,7 @@ export default function CadastroPage() {
           </div>
           <h2 className="mb-2 text-2xl font-bold">Confirme seu E-mail</h2>
           <p className="mb-6 text-sm text-zinc-400">
-            Enviamos um código de 6 dígitos para <strong>{email}</strong>. 
+            Enviamos um código de verificação para <strong>{email}</strong>. 
             Insira-o abaixo para concluir seu cadastro e acessar o dashboard.
           </p>
 
@@ -247,10 +247,10 @@ export default function CadastroPage() {
               <input
                 id="otpCode"
                 type="text"
-                maxLength={6}
+                maxLength={8}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="000000"
+                placeholder="Digite o código"
                 className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-center text-2xl tracking-widest outline-none transition focus:border-white/30"
                 autoComplete="off"
               />

@@ -315,6 +315,20 @@ ${iframeResizerCode}
                   </p>
                 </div>
 
+                {/* Nome do Catálogo */}
+                <div className="space-y-3 pt-4 border-t border-[var(--dash-border)]">
+                  <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                    <BookOpen size={14} className="text-primary" /> Nome do Catálogo
+                  </label>
+                  <input
+                    type="text"
+                    value={catalog.name || ""}
+                    onChange={(e) => setCatalog({ ...catalog, name: e.target.value })}
+                    className="w-full p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-sm"
+                    placeholder="ex: Meu Catálogo de Produtos"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-[var(--dash-border)]">
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">

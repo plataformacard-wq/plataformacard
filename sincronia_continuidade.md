@@ -60,8 +60,8 @@ Corrigimos com sucesso uma série de erros críticos de TypeScript que impediam 
 * **Priorização do Catálogo Master:** Ajustamos o loader de páginas para dar prioridade ao catálogo CaaS/platform quando associado, fazendo o título da vitrine herdar dinamicamente o nome correto (ex: `"CATALOGO DE PRODUTOS - MAJ MOBILIDADE ELÉTRICA"`).
 
 ### B. Próximo Sprint (Prioritário):
-1. **Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolver no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/page.tsx` e `ConfiguracoesClient.tsx`) uma área dedicada para cadastrar as imagens do banner.
-   - Deve suportar upload de imagens para o Supabase Storage.
-   - Permitir associar Título, Descrição, Texto do Botão de Ação e Link de Destino (URL externa ou ID de produto para rolagem/âncora) a cada banner.
-   - Exibir a lista de banners cadastrados (salvos na coluna `banners` JSONB de `catalogs`) permitindo ordenar, editar e remover banners.
-2. **Qualidade de Código**: Sempre valide as mudanças rodando `npm run build` localmente no terminal antes de finalizar para garantir que nenhuma regressão de tipagem seja introduzida.
+1. **[CONCLUÍDO] Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolver no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/page.tsx` e `ConfiguracoesClient.tsx`) uma área dedicada para cadastrar as imagens do banner.
+2. **[CONCLUÍDO] Tela de Assinaturas e Planos (Minha Assinatura)**: Desenvolvido no menu lateral do cliente a rota `/dashboard/assinatura` para visualização e checkout dinâmico de planos, com cantos arredondados suavizados.
+3. **[PENDENTE] Tela de Assinaturas e Financeiro no Super Admin (QG)**: Desenvolver no painel global do Super Admin (QG) uma página dedicada para gerenciar faturamento/assinaturas, configurar planos no banco de dados e aplicar overrides de limites e recursos por organização.
+4. **Qualidade de Código**: Sempre valide as mudanças rodando `npm run build` localmente no terminal antes de finalizar para garantir que nenhuma regressão de tipagem seja introduzida.
+
