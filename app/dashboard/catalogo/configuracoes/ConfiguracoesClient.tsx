@@ -64,6 +64,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const [whatsappTemplate, setWhatsappTemplate] = useState<string>(initialCatalog.whatsapp_template || "");
   const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">(initialCatalog.type || initialCatalog.catalog_type || "product");
   const [hidePrices, setHidePrices] = useState<boolean>(initialCatalog.hide_prices || false);
+  const [outOfStockAtEnd, setOutOfStockAtEnd] = useState<boolean>(initialCatalog.out_of_stock_at_end || false);
   
   const [localBanners, setLocalBanners] = useState<any[]>(initialCatalog.banners || []);
   const [bannerSpeed, setBannerSpeed] = useState<number>(initialCatalog.banner_speed_seconds || 5);
@@ -148,6 +149,7 @@ ${iframeResizerCode}
         whatsapp_template: whatsappTemplate,
         type: catalogType,
         hide_prices: hidePrices,
+        out_of_stock_at_end: outOfStockAtEnd,
         banners: localBanners,
         banner_speed_seconds: bannerSpeed,
         banner_initial_index: bannerInitialIndex,
@@ -164,6 +166,11 @@ ${iframeResizerCode}
       if (result.error) {
         throw new Error(result.error);
       }
+
+      setCatalog(prev => ({
+        ...prev,
+        ...payload
+      }));
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -333,6 +340,20 @@ ${iframeResizerCode}
                   </p>
                 </div>
 
+                {/* Nome do Catálogo */}
+                <div className="space-y-3 pt-4 border-t border-[var(--dash-border)]">
+                  <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                    <BookOpen size={14} className="text-primary" /> Nome do Catálogo
+                  </label>
+                  <input
+                    type="text"
+                    value={catalog.name || ""}
+                    onChange={(e) => setCatalog({ ...catalog, name: e.target.value })}
+                    className="w-full p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-sm"
+                    placeholder="ex: Meu Catálogo de Produtos"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-[var(--dash-border)]">
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
@@ -383,21 +404,43 @@ ${iframeResizerCode}
                   </div>
                 </div>
 
-                {/* Seção Ocultação de Preços */}
-                <div className="pt-4 border-t border-[var(--dash-border)]">
-                  <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
-                    <div className="space-y-1 pr-6">
-                      <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Ocultar Preços (Negociação via WhatsApp)</label>
-                      <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
-                        Esconde todos os valores financeiros da vitrine. Os clientes verão apenas o botão do WhatsApp. Ideal para vendas complexas ou vitrines B2B/CaaS.
-                      </p>
+                {/* Comportamento da Vitrine */}
+                <div className="pt-8 border-t border-[var(--dash-border)] space-y-6">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                    <Layout size={14} className="text-primary" /> Comportamento da Vitrine
+                  </h4>
+                  <div className="space-y-4">
+                    {/* Ocultação de Preços */}
+                    <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+                      <div className="space-y-1 pr-6">
+                        <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Ocultar Preços (Negociação via WhatsApp)</label>
+                        <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
+                          Esconde todos os valores financeiros da vitrine. Os clientes verão apenas o botão do WhatsApp. Ideal para vendas complexas ou vitrines B2B/CaaS.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setHidePrices(!hidePrices)}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${hidePrices ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${hidePrices ? 'translate-x-2' : '-translate-x-2'}`} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setHidePrices(!hidePrices)}
-                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${hidePrices ? 'bg-emerald-500' : 'bg-zinc-700'}`}
-                    >
-                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${hidePrices ? 'translate-x-2' : '-translate-x-2'}`} />
-                    </button>
+
+                    {/* Produtos Esgotados no Fim */}
+                    <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+                      <div className="space-y-1 pr-6">
+                        <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Produtos Esgotados no Fim</label>
+                        <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
+                          Move automaticamente todos os produtos marcados como esgotados para o final de suas respectivas categorias na vitrine do catálogo.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setOutOfStockAtEnd(!outOfStockAtEnd)}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${outOfStockAtEnd ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${outOfStockAtEnd ? 'translate-x-2' : '-translate-x-2'}`} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

@@ -108,6 +108,7 @@ type ProductCatalogClientProps = {
   bannerSpeedSeconds?: number;
   bannerInitialIndex?: number;
   showBanners?: boolean;
+  outOfStockAtEnd?: boolean;
 };
 
 const sanitizeText = (text: string | null | undefined) => {
@@ -398,6 +399,7 @@ export default function ProductCatalogClient({
   bannerSpeedSeconds = 5,
   bannerInitialIndex = 0,
   showBanners = true,
+  outOfStockAtEnd = false,
 }: ProductCatalogClientProps) {
   const primaryColor = accentColor || "#25D366";
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -710,20 +712,40 @@ export default function ProductCatalogClient({
   };
 
   const filteredCategories = useMemo(() => {
-    const categorized = categories.map(cat => ({
-      ...cat,
-      products: products.filter(p => 
+    const categorized = categories.map(cat => {
+      const filteredAndMapped = products.filter(p => 
         p.category_id === cat.id && 
         p.is_active !== false &&
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ).map(p => ({ ...p, name: sanitizeText(p.name) }))
-    })).filter(cat => cat.products.length > 0);
+      ).map(p => ({ ...p, name: sanitizeText(p.name) }));
+
+      if (outOfStockAtEnd) {
+        filteredAndMapped.sort((a, b) => {
+          const aInStock = a.is_in_stock !== false ? 1 : 0;
+          const bInStock = b.is_in_stock !== false ? 1 : 0;
+          return bInStock - aInStock;
+        });
+      }
+
+      return {
+        ...cat,
+        products: filteredAndMapped
+      };
+    }).filter(cat => cat.products.length > 0);
 
     const uncategorized = products.filter(p => 
       (!p.category_id || !categories.some(c => c.id === p.category_id)) && 
       p.is_active !== false &&
       p.name.toLowerCase().includes(searchQuery.toLowerCase())
     ).map(p => ({ ...p, name: sanitizeText(p.name) }));
+
+    if (outOfStockAtEnd && uncategorized.length > 0) {
+      uncategorized.sort((a, b) => {
+        const aInStock = a.is_in_stock !== false ? 1 : 0;
+        const bInStock = b.is_in_stock !== false ? 1 : 0;
+        return bInStock - aInStock;
+      });
+    }
 
     if (uncategorized.length > 0) {
       categorized.push({
@@ -736,7 +758,7 @@ export default function ProductCatalogClient({
     }
 
     return categorized;
-  }, [categories, products, searchQuery, catalogId]);
+  }, [categories, products, searchQuery, catalogId, outOfStockAtEnd]);
 
   const handleCloseProduct = () => {
     setSelectedProductId(null);

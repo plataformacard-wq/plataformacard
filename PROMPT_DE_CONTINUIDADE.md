@@ -16,10 +16,10 @@ Durante as sessões recentes, resolvemos os seguintes pontos:
 - **Compilação:** O build de produção do Next.js 16 (Turbopack) está **100% aprovado** e compilou sem nenhum erro de TypeScript ou agrupamento de chunks após a suavização dos cantos.
 - **Banco de Dados**: Produto real `MAJ X15 PRO` renderizando corretamente.
 
-**🔮 Próximos Passos:**
-1. **Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolver no menu de configurações do catálogo (em `app/dashboard/catalogo/configuracoes/` e `ConfiguracoesClient.tsx`) uma área dedicada para cadastrar as imagens do banner.
-   - Integrar upload de imagens para o Supabase Storage.
-   - Permitir associar Título, Descrição, Texto do Botão de Ação e Link de Destino (URL externa ou ID de produto para rolagem âncora) a cada banner.
-   - Exibir a lista de banners salvos na coluna `banners` (JSONB) da tabela `catalogs`.
-   - Permitir ordenar, editar e remover as imagens dos banners cadastrados.
-2. Continuar com os testes de vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/PlataformaCard/PENDENCIAS.md).
+**🔮 Próximos Passos & Tarefas:**
+1. **[CONCLUÍDO] Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolvido no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/`) uma área dedicada para cadastrar as imagens do banner.
+2. **[CONCLUÍDO] Tela de Assinatura e Planos (Minha Assinatura)**: Rota `/dashboard/assinatura` e Sidebar integradas. Exibe consumo de limites em tempo real e redireciona de forma segura para os checkouts apropriados anexando referências da organização.
+3. **[CONCLUÍDO] Ajuste de Suavização de Borda**: Aplicado o arredondamento de bordas mais sóbrio e moderno na página `AssinaturaClient.tsx` (cantos reduzidos para `rounded-xl`/`rounded-lg`).
+4. **[CONCLUÍDO] Tela de Gestão de Assinaturas & Financeiro no Super Admin (QG)**: Criar uma página dedicada no painel de administração global (Super Admin / QG) para o gerenciamento de assinaturas, controle e overrides de recursos das organizações e parametrização financeira/planos diretamente pelo painel administrativo.
+5. Continuar com os testes de vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/PENDENCIAS.md).
+

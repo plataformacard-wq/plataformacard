@@ -56,6 +56,7 @@ type Catalog = {
   banner_speed_seconds?: number | null;
   banner_initial_index?: number | null;
   show_banners?: boolean | null;
+  out_of_stock_at_end?: boolean | null;
 };
 
 type Category = {
@@ -360,6 +361,9 @@ export default async function Page(props: PageProps) {
   const finalBannerSpeed = catalogWithBanners.banner_speed_seconds || 5;
   const finalBannerInitialIndex = catalogWithBanners.banner_initial_index || 0;
   const finalShowBanners = forceHideBanners ? false : (catalogWithBanners.show_banners !== false);
+  const finalOutOfStockAtEnd = customCatalog && customCatalog.out_of_stock_at_end !== undefined && customCatalog.out_of_stock_at_end !== null
+    ? customCatalog.out_of_stock_at_end
+    : (catalog.out_of_stock_at_end || false);
 
   const { data: categoriesData, error: catError } = await supabase
     .from("categories")
@@ -513,6 +517,7 @@ export default async function Page(props: PageProps) {
         bannerSpeedSeconds={finalBannerSpeed}
         bannerInitialIndex={finalBannerInitialIndex}
         showBanners={finalShowBanners}
+        outOfStockAtEnd={finalOutOfStockAtEnd}
       />
     </>
   );

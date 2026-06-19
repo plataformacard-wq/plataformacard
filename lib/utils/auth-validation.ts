@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Garante que o usuário está autenticado e possui a role de 'superadmin' ou 'super_admin'.
+ * Garante que o usuário está autenticado e possui a role de 'main_admin' ou 'main_admin'.
  * Lança um erro caso não esteja autorizado.
  * Retorna o ID do usuário em caso de sucesso.
  */
@@ -20,7 +20,7 @@ export async function verifySuperAdmin(): Promise<string> {
     .maybeSingle();
 
   const userRole = profile?.role;
-  if (userRole !== "superadmin" && userRole !== "super_admin") {
+  if (userRole !== "main_admin" && userRole !== "main_admin") {
     throw new Error("Não autorizado. Esta ação requer privilégios de Super Administrador.");
   }
 
@@ -47,7 +47,7 @@ export async function verifyOrgAdmin(orgId: string): Promise<string> {
     .eq("id", user.id)
     .maybeSingle();
 
-  const isSuperAdmin = profile?.role === "superadmin" || profile?.role === "super_admin";
+  const isSuperAdmin = profile?.role === "main_admin" || profile?.role === "main_admin";
   const isOrgAdmin = (profile?.role === "b2b_admin" || profile?.role === "admin") && profile?.organization_id === orgId;
 
   if (!isSuperAdmin && !isOrgAdmin) {

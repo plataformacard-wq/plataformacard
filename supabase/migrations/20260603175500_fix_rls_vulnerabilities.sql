@@ -14,6 +14,6 @@ FOR INSERT TO authenticated WITH CHECK (
   exists (
     select 1 from public.profiles 
     where profiles.id = auth.uid() 
-    and profiles.role::text in ('superadmin', 'super_admin')
+    and profiles.role::text in ('main_admin', 'main_admin')
   )
 );

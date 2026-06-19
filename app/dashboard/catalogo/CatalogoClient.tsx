@@ -44,6 +44,7 @@ import CategoryModal from "@/components/dashboard/CategoryModal";
 
 type Category = {
   id: string;
+  catalog_id?: string | null;
   name: string;
   description?: string | null;
   sort_order?: number | null;
@@ -309,7 +310,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             
             if (cid) {
               setCatalogId(cid);
-              await Promise.all([refreshLimit(), fetchCategories(cid), fetchProducts(oid), fetchUserSlug(user.id)]);
+              await Promise.all([refreshLimit(), fetchCategories(cid, oid), fetchProducts(oid), fetchUserSlug(user.id)]);
             }
           }
         }
@@ -351,7 +352,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       .find((row) => row.startsWith("shadow_org_id="))
       ?.split("=")[1];
 
-    const isSuperAdmin = profile?.role === "superadmin";
+    const isSuperAdmin = profile?.role === "main_admin";
     const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
 
     if (activeOrgId) {
@@ -398,7 +399,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       .find((row) => row.startsWith("shadow_org_id="))
       ?.split("=")[1];
 
-    const isSuperAdmin = profile?.role === "superadmin";
+    const isSuperAdmin = profile?.role === "main_admin";
     const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
     
     if (isSuperAdmin && shadowOrgId) {
@@ -456,12 +457,41 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     setLoadingLimit(false);
   }
 
-  async function fetchCategories(catalogId: string) {
+  async function fetchCategories(catalogId: string, customOrgId?: string | null) {
     const supabase = createClient();
+    const targetOrgId = customOrgId || orgId;
+    let catalogIds = [catalogId];
+
+    if (targetOrgId) {
+      const { data: enabledCatalogs } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id, is_enabled, catalogs(deleted_at)")
+        .eq("organization_id", targetOrgId);
+
+      if (enabledCatalogs && enabledCatalogs.length > 0) {
+        const caasCatalogIds = (enabledCatalogs as unknown as {
+          catalog_id: string;
+          is_enabled: boolean;
+          catalogs: { deleted_at: string | null } | { deleted_at: string | null }[] | null;
+        }[])
+          .filter(c => {
+            const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+            return c.is_enabled && cat && !cat.deleted_at;
+          })
+          .map(c => c.catalog_id);
+        
+        caasCatalogIds.forEach((id: string) => {
+          if (!catalogIds.includes(id)) {
+            catalogIds.push(id);
+          }
+        });
+      }
+    }
+
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name, description, sort_order")
-      .eq("catalog_id", catalogId)
+      .select("id, catalog_id, name, description, sort_order")
+      .in("catalog_id", catalogIds)
       .order("sort_order", { ascending: true });
 
     if (error) {
@@ -506,7 +536,11 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       created_at,
       categories (
         id,
-        name
+        name,
+        catalog_id,
+        catalogs (
+          deleted_at
+        )
       )
     `
       )
@@ -516,6 +550,16 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       .order("created_at", { ascending: false });
 
     let prodList = (ownData ?? []) as unknown as ProductRow[];
+
+    // Filter out products belonging to deleted catalogs
+    prodList = prodList.filter(p => {
+      if (!p.category_id) return true;
+      const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
+      if (!category) return false;
+      const catalog = Array.isArray(category.catalogs) ? category.catalogs[0] : category.catalogs;
+      if (catalog && catalog.deleted_at) return false;
+      return true;
+    });
 
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
@@ -711,7 +755,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     if (error) {
       alert("Erro ao excluir categoria.");
     } else {
-      if (catalogId) await fetchCategories(catalogId);
+      if (catalogId) await fetchCategories(catalogId, orgId);
     }
   }
 
@@ -890,16 +934,39 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     await performStatusUpdate(product, field, newValue);
   };
 
-  const handleReorderProducts = async (newOrder: ProductRow[]) => {
-    // Atualiza localmente primeiro
-    setProducts(newOrder);
+  const handleReorderCategoryProducts = async (newCategoryOrder: ProductRow[], categoryId: string | null) => {
+    const isThisCategory = (product: ProductRow) => {
+      const catId = getProductCategoryId(product);
+      if (categoryId === null) {
+        return !catId || !categories.some(c => c.id === catId);
+      }
+      return catId === categoryId;
+    };
 
-    // Persiste no banco
+    // 1. Update local state
+    const newGlobalProducts = [...products];
+    const indices: number[] = [];
+    products.forEach((p, idx) => {
+      if (isThisCategory(p)) {
+        indices.push(idx);
+      }
+    });
+
+    newCategoryOrder.forEach((p, idx) => {
+      const targetIdx = indices[idx];
+      if (targetIdx !== undefined) {
+        newGlobalProducts[targetIdx] = p;
+      }
+    });
+
+    setProducts(newGlobalProducts);
+
+    // 2. Save in database
+    setSavingOrder(true);
     const supabase = createClient();
-    
     try {
       await Promise.all(
-        newOrder.map((p, index) => {
+        newCategoryOrder.map((p, index) => {
           if (p.is_caas) {
             if (!orgId) return Promise.resolve();
             const overridePayload = {
@@ -929,8 +996,9 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         })
       );
     } catch (err) {
-      console.error("Erro ao salvar ordem dos produtos:", err);
+      console.error("Erro ao salvar ordem dos produtos da categoria:", err);
     }
+    setSavingOrder(false);
   };
 
   const confirmVisibilityUpdate = async () => {
@@ -1003,9 +1071,32 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
 
   const isEditMode = editingProduct !== null;
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const categorizedProducts = useMemo(() => {
+    const categorized = categories.map(cat => {
+      const catProducts = products.filter(p => 
+        getProductCategoryId(p) === cat.id &&
+        (p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())))
+      );
+      return {
+        ...cat,
+        products: catProducts
+      };
+    }).filter(cat => cat.products.length > 0);
+
+    const uncategorizedProducts = products.filter(p => {
+      const catId = getProductCategoryId(p);
+      const hasValidCategory = catId && categories.some(c => c.id === catId);
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      return !hasValidCategory && matchesSearch;
+    });
+
+    return {
+      categorized,
+      uncategorized: uncategorizedProducts
+    };
+  }, [categories, products, searchQuery]);
 
   return (
     <div className="flex flex-col gap-10 pb-20">
@@ -1147,12 +1238,12 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                 Array(4).fill(0).map((_, i) => (
                   <div key={i} className="h-24 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800" />
                 ))
-              ) : categories.length === 0 ? (
+              ) : categories.filter(c => c.catalog_id === catalogId).length === 0 ? (
                 <div className="col-span-full p-12 text-center rounded-[32px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
                   <p className="text-sm italic" style={{ color: "var(--dash-text-secondary)" }}>Nenhuma categoria cadastrada.</p>
                 </div>
               ) : (
-                categories.map((cat, idx) => (
+                categories.filter(c => c.catalog_id === catalogId).map((cat, idx) => (
                   <div
                     key={cat.id}
                     className="group flex flex-col justify-between p-5 rounded-[32px] border transition-all hover:shadow-lg hover:border-primary/30"
@@ -1236,7 +1327,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                 Array(3).fill(0).map((_, i) => (
                   <div key={i} className="h-32 animate-pulse rounded-[32px]" style={{ background: "var(--dash-surface-secondary)" }} />
                 ))
-              ) : filteredProducts.length === 0 ? (
+              ) : (categorizedProducts.categorized.length === 0 && categorizedProducts.uncategorized.length === 0) ? (
                 <div className="p-20 text-center rounded-[40px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
                   <Package className="mx-auto h-16 w-16 text-zinc-200 mb-4" />
                   <p className="text-zinc-500 font-medium">
@@ -1244,180 +1335,387 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                   </p>
                 </div>
               ) : (
-                <Reorder.Group axis="y" values={filteredProducts} onReorder={handleReorderProducts} className="space-y-4">
-                  {filteredProducts.map((product) => (
-                    <Reorder.Item
-                      key={product.id}
-                      value={product}
-                      onClick={() => handleOpenEdit(product)}
-                      className="group relative flex items-center gap-4 p-4 rounded-[24px] border transition-all hover:shadow-xl hover:border-emerald-500/30 cursor-pointer"
-                      style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-                    >
-                      {/* Handle de Arraste (Sempre visível para facilitar descoberta) */}
-                      <div className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-emerald-500 transition-colors">
-                        <GripVertical size={20} />
+                <div className="space-y-10">
+                  {/* Categorized Products */}
+                  {categorizedProducts.categorized.map((category) => (
+                    <div key={category.id} className="space-y-4">
+                      <div className="flex items-center gap-2 px-2">
+                        <span className="w-1.5 h-4 rounded-full bg-emerald-500 shadow-sm" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[var(--dash-text-muted)]">
+                          {category.name} ({category.products.length})
+                        </h3>
                       </div>
+                      <Reorder.Group 
+                        axis="y" 
+                        values={category.products} 
+                        onReorder={(newOrder) => handleReorderCategoryProducts(newOrder, category.id)} 
+                        className="space-y-4"
+                      >
+                        {category.products.map((product) => (
+                          <Reorder.Item
+                            key={product.id}
+                            value={product}
+                            onClick={() => handleOpenEdit(product)}
+                            className="group relative flex items-center gap-4 p-4 rounded-[24px] border transition-all hover:shadow-xl hover:border-emerald-500/30 cursor-pointer"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                          >
+                            {/* Handle de Arraste (Sempre visível para facilitar descoberta) */}
+                            <div className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-emerald-500 transition-colors">
+                              <GripVertical size={20} />
+                            </div>
 
-                      {/* Imagem compacta */}
-                      <div className="relative flex-shrink-0">
-                        {product.is_in_stock === false && (
-                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-2xl">
-                            <span className="bg-rose-600 !text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
-                          </div>
-                        )}
-                        {getProductImage(product) ? (
-                          <img 
-                            src={getProductImage(product)} 
-                            className={`h-16 w-16 rounded-2xl object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
-                          />
-                        ) : (
-                          <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} style={{ background: "var(--dash-surface-secondary)" }}>
-                            <Package size={24} />
-                          </div>
-                        )}
-                      </div>
+                            {/* Imagem compacta */}
+                            <div className="relative flex-shrink-0">
+                              {product.is_in_stock === false && (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-2xl">
+                                  <span className="bg-rose-600 !text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
+                                </div>
+                              )}
+                              {getProductImage(product) ? (
+                                <img 
+                                  src={getProductImage(product)} 
+                                  className={`h-16 w-16 rounded-2xl object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
+                                />
+                              ) : (
+                                <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} style={{ background: "var(--dash-surface-secondary)" }}>
+                                  <Package size={24} />
+                                </div>
+                              )}
+                            </div>
 
-                      {/* Conteúdo Principal */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-2">
-                        {/* Linha Superior: Info */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-x-4">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-bold text-base truncate" style={{ color: "var(--dash-text-primary)" }}>
-                              {product.name}
-                            </h4>
-                            {(product as any).is_new_from_master && (
-                              <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[9px] font-black uppercase tracking-widest border border-yellow-500/20">
-                                NOVO NO MASTER
-                              </span>
-                            )}
-                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
-                              {Array.isArray(product.categories)
-                                  ? (product.categories[0]?.name ?? "Sem categoria")
-                                  : (product.categories?.name ?? "Sem categoria")}
-                            </span>
-                            {product.sku && (
-                              <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 text-[9px] font-bold text-white uppercase tracking-wider">
-                                {product.sku}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
-                              <div className="flex flex-col items-end">
-                                {(product.has_wholesale || product.compare_at_price) && (
-                                  <span className="text-[8px] font-black uppercase text-zinc-400 leading-none mb-0.5">Varejo</span>
-                                )}
-                                {product.compare_at_price && (
-                                  <span className="text-[9px] font-bold text-zinc-400 line-through leading-none mb-1">
-                                    {formatPrice(product.compare_at_price)}
+                            {/* Conteúdo Principal */}
+                            <div className="flex-1 min-w-0 flex flex-col gap-2">
+                              {/* Linha Superior: Info */}
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-x-4">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="font-bold text-base truncate" style={{ color: "var(--dash-text-primary)" }}>
+                                    {product.name}
+                                  </h4>
+                                  {(product as any).is_new_from_master && (
+                                    <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[9px] font-black uppercase tracking-widest border border-yellow-500/20">
+                                      NOVO NO MASTER
+                                    </span>
+                                  )}
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
+                                    {Array.isArray(product.categories)
+                                        ? (product.categories[0]?.name ?? "Sem categoria")
+                                        : (product.categories?.name ?? "Sem categoria")}
                                   </span>
-                                )}
-                                <p className="text-lg font-black" style={{ color: "var(--dash-text-primary)" }}>
-                                  {formatPrice(product.price)}
-                                </p>
-                              </div>
-                            )}
-                            {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
-                              <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 self-end mb-1" />
-                            )}
-                            {product.is_in_stock !== false && product.has_wholesale && product.wholesale_price !== null && (
-                              <div className="flex flex-col items-end">
-                                <span className="text-[8px] font-black uppercase text-emerald-600 leading-none mb-0.5">Atacado</span>
-                                <p className="text-lg font-black text-emerald-600">
-                                  {formatPrice(product.wholesale_price)}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Linha Inferior: Controles */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }} onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-4">
-                            {/* Switches Compactos */}
-                            <div className="flex items-center gap-4">
-                              <div 
-                                onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_active'); }}
-                                className="flex items-center gap-2 cursor-pointer group/sw"
-                              >
-                                <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">
-                                  {product.type === 'service' ? 'Disponível' : 'Visível'}
-                                </span>
-                                <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
-                                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                  {product.sku && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 text-[9px] font-bold text-white uppercase tracking-wider">
+                                      {product.sku}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
+                                    <div className="flex flex-col items-end">
+                                      {(product.has_wholesale || product.compare_at_price) && (
+                                        <span className="text-[8px] font-black uppercase text-zinc-400 leading-none mb-0.5">Varejo</span>
+                                      )}
+                                      {product.compare_at_price && (
+                                        <span className="text-[9px] font-bold text-zinc-400 line-through leading-none mb-1">
+                                          {formatPrice(product.compare_at_price)}
+                                        </span>
+                                      )}
+                                      <p className="text-lg font-black" style={{ color: "var(--dash-text-primary)" }}>
+                                        {formatPrice(product.price)}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
+                                    <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 self-end mb-1" />
+                                  )}
+                                  {product.is_in_stock !== false && product.has_wholesale && product.wholesale_price !== null && (
+                                    <div className="flex flex-col items-end">
+                                      <span className="text-[8px] font-black uppercase text-emerald-600 leading-none mb-0.5">Atacado</span>
+                                      <p className="text-lg font-black text-emerald-600">
+                                        {formatPrice(product.wholesale_price)}
+                                      </p>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 
-                              <div 
-                                onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_in_stock'); }}
-                                className="flex items-center gap-2 cursor-pointer group/sw"
-                              >
-                                <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Estoque</span>
-                                <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
-                                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
+                              {/* Linha Inferior: Controles */}
+                              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }} onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center gap-4">
+                                  {/* Switches Compactos */}
+                                  <div className="flex items-center gap-4">
+                                    <div 
+                                      onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_active'); }}
+                                      className="flex items-center gap-2 cursor-pointer group/sw"
+                                    >
+                                      <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">
+                                        {product.type === 'service' ? 'Disponível' : 'Visível'}
+                                      </span>
+                                      <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                      </div>
+                                    </div>
+
+                                    <div 
+                                      onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_in_stock'); }}
+                                      className="flex items-center gap-2 cursor-pointer group/sw"
+                                    >
+                                      <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Estoque</span>
+                                      <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                  {userSlug ? (
+                                    <Link
+                                      href={`/${userSlug}/catalogo#${product.id}`}
+                                      target="_blank"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                      title="Ver no Catálogo Público"
+                                    >
+                                      <Eye size={14} />
+                                    </Link>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        alert("Slug ainda não carregado. Tente novamente em um segundo.");
+                                      }}
+                                      className="p-2 rounded-lg bg-zinc-800 text-zinc-500 cursor-wait"
+                                    >
+                                      <Eye size={14} />
+                                    </button>
+                                  )}
+
+                                  {(!product.is_caas || allowCaasDetachment) && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
+                                      className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                      title="Duplicar"
+                                    >
+                                      <Copy size={14} />
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(product); }}
+                                    className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                    title="Editar"
+                                  >
+                                    <EditIcon size={14} />
+                                  </button>
+                                  {(!product.is_caas || allowCaasDetachment) && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); handleDelete(product); }}
+                                      className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
+                                      title="Excluir"
+                                    >
+                                      <TrashIcon size={14} />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-1">
-                            {userSlug ? (
-                              <Link
-                                href={`/${userSlug}/catalogo#${product.id}`}
-                                target="_blank"
-                                onClick={(e) => e.stopPropagation()}
-                                className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
-                                title="Ver no Catálogo Público"
-                              >
-                                <Eye size={14} />
-                              </Link>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  alert("Slug ainda não carregado. Tente novamente em um segundo.");
-                                }}
-                                className="p-2 rounded-lg bg-zinc-800 text-zinc-500 cursor-wait"
-                              >
-                                <Eye size={14} />
-                              </button>
-                            )}
-
-                            {(!product.is_caas || allowCaasDetachment) && (
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
-                                className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
-                                title="Duplicar"
-                              >
-                                <Copy size={14} />
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); handleOpenEdit(product); }}
-                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
-                              title="Editar"
-                            >
-                              <EditIcon size={14} />
-                            </button>
-                            {(!product.is_caas || allowCaasDetachment) && (
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); handleDelete(product); }}
-                                className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
-                                title="Excluir"
-                              >
-                                <TrashIcon size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Reorder.Item>
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    </div>
                   ))}
-                </Reorder.Group>
+
+                  {/* Uncategorized Products */}
+                  {categorizedProducts.uncategorized.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 px-2">
+                        <span className="w-1.5 h-4 rounded-full bg-zinc-500 shadow-sm" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[var(--dash-text-muted)]">
+                          Sem Categoria ({categorizedProducts.uncategorized.length})
+                        </h3>
+                      </div>
+                      <Reorder.Group 
+                        axis="y" 
+                        values={categorizedProducts.uncategorized} 
+                        onReorder={(newOrder) => handleReorderCategoryProducts(newOrder, null)} 
+                        className="space-y-4"
+                      >
+                        {categorizedProducts.uncategorized.map((product) => (
+                          <Reorder.Item
+                            key={product.id}
+                            value={product}
+                            onClick={() => handleOpenEdit(product)}
+                            className="group relative flex items-center gap-4 p-4 rounded-[24px] border transition-all hover:shadow-xl hover:border-emerald-500/30 cursor-pointer"
+                            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+                          >
+                            {/* Handle de Arraste (Sempre visível para facilitar descoberta) */}
+                            <div className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-emerald-500 transition-colors">
+                              <GripVertical size={20} />
+                            </div>
+
+                            {/* Imagem compacta */}
+                            <div className="relative flex-shrink-0">
+                              {product.is_in_stock === false && (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-2xl">
+                                  <span className="bg-rose-600 !text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
+                                </div>
+                              )}
+                              {getProductImage(product) ? (
+                                <img 
+                                  src={getProductImage(product)} 
+                                  className={`h-16 w-16 rounded-2xl object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
+                                />
+                              ) : (
+                                <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} style={{ background: "var(--dash-surface-secondary)" }}>
+                                  <Package size={24} />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Conteúdo Principal */}
+                            <div className="flex-1 min-w-0 flex flex-col gap-2">
+                              {/* Linha Superior: Info */}
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-x-4">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="font-bold text-base truncate" style={{ color: "var(--dash-text-primary)" }}>
+                                    {product.name}
+                                  </h4>
+                                  {(product as any).is_new_from_master && (
+                                    <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[9px] font-black uppercase tracking-widest border border-yellow-500/20">
+                                      NOVO NO MASTER
+                                    </span>
+                                  )}
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
+                                    Sem categoria
+                                  </span>
+                                  {product.sku && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 text-[9px] font-bold text-white uppercase tracking-wider">
+                                      {product.sku}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && (
+                                    <div className="flex flex-col items-end">
+                                      {(product.has_wholesale || product.compare_at_price) && (
+                                        <span className="text-[8px] font-black uppercase text-zinc-400 leading-none mb-0.5">Varejo</span>
+                                      )}
+                                      {product.compare_at_price && (
+                                        <span className="text-[9px] font-bold text-zinc-400 line-through leading-none mb-1">
+                                          {formatPrice(product.compare_at_price)}
+                                        </span>
+                                      )}
+                                      <p className="text-lg font-black" style={{ color: "var(--dash-text-primary)" }}>
+                                        {formatPrice(product.price)}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {product.is_in_stock !== false && product.has_retail !== false && product.price !== null && product.has_wholesale && product.wholesale_price !== null && (
+                                    <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 self-end mb-1" />
+                                  )}
+                                  {product.is_in_stock !== false && product.has_wholesale && product.wholesale_price !== null && (
+                                    <div className="flex flex-col items-end">
+                                      <span className="text-[8px] font-black uppercase text-emerald-600 leading-none mb-0.5">Atacado</span>
+                                      <p className="text-lg font-black text-emerald-600">
+                                        {formatPrice(product.wholesale_price)}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Linha Inferior: Controles */}
+                              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }} onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center gap-4">
+                                  {/* Switches Compactos */}
+                                  <div className="flex items-center gap-4">
+                                    <div 
+                                      onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_active'); }}
+                                      className="flex items-center gap-2 cursor-pointer group/sw"
+                                    >
+                                      <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">
+                                        {product.type === 'service' ? 'Disponível' : 'Visível'}
+                                      </span>
+                                      <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                      </div>
+                                    </div>
+
+                                    <div 
+                                      onClick={(e) => { e.stopPropagation(); toggleProductStatus(product, 'is_in_stock'); }}
+                                      className="flex items-center gap-2 cursor-pointer group/sw"
+                                    >
+                                      <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Estoque</span>
+                                      <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                  {userSlug ? (
+                                    <Link
+                                      href={`/${userSlug}/catalogo#${product.id}`}
+                                      target="_blank"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                      title="Ver no Catálogo Público"
+                                    >
+                                      <Eye size={14} />
+                                    </Link>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        alert("Slug ainda não carregado. Tente novamente em um segundo.");
+                                      }}
+                                      className="p-2 rounded-lg bg-zinc-800 text-zinc-500 cursor-wait"
+                                    >
+                                      <Eye size={14} />
+                                    </button>
+                                  )}
+
+                                  {(!product.is_caas || allowCaasDetachment) && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); handleDuplicateProduct(product); }}
+                                      className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                      title="Duplicar"
+                                    >
+                                      <Copy size={14} />
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(product); }}
+                                    className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                                    title="Editar"
+                                  >
+                                    <EditIcon size={14} />
+                                  </button>
+                                  {(!product.is_caas || allowCaasDetachment) && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); handleDelete(product); }}
+                                      className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-red-500 transition-all shadow-sm active:scale-95"
+                                      title="Excluir"
+                                    >
+                                      <TrashIcon size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </section>
@@ -1433,7 +1731,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           refreshLimit();
         }}
         editingProduct={editingProduct}
-        categories={categories}
+        categories={categories.filter(c => c.catalog_id === catalogId)}
         orgId={orgId || ""}
         canCreateProduct={(canCreateProduct ?? false) || productLimit <= 0}
         catalogType={catalogType}
@@ -1443,7 +1741,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
         onSuccess={() => {
-          if (catalogId) fetchCategories(catalogId);
+          if (catalogId) fetchCategories(catalogId, orgId);
         }}
         editingCategory={editingCategory}
         catalogId={catalogId}

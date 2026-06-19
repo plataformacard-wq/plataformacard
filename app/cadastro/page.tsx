@@ -59,6 +59,10 @@ export default function CadastroPage() {
   const [success, setSuccess] = useState(false);
   const [activeBetaCode, setActiveBetaCode] = useState("");
 
+  const [otpCode, setOtpCode] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState("");
+
   // Busca o código ativo no banco ao carregar a página
   useEffect(() => {
     const supabase = createClient();
@@ -185,6 +189,43 @@ export default function CadastroPage() {
     }
   }
 
+  async function handleVerifyOtp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setOtpError("");
+
+    if (otpCode.length < 6 || otpCode.length > 8) {
+      setOtpError("O código deve ter entre 6 e 8 dígitos.");
+      return;
+    }
+
+    setVerifyingOtp(true);
+    const supabase = createClient();
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: otpCode,
+        type: "signup",
+      });
+
+      if (error) {
+        setOtpError(error.message);
+        return;
+      }
+
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setOtpError("Sessão não iniciada. Tente fazer login.");
+      }
+    } catch (err) {
+      setOtpError("Ocorreu um erro ao verificar o código. Tente novamente.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  }
+
   if (success) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-white">
@@ -192,12 +233,45 @@ export default function CadastroPage() {
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500">
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
-          <h2 className="mb-2 text-2xl font-bold">Quase lá!</h2>
-          <p className="mb-8 text-zinc-400">
-            Enviamos um link de ativação para <strong>{email}</strong>. 
-            Você precisa clicar no link enviado para confirmar sua identidade e acessar seu dashboard pela primeira vez.
+          <h2 className="mb-2 text-2xl font-bold">Confirme seu E-mail</h2>
+          <p className="mb-6 text-sm text-zinc-400">
+            Enviamos um código de verificação para <strong>{email}</strong>. 
+            Insira-o abaixo para concluir seu cadastro e acessar o dashboard.
           </p>
-          <div className="rounded-xl border border-white/5 bg-white/5 p-4 text-xs text-zinc-500">
+
+          <form onSubmit={handleVerifyOtp} className="space-y-5 text-left">
+            <div>
+              <label htmlFor="otpCode" className="mb-2 block text-sm font-medium text-center">
+                Código de Verificação
+              </label>
+              <input
+                id="otpCode"
+                type="text"
+                maxLength={8}
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="Digite o código"
+                className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-center text-2xl tracking-widest outline-none transition focus:border-white/30"
+                autoComplete="off"
+              />
+            </div>
+
+            {otpError && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 text-center">
+                {otpError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={verifyingOtp || otpCode.length < 6}
+              className="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-zinc-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {verifyingOtp ? "Verificando..." : "Validar Código"}
+            </button>
+          </form>
+
+          <div className="mt-6 rounded-xl border border-white/5 bg-white/5 p-4 text-xs text-zinc-500">
             <p>Não recebeu? Verifique sua pasta de Spam ou aguarde alguns minutos.</p>
           </div>
         </div>

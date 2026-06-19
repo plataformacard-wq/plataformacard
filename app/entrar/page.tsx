@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -39,21 +39,21 @@ export default function LoginPage() {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Redireciona se já estiver logado
-  useState(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+  // Redireciona se já estiver logado (validação segura com getUser para evitar loops)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
         router.replace("/dashboard");
       }
     });
-  });
+  }, [supabase, router]);
 
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
     setLoadingEmail(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -62,6 +62,21 @@ export default function LoginPage() {
       setLoadingEmail(false);
       setErrorMessage(error.message);
       return;
+    }
+
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .single();
+        
+      if (profile?.role === 'main_admin') {
+        await supabase.auth.signOut();
+        setLoadingEmail(false);
+        setErrorMessage("Acesso restrito. Utilize o portal MAIN para administrar a plataforma.");
+        return;
+      }
     }
 
     router.push("/dashboard");

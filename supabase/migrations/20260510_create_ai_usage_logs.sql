@@ -22,7 +22,7 @@ using (
     exists (
         select 1 from public.profiles
         where profiles.id = auth.uid()
-        and profiles.role = 'super_admin'
+        and profiles.role = 'main_admin'
     )
 );
 

@@ -1,7 +1,70 @@
 "use server";
  
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAuthenticated } from "@/lib/utils/auth-validation";
+
+/**
+ * Função interna para buscar a API Key do Gemini com fallback para o banco de dados.
+ */
+async function getGeminiApiKey(): Promise<string | null> {
+  let apiKey = process.env.GEMINI_API_KEY || null;
+  if (!apiKey) {
+    try {
+      const adminSupabase = createAdminClient();
+      const { data } = await adminSupabase
+        .from("platform_config")
+        .select("value")
+        .eq("key", "gemini_api_key")
+        .maybeSingle();
+      if (data?.value) {
+        apiKey = data.value;
+      }
+    } catch (dbErr) {
+      console.warn("[AI-CONFIG-WARN]: Erro ao buscar gemini_api_key do banco:", dbErr);
+    }
+  }
+  return apiKey;
+}
+
+/**
+ * Função utilitária para extrair e fazer o parse de JSON de forma robusta
+ * a partir das respostas do LLM.
+ */
+function parseLLMJsonResponse(text: string) {
+  const cleaned = text.trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    // Tenta encontrar o primeiro bloco JSON caso haja texto explicativo envolta
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start !== -1 && end !== -1 && end > start) {
+      const jsonStr = cleaned.substring(start, end + 1);
+      return JSON.parse(jsonStr);
+    }
+    throw e;
+  }
+}
+
+/**
+ * Envia a requisição para a API do Gemini com tentativas de reprocessamento em caso de erro 503/500 temporário.
+ */
+async function fetchGeminiWithRetry(url: string, options: RequestInit, retries = 2, delay = 1000): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.status !== 503 && response.status !== 500) {
+        return response;
+      }
+      console.warn(`[GEMINI-RETRY]: Recebido status ${response.status}. Tentando novamente em ${delay}ms... (Tentativa ${i + 1} de ${retries})`);
+    } catch (err) {
+      if (i === retries - 1) throw err;
+    }
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+  return fetch(url, options);
+}
 
 /**
  * Função interna para logar o uso de tokens no banco de dados.
@@ -26,7 +89,7 @@ async function logAiUsage(actionType: string, usage: any) {
       prompt_tokens: usage?.promptTokenCount || 0,
       completion_tokens: usage?.candidatesTokenCount || 0,
       total_tokens: usage?.totalTokenCount || 0,
-      model_name: 'gemini-1.5-flash'
+      model_name: 'gemini-2.5-flash'
     });
   } catch (error) {
     console.error("[AI-LOG-ERROR]:", error);
@@ -48,7 +111,7 @@ export async function enhanceDescriptionWithAI(payload: {
     return { error: err.message || "Não autorizado." };
   }
  
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = await getGeminiApiKey();
 
   if (!apiKey) {
     return { error: "API Key do Gemini não configurada." };
@@ -72,18 +135,19 @@ export async function enhanceDescriptionWithAI(payload: {
     5. AO FINAL, inclua 3 hashtags relevantes.
     6. JAMAIS cite o preço do produto no texto. 
     7. NÃO gere títulos ou campos extras.
+    8. Se a "Descrição atual" for "Vazia", crie uma descrição totalmente nova, cativante e completa do zero a partir do nome do produto e das especificações técnicas fornecidas.
 
     RETORNO:
     Retorne APENAS um JSON no formato:
     {
       "proposed": "HTML da nova descrição",
-      "explanation": "Uma breve explicação do que foi melhorado (ex: 'Tornei o texto mais direto e foquei na potência do motor')."
+      "explanation": "Uma breve explicação do que foi feito (ex: 'Criei uma descrição comercial focada nas especificações técnicas fornecidas' ou 'Melhorei a legibilidade do texto e foquei na potência')."
     }
   `;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+    const response = await fetchGeminiWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,7 +157,7 @@ export async function enhanceDescriptionWithAI(payload: {
       }
     );
 
-    if (!response.ok) return { error: `Erro na API do Google` };
+    if (!response.ok) return { error: `Erro na API do Google: status ${response.status}` };
 
     const data = await response.json();
     
@@ -105,8 +169,7 @@ export async function enhanceDescriptionWithAI(payload: {
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta vazia");
 
-    const cleanedText = resultText.replace(/```json|```/g, "").trim();
-    const parsedData = JSON.parse(cleanedText);
+    const parsedData = parseLLMJsonResponse(resultText);
     return { success: true, data: parsedData };
 
   } catch (error: any) {
@@ -125,7 +188,7 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
     return { error: err.message || "Não autorizado." };
   }
  
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = await getGeminiApiKey();
 
   if (!apiKey) {
     return { error: "API Key do Gemini não configurada." };
@@ -154,8 +217,8 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
   `;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+    const response = await fetchGeminiWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -165,7 +228,7 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
       }
     );
 
-    if (!response.ok) return { error: `Erro na API do Google` };
+    if (!response.ok) return { error: `Erro na API do Google: status ${response.status}` };
 
     const data = await response.json();
     
@@ -177,8 +240,7 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta vazia");
 
-    const cleanedText = resultText.replace(/```json|```/g, "").trim();
-    const parsedData = JSON.parse(cleanedText);
+    const parsedData = parseLLMJsonResponse(resultText);
     return { success: true, data: parsedData };
 
   } catch (error: any) {
@@ -190,25 +252,38 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
 /**
  * Gera sugestões de SEO (Título e Descrição) usando Google Gemini 1.5 Flash
  */
-export async function generateSEOWithAI(orgName: string, businessType: string = "comércio") {
+export async function generateSEOWithAI(
+  orgName: string, 
+  businessType: string = "comércio",
+  businessModel: "B2B" | "B2C" = "B2B"
+) {
   try {
     await verifyAuthenticated();
   } catch (err: any) {
     return { error: err.message || "Não autorizado." };
   }
  
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = await getGeminiApiKey();
   if (!apiKey) return { error: "API Key do Gemini não configurada." };
 
-  const prompt = `
-    Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para a empresa "${orgName}" do ramo "${businessType}".
-    Retorne APENAS um JSON no formato:
-    {"title": "...", "description": "...", "keywords": "..."}
-  `;
+  let prompt = "";
+  if (businessModel === "B2C") {
+    prompt = `
+      Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para o portfólio/catálogo pessoal do profissional "${orgName}" do ramo "${businessType}".
+      Retorne APENAS um JSON no formato:
+      {"title": "...", "description": "...", "keywords": "..."}
+    `;
+  } else {
+    prompt = `
+      Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para a empresa "${orgName}" do ramo "${businessType}".
+      Retorne APENAS um JSON no formato:
+      {"title": "...", "description": "...", "keywords": "..."}
+    `;
+  }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+    const response = await fetchGeminiWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -230,10 +305,10 @@ export async function generateSEOWithAI(orgName: string, businessType: string = 
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta sem texto do Google");
 
-    const cleanedText = resultText.replace(/```json|```/g, "").trim();
-    const parsedData = JSON.parse(cleanedText);
+    const parsedData = parseLLMJsonResponse(resultText);
     return { success: true, data: parsedData };
   } catch (error: any) {
+    console.error("ERRO SEO AI:", error);
     return { error: "Erro de conexão com a IA." };
   }
 }

@@ -18,6 +18,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { generateSEOWithAI } from "@/lib/ai-actions";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
+import { uploadStorageFile, updateOrganizationSEO } from "@/lib/dashboard/sellerActions";
+import AiReviewModal from "@/components/dashboard/AiReviewModal";
 
 export default function SEOPage() {
   const supabase = createClient();
@@ -29,6 +31,7 @@ export default function SEOPage() {
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("seulink.com");
   const [businessModel, setBusinessModel] = useState<string | null>(null);
+  const [businessNiche, setBusinessNiche] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -46,6 +49,9 @@ export default function SEOPage() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [activeUploadType, setActiveUploadType] = useState<"favicon" | "logo" | "banner">("favicon");
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [usedAIAssistant, setUsedAIAssistant] = useState(false);
+  const [showAIWarning, setShowAIWarning] = useState(false);
+  const [reviewData, setReviewData] = useState<any>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -64,7 +70,7 @@ export default function SEOPage() {
           .find((row) => row.startsWith("shadow_org_id="))
           ?.split("=")[1];
 
-        const isSuperAdmin = profile?.role === "superadmin";
+        const isSuperAdmin = profile?.role === "main_admin";
         const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
 
         if (activeOrgId) {
@@ -101,25 +107,43 @@ export default function SEOPage() {
   }, [supabase]);
 
   async function handleGenerateAI() {
-    if (!orgName) return;
+    if (!orgName.trim() || !businessNiche.trim()) return;
     setGenerating(true);
     setMessage(null);
 
-    const result = await generateSEOWithAI(orgName);
+    const niche = businessNiche.trim();
+    const model = (businessModel === "B2C" ? "B2C" : "B2B") as "B2B" | "B2C";
+    const result = await generateSEOWithAI(orgName, niche, model);
 
     if (result.error) {
       setMessage({ text: result.error, type: "error" });
     } else if (result.data) {
-      setFormData({
-        ...formData,
-        meta_title: result.data.title,
-        meta_description: result.data.description,
-        meta_keywords: result.data.keywords
+      setReviewData({
+        title: "Sugestões de SEO com IA",
+        explanation: "O assistente de IA gerou sugestões otimizadas de SEO com base no nome e segmento informados. Revise e selecione as alterações que deseja aplicar.",
+        changes: [
+          { id: "title", field: "Título da página (Google)", from: formData.meta_title, to: result.data.title },
+          { id: "description", field: "Descrição SEO", from: formData.meta_description, to: result.data.description },
+          { id: "keywords", field: "Palavras-chave (Tags)", from: formData.meta_keywords, to: result.data.keywords }
+        ],
+        payload: {
+          title: result.data.title,
+          description: result.data.description,
+          keywords: result.data.keywords
+        }
       });
       setMessage({ text: "IA gerou sugestões com sucesso!", type: "success" });
       setTimeout(() => setMessage(null), 5000);
     }
     setGenerating(false);
+  }
+
+  function handleSaveClick() {
+    if (usedAIAssistant) {
+      setShowAIWarning(true);
+    } else {
+      handleSave();
+    }
   }
 
   async function handleSave() {
@@ -137,70 +161,73 @@ export default function SEOPage() {
     let newFaviconUrl = formData.favicon_url;
     if (faviconFile) {
       const fileExt = faviconFile.name.split(".").pop();
-      const filePath = `favicon-${orgId}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, faviconFile, { upsert: true });
+      const filePath = `${user.id}/favicon-${orgId}.${fileExt}`;
+      
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", faviconFile);
+      uploadFormData.append("bucket", "avatars");
+      uploadFormData.append("path", filePath);
 
-      if (uploadError) {
-        setMessage({ text: `Erro no favicon: ${uploadError.message}`, type: "error" });
+      const result = await uploadStorageFile(uploadFormData);
+      if (result.error || !result.publicUrl) {
+        setMessage({ text: `Erro no favicon: ${result.error || "Falha no upload"}`, type: "error" });
         setSaving(false);
         return;
       }
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      newFaviconUrl = urlData.publicUrl;
+      newFaviconUrl = result.publicUrl;
     }
 
     let newLogoUrl = formData.logo_url;
     if (logoFile) {
       const fileExt = logoFile.name.split(".").pop();
-      const filePath = `logo-${orgId}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, logoFile, { upsert: true });
+      const filePath = `${user.id}/logo-${orgId}.${fileExt}`;
+      
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", logoFile);
+      uploadFormData.append("bucket", "avatars");
+      uploadFormData.append("path", filePath);
 
-      if (uploadError) {
-        setMessage({ text: `Erro no logotipo: ${uploadError.message}`, type: "error" });
+      const result = await uploadStorageFile(uploadFormData);
+      if (result.error || !result.publicUrl) {
+        setMessage({ text: `Erro no logotipo: ${result.error || "Falha no upload"}`, type: "error" });
         setSaving(false);
         return;
       }
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      newLogoUrl = urlData.publicUrl;
+      newLogoUrl = result.publicUrl;
     }
 
     let newOgImageUrl = formData.og_image_url;
     if (bannerFile) {
       const fileExt = bannerFile.name.split(".").pop();
-      const filePath = `og-image-${orgId}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, bannerFile, { upsert: true });
+      const filePath = `${user.id}/og-image-${orgId}.${fileExt}`;
+      
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", bannerFile);
+      uploadFormData.append("bucket", "avatars");
+      uploadFormData.append("path", filePath);
 
-      if (uploadError) {
-        setMessage({ text: `Erro no banner: ${uploadError.message}`, type: "error" });
+      const result = await uploadStorageFile(uploadFormData);
+      if (result.error || !result.publicUrl) {
+        setMessage({ text: `Erro no banner: ${result.error || "Falha no upload"}`, type: "error" });
         setSaving(false);
         return;
       }
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      newOgImageUrl = urlData.publicUrl;
+      newOgImageUrl = result.publicUrl;
     }
 
-    const { error } = await supabase
-      .from("organizations")
-      .update({
-        meta_title: formData.meta_title,
-        meta_description: formData.meta_description,
-        meta_keywords: formData.meta_keywords,
-        favicon_url: newFaviconUrl,
-        logo_url: newLogoUrl,
-        og_image_url: newOgImageUrl,
-        centralize_leads: formData.centralize_leads,
-        whatsapp: formData.whatsapp,
-      })
-      .eq("id", orgId);
+    const result = await updateOrganizationSEO(orgId, {
+      meta_title: formData.meta_title,
+      meta_description: formData.meta_description,
+      meta_keywords: formData.meta_keywords,
+      favicon_url: newFaviconUrl,
+      logo_url: newLogoUrl,
+      og_image_url: newOgImageUrl,
+      centralize_leads: formData.centralize_leads,
+      whatsapp: formData.whatsapp,
+    });
 
-    if (error) {
-      setMessage({ text: `Erro ao salvar: ${error.message}`, type: "error" });
+    if (result.error) {
+      setMessage({ text: `Erro ao salvar: ${result.error}`, type: "error" });
     } else {
       const timestamp = Date.now();
       const getFinalUrl = (url: string | null) => {
@@ -218,6 +245,7 @@ export default function SEOPage() {
       setFaviconFile(null);
       setLogoFile(null);
       setBannerFile(null);
+      setUsedAIAssistant(false);
       setMessage({ text: "Configurações salvas com sucesso!", type: "success" });
       setTimeout(() => setMessage(null), 3000);
     }
@@ -246,47 +274,95 @@ export default function SEOPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto rounded-3xl shadow-sm border overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-      {/* Header */}
-      <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
-        <h1 className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>Configurações de SEO e Marca</h1>
-        <button className="p-1 rounded-full transition-colors" style={{ color: "var(--dash-text-secondary)" }}>
-          <X size={20} />
-        </button>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+          {businessModel === "B2C" ? "Configurações de SEO e Cartão Público" : "Configurações de SEO e Marca"}
+        </h1>
+        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+          {businessModel === "B2C" 
+            ? "Configure e otimize as informações de busca e compartilhamento do seu perfil público." 
+            : "Configure o SEO da sua empresa, logotipo, favicon e configurações de leads."}
+        </p>
       </div>
 
-      <div className="p-6 space-y-10">
-        
-        {/* 01 - IA Generator */}
-        <section className="space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>Assistente Inteligente</h2>
-          <div className="border rounded-2xl p-5 space-y-4" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-500/10">
-                  <Sparkles size={20} className="text-emerald-500" />
-                </div>
-                <div>
-                  <span className="text-sm font-bold block" style={{ color: "var(--dash-text-primary)" }}>Gerador SEO Automático</span>
-                  <span className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>Sugerir títulos e descrições com IA</span>
-                </div>
+      {/* 01 - IA Generator */}
+      <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--dash-text-secondary)" }}>Assistente Inteligente</h2>
+        <div className="border rounded-2xl p-5 space-y-4" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+          {/* Header */}
+          <div className="flex items-center gap-3 pb-3 border-b" style={{ borderColor: "var(--dash-border)" }}>
+            <div className="p-2 rounded-lg bg-emerald-500/10">
+              <Sparkles size={20} className="text-emerald-500" />
+            </div>
+            <div>
+              <span className="text-sm font-bold block" style={{ color: "var(--dash-text-primary)" }}>Gerador SEO Automático</span>
+              <span className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>Sugerir títulos e descrições com IA</span>
+            </div>
+          </div>
+          
+          {/* Inputs & Action */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>
+                  {businessModel === "B2C" ? "Nome profissional / Seu nome" : "Nome da empresa"}
+                </label>
+                <input
+                  type="text"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  placeholder={businessModel === "B2C" ? "Ex: Dr. João Silva" : "Ex: Maj Mobilidade"}
+                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-xs transition-all focus:border-emerald-500/50"
+                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>
+                  Ramo de Atuação
+                </label>
+                <input
+                  type="text"
+                  value={businessNiche}
+                  onChange={(e) => setBusinessNiche(e.target.value)}
+                  placeholder="Ex: Vestuário, Pizzaria, Advocacia"
+                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-xs transition-all focus:border-emerald-500/50"
+                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                />
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+              <div className="flex-1">
+                {(!orgName.trim() || !businessNiche.trim()) ? (
+                  <p className="text-[10px] font-bold text-amber-500/80 flex items-center gap-1 uppercase tracking-wider">
+                    ⚠️ Preencha o nome e o ramo de atuação para liberar o assistente de IA
+                  </p>
+                ) : (
+                  <p className="text-[10px] font-bold text-emerald-500 flex items-center gap-1 uppercase tracking-wider animate-pulse">
+                    ✨ Assistente liberado! Clique em Gerar Sugestões.
+                  </p>
+                )}
               </div>
               <button 
                 onClick={handleGenerateAI}
-                disabled={generating}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50 hover:scale-105 active:scale-95"
+                disabled={!orgName.trim() || !businessNiche.trim() || generating}
+                className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100 shrink-0 shadow-md hover:shadow-lg active:scale-95"
                 style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
               >
                 {generating ? <Loader2 size={16} className="animate-spin" /> : <><Sparkles size={14} /> Gerar Sugestões</>}
               </button>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* 02 - Conteúdo SEO */}
+      {/* 02 - Conteúdo SEO & Ativos de Marca */}
+      <div className="rounded-2xl border p-6 shadow-sm space-y-8" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        {/* Conteúdo SEO */}
         <section className="space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>01. Conteúdo da Página</h2>
-          
+          <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>01. Conteúdo da Página</h2>
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
@@ -330,9 +406,11 @@ export default function SEOPage() {
           </div>
         </section>
 
-        {/* 03 - Ativos de Marca */}
-        <section className="space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>02. Identidade e Logos</h2>
+        {/* Ativos de Marca */}
+        <section className="space-y-6 pt-6 border-t" style={{ borderColor: "var(--dash-border)" }}>
+          <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+            {businessModel === "B2C" ? "02. Identidade e Imagens" : "02. Identidade e Logos"}
+          </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Favicon */}
@@ -354,7 +432,9 @@ export default function SEOPage() {
 
             {/* Logo */}
             <div className="space-y-3">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Logotipo Principal</label>
+              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>
+                {businessModel === "B2C" ? "Foto de Perfil / Logotipo" : "Logotipo Principal"}
+              </label>
               <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5"
                    style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                    onClick={() => { setActiveUploadType("logo"); setShowImageEditor(true); }}>
@@ -387,99 +467,97 @@ export default function SEOPage() {
             </div>
           </div>
         </section>
-
-        {/* 04 - Configurações de Leads (CRM) */}
-        {businessModel === "B2B" && (
-          <section className="space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>03. Configurações de Leads (CRM)</h2>
-            
-            <div className="p-5 rounded-2xl border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
-              <div className="flex items-center justify-between">
-                <div className="flex gap-3">
-                  <div className={`mt-1 p-2 rounded-lg ${formData.centralize_leads ? "bg-emerald-500/10 text-emerald-600" : "bg-blue-500/10 text-blue-600"}`}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={formData.centralize_leads ? "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"} />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                      Centralizar Leads no WhatsApp da Empresa (CRM)
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-secondary)" }}>
-                      {formData.centralize_leads 
-                        ? "Leads serão enviados ao WhatsApp central com tag para transbordo no CRM." 
-                        : "Leads serão enviados diretamente para o WhatsApp do vendedor."}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setFormData({ ...formData, centralize_leads: !formData.centralize_leads })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                    formData.centralize_leads ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      formData.centralize_leads ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Input WhatsApp Central da Empresa */}
-              <div className="mt-6 pt-5 border-t" style={{ borderColor: "var(--dash-border)" }}>
-                <label className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
-                  Número de WhatsApp da Empresa (Opcional)
-                </label>
-                <input 
-                  type="text" 
-                  value={formData.whatsapp}
-                  onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
-                  placeholder="(00) 00000-0000"
-                  className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all"
-                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                />
-                <p className="text-[10px] mt-1.5" style={{ color: "var(--dash-text-muted)" }}>
-                  {formData.centralize_leads 
-                    ? "Este número receberá TODOS os leads da empresa (Centralização Ativa)." 
-                    : "Este número servirá como reserva caso algum vendedor esqueça de preencher o próprio WhatsApp."}
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* 05 - Google Preview */}
-        <section className="space-y-4 pt-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "var(--dash-text-muted)" }}>Pré-visualização no Google</h2>
-          <div className="rounded-2xl p-8 space-y-2 border shadow-sm transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 overflow-hidden">
-                {formData.favicon_url ? <img src={formData.favicon_url} className="w-full h-full object-cover" /> : <Globe size={10} className="text-zinc-400" />}
-              </div>
-              <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>{orgSlug}.com</p>
-            </div>
-            <h3 className="text-xl font-medium leading-tight" style={{ color: "#1a0dab" }}>
-              {formData.meta_title || "Título da sua empresa"}
-            </h3>
-            <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "#4d5156" }}>
-              {formData.meta_description || "A descrição que aparecerá nos resultados de busca do Google..."}
-            </p>
-          </div>
-        </section>
-
       </div>
 
-      {/* Footer */}
-      <div className="p-6 border-t flex items-center justify-end gap-4" style={{ background: "rgba(0,0,0,0.02)", borderColor: "var(--dash-border)" }}>
+      {/* 03 - CRM/Leads */}
+      {businessModel === "B2B" && (
+        <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>03. Configurações de Leads (CRM)</h2>
+          <div className="p-5 rounded-2xl border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex gap-3">
+                <div className={`mt-1 p-2 rounded-lg ${formData.centralize_leads ? "bg-emerald-500/10 text-emerald-600" : "bg-blue-500/10 text-blue-600"}`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={formData.centralize_leads ? "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"} />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                    Centralizar Leads no WhatsApp da Empresa (CRM)
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-secondary)" }}>
+                    {formData.centralize_leads 
+                      ? "Leads serão enviados ao WhatsApp central com tag para transbordo no CRM." 
+                      : "Leads serão enviados diretamente para o WhatsApp do vendedor."}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setFormData({ ...formData, centralize_leads: !formData.centralize_leads })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  formData.centralize_leads ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.centralize_leads ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Input WhatsApp Central da Empresa */}
+            <div className="mt-6 pt-5 border-t" style={{ borderColor: "var(--dash-border)" }}>
+              <label className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: "var(--dash-text-secondary)" }}>
+                Número de WhatsApp da Empresa (Opcional)
+              </label>
+              <input 
+                type="text" 
+                value={formData.whatsapp}
+                onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                placeholder="(00) 00000-0000"
+                className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all"
+                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+              />
+              <p className="text-[10px] mt-1.5" style={{ color: "var(--dash-text-muted)" }}>
+                {formData.centralize_leads 
+                  ? "Este número receberá TODOS os leads da empresa (Centralização Ativa)." 
+                  : "Este número servirá como reserva caso algum vendedor esqueça de preencher o próprio WhatsApp."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 04 - Google Preview */}
+      <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>Pré-visualização no Google</h2>
+        <div className="rounded-2xl p-8 space-y-2 border shadow-sm transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 overflow-hidden">
+              {formData.favicon_url ? <img src={formData.favicon_url} className="w-full h-full object-cover" /> : <Globe size={10} className="text-zinc-400" />}
+            </div>
+            <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>{orgSlug}.com</p>
+          </div>
+          <h3 className="text-xl font-medium leading-tight" style={{ color: "#1a0dab" }}>
+            {formData.meta_title || (businessModel === "B2C" ? "Título do seu perfil" : "Título da sua empresa")}
+          </h3>
+          <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "#4d5156" }}>
+            {formData.meta_description || "A descrição que aparecerá nos resultados de busca do Google..."}
+          </p>
+        </div>
+      </div>
+
+      {/* Save Button Row */}
+      <div className="flex items-center gap-4">
         <button 
-          onClick={handleSave}
+          onClick={handleSaveClick}
           disabled={saving}
-          className="px-10 py-3 rounded-xl text-sm font-black transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+          className="px-8 py-3 rounded-xl text-sm font-black transition-all shadow-md hover:scale-105 active:scale-95 disabled:opacity-50"
           style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
         >
-          {saving ? <Loader2 size={18} className="animate-spin" /> : "Salvar Configurações"}
+          {saving ? <Loader2 size={18} className="animate-spin" /> : (businessModel === "B2C" ? "Salvar Cartão Público" : "Salvar Configurações")}
         </button>
       </div>
 
@@ -494,17 +572,103 @@ export default function SEOPage() {
         }
         title={
           activeUploadType === "favicon" ? "Editar Favicon" : 
-          activeUploadType === "logo" ? "Editar Logotipo" : 
+          activeUploadType === "logo" ? (businessModel === "B2C" ? "Editar Foto/Logo" : "Editar Logotipo") : 
           "Editar Banner de SEO"
         }
         description={
           activeUploadType === "favicon" ? "Ícone que aparece na aba do navegador." : 
-          activeUploadType === "logo" ? "Logotipo exibido no topo do catálogo." : 
+          activeUploadType === "logo" ? (businessModel === "B2C" ? "Foto ou logotipo exibido no seu cartão público." : "Logotipo exibido no topo do catálogo.") : 
           "Banner para redes sociais."
         }
         targetWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 400 : 1200}
         targetHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : 630}
       />
+
+      <AiReviewModal
+        isOpen={!!reviewData}
+        onClose={() => setReviewData(null)}
+        onConfirm={(acceptedFields) => {
+          const acceptedAny = acceptedFields["title"] || acceptedFields["description"] || acceptedFields["keywords"];
+          setFormData(prev => ({
+            ...prev,
+            meta_title: acceptedFields["title"] ? reviewData.payload.title : prev.meta_title,
+            meta_description: acceptedFields["description"] ? reviewData.payload.description : prev.meta_description,
+            meta_keywords: acceptedFields["keywords"] ? reviewData.payload.keywords : prev.meta_keywords
+          }));
+          if (acceptedAny) {
+            setUsedAIAssistant(true);
+          }
+          setReviewData(null);
+        }}
+        title={reviewData?.title || ""}
+        explanation={reviewData?.explanation || ""}
+        changes={reviewData?.changes}
+      />
+
+      {/* AI Warning Confirmation Modal */}
+      <AnimatePresence>
+        {showAIWarning && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-6"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-primary)" }}>
+                    Revisar Textos Gerados
+                  </h3>
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">
+                    Aviso do Assistente de IA
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs font-semibold leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
+                Antes de salvar revise os textos gerados pelo assistente de IA pois o mesmo pode cometer erros.
+              </p>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setUsedAIAssistant(false);
+                    setShowAIWarning(false);
+                  }}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-zinc-500/5"
+                  style={{ color: "var(--dash-text-muted)" }}
+                >
+                  Revisar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAIWarning(false);
+                    setUsedAIAssistant(false);
+                    handleSave();
+                  }}
+                  className="px-6 py-2.5 rounded-xl text-xs font-black transition-all shadow-md hover:scale-105 active:scale-95"
+                  style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
+                >
+                  Ok
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {message && (
+        <div className={`fixed bottom-10 right-10 flex items-center gap-2 px-6 py-3 text-white rounded-2xl shadow-2xl z-50 animate-bounce ${
+          message.type === "success" ? "bg-emerald-500" : message.type === "error" ? "bg-rose-500" : "bg-blue-500"
+        }`}>
+          {message.type === "success" ? <CheckCircle2 size={20} /> : <Info size={20} />}
+          <span className="text-sm font-bold">{message.text}</span>
+        </div>
+      )}
     </div>
   );
 }

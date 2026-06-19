@@ -154,6 +154,11 @@ export default async function EmbedPage(props: PageProps) {
   const catalogData = primaryCatalog;
   const catalogId = primaryCatalog.id;
 
+  const customCatalog = catalogs.find(c => c.catalog_type !== 'CaaS' && c.catalog_type !== 'platform');
+  const finalOutOfStockAtEnd = customCatalog && customCatalog.out_of_stock_at_end !== undefined && customCatalog.out_of_stock_at_end !== null
+    ? customCatalog.out_of_stock_at_end
+    : (catalogData?.out_of_stock_at_end || false);
+
   const { data: categoriesData } = await supabase
     .from("categories")
     .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
@@ -217,6 +222,7 @@ export default async function EmbedPage(props: PageProps) {
         bannerSpeedSeconds={catalogData?.banner_speed_seconds || 5}
         bannerInitialIndex={catalogData?.banner_initial_index || 0}
         showBanners={catalogData?.show_banners !== false}
+        outOfStockAtEnd={finalOutOfStockAtEnd}
       />
     </div>
   );

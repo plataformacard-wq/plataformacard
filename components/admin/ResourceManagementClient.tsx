@@ -16,7 +16,7 @@ import {
   Cpu
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { getSaaSResourceMetrics, ResourceMetrics } from "@/app/admin/recursos/actions";
+import { getSaaSResourceMetrics, ResourceMetrics } from "@/app/main/recursos/actions";
 
 export default function ResourceManagementClient() {
   const [metrics, setMetrics] = useState<ResourceMetrics | null>(null);

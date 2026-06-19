@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { completeOnboarding } from "@/lib/auth/onboardingActions";
 import { isReservedSlug } from "@/lib/utils/reserved-slugs";
 
 function slugify(value: string) {
@@ -89,7 +90,7 @@ export default function OnboardingPage() {
         return;
       }
 
-      if (profile?.role !== "authorized" && profile?.role !== "superadmin") {
+      if (profile?.role !== "authorized" && profile?.role !== "main_admin") {
         router.replace("/dashboard");
         return;
       }
@@ -183,89 +184,17 @@ export default function OnboardingPage() {
       const trimmedWhatsapp = whatsapp.trim();
       const trimmedBio = bio.trim();
 
-      // 1. Criar ou buscar Organização
-      let orgId: string | null = null;
-      
-      // Para B2B e CaaS, geralmente criamos uma organização
-      // Para B2C, também criamos uma organização "Pessoal" para manter a estrutura do app
-      const orgName = businessModel === "B2B" ? `Empresa de ${trimmedName}` : trimmedName;
-      
-      const { data: newOrg, error: orgError } = await supabase
-        .from("organizations")
-        .insert({
-          name: orgName,
-          slug: trimmedSlug,
-          business_model: businessModel,
-          plan_id: "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0" // Starter
-        })
-        .select("id")
-        .single();
-
-      if (orgError) {
-        if (orgError.code === "23505") {
-          setSlugError("Este slug já está em uso por outra organização.");
-          setLoading(false);
-          return;
-        }
-        setFormError(`Erro ao criar organização: ${orgError.message}`);
-        setLoading(false);
-        return;
-      }
-      orgId = newOrg.id;
-
-      // 2. Atualizar ou Criar Perfil
-      const { data: existing, error: fetchError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (fetchError) {
-        setFormError(
-          fetchError.message || "Não foi possível salvar. Tente novamente."
-        );
-        return;
-      }
-
-      const roleMap = {
-        B2B: "b2b_admin",
-        B2C: "b2c_admin",
-        CaaS: "caas_admin",
-      };
-
-      const payload = {
-        full_name: trimmedName || null,
+      const { error } = await completeOnboarding({
+        fullName: trimmedName,
         slug: trimmedSlug,
         whatsapp: trimmedWhatsapp,
-        bio: trimmedBio || null,
-        avatar_url: avatarUrl || null,
-        organization_id: orgId,
-        role: roleMap[businessModel] || "admin"
-      };
-
-      const { error } = existing
-        ? await supabase
-            .from("profiles")
-            .update(payload)
-            .eq("user_id", user.id)
-        : await supabase.from("profiles").insert({
-            id: user.id,
-            user_id: user.id,
-            ...payload,
-          });
+        bio: trimmedBio,
+        avatarUrl: avatarUrl,
+        businessModel: businessModel
+      });
 
       if (error) {
-        if (error.code === "23505") {
-          if (error.message.includes("slug")) {
-            setSlugError("Este slug já está em uso. Escolha outro.");
-          } else {
-            setFormError(`Erro de constraint: ${error.message}`);
-          }
-          return;
-        }
-        setFormError(
-          error.message || "Não foi possível salvar. Tente novamente."
-        );
+        setFormError(error);
         return;
       }
 

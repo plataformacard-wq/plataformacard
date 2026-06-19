@@ -35,16 +35,16 @@ CREATE POLICY "Allow public read access to overrides"
   ON public.organization_product_overrides FOR SELECT
   USING (true);
 
--- Policy: Allow members or superadmins to manage overrides
-DROP POLICY IF EXISTS "Allow members or superadmins to manage overrides" ON public.organization_product_overrides;
-CREATE POLICY "Allow members or superadmins to manage overrides"
+-- Policy: Allow members or main_admins to manage overrides
+DROP POLICY IF EXISTS "Allow members or main_admins to manage overrides" ON public.organization_product_overrides;
+CREATE POLICY "Allow members or main_admins to manage overrides"
   ON public.organization_product_overrides FOR ALL
   USING (
     exists (
       select 1 from public.profiles
       where profiles.id = auth.uid()
       and (
-        profiles.role::text in ('superadmin', 'super_admin')
+        profiles.role::text in ('main_admin', 'main_admin')
         or profiles.organization_id = organization_product_overrides.organization_id
       )
     )

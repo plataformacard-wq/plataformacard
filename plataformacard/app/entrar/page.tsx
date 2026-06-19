@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -39,14 +39,14 @@ export default function LoginPage() {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Redireciona se já estiver logado
-  useState(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+  // Redireciona se já estiver logado (validação segura com getUser para evitar loops)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
         router.replace("/dashboard");
       }
     });
-  });
+  }, [supabase, router]);
 
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
