@@ -149,16 +149,16 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           .find((row) => row.startsWith("shadow_org_id="))
           ?.split("=")[1];
 
-        if (userRole === "superadmin") {
+        if (userRole === "main_admin") {
           if (!shadowOrgId && window.location.pathname.startsWith("/dashboard")) {
-            router.replace("/admin");
+            router.replace("/main");
             return;
           }
         }
 
         setHasShadowCookie(!!shadowOrgId);
 
-        const targetOrgId = (userRole === "superadmin" && shadowOrgId) 
+        const targetOrgId = (userRole === "main_admin" && shadowOrgId) 
           ? shadowOrgId 
           : profile.organization_id;
 
@@ -172,7 +172,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
 
             // Detecta excedência de plano (uso acima do limite)
             // Só verifica para clientes reais (não super admin sem shadow)
-            if (orgPlanId && userRole !== "superadmin") {
+            if (orgPlanId && userRole !== "main_admin") {
               try {
                 const usageResult = await getOrganizationStats(targetOrgId);
                 if (usageResult.success) {
@@ -188,7 +188,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             }
             
             // Se estiver em shadow mode, podemos querer mostrar o nome da empresa em algum lugar
-            if (shadowOrgId && userRole === "superadmin") {
+            if (shadowOrgId && userRole === "main_admin") {
               // Shadow mode ativo
             }
           } catch (oErr) {
@@ -216,7 +216,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         }
 
         // --- FETCH MASTER CATALOG NOTIFICATIONS ---
-        if (userRole !== "superadmin") {
+        if (userRole !== "main_admin") {
           try {
             const { data: notifs, error: notifErr } = await supabase
               .from("master_catalog_notifications")
@@ -289,11 +289,11 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   async function handleExitShadow() {
     const { stopShadowAccess } = await import("@/lib/admin-actions");
     await stopShadowAccess();
-    window.location.href = "/admin";
+    window.location.href = "/main";
   }
 
-  const isAdminPath = pathname.startsWith("/admin");
-  const isShadowMode = pathname.startsWith("/dashboard") && role === "superadmin" && hasShadowCookie;
+  const isAdminPath = pathname.startsWith("/main");
+  const isShadowMode = pathname.startsWith("/dashboard") && role === "main_admin" && hasShadowCookie;
 
   return (
     <div 

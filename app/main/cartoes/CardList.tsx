@@ -64,7 +64,7 @@ export default function CardList({ cards: initialCards }: CardListProps) {
                 <h3 className="font-bold text-lg truncate" style={{ color: "var(--dash-text-primary)" }}>
                   {card.full_name || "Sem Nome"}
                 </h3>
-                {card.role === 'superadmin' && <UserCheck size={14} className="text-primary" />}
+                {card.role === 'main_admin' && <UserCheck size={14} className="text-primary" />}
               </div>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-xs font-medium" style={{ color: "var(--dash-text-muted)" }}>
                 <span className="flex items-center gap-1">

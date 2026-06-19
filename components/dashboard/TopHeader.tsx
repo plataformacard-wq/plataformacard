@@ -137,7 +137,7 @@ export function TopHeader({
             <div className="hidden sm:flex flex-col items-start text-left">
               <span className="text-xs font-semibold leading-none text-[var(--dash-text-primary)]">{nome}</span>
               <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">
-                {role === "superadmin" ? "Admin QG" : 
+                {role === "main_admin" ? "MAIN Admin" : 
                  role === "b2b_admin" ? "Gestor B2B" : 
                  role === "b2c_admin" ? "Gestor Individual" : 
                  role === "caas_admin" ? "Gestor Catálogo" : 

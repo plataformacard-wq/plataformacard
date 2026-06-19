@@ -18,7 +18,7 @@ export default async function GlobalAnalyticsPage() {
   const { data: profiles } = await supabase
     .from("profiles")
     .select("created_at")
-    .neq("role", "superadmin");
+    .neq("role", "main_admin");
 
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const growthMap: Record<string, number> = {};

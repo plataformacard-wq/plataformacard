@@ -22,7 +22,7 @@ export default async function ConfiguracoesPage() {
   const cookieStore = await cookies();
   const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
 
-  const isSuperAdmin = profile?.role === "superadmin";
+  const isSuperAdmin = profile?.role === "main_admin";
   const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
 
   if (!activeOrgId) {

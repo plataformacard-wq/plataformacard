@@ -21,7 +21,7 @@ export async function activateCatalog(formData: FormData) {
     throw new Error(`Erro ao ativar catálogo: ${error.message}`);
   }
 
-  revalidatePath("/admin/catalogos");
+  revalidatePath("/main/catalogos");
 }
 
 export async function deactivateCatalog(formData: FormData) {
@@ -42,7 +42,7 @@ export async function deactivateCatalog(formData: FormData) {
     throw new Error("Erro ao desativar catálogo");
   }
 
-  revalidatePath("/admin/catalogos");
+  revalidatePath("/main/catalogos");
 }
 
 export async function createCatalog(formData: FormData) {
@@ -66,5 +66,5 @@ export async function createCatalog(formData: FormData) {
     throw new Error(`Erro ao criar catálogo: ${error.message}`);
   }
 
-  revalidatePath("/admin/catalogos");
+  revalidatePath("/main/catalogos");
 }

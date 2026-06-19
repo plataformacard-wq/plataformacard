@@ -70,7 +70,7 @@ export default function SEOPage() {
           .find((row) => row.startsWith("shadow_org_id="))
           ?.split("=")[1];
 
-        const isSuperAdmin = profile?.role === "superadmin";
+        const isSuperAdmin = profile?.role === "main_admin";
         const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
 
         if (activeOrgId) {

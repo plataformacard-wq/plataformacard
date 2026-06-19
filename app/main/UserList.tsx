@@ -132,7 +132,7 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    p.role === 'superadmin' ? 'bg-red-500/10 text-red-500' :
+                    p.role === 'main_admin' ? 'bg-red-500/10 text-red-500' :
                     p.role === 'b2b_admin' ? 'bg-blue-500/10 text-blue-500' :
                     p.role === 'b2c_admin' ? 'bg-emerald-500/10 text-emerald-500' :
                     p.role === 'authorized' ? 'bg-violet-500/10 text-violet-500' :

@@ -38,7 +38,7 @@ export default async function AdminDashboardPage() {
   const { data: recentProfiles } = await supabase
     .from("profiles")
     .select(`id, full_name, slug, role, created_at, organization_id, organizations ( id, name, business_model )`)
-    .neq("role", "superadmin")
+    .neq("role", "main_admin")
     .neq("role", "seller")
     .order("created_at", { ascending: false })
     .limit(10);

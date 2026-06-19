@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 interface SidebarProps {
-  role: "superadmin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
+  role: "main_admin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
   businessModel: "B2B" | "B2C" | "CaaS";
   planId?: string | null;
   isOpen: boolean;
@@ -65,39 +65,39 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
   };
 
   // DETERMINAÇÃO DO MENU (QG vs CLIENTE)
-  const isAdminPath = pathname.startsWith("/admin");
+  const isAdminPath = pathname.startsWith("/main");
   let navLinks: NavLink[] = [];
-  const isActuallySuperAdmin = role === "superadmin";
+  const isActuallySuperAdmin = role === "main_admin";
 
   if (isAdminPath && !isShadowMode) {
     // Menu exclusivo do Super Admin (QG) - Centro de Inteligência
     navLinks = [
-      { href: "/admin", label: "Dashboard (QG)", icon: LayoutDashboard },
+      { href: "/main", label: "Dashboard (QG)", icon: LayoutDashboard },
       { 
         label: "BI & Analytics", 
         icon: BarChart3,
         subItems: [
-          { href: "/admin/analytics?tab=b2b", label: "Desempenho B2B", icon: Building2 },
-          { href: "/admin/analytics?tab=b2c", label: "Métricas B2C", icon: Users },
-          { href: "/admin/analytics?tab=caas", label: "Gestão CaaS", icon: Globe },
+          { href: "/main/analytics?tab=b2b", label: "Desempenho B2B", icon: Building2 },
+          { href: "/main/analytics?tab=b2c", label: "Métricas B2C", icon: Users },
+          { href: "/main/analytics?tab=caas", label: "Gestão CaaS", icon: Globe },
         ]
       },
       { 
         label: "Gestão SaaS", 
         icon: Building2,
         subItems: [
-          { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
-          { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
-          { href: "/admin/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
-          { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
+          { href: "/main/clientes", label: "Empresas (Raio-X)", icon: Users },
+          { href: "/main/cartoes", label: "Cartões Públicos", icon: UserCircle },
+          { href: "/main/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
+          { href: "/main/recursos", label: "Gestão de Recursos", icon: HardDrive },
         ]
       },
       { 
         label: "Configurações", 
         icon: ShieldCheck,
         subItems: [
-          { href: "/admin/settings", label: "Geral & Planos", icon: Settings },
-          { href: "/admin/maintenance", label: "Manutenção Global", icon: Info },
+          { href: "/main/settings", label: "Geral & Planos", icon: Settings },
+          { href: "/main/maintenance", label: "Manutenção Global", icon: Info },
         ]
       },
     ];
@@ -113,13 +113,13 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Plataforma QG", 
         icon: ShieldCheck,
         subItems: [
-          { href: "/admin", label: "Dashboard (QG)", icon: LayoutDashboard },
-          { href: "/admin/analytics?tab=b2b", label: "BI & Analytics", icon: BarChart3 },
-          { href: "/admin/clientes", label: "Gestão de Empresas", icon: Users },
-          { href: "/admin/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
-          { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
-          { href: "/admin/maintenance", label: "Manutenção Global", icon: Info },
-          { href: "/admin/settings", label: "Configurações Globais", icon: Settings },
+          { href: "/main", label: "Dashboard (QG)", icon: LayoutDashboard },
+          { href: "/main/analytics?tab=b2b", label: "BI & Analytics", icon: BarChart3 },
+          { href: "/main/clientes", label: "Gestão de Empresas", icon: Users },
+          { href: "/main/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
+          { href: "/main/recursos", label: "Gestão de Recursos", icon: HardDrive },
+          { href: "/main/maintenance", label: "Manutenção Global", icon: Info },
+          { href: "/main/settings", label: "Configurações Globais", icon: Settings },
         ]
       });
     }
@@ -231,7 +231,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
           {/* Logo Area */}
           <div className={`mb-10 flex items-center px-4 ${isCollapsed ? "justify-center" : "justify-between"}`}>
-            <Link href={isAdminPath ? "/admin" : "/dashboard"} className="flex items-center gap-2 group">
+            <Link href={isAdminPath ? "/main" : "/dashboard"} className="flex items-center gap-2 group">
               <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
                 <span className="text-white font-bold text-sm">P</span>
               </div>

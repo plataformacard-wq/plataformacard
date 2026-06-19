@@ -19,7 +19,7 @@ function EditorContent() {
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-[var(--dash-surface)] rounded-xl border border-[var(--dash-border)]">
         <p className="font-bold text-[var(--dash-text-muted)] mb-4">Nenhum catálogo especificado para edição.</p>
         <button 
-          onClick={() => router.push("/admin/caas")}
+          onClick={() => router.push("/main/caas")}
           className="px-6 py-2 bg-purple-500 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-purple-600 transition-all"
         >
           Voltar para CaaS
@@ -33,7 +33,7 @@ function EditorContent() {
       {/* Voltar */}
       <div>
         <button
-          onClick={() => router.push("/admin/caas")}
+          onClick={() => router.push("/main/caas")}
           className="px-5 py-3 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg text-[var(--dash-text-secondary)] hover:text-purple-500 hover:border-purple-500/50 transition-all flex items-center gap-2 text-xs font-black uppercase tracking-widest"
         >
           <ArrowLeft size={16} /> Voltar para QG CaaS

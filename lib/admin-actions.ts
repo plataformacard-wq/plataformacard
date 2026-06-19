@@ -31,7 +31,7 @@ export async function updateSystemConfig(key: string, value: string) {
     });
   }
  
-  revalidatePath("/admin");
+  revalidatePath("/main");
   revalidatePath("/dashboard");
   revalidatePath("/cadastro");
   
@@ -82,7 +82,7 @@ export async function updateOrganizationPlan(orgId: string, planId: string) {
     return { error: "Falha ao atualizar o plano." };
   }
  
-  revalidatePath("/admin/clientes");
+  revalidatePath("/main/clientes");
   return { success: true };
 }
  
@@ -106,7 +106,7 @@ export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C
       .eq('organization_id', orgId)
       .in('role', ['b2b_admin', 'b2c_admin', 'admin']);
  
-    // revalidatePath("/admin"); // Removido para evitar race condition no modal
+    // revalidatePath("/main"); // Removido para evitar race condition no modal
     return { success: true };
   } catch (error: any) {
     console.error("Erro ao atualizar modelo de negócio:", error);

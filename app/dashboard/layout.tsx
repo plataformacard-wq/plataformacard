@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();
   const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
 
-  const isSuperAdmin = profile?.role === "superadmin";
+  const isSuperAdmin = profile?.role === "main_admin";
   const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
 
   if (activeOrgId) {
@@ -66,14 +66,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (profile?.role === "superadmin") {
+  if (profile?.role === "main_admin") {
     // Se for Super Admin, só permite acesso ao /dashboard em Shadow Mode (simulação de cliente)
     const cookieStore = await cookies();
     const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
 
     if (!shadowOrgId) {
       // Sem cookie de simulação → redireciona para o QG do Admin
-      redirect("/admin");
+      redirect("/main");
     }
   }
 

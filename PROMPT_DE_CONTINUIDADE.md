@@ -20,6 +20,6 @@ Durante as sessões recentes, resolvemos os seguintes pontos:
 1. **[CONCLUÍDO] Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolvido no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/`) uma área dedicada para cadastrar as imagens do banner.
 2. **[CONCLUÍDO] Tela de Assinatura e Planos (Minha Assinatura)**: Rota `/dashboard/assinatura` e Sidebar integradas. Exibe consumo de limites em tempo real e redireciona de forma segura para os checkouts apropriados anexando referências da organização.
 3. **[CONCLUÍDO] Ajuste de Suavização de Borda**: Aplicado o arredondamento de bordas mais sóbrio e moderno na página `AssinaturaClient.tsx` (cantos reduzidos para `rounded-xl`/`rounded-lg`).
-4. **[PENDENTE] Tela de Gestão de Assinaturas & Financeiro no Super Admin (QG)**: Criar uma página dedicada no painel de administração global (Super Admin / QG) para o gerenciamento de assinaturas, controle e overrides de recursos das organizações e parametrização financeira/planos diretamente pelo painel administrativo.
+4. **[CONCLUÍDO] Tela de Gestão de Assinaturas & Financeiro no Super Admin (QG)**: Criar uma página dedicada no painel de administração global (Super Admin / QG) para o gerenciamento de assinaturas, controle e overrides de recursos das organizações e parametrização financeira/planos diretamente pelo painel administrativo.
 5. Continuar com os testes de vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/PENDENCIAS.md).
 

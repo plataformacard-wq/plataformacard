@@ -20,7 +20,7 @@ export default async function CartoesPage() {
         name
       )
     `)
-    .neq("role", "superadmin")
+    .neq("role", "main_admin")
     .order("full_name");
 
   // 2. Fetch Global Analytics Events for aggregation

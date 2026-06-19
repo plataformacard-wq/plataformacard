@@ -103,7 +103,7 @@ export async function createSeller(formData: FormData) {
     return { error: "Organização não encontrada." };
   }
 
-  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  const allowedRoles = ["b2b_admin", "main_admin", "admin"];
   if (!allowedRoles.includes(profileManager.role)) {
     return { error: "Permissão negada." };
   }
@@ -112,7 +112,7 @@ export async function createSeller(formData: FormData) {
   const cookieStore = await cookies();
   const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
 
-  const activeOrgId = (profileManager.role === "superadmin" && shadowOrgId)
+  const activeOrgId = (profileManager.role === "main_admin" && shadowOrgId)
     ? shadowOrgId
     : profileManager.organization_id;
 
@@ -224,17 +224,17 @@ export async function updateSeller(sellerId: string, profileData: any) {
     // 2. Valida se o usuário tem privilégios na organização do vendedor
     await verifyOrgAdmin(sellerProfile.organization_id);
  
-    // 3. Sanitização: Apenas Super Admin pode alterar a organização ou promover para superadmin
+    // 3. Sanitização: Apenas Super Admin pode alterar a organização ou promover para main_admin
     const { data: callerProfile } = await adminAuthClient
       .from("profiles")
       .select("role")
       .eq("id", adminUser.id)
       .maybeSingle();
  
-    const isSuperAdmin = callerProfile?.role === "superadmin" || callerProfile?.role === "super_admin";
+    const isSuperAdmin = callerProfile?.role === "main_admin" || callerProfile?.role === "main_admin";
     if (!isSuperAdmin) {
       delete profileData.organization_id;
-      if (profileData.role && (profileData.role === "superadmin" || profileData.role === "super_admin")) {
+      if (profileData.role && (profileData.role === "main_admin" || profileData.role === "main_admin")) {
         delete profileData.role;
       }
     }
@@ -312,7 +312,7 @@ export async function getSellers() {
   const cookieStore = await cookies();
   const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
 
-  const activeOrgId = (profileManager.role === "superadmin" && shadowOrgId)
+  const activeOrgId = (profileManager.role === "main_admin" && shadowOrgId)
     ? shadowOrgId
     : profileManager.organization_id;
 
@@ -352,7 +352,7 @@ export async function deleteSeller(userId: string) {
     .eq("user_id", user.id)
     .single();
 
-  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  const allowedRoles = ["b2b_admin", "main_admin", "admin"];
   if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
@@ -386,7 +386,7 @@ export async function terminateSeller(sellerId: string) {
     .eq("user_id", adminUser.id)
     .single();
 
-  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  const allowedRoles = ["b2b_admin", "main_admin", "admin"];
   if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
@@ -423,7 +423,7 @@ export async function updateSellerPassword(userId: string, newPassword: string) 
     .eq("user_id", user.id)
     .single();
 
-  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  const allowedRoles = ["b2b_admin", "main_admin", "admin"];
   if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
@@ -459,7 +459,7 @@ export async function updateSellerPermissions(userId: string, canCustomizeHours:
     .eq("user_id", user.id)
     .single();
 
-  const allowedRoles = ["b2b_admin", "superadmin", "admin"];
+  const allowedRoles = ["b2b_admin", "main_admin", "admin"];
   if (!allowedRoles.includes(profileManager?.role)) {
     return { error: "Permissão negada." };
   }
@@ -530,18 +530,27 @@ export async function getOrCreateCatalog(orgId: string) {
     }
 
     // Vincular à organização
-    const { error: linkError } = await adminClient
+    const { data: orgCatLink, error: linkError } = await adminClient
       .from("organization_catalogs")
       .insert({
         organization_id: orgId,
         catalog_id: newCatalog.id,
         is_enabled: true
-      });
+      })
+      .select("id")
+      .single();
 
-    if (linkError) {
+    if (linkError || !orgCatLink) {
       console.error("Erro ao vincular catálogo no admin:", linkError);
-      return { error: `Erro ao vincular catálogo: ${linkError.message}` };
+      return { error: `Erro ao vincular catálogo: ${linkError?.message || "Erro desconhecido"}` };
     }
+
+    // Criar profile_catalogs fallback
+    await adminClient.from("profile_catalogs").insert({
+      profile_id: userId,
+      organization_catalog_id: orgCatLink.id,
+      is_selected: true
+    });
 
     catId = newCatalog.id;
   }
@@ -556,6 +565,36 @@ export async function getOrCreateCatalog(orgId: string) {
   if (catalogFetchError || !catalogData) {
     console.error("Erro ao buscar catálogo completo:", catalogFetchError);
     return { error: `Erro ao buscar catálogo: ${catalogFetchError?.message || "Não encontrado"}` };
+  }
+
+  // Fallback extra: se o catálogo já existia, mas o profile_catalogs não (por conta do bug antigo), 
+  // tentamos garantir que ele exista silenciosamente
+  if (ownCatalogLink?.catalog_id) {
+    const { data: profCat } = await adminClient
+      .from("profile_catalogs")
+      .select("id")
+      .eq("profile_id", userId)
+      .limit(1)
+      .maybeSingle();
+      
+    if (!profCat) {
+      // Pega o organization_catalog id
+      const { data: orgCat } = await adminClient
+        .from("organization_catalogs")
+        .select("id")
+        .eq("organization_id", orgId)
+        .eq("catalog_id", catId)
+        .limit(1)
+        .maybeSingle();
+        
+      if (orgCat) {
+        await adminClient.from("profile_catalogs").insert({
+          profile_id: userId,
+          organization_catalog_id: orgCat.id,
+          is_selected: true
+        });
+      }
+    }
   }
 
   return { success: true, catalog: catalogData };
@@ -585,7 +624,7 @@ export async function updateOrganizationSEO(orgId: string, payload: {
       .eq("user_id", user.id)
       .single();
 
-    const isSuperAdmin = profile?.role === "superadmin" || profile?.role === "super_admin";
+    const isSuperAdmin = profile?.role === "main_admin" || profile?.role === "main_admin";
     if (profile?.organization_id !== orgId && !isSuperAdmin) {
       return { error: "Sem permissão para atualizar esta organização." };
     }

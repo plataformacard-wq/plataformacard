@@ -53,7 +53,7 @@ export default function LoginPage() {
     setErrorMessage("");
     setLoadingEmail(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -62,6 +62,21 @@ export default function LoginPage() {
       setLoadingEmail(false);
       setErrorMessage(error.message);
       return;
+    }
+
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .single();
+        
+      if (profile?.role === 'main_admin') {
+        await supabase.auth.signOut();
+        setLoadingEmail(false);
+        setErrorMessage("Acesso restrito. Utilize o portal MAIN para administrar a plataforma.");
+        return;
+      }
     }
 
     router.push("/dashboard");

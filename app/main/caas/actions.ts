@@ -111,7 +111,7 @@ export async function assignMasterCatalog(orgId: string, catalogId: string | nul
     }
   }
 
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
@@ -124,7 +124,7 @@ export async function createMasterCatalog(name: string, description: string) {
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('role', 'superadmin')
+    .eq('role', 'main_admin')
     .maybeSingle();
 
   if (!profile) {
@@ -148,7 +148,7 @@ export async function createMasterCatalog(name: string, description: string) {
     throw new Error(`Erro ao criar catálogo master: ${error.message}`);
   }
 
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   return { success: true, id: inserted.id };
 }
 
@@ -204,7 +204,7 @@ export async function updateMasterCatalog(
     .eq("id", id);
 
   if (error) throw error;
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
@@ -218,7 +218,7 @@ export async function deleteMasterCatalog(id: string) {
     .eq("id", id);
 
   if (error) throw error;
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
@@ -232,7 +232,7 @@ export async function restoreMasterCatalog(id: string) {
     .eq("id", id);
 
   if (error) throw error;
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
@@ -248,7 +248,7 @@ export async function permanentlyDeleteMasterCatalog(id: string) {
     .eq("id", id);
 
   if (error) throw error;
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   revalidatePath("/[slug]/catalogo", "layout");
   return { success: true };
 }
@@ -330,7 +330,7 @@ export async function duplicateMasterCatalog(sourceId: string) {
     }
   }
 
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   return { success: true };
 }
 
@@ -346,6 +346,6 @@ export async function toggleCaasDetachmentPermission(orgId: string, isAllowed: b
     console.error("toggleCaasDetachmentPermission error:", error);
     throw new Error("Erro ao atualizar permissão de desvinculação.");
   }
-  revalidatePath("/admin/caas");
+  revalidatePath("/main/caas");
   return { success: true };
 }

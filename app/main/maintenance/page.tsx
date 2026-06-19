@@ -122,7 +122,7 @@ export default function MaintenancePage() {
             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-3">
                <AlertTriangle className="text-red-500 shrink-0" size={18} />
                <p className="text-xs text-red-500 font-medium leading-relaxed">
-                 O modo manutenção impedirá o acesso de todos os usuários (exceto superadmins) ao painel administrativo.
+                 O modo manutenção impedirá o acesso de todos os usuários (exceto main_admins) ao painel administrativo.
                </p>
             </div>
           )}

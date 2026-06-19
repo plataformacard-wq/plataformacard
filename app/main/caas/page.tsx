@@ -132,7 +132,7 @@ export default async function CaasAdminPage({ searchParams }: PageProps) {
       {/* Tab Selector Switcher */}
       <div className="flex bg-[var(--dash-hover-bg)] p-1 rounded-lg border border-[var(--dash-border)] w-fit">
         <Link
-          href="/admin/caas?tab=distribuicao"
+          href="/main/caas?tab=distribuicao"
           className={`flex items-center gap-2 px-5 py-3 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${
             tab === "distribuicao" 
               ? "bg-white text-black shadow-sm" 
@@ -143,7 +143,7 @@ export default async function CaasAdminPage({ searchParams }: PageProps) {
           Distribuição & CaaS
         </Link>
         <Link
-          href="/admin/caas?tab=analise"
+          href="/main/caas?tab=analise"
           className={`flex items-center gap-2 px-5 py-3 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${
             tab === "analise" 
               ? "bg-white text-black shadow-sm" 
