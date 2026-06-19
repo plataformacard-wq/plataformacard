@@ -18,7 +18,8 @@ import {
   Clock,
   Info,
   Globe,
-  HardDrive
+  HardDrive,
+  BadgeDollarSign
 } from "lucide-react";
 
 interface SidebarProps {
@@ -85,6 +86,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Gestão SaaS", 
         icon: Building2,
         subItems: [
+          { href: "/admin/assinaturas", label: "Assinaturas & Planos", icon: BadgeDollarSign },
           { href: "/admin/clientes", label: "Empresas (Raio-X)", icon: Users },
           { href: "/admin/cartoes", label: "Cartões Públicos", icon: UserCircle },
           { href: "/admin/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
@@ -114,6 +116,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         subItems: [
           { href: "/admin", label: "Dashboard (QG)", icon: LayoutDashboard },
           { href: "/admin/analytics?tab=b2b", label: "BI & Analytics", icon: BarChart3 },
+          { href: "/admin/assinaturas", label: "Assinaturas & Planos", icon: BadgeDollarSign },
           { href: "/admin/clientes", label: "Gestão de Empresas", icon: Users },
           { href: "/admin/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
           { href: "/admin/recursos", label: "Gestão de Recursos", icon: HardDrive },
@@ -138,9 +141,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Catálogo", 
         icon: BookOpen,
         subItems: [
-          { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
-          { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
-          { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
+          { href: "/dashboard/catalogo/configuracoes", label: "Configure seu catálogo", icon: Settings },
+          { href: "/dashboard/catalogo", label: "Adicionar/Gerenciar categorias e produtos", icon: BookOpen },
+          { href: "/dashboard/catalogo/bulk", label: "Ações em Massa no catálogo", icon: LayoutDashboard },
         ]
       });
 
@@ -177,9 +180,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           label: "Catálogo", 
           icon: BookOpen,
           subItems: [
-            { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
-            { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
-            { href: "/dashboard/catalogo/configuracoes", label: "Configurações", icon: Settings },
+            { href: "/dashboard/catalogo/configuracoes", label: "Configure seu catálogo", icon: Settings },
+            { href: "/dashboard/catalogo", label: "Adicionar/Gerenciar categorias e produtos", icon: BookOpen },
+            { href: "/dashboard/catalogo/bulk", label: "Ações em Massa no catálogo", icon: LayoutDashboard },
           ]
         } as any);
       }

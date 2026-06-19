@@ -14,11 +14,13 @@ import {
   TrendingUp,
   Mail,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  BadgeDollarSign
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess } from "@/lib/admin-actions";
+import { getInvoices, toggleInvoiceStatus, toggleAutoUpsell } from "@/lib/finance-actions";
 import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS } from "@/lib/plans";
 
 interface ClientDetailModalProps {
@@ -44,6 +46,11 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const [updatingModel, setUpdatingModel] = useState(false);
   const [showSellers, setShowSellers] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
+  
+  // Finance State
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [autoUpsellEnabled, setAutoUpsellEnabled] = useState(organization?.auto_upsell_enabled ?? true);
+  const [showFinance, setShowFinance] = useState(false);
   // Estado para o painel de confirmação de downgrade
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
   const [downgradeConflicts, setDowngradeConflicts] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
@@ -53,6 +60,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
     if (organization) {
       setCurrentPlan(organization.plan_id || '');
       setBusinessModel(organization.business_model || 'B2B');
+      setAutoUpsellEnabled(organization.auto_upsell_enabled ?? true);
     }
   }, [organization]);
 
@@ -78,6 +86,10 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             .is("deleted_at", null)
             .order("created_at", { ascending: false })
             .limit(10);
+            
+          // 4. Busca faturas (Extrato)
+          const fetchedInvoices = await getInvoices(organization.id);
+          setInvoices(fetchedInvoices);
 
           if (result.success) {
             setStats({
@@ -164,6 +176,23 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const diffTime = expirationDate.getTime() - now.getTime();
   const monthsRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)));
 
+  const handleToggleAutoUpsell = async () => {
+    const newValue = !autoUpsellEnabled;
+    setAutoUpsellEnabled(newValue);
+    await toggleAutoUpsell(organization.id, newValue);
+  };
+
+  const handleToggleInvoice = async (invoiceId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "PAID" ? "PENDING" : "PAID";
+    // Optimistic update
+    setInvoices(prev => prev.map(inv => inv.id === invoiceId ? { ...inv, status: newStatus } : inv));
+    const result = await toggleInvoiceStatus(invoiceId, newStatus);
+    if (!result.success) {
+      // Revert on failure
+      setInvoices(prev => prev.map(inv => inv.id === invoiceId ? { ...inv, status: currentStatus } : inv));
+    }
+  };
+
   const [showContract, setShowContract] = useState(false);
 
   if (!isOpen || !organization) return null;
@@ -185,7 +214,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-[40px] shadow-2xl border border-[var(--dash-border)]"
+          className="relative w-full max-w-2xl overflow-hidden rounded-xl shadow-2xl border border-[var(--dash-border)]"
           style={{ background: "var(--dash-surface)" }}
         >
           {/* Header Color Bar */}
@@ -201,7 +230,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           <div className="p-8 sm:p-12 max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* Top Info */}
             <div className="flex items-center gap-6 mb-10">
-              <div className={`h-20 w-20 rounded-3xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+              <div className={`h-20 w-20 rounded-xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
                 <Building2 size={40} />
               </div>
               <div>
@@ -214,15 +243,15 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     {/* AÇÕES DE COMANDO UNIFICADAS NO MODAL */}
                     <div className="flex flex-wrap items-center gap-4 py-2">
                        {/* Seletor B2B/B2C */}
-                       <div className="flex p-1 bg-[var(--dash-bg)] rounded-xl border border-[var(--dash-border)] relative">
+                       <div className="flex p-1 bg-[var(--dash-bg)] rounded-md border border-[var(--dash-border)] relative">
                         {updatingModel && (
-                          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
+                          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-md z-10 flex items-center justify-center">
                             <RefreshCw size={10} className="animate-spin text-white" />
                           </div>
                         )}
                         <button 
                           onClick={() => handleModelToggle('B2B')}
-                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                          className={`px-4 py-1.5 rounded-sm text-[10px] font-black transition-all ${
                             businessModel === 'B2B' 
                               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                               : 'text-[var(--dash-text-muted)] hover:text-blue-500'
@@ -232,7 +261,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         </button>
                         <button 
                           onClick={() => handleModelToggle('B2C')}
-                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                          className={`px-4 py-1.5 rounded-sm text-[10px] font-black transition-all ${
                             businessModel === 'B2C' 
                               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                               : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
@@ -248,11 +277,12 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           value={currentPlan || ''}
                           disabled={updatingPlan}
                           onChange={(e) => handlePlanChange(e.target.value)}
-                          className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                          className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
                         >
-                          <option value="">SELECIONE UM PLANO</option>
-                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: START</option>
+                          <option value="">SEM PLANO</option>
+                          <option value="a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d">PLANO: STARTER</option>
                           <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: BASIC</option>
+                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: PRO</option>
                           <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">PLANO: ENTERPRISE</option>
                         </select>
                         {updatingPlan && (
@@ -268,7 +298,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                       <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="w-full mt-3 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10"
+                        className="w-full mt-3 p-4 rounded-lg border border-amber-500/30 bg-amber-500/10"
                       >
                         <div className="flex items-start gap-3 mb-3">
                           <AlertTriangle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
@@ -283,7 +313,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         </div>
                         <div className="flex flex-wrap gap-2 mb-4">
                           {downgradeConflicts.map((c) => (
-                            <div key={c.resource} className="flex items-center gap-1.5 text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-500 px-2.5 py-1 rounded-lg">
+                            <div key={c.resource} className="flex items-center gap-1.5 text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-500 px-2.5 py-1 rounded-sm">
                               <span>{c.label}:</span>
                               <span>{c.current} ativos</span>
                               <span className="opacity-50">/</span>
@@ -294,14 +324,14 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         <div className="flex gap-2">
                           <button
                             onClick={cancelDowngrade}
-                            className="flex-1 py-2 rounded-xl border border-[var(--dash-border)] text-[10px] font-black uppercase text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-all"
+                            className="flex-1 py-2 rounded-md border border-[var(--dash-border)] text-[10px] font-black uppercase text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] transition-all"
                           >
                             Cancelar
                           </button>
                           <button
                             onClick={() => pendingPlanId && applyPlanChange(pendingPlanId)}
                             disabled={updatingPlan}
-                            className="flex-1 py-2 rounded-xl bg-amber-500 text-white text-[10px] font-black uppercase hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                            className="flex-1 py-2 rounded-md bg-amber-500 text-white text-[10px] font-black uppercase hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
                           >
                             {updatingPlan ? <RefreshCw size={10} className="animate-spin" /> : null}
                             Confirmar Downgrade
@@ -316,7 +346,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
               {/* 01 - Vendedores */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <Users className="text-blue-500 mb-2" size={18} />
                 <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.userCount}
@@ -325,7 +355,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               </div>
 
               {/* 02 - Categorias */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <TrendingUp className="text-purple-500 mb-2" size={18} />
                 <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.categoryCount}
@@ -334,7 +364,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               </div>
 
               {/* 03 - Produtos */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <Package className="text-primary mb-2" size={18} />
                 <p className="text-xl font-black" style={{ color: "var(--dash-text-primary)" }}>
                   {loading ? "..." : stats.productCount}
@@ -343,7 +373,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               </div>
 
               {/* 04 - Saúde */}
-              <div className="p-4 rounded-3xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
+              <div className="p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)]">
                 <ShieldAlert className="text-emerald-500 mb-2" size={18} />
                 <p className="text-xl font-black text-emerald-500">Alta</p>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Saúde</p>
@@ -353,13 +383,13 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
             {/* Details Section */}
             <div className="space-y-4 mb-10">
                {/* URL / CARTÕES - VISÃO HÍBRIDA B2B/B2C */}
-               <div className="flex flex-col rounded-2xl border border-[var(--dash-border)] overflow-hidden">
+               <div className="flex flex-col rounded-lg border border-[var(--dash-border)] overflow-hidden">
                   <div 
                     onClick={() => businessModel === 'B2B' && setShowSellers(!showSellers)}
                     className={`flex items-center justify-between p-4 bg-[var(--dash-surface)] transition-all ${businessModel === 'B2B' ? 'cursor-pointer hover:bg-primary/5' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
                         {businessModel === 'B2B' ? <Users size={16} /> : <Globe size={16} />}
                       </div>
                       <div>
@@ -391,7 +421,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     >
                       <div className="p-2 space-y-1">
                         {stats.sellers.length > 0 ? stats.sellers.map((seller, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-md hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
                             <div className="min-w-0">
                               <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{seller.full_name}</p>
                               <p className="text-xs font-bold text-[var(--dash-text-muted)] truncate lowercase tracking-tight">
@@ -401,7 +431,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                             <a 
                               href={`/${seller.slug}`} 
                               target="_blank" 
-                              className="p-2.5 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-muted)] group-hover:text-primary transition-all shadow-sm group-hover:scale-110 active:scale-95"
+                              className="p-2.5 rounded-md bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-muted)] group-hover:text-primary transition-all shadow-sm group-hover:scale-110 active:scale-95"
                             >
                               <ExternalLink size={14} />
                             </a>
@@ -417,13 +447,13 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                </div>
 
                {/* LISTA DE PRODUTOS */}
-               <div className="flex flex-col rounded-2xl border border-[var(--dash-border)] overflow-hidden">
+               <div className="flex flex-col rounded-lg border border-[var(--dash-border)] overflow-hidden">
                   <div 
                     onClick={() => setShowProducts(!showProducts)}
                     className="flex items-center justify-between p-4 bg-[var(--dash-surface)] cursor-pointer hover:bg-primary/5 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
                         <Package size={16} />
                       </div>
                       <div>
@@ -444,14 +474,14 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                     >
                       <div className="p-2 space-y-1">
                         {stats.productsList.length > 0 ? stats.productsList.map((product, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-md hover:bg-[var(--dash-surface)] transition-all border border-transparent hover:border-[var(--dash-border)] group">
                             <div className="min-w-0">
                               <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{product.name}</p>
                               <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">
                                 {product.price ? `R$ ${product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Preço sob consulta'}
                               </p>
                             </div>
-                            <div className="text-[9px] font-bold text-[var(--dash-text-muted)] bg-[var(--dash-surface)] px-2 py-1 rounded-lg border border-[var(--dash-border)]">
+                            <div className="text-[9px] font-bold text-[var(--dash-text-muted)] bg-[var(--dash-surface)] px-2 py-1 rounded-sm border border-[var(--dash-border)]">
                               {new Date(product.created_at).toLocaleDateString("pt-BR")}
                             </div>
                           </div>
@@ -470,14 +500,93 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                   )}
                </div>
 
+               {/* EXTRATO FINANCEIRO E UPSELL */}
+               <div className="flex flex-col rounded-lg border border-[var(--dash-border)] overflow-hidden">
+                  <div 
+                    onClick={() => setShowFinance(!showFinance)}
+                    className="flex items-center justify-between p-4 bg-[var(--dash-surface)] cursor-pointer hover:bg-primary/5 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                        <BadgeDollarSign size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-[var(--dash-text-muted)]">Extrato Financeiro</p>
+                        <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                          {invoices.length} faturas geradas
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className={`text-[var(--dash-text-muted)] transition-transform ${showFinance ? 'rotate-90' : ''}`} />
+                  </div>
+
+                  {showFinance && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      className="bg-[var(--dash-bg)] border-t border-[var(--dash-border)] p-4 space-y-6"
+                    >
+                      {/* Upsell Config */}
+                      <div className="flex items-center justify-between p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                        <div>
+                          <p className="text-xs font-black text-amber-600 mb-1 flex items-center gap-2">
+                            <TrendingUp size={14} /> Ofertas Automáticas de Upsell
+                          </p>
+                          <p className="text-[10px] text-amber-600/70 max-w-[300px]">
+                            Se o cliente usar mais de 80% do plano atual, o sistema enviará um e-mail de expansão de plano automaticamente (via Cron).
+                          </p>
+                        </div>
+                        <button 
+                          onClick={handleToggleAutoUpsell}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoUpsellEnabled ? 'bg-amber-500' : 'bg-[var(--dash-border)]'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoUpsellEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+
+                      {/* Extrato Table */}
+                      <div>
+                        <h4 className="text-[10px] font-black uppercase text-[var(--dash-text-muted)] mb-3">Histórico de Cobranças</h4>
+                        <div className="space-y-2">
+                          {invoices.length > 0 ? invoices.map((inv) => (
+                            <div key={inv.id} className="flex flex-wrap sm:flex-nowrap items-center justify-between p-3 rounded-lg bg-[var(--dash-surface)] border border-[var(--dash-border)] gap-4">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-black truncate" style={{ color: "var(--dash-text-primary)" }}>{inv.description}</p>
+                                <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">
+                                  Vencimento: {new Date(inv.due_date).toLocaleDateString("pt-BR")}
+                                </p>
+                              </div>
+                              <div className="text-sm font-black whitespace-nowrap" style={{ color: "var(--dash-text-primary)" }}>
+                                R$ {Number(inv.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </div>
+                              <button 
+                                onClick={() => handleToggleInvoice(inv.id, inv.status)}
+                                className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${
+                                  inv.status === "PAID" 
+                                    ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' 
+                                    : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                                }`}
+                              >
+                                {inv.status === "PAID" ? "Pago" : "Pendente"}
+                              </button>
+                            </div>
+                          )) : (
+                            <p className="text-xs text-[var(--dash-text-muted)] italic text-center py-4">Nenhuma fatura encontrada.</p>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+               </div>
+
                {/* CONTRATO */}
                <div 
                   onClick={() => setShowContract(!showContract)}
-                  className="flex flex-col p-4 rounded-2xl border border-[var(--dash-border)] group cursor-pointer hover:bg-primary/5 transition-all"
+                  className="flex flex-col p-4 rounded-lg border border-[var(--dash-border)] group cursor-pointer hover:bg-primary/5 transition-all"
                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
+                      <div className="h-8 w-8 rounded-md bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text-muted)]">
                         <Calendar size={16} />
                       </div>
                       <div>
@@ -523,12 +632,12 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                       window.location.href = "/dashboard";
                     }
                   }}
-                  className="flex-1 py-4 rounded-2xl bg-primary text-white font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                  className="flex-1 py-4 rounded-lg bg-primary text-white font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                 >
                   <Globe size={18} />
                   ACESSAR DASHBOARD (SIMULAR)
                 </button>
-                <button className="flex-1 py-4 rounded-2xl border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
+                <button className="flex-1 py-4 rounded-lg border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
                   <ShieldAlert size={18} />
                   Suspender Conta
                 </button>

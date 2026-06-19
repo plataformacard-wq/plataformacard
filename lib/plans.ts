@@ -8,8 +8,9 @@
  * de plano devem importar desta constante, nunca hardcodar UUIDs.
  */
 export const PLAN_IDS = {
-  START:      "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0",
+  STARTER:    "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d",
   BASIC:      "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62",
+  PRO:        "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0", // Antigo START
   ENTERPRISE: "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26",
 } as const;
 
@@ -17,23 +18,33 @@ export interface PlanLimits {
   name: string;
   max_products: number; // 0 = ilimitado
   max_users: number;    // 0 = ilimitado
+  price: number;        // Valor padrão da fatura
 }
 
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
-  [PLAN_IDS.START]: {
-    name: "Start",
-    max_products: 20,
-    max_users: 2,
+  [PLAN_IDS.STARTER]: {
+    name: "Starter",
+    max_products: 10,
+    max_users: 1,
+    price: 47.00
   },
   [PLAN_IDS.BASIC]: {
     name: "Basic",
-    max_products: 100,
+    max_products: 50,
+    max_users: 3,
+    price: 97.00
+  },
+  [PLAN_IDS.PRO]: {
+    name: "Pro",
+    max_products: 200,
     max_users: 10,
+    price: 147.00
   },
   [PLAN_IDS.ENTERPRISE]: {
     name: "Enterprise",
     max_products: 0,
     max_users: 0,
+    price: 197.00
   },
 };
 

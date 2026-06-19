@@ -1035,7 +1035,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tight" style={{ color: "var(--dash-text-primary)" }}>
-            {adminCatalogId ? `Master: ${catalog?.name || 'Carregando...'}` : 'Catálogo'}
+            {adminCatalogId ? `Master: ${catalog?.name || 'Carregando...'}` : 'Adicionar/Gerenciar categorias e produtos'}
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
             {adminCatalogId 

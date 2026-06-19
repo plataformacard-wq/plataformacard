@@ -136,6 +136,10 @@ O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua c
 6. **Associação e Desvinculação Segura (Resiliência DB/UI):** Ao atribuir ou remover um catálogo master (CaaS), o sistema interage exclusivamente com registros do tipo `'platform'` ou `'CaaS'`. Isso impede a remoção inadvertida do catálogo próprio e produtos locais do franqueado. O mapeamento no Super Admin foi ajustado para isolar o catálogo master e o seletor utiliza atualização de rotas (`router.refresh()`) para refletir a persistência imediatamente.
 7. **Notificação de Ausência de Catálogo:** Se uma organização for do tipo `CaaS` (modelo franqueado) e estiver sem nenhum catálogo master vinculado, um banner informativo e elegante é exibido no topo do painel do franqueado instruindo a vinculação.
 
+- **2026-06-19:**
+  - **Reestruturação UX do Catálogo (Onboarding B2C/B2B):** Reordenação do menu lateral do Catálogo para induzir a configuração inicial ("Configure seu catálogo") antes da adição de produtos. Modificação dos títulos H1 para consistência com o menu.
+  - **Nome do Catálogo Dinâmico:** Inclusão do campo de "Nome do Catálogo" na aba "Geral" das configurações (`ConfiguracoesClient.tsx`), permitindo edição direta pelo franqueado (desvinculando a dependência exclusiva do painel CaaS do Super Admin).
+
 - **2026-06-06:**
   - **Correção do ChunkLoadError (react-quill-new):** Isolado o carregamento de `react-quill-new` em um componente wrapper dedicado (`RichTextEditor.tsx`) importado dinamicamente com `ssr: false` para evitar erros de hidratação e falhas de carregamento de chunk no Turbopack (modo dev) sob rotas dinâmicas como o editor CaaS. Removidos imports não utilizados do editor em `CatalogoClient.tsx`.
 
@@ -157,7 +161,7 @@ O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua c
   - Auditoria completa de cores (Pre-Git Scan) removendo hexadecimais fixos e classes `zinc` residuais.
 
 ---
-*Última atualização: 2026-06-01*
+*Última atualização: 2026-06-19*
 
 > [!IMPORTANT]
 > Para acompanhar o progresso técnico e tarefas em aberto, consulte o arquivo [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/PlataformaCard/PENDENCIAS.md).

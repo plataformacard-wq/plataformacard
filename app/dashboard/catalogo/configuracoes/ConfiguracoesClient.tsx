@@ -74,14 +74,22 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const [tempBanner, setTempBanner] = useState<any>({});
   const [uploadMode, setUploadMode] = useState<"desktop" | "mobile" | null>(null);
   
-  const [embedWidth, setEmbedWidth] = useState("100%");
-  const [embedHeight, setEmbedHeight] = useState("800px");
 
-  // Cálculo Dinâmico de Altura
+
+  // Cálculo Dinâmico Realista de Altura
+  const hasBanners = showBanners;
+  const baseHeaderHeight = 250;
+  const bannerHeightDesktop = hasBanners ? 500 : 0;
+  const bannerHeightMobile = hasBanners ? 400 : 0;
+  const categoryHeight = 150; // barra de categorias e margens
+  const productHeightDesktop = 550; // altura real de cada card + gap
+  const productHeightMobile = 600; // altura real de cada card no mobile + gap
+  const footerHeight = 150;
+
   const estimatedRowsDesktop = Math.ceil((products?.length || 0) / 3);
-  const estimatedCategories = categoryCount || 1;
-  const recommendedHeightDesktop = 1150 + (estimatedCategories * 100) + (estimatedRowsDesktop * 500);
-  const recommendedHeightMobile = 1150 + (estimatedCategories * 100) + ((products?.length || 0) * 500);
+  
+  const recommendedHeightDesktop = baseHeaderHeight + bannerHeightDesktop + categoryHeight + (estimatedRowsDesktop * productHeightDesktop) + footerHeight;
+  const recommendedHeightMobile = baseHeaderHeight + bannerHeightMobile + categoryHeight + ((products?.length || 0) * productHeightMobile) + footerHeight;
 
   const supabase = createClient();
 
@@ -104,8 +112,8 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
 ${iframeResizerCode}
 <iframe 
   src="${embedUrl}" 
-  width="${embedWidth}" 
-  height="${embedHeight}" 
+  width="100%" 
+  height="100%" 
   frameborder="0" 
   style="border:none; width: 100%; border-radius: 12px; overflow: hidden;"
   allow="clipboard-write"
@@ -224,7 +232,7 @@ ${iframeResizerCode}
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity group-hover/header:opacity-100" />
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-black tracking-tight text-[var(--dash-text-primary)]">Configurações do Catálogo</h1>
+            <h1 className="text-4xl font-black tracking-tight text-[var(--dash-text-primary)]">Configure seu catálogo</h1>
             <p className="text-[var(--dash-text-muted)] font-medium max-w-xl">Gerencie a identidade e a implementação da sua vitrine digital em um só lugar.</p>
           </div>
           
@@ -276,6 +284,23 @@ ${iframeResizerCode}
               </div>
 
               <div className="grid gap-10">
+                {/* Nome do Catálogo */}
+                <div className="space-y-3">
+                  <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                    <BookOpen size={14} className="text-primary" /> Nome do Catálogo
+                  </label>
+                  <input
+                    type="text"
+                    value={catalog.name || ""}
+                    onChange={(e) => setCatalog({ ...catalog, name: e.target.value })}
+                    className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm"
+                    placeholder="Ex: Minha Loja Virtual"
+                  />
+                  <p className="text-[11px] text-[var(--dash-text-muted)] font-medium pl-2">
+                    Este é o nome público que aparecerá no topo do seu catálogo.
+                  </p>
+                </div>
+
                 {/* Tipo de Catálogo */}
                 <div className="space-y-4">
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
@@ -419,68 +444,52 @@ ${iframeResizerCode}
                 </div>
                 
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
-                      Largura (Width)
-                    </label>
-                    <input 
-                      type="text" 
-                      value={embedWidth}
-                      onChange={(e) => setEmbedWidth(e.target.value)}
-                      className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
-                      placeholder="ex: 100%"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
-                      Altura (Height)
-                    </label>
-                    <input 
-                      type="text" 
-                      value={embedHeight}
-                      onChange={(e) => setEmbedHeight(e.target.value)}
-                      className="w-full bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
-                      placeholder="ex: 800px"
-                    />
-                    <div className="pt-2 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                        <Sparkles size={12} className="text-emerald-500" />
-                        <span>Tamanho ideal baseado no seu catálogo atual:</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          type="button" 
-                          onClick={() => setEmbedHeight(`${recommendedHeightDesktop}px`)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/50 border border-[var(--dash-border)] transition-all active:scale-95"
-                          title="Para exibições em computadores e notebooks"
-                        >
-                          <Layout size={12} /> Desktop: {recommendedHeightDesktop}px
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={() => setEmbedHeight(`${recommendedHeightMobile}px`)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-bold text-[10px] uppercase tracking-widest hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-500/50 border border-[var(--dash-border)] transition-all active:scale-95"
-                          title="Para exibições exclusivas em celulares"
-                        >
-                          <Smartphone size={12} /> Mobile: {recommendedHeightMobile}px
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="pt-4 border-t border-[var(--dash-border)] space-y-4">
-                    <div className="flex gap-3 bg-blue-500/5 p-4 rounded-2xl border border-blue-500/10">
-                      <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-                      <p className="text-[11px] leading-relaxed text-[var(--dash-text-muted)]">
-                        O modo <span className="font-bold text-[var(--dash-text-primary)]">Embed</span> oculta o cabeçalho global para focar nos produtos.
+                    {/* Alerta Destacado do Container */}
+                    <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-6 shadow-lg shadow-amber-500/5">
+                      <h4 className="flex items-center gap-2 text-sm font-black text-amber-500 mb-4 uppercase tracking-widest">
+                        <Layout size={18} /> Guia de Container (Site Hospedeiro)
+                      </h4>
+                      <p className="text-xs font-medium text-[var(--dash-text-muted)] mb-5 leading-relaxed">
+                        Para o catálogo funcionar perfeitamente sem barras de rolagem duplas, crie um "Container" ou "Caixa" no seu construtor de sites (ex: Elementor, Wix) com as seguintes <strong>Alturas Mínimas (Min-Height)</strong>:
+                      </p>
+                      <div className="flex flex-col gap-4">
+                        <div className="flex-1 bg-black/40 border border-[var(--dash-border)] rounded-xl p-4">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)] mb-1 flex items-center gap-1.5">
+                            <Layout size={12} /> Desktop / Computador
+                          </p>
+                          <p className="text-2xl font-black text-[var(--dash-text-primary)]">
+                            {recommendedHeightDesktop}px
+                          </p>
+                        </div>
+                        <div className="flex-1 bg-black/40 border border-blue-500/30 rounded-xl p-4 relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-xl"></div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1 flex items-center gap-1.5">
+                            <Smartphone size={12} /> Mobile / Celular
+                          </p>
+                          <p className="text-2xl font-black text-blue-400 drop-shadow-sm">
+                            {recommendedHeightMobile}px
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-amber-500/70 font-medium mt-4">
+                        *Estes valores são calculados em tempo real somando seus {products?.length || 0} produtos ativos, barra de categorias, cabeçalho e banners.
                       </p>
                     </div>
-                    <div className="flex gap-3 bg-amber-500/5 p-4 rounded-2xl border border-amber-500/10">
-                      <Smartphone size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-[11px] leading-relaxed text-[var(--dash-text-muted)]">
-                        Layout 100% responsivo, adaptando-se a qualquer container do seu site.
-                      </p>
+
+                    <div className="grid grid-cols-1 gap-4 mt-6">
+                      <div className="flex gap-3 bg-[var(--dash-surface)] p-4 rounded-xl border border-[var(--dash-border)]">
+                        <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-[11px] leading-relaxed text-[var(--dash-text-muted)] font-medium">
+                          O modo Embed oculta o cabeçalho global automaticamente.
+                        </p>
+                      </div>
+                      <div className="flex gap-3 bg-[var(--dash-surface)] p-4 rounded-xl border border-[var(--dash-border)]">
+                        <Code size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <p className="text-[11px] leading-relaxed text-[var(--dash-text-muted)] font-medium">
+                          Nosso script iFrameResizer tenta ajustar a altura automaticamente, mas o Fallback de CSS é essencial.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
