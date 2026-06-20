@@ -78,9 +78,7 @@ graph TD
 - [x] **Conexão Visual Dinâmica:** Herança de cores e logo do vendedor/empresa para o cartão.
 - [x] **Validação: Catálogo Híbrido & WhatsApp Customizado:** Confirmação das migrations (`whatsapp_template` e `type`), substituição de template tags, seletor de tipo híbrido e SEO da vitrine.
 - [x] **Social Share - Cartões e Produtos:** Botões de compartilhamento WhatsApp/Link para Cartão Público, Vitrine e Modal de Produto (OG Tags).
-- [x] **Favicon:** Correção do ícone do navegador inicial.
-
-### ✅ Integração IFrame (MAJ)
+- [x] **Favicon:** Resolver o problema do ícone do navegador que ainda não está carregando corretamente. (Arquivo `public/favicon.ico` adicionado ao repositório). (MAJ)
 - [x] **iFrame no Site Real (MAJ):** Resolução de redimensionamento e scroll automático usando script de `postMessage` e auto-resizer.
 - [x] **Loader de Carregamento:** Indicador de progresso estético personalizado no carregamento do embed.
 - [x] **Modal Expandido:** Exibição do modal de produtos totalmente expandida verticalmente, eliminando scrolls internos.
