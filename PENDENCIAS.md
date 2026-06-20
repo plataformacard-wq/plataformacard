@@ -23,6 +23,7 @@ graph TD
 *Lógica: Garantir que a lógica de banco de dados (RLS) e regras para contas de usuários estejam blindadas antes de abrir para o público.*
 - [x] **Auditoria no Cadastro de Catálogo B2C:** A lógica frágil de frontend foi substituída por uma Server Action blindada (`completeOnboarding`). Agora a criação de `organizations`, `profiles`, `catalogs`, `organization_catalogs` e `profile_catalogs` ocorre de forma atômica no backend no momento do onboarding, corrigindo os bugs de RLS e de catálogos "fantasmas" no primeiro acesso. *(Validado: Cadastro completo estruturado no backend, link público /p/[slug] abre imediatamente).*
 - [ ] **Recesso Temporário B2C ("Modo Férias"):** Criar a chave `is_accepting_orders` na tabela `profiles`. Atualizar RLS para permitir que o usuário ligue/desligue. Refletir o estado na UI do dashboard (Toggle em Configurações) e na vitrine pública (ocultar botões de "Comprar" ou exibir banner "Em recesso").
+- [ ] **Política de Cancelamento/Inadimplência:** Bloquear acesso ao painel ao fim do ciclo pago (mantendo apenas a tela de reativação/pagamento liberada). O catálogo público (`/p/[slug]`) deve exibir a tela de "Catálogo Temporariamente Indisponível" para preservar o SEO e o link. Implementar cronjob de exclusão de dados após 24 meses de inatividade (com aviso prévio por e-mail).
 
 ### 🔹 Fase 3: Refinamentos Críticos do Dashboard e Experiência do Usuário (Showstoppers UX)
 *Lógica: O painel precisa estar 100% polido e funcional para os usuários logados.*
