@@ -47,7 +47,7 @@ export default function CadastroPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [inviteCode, setInviteCode] = useState("");
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -57,29 +57,12 @@ export default function CadastroPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const [success, setSuccess] = useState(false);
-  const [activeBetaCode, setActiveBetaCode] = useState("");
 
   const [otpCode, setOtpCode] = useState("");
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [otpError, setOtpError] = useState("");
 
-  // Busca o código ativo no banco ao carregar a página
-  useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from("platform_config")
-      .select("value")
-      .eq("key", "beta_invite_code")
-      .single()
-      .then(({ data }) => {
-        if (data?.value) setActiveBetaCode(data.value);
-      });
-  }, []);
-
   async function handleGoogleSignUp() {
-    setErrorMessage("O cadastro via Google está temporariamente desativado durante a fase Beta.");
-    return;
-    /*
     setErrorMessage("");
     setLoadingGoogle(true);
     const supabase = createClient();
@@ -95,7 +78,6 @@ export default function CadastroPage() {
       setLoadingGoogle(false);
       setErrorMessage(error.message);
     }
-    */
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -117,11 +99,7 @@ export default function CadastroPage() {
       return;
     }
 
-    const codeToMatch = (activeBetaCode || "MAJ2024").trim(); 
-    if (inviteCode.trim().toUpperCase() !== codeToMatch.toUpperCase()) {
-      setErrorMessage("Código de Convite inválido. Este sistema está em fase Beta fechada.");
-      return;
-    }
+
 
     if (password.length < 6) {
       setErrorMessage("A senha deve ter pelo menos 6 caracteres.");
@@ -306,20 +284,7 @@ export default function CadastroPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="inviteCode" className="mb-2 block text-sm font-medium text-amber-400">
-              Código de Convite (Beta)
-            </label>
-            <input
-              id="inviteCode"
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="Digite o código secreto"
-              className="w-full rounded-xl border border-amber-500/30 bg-zinc-900 px-4 py-3 text-sm outline-none transition focus:border-amber-500"
-              autoComplete="off"
-            />
-          </div>
+
 
           <div>
             <label htmlFor="fullName" className="mb-2 block text-sm font-medium">
