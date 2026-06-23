@@ -29,9 +29,9 @@ graph TD
 ### 🔹 Fase 3: Refinamentos Críticos do Dashboard e Experiência do Usuário (Showstoppers UX)
 *Lógica: O painel precisa estar 100% polido e funcional para os usuários logados.*
 - [/] **Validação do Favicon (Simulação Super Admin):** (Feito, precisa validar) Testar se a invalidação de cache com timestamp (`?t=...`) carrega o ícone correto no navegador ao alternar entre organizações simuladas.
-- [x] **Sticker de Status da Assinatura:** Integrar o sticker de "Status do Sistema" no TopHeader para exibir informações em tempo real sobre a assinatura do cliente (ex: "Assinatura Ativa", "Próxima ao Vencimento") com alertas sutis.
-- [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
-- [ ] **Sino de Notificações:** Implementar funcionalidade real para o ícone de sino no dashboard (alertas de leads, sistema ou atualizações). Atualmente é apenas estético.
+- [x] **Sticker de Status da Assinatura:** Integar o sticker de "Status do Sistema" no TopHeader para exibir informações em tempo real sobre a assinatura do cliente (ex: "Assinatura Ativa", "Próxima ao Vencimento") com alertas sutis.
+- [x] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
+- [x] **Sino de Notificações:** Implementar funcionalidade real para o ícone de sino no dashboard (alertas de leads, sistema ou atualizações). Atualmente é apenas estético.
 
 ### 🔹 Fase 4: Limpeza e Polimento Geral (Pente Fino)
 *Lógica: Remover qualquer vestígio de desenvolvimento antes do lançamento oficial.*

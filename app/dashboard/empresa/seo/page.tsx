@@ -415,7 +415,10 @@ export default function SEOPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Favicon */}
             <div className="space-y-3">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Favicon (Ícone da Aba)</label>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Favicon (Ícone da Aba)</label>
+                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1:1 Quadrado (ex: 256x256 px)</span>
+              </div>
               <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5"
                    style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                    onClick={() => { setActiveUploadType("favicon"); setShowImageEditor(true); }}>
@@ -432,9 +435,12 @@ export default function SEOPage() {
 
             {/* Logo */}
             <div className="space-y-3">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>
-                {businessModel === "B2C" ? "Foto de Perfil / Logotipo" : "Logotipo Principal"}
-              </label>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>
+                  {businessModel === "B2C" ? "Foto de Perfil / Logotipo" : "Logotipo Principal"}
+                </label>
+                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 2:1 Retangular (ex: 800x400 px)</span>
+              </div>
               <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5"
                    style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                    onClick={() => { setActiveUploadType("logo"); setShowImageEditor(true); }}>
@@ -452,7 +458,10 @@ export default function SEOPage() {
 
           {/* Banner SEO */}
           <div className="space-y-3">
-            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner de Compartilhamento (Redes Sociais)</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner de Compartilhamento (Redes Sociais)</label>
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1200x630 px</span>
+            </div>
             <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
                  style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                  onClick={() => { setActiveUploadType("banner"); setShowImageEditor(true); }}>
@@ -582,6 +591,8 @@ export default function SEOPage() {
         }
         targetWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 400 : 1200}
         targetHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : 630}
+        minWidth={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 400 : 600}
+        minHeight={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 200 : 315}
       />
 
       <AiReviewModal

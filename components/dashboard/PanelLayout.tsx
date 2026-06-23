@@ -50,8 +50,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [hasShadowCookie, setHasShadowCookie] = useState(false);
   const [planOverages, setPlanOverages] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
   const [currentPlanName, setCurrentPlanName] = useState("");
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [allNotifications, setAllNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     // Tema
@@ -216,7 +215,9 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           console.error("Erro ao buscar configs:", cErr);
         }
 
-        // --- FETCH MASTER CATALOG NOTIFICATIONS ---
+        // --- FETCH MASTER CATALOG NOTIFICATIONS & LEADS ---
+        let combinedNotifications: any[] = [];
+
         if (userRole !== "main_admin") {
           try {
             const { data: notifs, error: notifErr } = await supabase
@@ -226,24 +227,47 @@ export function PanelLayout({ children }: PanelLayoutProps) {
               .limit(10);
             
             if (notifs && notifs.length > 0 && !notifErr) {
-              const lastSeen = localStorage.getItem("last_seen_notification_time");
-              const latestTime = new Date(notifs[0].created_at).getTime();
-              
-              const hasNew = !lastSeen || latestTime > parseInt(lastSeen);
-              if (hasNew) {
-                setNotifications(notifs);
-                setShowNotificationModal(true);
-              }
+              const mappedNotifs = notifs.map(n => ({ ...n, notification_type: 'catalog_update' }));
+              combinedNotifications = [...combinedNotifications, ...mappedNotifs];
             }
           } catch (errNotif) {
             console.warn("Erro ao buscar notificações do catálogo master:", errNotif);
           }
         }
 
+        if (targetOrgId) {
+          try {
+             const { data: leads } = await supabase
+               .from("leads_tracking")
+               .select("*")
+               .eq("organization_id", targetOrgId)
+               .order("created_at", { ascending: false })
+               .limit(10);
+             
+             if (leads && leads.length > 0) {
+               const mappedLeads = leads.map(l => ({ ...l, notification_type: 'new_lead' }));
+               combinedNotifications = [...combinedNotifications, ...mappedLeads];
+             }
+          } catch (errLeads) {
+            console.warn("Erro ao buscar histórico de leads:", errLeads);
+          }
+        }
+
+        combinedNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setAllNotifications(combinedNotifications);
+
         // --- REALTIME LEADS LISTENER ---
         if (targetOrgId) {
+          const channelName = `leads-${targetOrgId}`;
+          // Previne erro "cannot add postgres_changes callbacks after subscribe" em Strict Mode ou re-renders
+          supabase.getChannels().forEach(ch => {
+            if (ch.topic === `realtime:${channelName}`) {
+              supabase.removeChannel(ch);
+            }
+          });
+
           const channel = supabase
-            .channel(`leads-${targetOrgId}`)
+            .channel(channelName)
             .on(
               'postgres_changes',
               {
@@ -253,8 +277,14 @@ export function PanelLayout({ children }: PanelLayoutProps) {
                 filter: `organization_id=eq.${targetOrgId}`
               },
               (payload) => {
-                const lead = payload.new as any;
+                const lead = { ...(payload.new as any), notification_type: 'new_lead' };
                 setNewLead(lead);
+                
+                setAllNotifications(prev => {
+                  const updated = [lead, ...prev];
+                  return updated.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 20);
+                });
+
                 // Auto-hide after 10 seconds
                 setTimeout(() => setNewLead(null), 10000);
                 
@@ -301,26 +331,6 @@ export function PanelLayout({ children }: PanelLayoutProps) {
       className="flex min-h-screen text-[var(--dash-text-primary)] transition-colors duration-500"
       style={{ background: isDark ? 'var(--dash-bg-gradient)' : 'var(--dash-bg)' }}
     >
-      {/* Banner de Simulação */}
-      {isShadowMode && (
-        <div className="fixed top-0 left-0 right-0 z-[999] bg-amber-500 text-white px-4 py-2 flex items-center justify-between shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="h-6 w-6 rounded-lg bg-white/20 flex items-center justify-center">
-              <Clock size={14} className="animate-pulse" />
-            </div>
-            <p className="text-xs font-black uppercase tracking-widest">
-              Modo Simulação Ativo: <span className="underline decoration-2 underline-offset-4">Você está vendo o painel como este cliente</span>
-            </p>
-          </div>
-          <button 
-            onClick={handleExitShadow}
-            className="px-4 py-1.5 rounded-xl bg-white text-amber-600 text-[10px] font-black uppercase hover:bg-amber-50 transition-all shadow-sm"
-          >
-            Sair e Voltar ao QG
-          </button>
-        </div>
-      )}
-
       <Sidebar 
         role={role} 
         businessModel={businessModel || "B2C"}
@@ -338,6 +348,31 @@ export function PanelLayout({ children }: PanelLayoutProps) {
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Banner de Simulação */}
+        {isShadowMode && (
+          <div className="relative z-[40] bg-amber-500 text-white px-4 md:px-6 py-2.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 shrink-0 rounded-lg bg-white/20 flex items-center justify-center shadow-inner">
+                <Clock size={16} className="animate-pulse" />
+              </div>
+              <div className="flex flex-col text-left">
+                <p className="text-[11px] font-black uppercase tracking-widest leading-none">
+                  Modo Simulação Ativo
+                </p>
+                <p className="text-[10px] font-medium opacity-90 mt-1 leading-tight">
+                  Você está logado temporariamente e visualizando o painel através da visão deste cliente.
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={handleExitShadow}
+              className="w-full md:w-auto shrink-0 px-5 py-2 rounded-xl bg-white text-amber-600 text-[10px] font-black uppercase tracking-wider hover:bg-amber-50 transition-all shadow-sm active:scale-95 text-center"
+            >
+              Encerrar Simulação
+            </button>
+          </div>
+        )}
+
         <TopHeader 
           nome={nome}
           avatar={avatar}
@@ -348,6 +383,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           isDark={isDark}
           isAdminPath={isAdminPath}
           subscriptionStatus={subscriptionStatus || undefined}
+          notifications={allNotifications}
           toggleTheme={() => {
             const next = !isDark;
             setIsDark(next);
@@ -415,99 +451,6 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         )}
       </AnimatePresence>
 
-      {/* Modal de Notificações CaaS */}
-      <AnimatePresence>
-        {showNotificationModal && notifications.length > 0 && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-lg rounded-xl border p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[80vh] overflow-hidden"
-              style={{
-                background: "var(--dash-surface)",
-                borderColor: "var(--dash-border)",
-                color: "var(--dash-text-primary)",
-              }}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between pb-6 border-b" style={{ borderColor: "var(--dash-border)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
-                    <Bell className="animate-bounce" size={20} />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-black uppercase tracking-tight">Atualizações do Catálogo</h3>
-                    <p className="text-[9px] font-black text-[var(--dash-text-muted)] uppercase tracking-widest">Estoque mestre atualizado</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    const latestTime = new Date(notifications[0].created_at).getTime();
-                    localStorage.setItem("last_seen_notification_time", String(latestTime));
-                    setShowNotificationModal(false);
-                  }}
-                  className="rounded-xl p-2 hover:bg-[var(--dash-hover-bg)] transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto py-6 space-y-4 pr-1 scrollbar-thin text-left">
-                {notifications.map((n) => {
-                  const dateStr = new Date(n.created_at).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
-                  return (
-                    <div
-                      key={n.id}
-                      className="p-4 rounded-2xl border transition-all hover:bg-[var(--dash-hover-bg)] flex items-start gap-4"
-                      style={{ borderColor: "var(--dash-border)" }}
-                    >
-                      <div className="flex flex-col gap-1 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
-                            n.action_type === 'INSERT' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                            n.action_type === 'UPDATE' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
-                            'bg-red-500/10 text-red-500 border border-red-500/20'
-                          }`}>
-                            {n.action_type === 'INSERT' ? 'Novo Produto' :
-                             n.action_type === 'UPDATE' ? 'Produto Atualizado' :
-                             'Produto Removido'}
-                          </span>
-                          <span className="text-[9px] text-[var(--dash-text-muted)] font-medium">{dateStr}</span>
-                        </div>
-                        <p className="text-sm font-black mt-1.5 leading-tight">{n.product_name}</p>
-                        <p className="text-[9px] text-[var(--dash-text-muted)] font-bold uppercase tracking-wider mt-0.5">
-                          Origem: <span className="text-purple-500 font-black">{n.catalog_name}</span>
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Footer */}
-              <div className="pt-6 border-t flex justify-end" style={{ borderColor: "var(--dash-border)" }}>
-                <button
-                  onClick={() => {
-                    const latestTime = new Date(notifications[0].created_at).getTime();
-                    localStorage.setItem("last_seen_notification_time", String(latestTime));
-                    setShowNotificationModal(false);
-                  }}
-                  className="px-8 py-3.5 bg-purple-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-purple-600 transition-all shadow-lg shadow-purple-500/20 active:scale-95"
-                >
-                  Entendi, fechar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

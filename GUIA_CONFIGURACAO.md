@@ -25,6 +25,7 @@ Certifique-se de preencher os valores abaixo no arquivo `.env.local` da nova má
 | Variável | Descrição | Onde encontrar? |
 | :--- | :--- | :--- |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do Projeto | Dashboard Supabase > Settings > API |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | OAuth Client ID | Google Cloud Console > APIs & Services > Credentials |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave Anon | Dashboard Supabase > Settings > API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave Mestra (Admin) | Dashboard Supabase > Settings > API > service_role |
 
