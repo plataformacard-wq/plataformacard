@@ -26,6 +26,7 @@ interface TopHeaderProps {
   isReady: boolean;
   businessModel: "B2B" | "B2C" | "CaaS";
   isAdminPath?: boolean;
+  subscriptionStatus?: string;
 }
 
 export function TopHeader({ 
@@ -39,7 +40,8 @@ export function TopHeader({
   slug,
   isReady,
   businessModel,
-  isAdminPath
+  isAdminPath,
+  subscriptionStatus
 }: TopHeaderProps) {
   const isB2B = businessModel === "B2B";
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -76,6 +78,26 @@ export function TopHeader({
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        {subscriptionStatus && !isAdminPath && (
+          <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
+            subscriptionStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+            subscriptionStatus === 'trialing' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
+            subscriptionStatus === 'past_due' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+            'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              subscriptionStatus === 'active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' :
+              subscriptionStatus === 'trialing' ? 'bg-purple-500' :
+              subscriptionStatus === 'past_due' ? 'bg-amber-500 animate-pulse' :
+              'bg-zinc-500'
+            }`} />
+            {subscriptionStatus === 'active' ? 'Assinatura Ativa' :
+             subscriptionStatus === 'trialing' ? 'Período de Teste' :
+             subscriptionStatus === 'past_due' ? 'Pagamento Atrasado' :
+             'Assinatura'}
+          </div>
+        )}
+
         <button className="relative rounded-xl p-2.5 text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-primary transition-all">
           <Bell size={20} />
           <span className="absolute right-2 top-2 flex h-2 w-2">

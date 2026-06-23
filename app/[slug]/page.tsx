@@ -79,6 +79,7 @@ type ProfileRow = {
   status: string | null;
   redirect_leads: boolean | null;
   recess_ends_at: string | null;
+  is_accepting_orders: boolean | null;
 };
 
 export const dynamicParams = true;
@@ -255,7 +256,7 @@ export default async function Page(props: PageProps) {
 
   const isRecessActive = safeProfile.recess_ends_at && new Date(safeProfile.recess_ends_at) > new Date();
   const isTerminated = safeProfile.status === 'terminated';
-  const isPaused = safeProfile.status === 'paused' || isRecessActive;
+  const isPaused = safeProfile.status === 'paused' || isRecessActive || safeProfile.is_accepting_orders === false;
   const isRedirecting = !!safeProfile.redirect_leads;
 
   if (isTerminated || (isPaused && isRedirecting)) {
@@ -286,8 +287,8 @@ export default async function Page(props: PageProps) {
   
   // Se o perfil estava com is_available = false (manual) ou em recesso, forçamos o fechamento. 
   // Caso contrário, seguimos a regra.
-  const isAvailableNow = (safeProfile.is_available === false || isRecessActive) ? false : businessStatus.isOpenNow;
-  const statusMessage = isRecessActive 
+  const isAvailableNow = (safeProfile.is_available === false || isRecessActive || safeProfile.is_accepting_orders === false) ? false : businessStatus.isOpenNow;
+  const statusMessage = (isRecessActive || safeProfile.is_accepting_orders === false)
     ? "Indisponível para atendimento imediato" 
     : safeProfile.is_available === false 
       ? "Indisponível" 

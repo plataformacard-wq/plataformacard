@@ -101,6 +101,7 @@ type ProductCatalogClientProps = {
   whatsappTemplate?: string | null;
   sellerStatus?: string | null;
   recessEndsAt?: string | null;
+  isAcceptingOrders?: boolean | null;
   hideCta?: boolean;
   isB2B?: boolean;
   hidePrices?: boolean;
@@ -392,6 +393,7 @@ export default function ProductCatalogClient({
   whatsappTemplate,
   sellerStatus,
   recessEndsAt,
+  isAcceptingOrders,
   hideCta = false,
   isB2B = false,
   hidePrices = false,
@@ -455,8 +457,8 @@ export default function ProductCatalogClient({
 
     const status = getBusinessStatus((activeHours ?? null) as any);
     const isRecessActive = recessEndsAt && new Date(recessEndsAt) > new Date();
-    const isAvailableNow = (isRecessActive || isAvailable === false) ? false : status.isOpenNow;
-    const statusMessage = isRecessActive
+    const isAvailableNow = (isRecessActive || isAvailable === false || isAcceptingOrders === false) ? false : status.isOpenNow;
+    const statusMessage = (isRecessActive || isAcceptingOrders === false)
       ? "Em Recesso"
       : isAvailable === false
         ? "Indisponível"
@@ -658,7 +660,7 @@ export default function ProductCatalogClient({
   };
 
   const handleOpenProduct = (product: Product, event?: React.MouseEvent) => {
-    if (sellerStatus === 'paused') {
+    if (sellerStatus === 'paused' || isAcceptingOrders === false) {
       return; // Bloqueia abertura do modal se o vendedor estiver pausado
     }
     console.log("📦 Abrindo produto:", product.name);
@@ -942,14 +944,18 @@ export default function ProductCatalogClient({
         </section>
 
         <div className="space-y-16 relative">
-          {sellerStatus === 'paused' && (
+          {(sellerStatus === 'paused' || isAcceptingOrders === false) && (
             <div className="mb-8 w-full">
               <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl text-center shadow-sm">
                 <span className="font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   Indisponível para atendimento imediato
                 </span>
-                <p className="text-xs mt-1 opacity-80">As informações abaixo são puramente para consulta de vitrine.</p>
+                <p className="text-xs mt-1 opacity-80">
+                  {isAcceptingOrders === false 
+                    ? "Loja temporariamente em recesso. Não estamos aceitando pedidos no momento." 
+                    : "As informações abaixo são puramente para consulta de vitrine."}
+                </p>
               </div>
             </div>
           )}
@@ -1040,8 +1046,8 @@ export default function ProductCatalogClient({
                         onClick={(e) => {
                           if (!isExpanded) handleOpenProduct(product, e);
                         }}
-                        whileHover={sellerStatus === 'paused' ? {} : { y: -4 }}
-                        className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-xl overflow-hidden transition-all duration-300 ${sellerStatus === 'paused' ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
+                        whileHover={(sellerStatus === 'paused' || isAcceptingOrders === false) ? {} : { y: -4 }}
+                        className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-xl overflow-hidden transition-all duration-300 ${(sellerStatus === 'paused' || isAcceptingOrders === false) ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
                       >
                         <div className={`aspect-square relative overflow-hidden bg-[var(--public-card-bg)] flex items-center justify-center ${isExpanded ? 'p-4' : 'p-0'}`}>
                           {isExpanded && (
@@ -1087,7 +1093,7 @@ export default function ProductCatalogClient({
                             )}
                           </div>
 
-                          {!isExpanded && sellerStatus !== 'paused' && (
+                          {!isExpanded && (sellerStatus !== 'paused' && isAcceptingOrders !== false) && (
                             <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                               <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
                                 <Maximize2 size={18} className="text-white" />
@@ -1204,7 +1210,7 @@ export default function ProductCatalogClient({
                             )}
 
                             {/* Botões do Card em modo colapsado */}
-                            {!isExpanded && sellerStatus !== 'paused' && (
+                            {!isExpanded && (sellerStatus !== 'paused' && isAcceptingOrders !== false) && (
                               <div className="flex flex-col gap-2 w-full mt-1">
                                 {/* Botão Saiba mais */}
                                 <button

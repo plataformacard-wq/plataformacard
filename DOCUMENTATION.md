@@ -136,6 +136,14 @@ O sistema suporta um modelo de Catálogo como Serviço (CaaS), onde a MAJ atua c
 6. **Associação e Desvinculação Segura (Resiliência DB/UI):** Ao atribuir ou remover um catálogo master (CaaS), o sistema interage exclusivamente com registros do tipo `'platform'` ou `'CaaS'`. Isso impede a remoção inadvertida do catálogo próprio e produtos locais do franqueado. O mapeamento no Super Admin foi ajustado para isolar o catálogo master e o seletor utiliza atualização de rotas (`router.refresh()`) para refletir a persistência imediatamente.
 7. **Notificação de Ausência de Catálogo:** Se uma organização for do tipo `CaaS` (modelo franqueado) e estiver sem nenhum catálogo master vinculado, um banner informativo e elegante é exibido no topo do painel do franqueado instruindo a vinculação.
 
+## Filosofia Arquitetural de Equivalência (B2C Admin ≡ B2B Vendedor)
+Uma das filosofias centrais da PlataformaCard é a **Equivalência Operacional**.
+No escopo do projeto, **a operação de um Vendedor B2B deve ter os mesmos recursos e capacidades de um usuário (Admin) B2C**. 
+Ambos possuem o mesmo formato de catálogo vitrine, o mesmo controle de recesso temporário (Modo Férias), as mesmas permissões de horários e as mesmas ferramentas de redirecionamento de links. A única diferença estrutural é que o B2C é dono exclusivo do seu ecossistema, enquanto o Vendedor B2B atua como "filial/franquia" debaixo do guarda-chuva de permissões da Organização B2B. A interface de gerenciamento de ficha/perfil de ambos deve ser **idêntica**, promovendo a unificação visual.
+
+## Hierarquia de Permissões
+-   `main_admin`: Deus. Acessa painel QG, cadastra planos, administra todos os assinantes (B2B e B2C), pode logar como qualquer empresa.
+
 - **2026-06-20:**
   - **Sincronização de Módulos Core:** Integração do sistema de **Banners** no catálogo (upload via Supabase Storage, gestão de exibição), módulo de **Assinaturas** no painel do Dashboard e fluxo de **Onboarding/Setup Principal** (`main-setup`).
   - **Correção de Assets:** Inclusão do `favicon.ico` definitivo para a aplicação.

@@ -5,7 +5,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload, X, Camera, Calendar, Info, Clock } from "lucide-react";
+import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getOrganizationById } from "@/lib/admin-actions";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -47,6 +49,7 @@ type ProfileData = {
   recess_ends_at?: string | null;
   status?: string | null;
   redirect_leads?: boolean | null;
+  is_accepting_orders?: boolean | null;
   organizations?: {
     business_model: string;
   };
@@ -82,6 +85,9 @@ function PerfilContent() {
   const [recessDays, setRecessDays] = useState(0);
   const [recessHours, setRecessHours] = useState(0);
   const [useCompanyHours, setUseCompanyHours] = useState(true);
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
+  const [redirectLeads, setRedirectLeads] = useState(false);
+  const [showHoursConfig, setShowHoursConfig] = useState(false);
   const [canCustomize, setCanCustomize] = useState(false);
   const [customBusinessHours, setCustomBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
   const [email, setEmail] = useState("");
@@ -136,7 +142,7 @@ function PerfilContent() {
       let profileResult: ProfileData | null = null;
       const { data: initialProfile } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads")
+        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
       profileResult = initialProfile;
@@ -156,7 +162,7 @@ function PerfilContent() {
         if (isSuperAdmin && shadowOrgId) {
           const { data: simulatedProfile } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads")
+            .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders")
             .eq("organization_id", shadowOrgId)
             .in("role", ["b2b_admin", "b2c_admin", "admin"])
             .limit(1)
@@ -180,6 +186,7 @@ function PerfilContent() {
               recess_ends_at: simulatedProfile.recess_ends_at,
               status: simulatedProfile.status,
               redirect_leads: simulatedProfile.redirect_leads,
+              is_accepting_orders: simulatedProfile.is_accepting_orders,
             };
           }
         }
@@ -195,6 +202,7 @@ function PerfilContent() {
         setWhatsappTemplateInput(profile.whatsapp_template || "");
         setAvatar(profile.avatar_url || null);
         setIsAvailable(profile.is_available ?? true);
+        setIsAcceptingOrders(profile.is_accepting_orders ?? true);
 
         const recessEndsAt = profile.recess_ends_at ?? null;
         if (recessEndsAt) {
@@ -206,6 +214,7 @@ function PerfilContent() {
             setRecessActive(true);
             setRecessDays(days);
             setRecessHours(hours);
+          setRedirectLeads(profile.redirect_leads || false);
           } else {
             setRecessActive(false);
             setRecessDays(0);
@@ -226,14 +235,13 @@ function PerfilContent() {
 
         // Buscar modelo de negócio separadamente para garantir sincronia com PanelLayout
         if (activeOrgId) {
-          const { data: org } = await supabase
-            .from("organizations")
-            .select("business_model")
-            .eq("id", activeOrgId)
-            .maybeSingle();
-          
-          if (org?.business_model) {
-            setBusinessModel(org.business_model as "B2B" | "B2C");
+          try {
+            const org = await getOrganizationById(activeOrgId);
+            if (org?.business_model) {
+              setBusinessModel(org.business_model as "B2B" | "B2C");
+            }
+          } catch (e) {
+            console.error("Erro ao buscar org via action:", e);
           }
         }
       }
@@ -419,6 +427,8 @@ function PerfilContent() {
         status: recessActive ? "paused" : (isAvailable ? "active" : "paused"),
         recess_ends_at: recessEndsAt,
         custom_business_hours: customBusinessHours,
+        is_accepting_orders: isAcceptingOrders,
+        redirect_leads: redirectLeads,
       })
       .eq("user_id", targetUserId);
 
@@ -484,397 +494,252 @@ function PerfilContent() {
         </p>
       ) : (
         <>
+          
           {/* Card 1 — Identidade */}
           {view === "card" && (
-          <div
-            className="rounded-2xl border p-6 shadow-sm transition-colors"
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-          >
-            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-              Identidade
-            </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              Foto, nome e bio que aparecem no seu cartão público.
-            </p>
-
-            <div className="mt-6 flex items-start gap-6">
-              {/* Avatar */}
-              <div className="flex flex-col items-center gap-3">
-                <div 
-                  className="group relative h-24 w-24 rounded-full border overflow-hidden transition-all hover:border-primary/50 cursor-pointer" 
-                  style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
-                  onClick={() => setShowImageEditor(true)}
-                >
-                  {avatarPreview ? (
-                    <>
-                      <img
-                        src={avatarPreview}
-                        alt={nome}
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Upload className="text-white" size={20} />
-                      </div>
-                    </>
-                  ) : (
-                    <div
-                      className="flex h-full w-full items-center justify-center text-3xl font-black"
-                      style={{ background: "var(--dash-surface-secondary)", color: "var(--dash-text-secondary)" }}
-                    >
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-dashed border-[var(--dash-text-muted)] opacity-50">
-                        C
-                      </div>
-                    </div>
-                  )}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-4xl mx-auto space-y-6"
+            >
+              {/* Header com Toggle */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <div>
+                  <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                    Editar Cartão Público
+                  </h2>
+                  <p className="text-xs text-[var(--dash-text-muted)] mt-1">
+                    Gerencie a disponibilidade e acesse o seu cartão virtual diretamente.
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowImageEditor(true)}
-                    className="text-xs font-bold text-primary hover:underline"
-                  >
-                    {avatarPreview ? "Alterar foto" : "Adicionar foto"}
-                  </button>
-                  
-                  {avatarPreview && (
+                {/* Controles de Acesso Rápido */}
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Switch de Disponibilidade */}
+                  <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/20 px-4 py-2 rounded-2xl border border-[var(--dash-border)]">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isAvailable && !recessActive ? 'text-emerald-500 font-extrabold' : 'text-slate-400'}`}>
+                      {isAvailable && !recessActive ? 'Disponível' : 'Indisponível'}
+                    </span>
                     <button 
                       type="button"
-                      onClick={() => {
-                        setAvatar(null);
-                        setAvatarFile(null);
-                      }}
-                      className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                      disabled={recessActive}
+                      onClick={() => !recessActive && setIsAvailable(!isAvailable)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isAvailable && !recessActive ? 'bg-emerald-500' : 'bg-slate-300'} ${recessActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <X size={12} /> Remover
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAvailable && !recessActive ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
+                  </div>
+
+                  {/* Link de Cartão Público */}
+                  {slugInput && (
+                    <a 
+                      href={`/${slugInput}`} 
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
+                    >
+                      <ExternalLink size={14} /> Cartão Virtual
+                    </a>
                   )}
                 </div>
               </div>
 
-              {/* Campos */}
-              <div className="flex-1 space-y-4">
-                <div>
-                  <label
-                    htmlFor="nome"
-                    className="text-sm font-medium"
-                    style={{ color: "var(--dash-text-primary)" }}
-                  >
-                    Nome completo
-                  </label>
-                  <input
-                    id="nome"
-                    type="text"
-                    value={nomeInput}
-                    onChange={(e) => setNomeInput(e.target.value)}
-                    placeholder="Seu nome"
-                    className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
-                    style={{
-                      background: "var(--dash-input-bg)",
-                      borderColor: "var(--dash-input-border)",
-                      color: "var(--dash-text-primary)",
-                    }}
-                  />
-                </div>
-
-                {businessModel === "B2C" && (
-                  <div>
-                    <label
-                      htmlFor="bio"
-                      className="text-sm font-medium"
-                      style={{ color: "var(--dash-text-primary)" }}
+              {/* Card 1: Identidade */}
+              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                  <Users size={18} className="text-primary" /> Identidade do Vendedor
+                </h3>
+                <div className="flex flex-col md:flex-row gap-8">
+                  <div className="flex flex-col items-center gap-3">
+                    <div 
+                      className="group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
+                      style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
+                      onClick={() => setShowImageEditor(true)}
                     >
-                      Bio{" "}
-                      <span className="font-normal" style={{ color: "var(--dash-text-muted)" }}>
-                        (opcional)
-                      </span>
-                    </label>
-                    <textarea
-                      id="bio"
-                      value={bioInput}
-                      onChange={(e) => setBioInput(e.target.value)}
-                      placeholder="Ex: Representante comercial · Região ES/RJ"
-                      rows={2}
-                      maxLength={120}
-                      className="mt-1 w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
-                      style={{
-                        background: "var(--dash-input-bg)",
-                        borderColor: "var(--dash-input-border)",
-                        color: "var(--dash-text-primary)",
-                      }}
-                    />
-                    <p className="mt-1 text-right text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                      {bioInput.length}/120
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-          {/* Botão salvar Identidade - Apenas se não estiver na aba de segurança */}
-          {businessModel === "B2B" && view !== "security" && (
-            <div className="flex justify-start">
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-xl px-6 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
-                style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
-              >
-                {saving ? "Salvando..." : "Atualizar Nome"}
-              </button>
-            </div>
-          )}
-
-          {/* Card 2 — Contato e Link (Apenas B2C e se view for card) */}
-          {businessModel === "B2C" && view === "card" && (
-            <>
-              <div
-                className="rounded-2xl border p-6 shadow-sm transition-colors"
-                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-              >
-                <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                  Contato e link do cartão
-                </h2>
-                <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                  Como seus clientes entram em contato e acessam seu cartão.
-                </p>
-
-                <div className="mt-6 space-y-5">
-                  {/* WhatsApp */}
-                  <div>
-                    <label
-                      htmlFor="whatsapp"
-                      className="text-sm font-medium"
-                      style={{ color: "var(--dash-text-primary)" }}
-                    >
-                      WhatsApp
-                    </label>
-                    <div className="relative mt-1">
-                      <span
-                        className="absolute inset-y-0 left-3 flex items-center text-sm"
-                        style={{ color: "var(--dash-text-muted)" }}
-                      >
-                        +55
-                      </span>
-                      <input
-                        id="whatsapp"
-                        type="tel"
-                        value={whatsappInput}
-                        onChange={(e) => setWhatsappInput(e.target.value.replace(/\D/g, ""))}
-                        placeholder="27999999999"
-                        maxLength={13}
-                        className="w-full rounded-lg border py-2 pl-10 pr-3 text-sm outline-none transition-colors"
-                        style={{
-                          background: "var(--dash-input-bg)",
-                          borderColor: "var(--dash-input-border)",
-                          color: "var(--dash-text-primary)",
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                      Apenas números, com DDD. Ex: 27999887766
-                    </p>
-                  </div>
-
-                  {/* WhatsApp Template */}
-                  <div>
-                    <label
-                      htmlFor="whatsapp_template"
-                      className="text-sm font-medium"
-                      style={{ color: "var(--dash-text-primary)" }}
-                    >
-                      Modelo de Mensagem personalizada
-                    </label>
-                    <textarea
-                      id="whatsapp_template"
-                      value={whatsappTemplateInput}
-                      onChange={(e) => setWhatsappTemplateInput(e.target.value)}
-                      placeholder="Ex: Olá! Tenho interesse no item {nome}..."
-                      rows={3}
-                      className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors"
-                      style={{
-                        background: "var(--dash-input-bg)",
-                        borderColor: "var(--dash-input-border)",
-                        color: "var(--dash-text-primary)",
-                      }}
-                    />
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {['{nome}', '{preco}', '{sku}', '{link}', '{tipo}'].map(tag => (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => setWhatsappTemplateInput((prev: string) => prev + tag)}
-                          className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="mt-2 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                      Use as tags acima para inserir dados automáticos do item. Deixe vazio para usar a mensagem padrão.
-                    </p>
-                  </div>
-
-                  {/* Slug */}
-                  <div>
-                    <label
-                      htmlFor="slug"
-                      className="text-sm font-medium"
-                      style={{ color: "var(--dash-text-primary)" }}
-                    >
-                      Link personalizado do cartão
-                    </label>
-                    <div className="relative mt-1">
-                      <span
-                        className="absolute inset-y-0 left-3 flex items-center text-xs"
-                        style={{ color: "var(--dash-text-muted)" }}
-                      >
-                        /
-                      </span>
-                      <input
-                        id="slug"
-                        type="text"
-                        value={slugInput}
-                        onChange={(e) => handleSlugChange(e.target.value)}
-                        placeholder="seu-nome"
-                        maxLength={40}
-                        className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors"
-                        style={{
-                          background: "var(--dash-input-bg)",
-                          borderColor: slugError ? "#ef4444" : "var(--dash-input-border)",
-                          color: "var(--dash-text-primary)",
-                        }}
-                      />
-                      {slugChecking && (
-                        <span
-                          className="absolute inset-y-0 right-3 flex items-center text-xs"
-                          style={{ color: "var(--dash-text-muted)" }}
-                        >
-                          verificando...
-                        </span>
+                      {avatarPreview ? (
+                        <>
+                          <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Upload className="text-white" size={24} />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-zinc-300 gap-1">
+                          <Upload size={32} />
+                        </div>
                       )}
                     </div>
-
-                    {slugError ? (
-                      <p className="mt-1 text-xs text-red-500">{slugError}</p>
-                    ) : slugPreview ? (
-                      <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                        Seu link:{" "}
-                        <span className="font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                          {slugPreview}
-                        </span>
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
-                        Use letras minúsculas, números e hífens. Ex: joao-silva
-                      </p>
-                    )}
+                    
+                    <div className="flex items-center gap-4">
+                      <button 
+                        type="button"
+                        onClick={() => setShowImageEditor(true)}
+                        className="text-xs font-bold text-primary hover:underline"
+                      >
+                        {avatarPreview ? "Alterar Foto" : "Enviar Foto"}
+                      </button>
+                      
+                      {avatarPreview && (
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setAvatar(null);
+                            setAvatarFile(null);
+                          }}
+                          className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                        >
+                          <X size={12} /> Remover
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
+                        <input 
+                          type="text" value={nomeInput} onChange={e => setNomeInput(e.target.value)}
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between items-center">
+                          <span>Bio / Cargo</span>
+                          <span className={`text-[10px] ${bioInput.length >= 70 ? 'text-amber-500 font-bold' : 'text-[var(--dash-text-muted)]'}`}>
+                            {bioInput.length}/80
+                          </span>
+                        </label>
+                        <textarea 
+                          value={bioInput} onChange={e => setBioInput(e.target.value.slice(0, 80))}
+                          placeholder="um pequeno texto sobre o vendedor"
+                          maxLength={80}
+                          rows={2}
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] resize-none"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Status de Atendimento & Recesso */}
-            </>
-          )}
-
-          {/* Card: Status de Atendimento e Recesso (Apenas B2C, view=card) */}
-          {businessModel === "B2C" && view === "card" && (
-            <div
-              className="rounded-2xl border p-6 shadow-sm transition-colors"
-              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-            >
-              <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                Status de Atendimento e Recesso
-              </h2>
-              <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                Controle sua disponibilidade e programe férias temporárias.
-              </p>
-
-              <div className="mt-6 space-y-5">
-
-                {/* Toggle Disponível / Indisponível */}
-                <label
-                  className={`flex items-center justify-between gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
-                    isAvailable && !recessActive
-                      ? "border-green-500 bg-green-500/5"
-                      : "border-[var(--dash-border)] bg-[var(--dash-bg)]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Clock size={16} className={isAvailable && !recessActive ? "text-green-500" : "text-[var(--dash-text-muted)]"} />
-                    <div>
-                      <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                        Disponível para atendimento
-                      </span>
-                      <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)] mt-0.5">
-                        Quando ativo, seu cartão público exibe o status de disponível para contato.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="relative flex-shrink-0">
-                    <input
-                      id="toggle-available"
-                      type="checkbox"
-                      className="sr-only"
-                      checked={isAvailable && !recessActive}
-                      disabled={recessActive}
-                      onChange={e => setIsAvailable(e.target.checked)}
+              {/* Card 2: Contato e Link */}
+              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                  <Phone size={18} className="text-primary" /> Contato e Link
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp</label>
+                    <input 
+                      type="tel" 
+                      value={whatsappInput} 
+                      onChange={e => setWhatsappInput(e.target.value.replace(/\D/g, ""))}
+                      placeholder="(00) 00000-0000"
+                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                      style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
-                    <div
-                      className={`w-10 h-5 rounded-full transition-colors duration-200 ${
-                        isAvailable && !recessActive ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
-                      } ${recessActive ? "opacity-40 cursor-not-allowed" : ""}`}
-                      onClick={() => !recessActive && setIsAvailable(v => !v)}
-                    >
-                      <div
-                        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
-                          isAvailable && !recessActive ? "translate-x-5" : "translate-x-0"
-                        }`}
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between">
+                      <span>Link do Cartão (Slug)</span>
+                      {slugChecking && <span className="text-[10px] lowercase">verificando...</span>}
+                    </label>
+                    <input 
+                      type="text" value={slugInput} onChange={e => handleSlugChange(e.target.value)}
+                      placeholder="ex: nome_do_vendedor"
+                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                      style={{ borderColor: slugError ? "#ef4444" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                    {slugError ? (
+                      <p className="mt-2 text-[10px] font-bold text-red-500 truncate">{slugError}</p>
+                    ) : slugInput ? (
+                      <p className="mt-2 text-[10px] font-medium text-primary/60 truncate">
+                        Link: <span className="font-bold">anotameucontato.com.br/{slugInput}</span>
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-2 block">
+                    Modelo de Mensagem (WhatsApp)
+                  </label>
+                  <textarea 
+                    value={whatsappTemplateInput} 
+                    onChange={e => setWhatsappTemplateInput(e.target.value)}
+                    placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e tenho interesse."
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border outline-none bg-[var(--dash-bg)] text-sm"
+                    style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {['{nome}', '{preco}', '{sku}', '{link}', '{tipo}'].map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setWhatsappTemplateInput(prev => prev + tag)}
+                        className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[10px] text-[var(--dash-text-muted)] leading-relaxed">
+                    Personalize a mensagem que o cliente envia ao clicar no WhatsApp. Deixe vazio para usar o padrão.
+                  </p>
+                </div>
+
+                <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+                  <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${redirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+                    <div className="mt-0.5">
+                      <input 
+                        type="checkbox" 
+                        checked={redirectLeads} 
+                        onChange={e => setRedirectLeads(e.target.checked)} 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
                       />
                     </div>
-                  </div>
-                </label>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Redirecionar Cliente (Em caso de Pausa)</span>
+                      </div>
+                      <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)]">
+                        Se ativado, quando este vendedor for marcado como Inativo (pausado), os clientes que acessarem o link dele serão redirecionados para a lista de consultores ativos da loja, evitando a perda do lead.
+                      </p>
+                    </div>
+                  </label>
+                </div>
 
                 {/* Automação de Recesso */}
-                <div className="border-t pt-5" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
                   <div className="flex items-center gap-2 mb-3">
                     <Calendar size={16} className="text-purple-500" />
-                    <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                      Programar Recesso / Férias
-                    </span>
+                    <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Programar Recesso Temporário</span>
                   </div>
-
-                  <label
-                    className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                      recessActive
-                        ? "border-purple-500 bg-purple-500/5"
-                        : "border-[var(--dash-border)] bg-[var(--dash-bg)]"
-                    }`}
-                  >
+                  
+                  <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${recessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
                     <div className="mt-0.5">
-                      <input
-                        type="checkbox"
-                        checked={recessActive}
+                      <input 
+                        type="checkbox" 
+                        checked={recessActive} 
                         onChange={e => {
                           const val = e.target.checked;
                           setRecessActive(val);
                           if (val) {
                             setIsAvailable(false);
+                            setRedirectLeads(true);
                             if (recessDays === 0 && recessHours === 0) setRecessDays(7);
                           }
-                        }}
-                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        }} 
+                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500" 
                       />
                     </div>
                     <div className="flex-1">
-                      <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                        Ativar recesso temporário
-                      </span>
+                      <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Ativar recesso para este vendedor</span>
                       <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)] mt-0.5">
-                        Ao salvar com recesso ativo, seu cartão ficará pausado pelo período determinado. Você voltará como disponível automaticamente ao expirar.
+                        Ao salvar com o recesso ativo, o vendedor ficará pausado (Indisponível) e o redirecionamento de clientes será ativado automaticamente durante o período.
                       </p>
                     </div>
                   </label>
@@ -883,35 +748,31 @@ function PerfilContent() {
                     <div className="mt-4 p-4 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20 border border-[var(--dash-border)] space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">
-                            Dias de Recesso
-                          </label>
-                          <input
-                            type="number"
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Dias de Recesso</label>
+                          <input 
+                            type="number" 
                             min="0"
                             max="365"
-                            value={recessDays}
+                            value={recessDays} 
                             onChange={e => setRecessDays(Math.max(0, parseInt(e.target.value) || 0))}
                             className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
                             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">
-                            Horas Adicionais
-                          </label>
-                          <input
-                            type="number"
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Horas Adicionais</label>
+                          <input 
+                            type="number" 
                             min="0"
                             max="23"
-                            value={recessHours}
+                            value={recessHours} 
                             onChange={e => setRecessHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
                             className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
                             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                           />
                         </div>
                       </div>
-
+                      
                       <div className="text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-purple-600 dark:text-purple-400 leading-relaxed">
                         <p className="font-semibold flex items-center gap-1">
                           <Info size={12} />
@@ -919,16 +780,8 @@ function PerfilContent() {
                             <span>Defina a duração para ver a data final do recesso.</span>
                           ) : (
                             <span>
-                              Retorno previsto:{" "}
-                              <strong className="underline">
-                                {new Date(
-                                  Date.now() +
-                                    recessDays * 24 * 60 * 60 * 1000 +
-                                    recessHours * 60 * 60 * 1000
-                                ).toLocaleString("pt-BR", {
-                                  dateStyle: "short",
-                                  timeStyle: "short",
-                                })}
+                              Retorno previsto: <strong className="underline">
+                                {new Date(Date.now() + (recessDays * 24 * 60 * 60 * 1000) + (recessHours * 60 * 60 * 1000)).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
                               </strong>
                             </span>
                           )}
@@ -938,24 +791,85 @@ function PerfilContent() {
                   )}
                 </div>
               </div>
-            </div>
-          )}
-          
 
-          {/* Fim do Bloco de Identidade/Card */}
-          {view === "card" && (
-            <div className="flex justify-start">
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-xl px-8 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-                style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
-              >
-                {saving ? "Salvando..." : "Salvar Alterações"}
-              </button>
-            </div>
+              {/* Card 3: Permissões e Horários (Colapsável) */}
+              <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <button 
+                  type="button"
+                  onClick={() => setShowHoursConfig(!showHoursConfig)}
+                  className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-colors"
+                >
+                  <h3 className="font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                    <ShieldCheck size={18} className="text-primary" /> Horário de Atendimento
+                  </h3>
+                  <ChevronDown size={20} className={`text-zinc-400 transition-transform ${showHoursConfig ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {showHoursConfig && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 pt-0 space-y-6 border-t" style={{ borderColor: "var(--dash-border)" }}>
+                        
+                        <div className="pt-4 space-y-4">
+                          <p className="text-xs font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Quadro de Horários:</p>
+                          {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
+                            const dayData = customBusinessHours.schedule[day];
+                            return (
+                              <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
+                                <div className="w-32 flex items-center gap-2">
+                                  <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4" />
+                                  <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
+                                </div>
+                                <div className="flex-1 flex flex-wrap gap-2">
+                                  {dayData.isOpen && dayData.shifts.map((shift, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <input 
+                                        type="time" value={shift.open} onChange={e => handleShiftChange(day, idx, "open", e.target.value)}
+                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                                      />
+                                      <span className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>até</span>
+                                      <input 
+                                        type="time" value={shift.close} onChange={e => handleShiftChange(day, idx, "close", e.target.value)}
+                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Action */}
+              <div className="flex items-center justify-start border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+                <button 
+                  onClick={handleSave} 
+                  disabled={saving || !nomeInput.trim()}
+                  className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+                    saving || !nomeInput.trim() 
+                    ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
+                    : "bg-zinc-900 text-white hover:scale-105 shadow-primary/20"
+                  }`}
+                >
+                  {saving ? "Salvando..." : "Salvar Cartão Público"}
+                </button>
+              </div>
+
+            </motion.div>
           )}
+          {/* Fim do Bloco de Identidade/Card */}
+
+          
           
           {/* Card Segurança */}
           {view === "security" && (

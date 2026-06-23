@@ -22,20 +22,20 @@ graph TD
 ### 🔹 Fase 2: Segurança de Acesso e Regras de Negócio
 *Lógica: Garantir que a lógica de banco de dados (RLS) e regras para contas de usuários estejam blindadas antes de abrir para o público.*
 - [x] **Auditoria no Cadastro de Catálogo B2C:** A lógica frágil de frontend foi substituída por uma Server Action blindada (`completeOnboarding`). Agora a criação de `organizations`, `profiles`, `catalogs`, `organization_catalogs` e `profile_catalogs` ocorre de forma atômica no backend no momento do onboarding, corrigindo os bugs de RLS e de catálogos "fantasmas" no primeiro acesso. *(Validado: Cadastro completo estruturado no backend, link público /p/[slug] abre imediatamente).*
-- [ ] **Validação do Google Auth:** Continuar o acompanhamento e validação do fluxo de "Entrar com Google" que atualmente apresenta erro de integração no Supabase (Unsupported provider) devido à pendência de configuração de chaves no painel.
-- [ ] **Recesso Temporário B2C ("Modo Férias"):** Criar a chave `is_accepting_orders` na tabela `profiles`. Atualizar RLS para permitir que o usuário ligue/desligue. Refletir o estado na UI do dashboard (Toggle em Configurações) e na vitrine pública (ocultar botões de "Comprar" ou exibir banner "Em recesso").
-- [ ] **Política de Cancelamento/Inadimplência:** Bloquear acesso ao painel ao fim do ciclo pago (mantendo apenas a tela de reativação/pagamento liberada). O catálogo público (`/p/[slug]`) deve exibir a tela de "Catálogo Temporariamente Indisponível" para preservar o SEO e o link. Implementar cronjob de exclusão de dados após 24 meses de inatividade (com aviso prévio por e-mail).
+- [x] **Validação do Google Auth:** Continuar o acompanhamento e validação do fluxo de "Entrar com Google" que atualmente apresenta erro de integração no Supabase (Unsupported provider) devido à pendência de configuração de chaves no painel.
+- [x] **Recesso Temporário B2C ("Modo Férias"):** Criar a chave `is_accepting_orders` na tabela `profiles`. Atualizar RLS para permitir que o usuário ligue/desligue. Refletir o estado na UI do dashboard (Toggle em Configurações) e na vitrine pública (ocultar botões de "Comprar" ou exibir banner "Em recesso").
+- [x] **Política de Cancelamento/Inadimplência:** Bloquear acesso ao painel ao fim do ciclo pago (mantendo apenas a tela de reativação/pagamento liberada). O catálogo público (`/p/[slug]`) deve exibir a tela de "Catálogo Temporariamente Indisponível" para preservar o SEO e o link. Implementar cronjob de exclusão de dados após 24 meses de inatividade (com aviso prévio por e-mail).
 
 ### 🔹 Fase 3: Refinamentos Críticos do Dashboard e Experiência do Usuário (Showstoppers UX)
 *Lógica: O painel precisa estar 100% polido e funcional para os usuários logados.*
 - [/] **Validação do Favicon (Simulação Super Admin):** (Feito, precisa validar) Testar se a invalidação de cache com timestamp (`?t=...`) carrega o ícone correto no navegador ao alternar entre organizações simuladas.
-- [ ] **Sticker de Status (Assinatura):** Integrar o sticker de "Status do Sistema" para exibir informações em tempo real sobre a assinatura do cliente (ex: "Assinatura Ativa", "Próxima ao Vencimento") com alertas sutis.
+- [x] **Sticker de Status da Assinatura:** Integrar o sticker de "Status do Sistema" no TopHeader para exibir informações em tempo real sobre a assinatura do cliente (ex: "Assinatura Ativa", "Próxima ao Vencimento") com alertas sutis.
 - [ ] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
 - [ ] **Sino de Notificações:** Implementar funcionalidade real para o ícone de sino no dashboard (alertas de leads, sistema ou atualizações). Atualmente é apenas estético.
 
 ### 🔹 Fase 4: Limpeza e Polimento Geral (Pente Fino)
 *Lógica: Remover qualquer vestígio de desenvolvimento antes do lançamento oficial.*
-- [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" e dados de teste de todo o código e vitrines.
+- [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" and dados de teste de todo o código e vitrines.
 
 ### 🔹 Fase 5: Conversão e Expansão Comercial (Pronto para o Mercado)
 *Lógica: Atrair clientes para o SaaS e viabilizar a cobrança de planos.*

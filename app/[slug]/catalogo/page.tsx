@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import ConsultantsBridge from "@/components/public/ConsultantsBridge";
+import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,6 +28,8 @@ type Profile = {
   status: string | null;
   redirect_leads: boolean | null;
   recess_ends_at: string | null;
+  is_accepting_orders: boolean | null;
+  subscription_status: string;
 };
 
 type Organization = {
@@ -208,6 +211,10 @@ export default async function Page(props: PageProps) {
   const isTerminated = profile?.status === 'terminated';
   const isPaused = profile?.status === 'paused' || isRecessActive;
   const isRedirecting = !!profile?.redirect_leads;
+
+  if (profile && profile.subscription_status && profile.subscription_status !== "active" && profile.subscription_status !== "trialing") {
+    return <CatalogUnavailableScreen profile={profile as any} />;
+  }
 
   if (profile && (isTerminated || (isPaused && isRedirecting))) {
     return (
@@ -512,6 +519,7 @@ export default async function Page(props: PageProps) {
         whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
         sellerStatus={profile?.status}
         recessEndsAt={profile?.recess_ends_at}
+        isAcceptingOrders={profile?.is_accepting_orders}
         hideCta={!!catalog?.hide_cta}
         banners={finalBanners}
         bannerSpeedSeconds={finalBannerSpeed}

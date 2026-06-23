@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { PanelLayout } from "@/components/dashboard/PanelLayout";
+import BlockedSubscriptionScreen from "@/components/auth/BlockedSubscriptionScreen";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -62,7 +63,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, subscription_status")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -74,6 +75,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (!shadowOrgId) {
       // Sem cookie de simulação → redireciona para o QG do Admin
       redirect("/main");
+    }
+  } else {
+    // Para lojistas normais (B2B ou B2C), verificar o status da assinatura
+    if (profile?.subscription_status && profile.subscription_status !== "active" && profile.subscription_status !== "trialing") {
+      return <BlockedSubscriptionScreen status={profile.subscription_status} />;
     }
   }
 

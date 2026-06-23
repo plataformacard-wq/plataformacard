@@ -4,29 +4,9 @@ import Link from "next/link";
 import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleLogin } from "@react-oauth/google";
 
-function GoogleIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5">
-      <path
-        fill="#EA4335"
-        d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.8-2.7-5.8-6s2.6-6 5.8-6c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.6 14.6 2.8 12 2.8 6.9 2.8 2.8 6.9 2.8 12S6.9 21.2 12 21.2c6.1 0 9.1-4.3 9.1-6.6 0-.4 0-.7-.1-1H12Z"
-      />
-      <path
-        fill="#34A853"
-        d="M2.8 12c0 1.7.6 3.2 1.6 4.5l3.7-2.9c-.2-.5-.4-1-.4-1.6s.1-1.1.4-1.6L4.4 7.5C3.4 8.8 2.8 10.3 2.8 12Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M12 21.2c2.6 0 4.8-.9 6.4-2.5l-3.1-2.4c-.8.6-1.9 1-3.3 1-2.5 0-4.6-1.7-5.3-4l-3.8 2.9c1.7 3.1 5 5 9.1 5Z"
-      />
-      <path
-        fill="#4285F4"
-        d="M21.1 13c.1-.4.1-.8.1-1.2s0-.8-.1-1.2H12v3.9h5.4c-.3 1.2-1 2.1-2 2.8l3.1 2.4c1.8-1.7 2.6-4.1 2.6-6.7Z"
-      />
-    </svg>
-  );
-}
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -83,22 +63,48 @@ export default function LoginPage() {
     router.refresh();
   }
 
-  async function handleGoogleLogin() {
+  async function handleGoogleSuccess(credentialResponse: any) {
     setErrorMessage("");
     setLoadingGoogle(true);
 
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
+    if (!credentialResponse.credential) {
       setLoadingGoogle(false);
-      setErrorMessage(error.message);
+      setErrorMessage("Erro ao obter o token do Google.");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: credentialResponse.credential,
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        setLoadingGoogle(false);
+        return;
+      }
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .single();
+
+        if (profile?.role === "main_admin") {
+          await supabase.auth.signOut();
+          setLoadingGoogle(false);
+          setErrorMessage("Acesso restrito. Utilize o portal MAIN para administrar a plataforma.");
+          return;
+        }
+
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err: any) {
+      setErrorMessage("Ocorreu um erro no login com o Google.");
+      setLoadingGoogle(false);
     }
   }
 
@@ -178,17 +184,23 @@ export default function LoginPage() {
           <div className="h-px flex-1 bg-white/10" />
         </div>
 
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loadingGoogle}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <GoogleIcon />
-          <span>
-            {loadingGoogle ? "Redirecionando..." : "Entrar com Google"}
-          </span>
-        </button>
+        {loadingGoogle ? (
+          <div className="flex w-full items-center justify-center rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm font-semibold text-zinc-400">
+            Acessando sistema...
+          </div>
+        ) : (
+          <div className="flex w-full justify-center overflow-hidden rounded-xl">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                setErrorMessage("Falha na autenticação do Google. Tente novamente.");
+              }}
+              theme="filled_black"
+              shape="rectangular"
+              text="signin_with"
+            />
+          </div>
+        )}
 
         <div className="mt-6 text-center text-sm text-zinc-300">
           Não tem conta?{" "}

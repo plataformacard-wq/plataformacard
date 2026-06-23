@@ -42,6 +42,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
     dash_access_analytics: false,
     dash_access_company: false,
   });
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const [notice, setNotice] = useState<{id: string, text: string, active: boolean} | null>(null);
@@ -136,7 +137,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         setAvatar(profile.avatar_url || null);
         setRole(userRole);
         setSlug(profile.slug || null);
-        
+        setSubscriptionStatus(profile.subscription_status || null);
         setPermissions({
           dash_access_catalog: !!profile.dash_access_catalog,
           dash_access_analytics: !!profile.dash_access_analytics,
@@ -346,6 +347,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           businessModel={businessModel || "B2C"}
           isDark={isDark}
           isAdminPath={isAdminPath}
+          subscriptionStatus={subscriptionStatus || undefined}
           toggleTheme={() => {
             const next = !isDark;
             setIsDark(next);

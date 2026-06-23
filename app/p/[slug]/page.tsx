@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
+import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -16,6 +17,7 @@ type ProfileRow = {
   bio: string | null;
   avatar_url: string | null;
   whatsapp: string | null;
+  subscription_status: string;
 };
 
 export const dynamicParams = true;
@@ -136,7 +138,7 @@ export default async function Page(props: PageProps) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, subscription_status")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -145,6 +147,10 @@ export default async function Page(props: PageProps) {
   }
 
   const safeProfile = profile as ProfileRow;
+
+  if (safeProfile.subscription_status && safeProfile.subscription_status !== "active" && safeProfile.subscription_status !== "trialing") {
+    return <CatalogUnavailableScreen profile={safeProfile} />;
+  }
 
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
     supabase

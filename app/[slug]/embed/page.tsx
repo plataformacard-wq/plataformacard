@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
+import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -27,7 +28,7 @@ export default async function EmbedPage(props: PageProps) {
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp")
+    .select("id, slug, organization_id, full_name, bio, avatar_url, whatsapp, subscription_status")
     .ilike("slug", slug)
     .maybeSingle();
 
@@ -53,6 +54,10 @@ export default async function EmbedPage(props: PageProps) {
     } else {
       return notFound();
     }
+  }
+
+  if (profile && profile.subscription_status && profile.subscription_status !== "active" && profile.subscription_status !== "trialing") {
+    return <CatalogUnavailableScreen profile={profile} />;
   }
 
   const trackingProfileId = (profile?.id || orgData?.id) || "";
