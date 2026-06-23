@@ -1,0 +1,81 @@
+export type Category = {
+  id: string;
+  name: string;
+  description: string | null;
+  sort_order: number | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
+  products?: Product[];
+};
+
+export type Spec = {
+  chave: string;
+  valor: string;
+};
+
+export type Product = {
+  id: string;
+  category_id: string;
+  name: string;
+  description: string | null;
+  specs: Spec[] | null;
+  price: number | null;
+  compare_at_price?: number | null;
+  sku: string | null;
+  has_retail?: boolean | null;
+  has_wholesale?: boolean | null;
+  wholesale_price?: number | null;
+  wholesale_min_quantity?: number | null;
+  image_url: string | null;
+  image_urls?: string[] | null;
+  sort_order: number | null;
+  is_active?: boolean | null;
+  is_in_stock?: boolean | null;
+  specs_title?: string | null;
+  show_specs?: boolean | null;
+  show_colors?: boolean | null;
+  colors?: string[] | null;
+  highlight_text?: string | null;
+  show_highlight?: boolean | null;
+  type?: "product" | "service" | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProductCatalogClientProps = {
+  profileId: string;
+  catalogId: string | null;
+  slug: string;
+  fullName?: string | null;
+  avatarUrl?: string | null;
+  catalogName?: string | null;
+  catalogDescription?: string | null;
+  categories: Category[];
+  products: Product[];
+  whatsapp: string | null;
+  logoUrl?: string | null;
+  isPureCatalog?: boolean;
+  isEmbed?: boolean;
+  accentColor?: string | null;
+  secondaryColor?: string | null;
+  bio?: string | null;
+  isAvailable?: boolean | null;
+  businessHours?: Record<string, any>;
+  customBusinessHours?: Record<string, any>;
+  canCustomizeHours?: boolean | null;
+  organizationId?: string | null;
+  whatsappTemplate?: string | null;
+  sellerStatus?: string | null;
+  recessEndsAt?: string | null;
+  isAcceptingOrders?: boolean | null;
+  hideCta?: boolean;
+  isB2B?: boolean;
+  hidePrices?: boolean;
+  banners?: any[] | null;
+  bannerSpeedSeconds?: number;
+  bannerInitialIndex?: number;
+  showBanners?: boolean;
+  outOfStockAtEnd?: boolean;
+};
