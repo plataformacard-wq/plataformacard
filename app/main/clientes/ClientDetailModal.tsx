@@ -144,7 +144,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   };
 
 
-  const handleModelToggle = async (newModel: 'B2B' | 'B2C') => {
+  const handleModelToggle = async (newModel: 'B2B' | 'B2C' | 'CaaS') => {
     if (newModel === businessModel || updatingModel) return;
     
     setUpdatingModel(true);
@@ -215,7 +215,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           style={{ background: "var(--dash-surface)" }}
         >
           {/* Header Color Bar */}
-          <div className={`h-3 w-full ${businessModel === 'B2B' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
+          <div className={`h-3 w-full ${businessModel === 'B2B' ? 'bg-blue-500' : businessModel === 'CaaS' ? 'bg-purple-500' : 'bg-emerald-500'}`} />
           
           <button 
             onClick={onClose}
@@ -227,7 +227,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
           <div className="p-8 sm:p-12 max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* Top Info */}
             <div className="flex items-center gap-6 mb-10">
-              <div className={`h-20 w-20 rounded-xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+              <div className={`h-20 w-20 rounded-xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : businessModel === 'CaaS' ? 'bg-purple-600' : 'bg-emerald-600'}`}>
                 <Building2 size={40} />
               </div>
               <div className="flex-1">
@@ -323,6 +323,16 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           }`}
                         >
                           B2C
+                        </button>
+                        <button 
+                          onClick={() => handleModelToggle('CaaS')}
+                          className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
+                            businessModel === 'CaaS' 
+                              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' 
+                              : 'text-[var(--dash-text-muted)] hover:text-purple-500'
+                          }`}
+                        >
+                          CaaS
                         </button>
                       </div>
 
