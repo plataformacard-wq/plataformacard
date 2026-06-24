@@ -187,10 +187,8 @@ export default function HomePage() {
                 padding: "16px 32px",
                 borderRadius: 999,
                 textDecoration: "none",
-                transition: "background 0.2s",
               }}
-              onMouseOver={(e) => (e.currentTarget.style.background = "#23994A")}
-              onMouseOut={(e) => (e.currentTarget.style.background = "#2CCB68")}
+              className="btn-hover"
             >
               Agendar Demonstração B2B
             </a>
@@ -419,6 +417,8 @@ export default function HomePage() {
             @media (max-width: 768px) {
               .sm\\:flex { display: none !important; }
             }
+            .btn-hover { transition: background 0.2s; }
+            .btn-hover:hover { background: #23994A !important; }
           `,
         }}
       />
