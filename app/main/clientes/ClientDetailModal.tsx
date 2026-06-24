@@ -14,11 +14,13 @@ import {
   TrendingUp,
   Mail,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Edit2,
+  Check
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess, suspendOrganization, reactivateOrganization } from "@/lib/admin-actions";
+import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess, updateOrganizationInternalName } from "@/lib/admin-actions";
 import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS } from "@/lib/plans";
 
 interface ClientDetailModalProps {
@@ -42,7 +44,11 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const [businessModel, setBusinessModel] = useState(organization?.business_model || 'B2B');
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const [updatingModel, setUpdatingModel] = useState(false);
-  const [suspending, setSuspending] = useState(false);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState(organization?.internal_name || '');
+  const [savingName, setSavingName] = useState(false);
+
   const [showSellers, setShowSellers] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   // Estado para o painel de confirmação de downgrade
@@ -156,35 +162,24 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
     }
   };
 
-  const handleToggleSuspend = async () => {
-    if (suspending) return;
-    setSuspending(true);
+  const handleSaveInternalName = async () => {
+    setSavingName(true);
     try {
-      const isSuspended = !!organization.deleted_at;
-      let result;
-      if (isSuspended) {
-        result = await reactivateOrganization(organization.id);
-      } else {
-        if (!confirm(`Tem certeza que deseja suspender a conta ${organization.name}? O acesso será bloqueado.`)) {
-          setSuspending(false);
-          return;
-        }
-        result = await suspendOrganization(organization.id);
-      }
-      
+      const result = await updateOrganizationInternalName(organization.id, newName.trim() === '' ? null : newName.trim());
       if (result.success) {
-        // Fechar o modal para forçar um refresh da lista pai
-        onClose();
         window.location.reload();
       } else {
-        alert("Erro ao alterar status: " + result.error);
+        alert("Erro ao salvar nome interno: " + result.error);
       }
     } catch (error) {
       console.error(error);
     } finally {
-      setSuspending(false);
+      setSavingName(false);
+      setIsEditingName(false);
     }
   };
+
+
 
   // Lógica de Contrato
   const adherenceDate = organization?.created_at ? new Date(organization.created_at) : new Date();
@@ -235,15 +230,68 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
               <div className={`h-20 w-20 rounded-xl flex items-center justify-center text-white shadow-xl ${businessModel === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
                 <Building2 size={40} />
               </div>
-              <div>
-                <h2 className="text-3xl font-black mb-1" style={{ color: "var(--dash-text-primary)" }}>
-                  {organization.name}
-                </h2>
-                <div className="flex flex-wrap items-center gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  {isEditingName ? (
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-md px-3 py-1 text-xl font-black outline-none focus:border-primary text-[var(--dash-text-primary)]"
+                        placeholder="Nome interno (Alias)..."
+                        autoFocus
+                      />
+                      <button 
+                        onClick={handleSaveInternalName}
+                        disabled={savingName}
+                        className="bg-emerald-500/10 text-emerald-500 p-1.5 rounded-md hover:bg-emerald-500 hover:text-white transition-colors"
+                      >
+                        {savingName ? <RefreshCw size={18} className="animate-spin" /> : <Check size={18} />}
+                      </button>
+                      <button 
+                        onClick={() => { setIsEditingName(false); setNewName(organization.internal_name || ''); }}
+                        disabled={savingName}
+                        className="bg-red-500/10 text-red-500 p-1.5 rounded-md hover:bg-red-500 hover:text-white transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>
+                        {organization.internal_name || organization.name}
+                      </h2>
+                      <button 
+                        onClick={() => setIsEditingName(true)}
+                        className="text-[var(--dash-text-muted)] hover:text-primary transition-colors p-1"
+                        title="Editar Nome Interno"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {organization.internal_name && (
+                  <h3 className="text-sm font-medium text-[var(--dash-text-muted)] mb-1">
+                    Original: {organization.name}
+                  </h3>
+                )}
+                <div className="flex flex-wrap items-center gap-4 mt-2">
                     <span className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)]">/{organization.slug}</span>
+                    {organization.status === 'suspended' && (
+                      <span className="bg-amber-500/10 text-amber-500 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest border border-amber-500/20">
+                        CONTA SUSPENSA
+                      </span>
+                    )}
+                    {organization.status === 'deactivated' && (
+                      <span className="bg-zinc-500/10 text-zinc-500 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest border border-zinc-500/20">
+                        DESATIVADA
+                      </span>
+                    )}
                     {organization.deleted_at && (
                       <span className="bg-red-500/10 text-red-500 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest border border-red-500/20">
-                        CONTA SUSPENSA
+                        LIXEIRA
                       </span>
                     )}
                     
@@ -564,18 +612,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                   <Globe size={18} />
                   ACESSAR DASHBOARD (SIMULAR)
                 </button>
-                <button 
-                  onClick={handleToggleSuspend}
-                  disabled={suspending}
-                  className={`flex-1 py-4 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                    organization.deleted_at 
-                      ? "bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20" 
-                      : "border border-red-500/20 text-red-500 hover:bg-red-500/5"
-                  }`}
-                >
-                  <ShieldAlert size={18} />
-                  {suspending ? "Aguarde..." : organization.deleted_at ? "Reativar Conta" : "Suspender Conta"}
-                </button>
+
               </div>
             </div>
           </div>

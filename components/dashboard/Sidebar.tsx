@@ -89,6 +89,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         subItems: [
           { href: "/main/assinaturas", label: "Assinaturas & Planos", icon: BadgeDollarSign },
           { href: "/main/clientes", label: "Empresas (Raio-X)", icon: Users },
+          { href: "/main/contas", label: "Gestão de Contas (Status)", icon: ShieldCheck },
           { href: "/main/cartoes", label: "Cartões Públicos", icon: UserCircle },
           { href: "/main/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
           { href: "/main/recursos", label: "Gestão de Recursos", icon: HardDrive },
@@ -119,6 +120,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/main/analytics?tab=b2b", label: "BI & Analytics", icon: BarChart3 },
           { href: "/main/assinaturas", label: "Assinaturas & Planos", icon: BadgeDollarSign },
           { href: "/main/clientes", label: "Gestão de Empresas", icon: Users },
+          { href: "/main/contas", label: "Contas e Status", icon: ShieldCheck },
           { href: "/main/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
           { href: "/main/recursos", label: "Gestão de Recursos", icon: HardDrive },
           { href: "/main/maintenance", label: "Manutenção Global", icon: Info },

@@ -118,17 +118,19 @@ export async function suspendOrganization(orgId: string) {
   await verifySuperAdmin();
   const supabase = createAdminClient();
   
-  // Marca o status dos perfis como suspended
-  await supabase
-    .from('profiles')
-    .update({ status: 'suspended' })
-    .eq('organization_id', orgId);
+  await supabase.from('profiles').update({ status: 'suspended' }).eq('organization_id', orgId);
+  const { error } = await supabase.from('organizations').update({ status: 'suspended' }).eq('id', orgId);
 
-  // Usa deleted_at como flag de suspensão na org
-  const { error } = await supabase
-    .from('organizations')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', orgId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function deactivateOrganization(orgId: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  await supabase.from('profiles').update({ status: 'deactivated' }).eq('organization_id', orgId);
+  const { error } = await supabase.from('organizations').update({ status: 'deactivated' }).eq('id', orgId);
 
   if (error) return { success: false, error: error.message };
   return { success: true };
@@ -138,17 +140,29 @@ export async function reactivateOrganization(orgId: string) {
   await verifySuperAdmin();
   const supabase = createAdminClient();
   
-  // Reativa os perfis
-  await supabase
-    .from('profiles')
-    .update({ status: 'active' })
-    .eq('organization_id', orgId);
+  await supabase.from('profiles').update({ status: 'active' }).eq('organization_id', orgId);
+  const { error } = await supabase.from('organizations').update({ status: 'active', deleted_at: null }).eq('id', orgId);
 
-  // Remove a flag de suspensão da org
-  const { error } = await supabase
-    .from('organizations')
-    .update({ deleted_at: null })
-    .eq('id', orgId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function softDeleteOrganization(orgId: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  await supabase.from('profiles').update({ status: 'terminated' }).eq('organization_id', orgId);
+  const { error } = await supabase.from('organizations').update({ deleted_at: new Date().toISOString() }).eq('id', orgId);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function hardDeleteOrganization(orgId: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  const { error } = await supabase.from('organizations').delete().eq('id', orgId);
 
   if (error) return { success: false, error: error.message };
   return { success: true };
@@ -354,5 +368,18 @@ export async function stopShadowAccess() {
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   cookieStore.delete("shadow_org_id");
+  return { success: true };
+}
+
+export async function updateOrganizationInternalName(orgId: string, internalName: string | null) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  const { error } = await supabase
+    .from('organizations')
+    .update({ internal_name: internalName || null })
+    .eq('id', orgId);
+
+  if (error) return { success: false, error: error.message };
   return { success: true };
 }

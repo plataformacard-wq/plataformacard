@@ -35,7 +35,7 @@ export default async function CaasAdminPage({ searchParams }: PageProps) {
   // 2. Fetch Organizations
   const { data: organizations } = await admin
     .from("organizations")
-    .select("id, name, slug, business_model")
+    .select("id, name, internal_name, slug, business_model")
     .neq("name", "Start - Super Admin")
     .order("name", { ascending: true });
 

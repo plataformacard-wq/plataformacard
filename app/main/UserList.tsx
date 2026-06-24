@@ -107,9 +107,14 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
               <tr key={p.id} className="hover:bg-[var(--dash-hover-bg)] transition-colors">
                 <td className="px-6 py-4">
                   <p className="font-medium" style={{ color: "var(--dash-text-primary)" }}>{p.full_name || "Sem Nome"}</p>
-                  <p className="text-[10px] uppercase font-bold tracking-tighter" style={{ color: "var(--dash-text-muted)" }}>
-                    {org?.name || "Empresa Individual"}
-                  </p>
+                    <p className="text-[10px] uppercase font-bold tracking-tighter" style={{ color: "var(--dash-text-muted)" }}>
+                      {org?.internal_name || org?.name || "Empresa Individual"}
+                    </p>
+                    {org?.internal_name && (
+                      <p className="text-[9px] text-[var(--dash-text-muted)] truncate max-w-[200px] italic">
+                        Original: {org.name}
+                      </p>
+                    )}
                 </td>
                 <td className="px-6 py-4">
                   <a href={`/${p.slug}`} target="_blank" className="text-blue-500 hover:underline">

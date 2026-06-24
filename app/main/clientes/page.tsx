@@ -10,7 +10,7 @@ export default async function ClientesPage() {
   // 1. Fetch all organizations with their basic data
   const { data: organizations } = await supabase
     .from("organizations")
-    .select("id, name, slug, business_model, created_at, plan_id")
+    .select("id, name, internal_name, slug, business_model, created_at, plan_id")
     .neq("name", "Start - Super Admin")
     .order("created_at", { ascending: false });
 

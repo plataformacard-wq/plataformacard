@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
   // Recent profiles
   const { data: recentProfiles } = await supabase
     .from("profiles")
-    .select(`id, full_name, slug, role, created_at, organization_id, organizations ( id, name, business_model )`)
+    .select(`id, full_name, slug, role, created_at, organization_id, organizations ( id, name, internal_name, business_model )`)
     .neq("role", "main_admin")
     .neq("role", "seller")
     .order("created_at", { ascending: false })
@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
   // Organizations for the list
   const { data: organizations } = await supabase
     .from("organizations")
-    .select("id, name, slug, business_model, created_at, plan_id")
+    .select("id, name, internal_name, slug, business_model, created_at, plan_id")
     .neq("name", "Start - Super Admin")
     .order("created_at", { ascending: false });
 

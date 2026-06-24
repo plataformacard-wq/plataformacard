@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Proteção de rotas para Dashboard e Admin Principal
-  if (!user && (path.startsWith("/dashboard") || path.startsWith("/main") || path.startsWith("/admin") || path.startsWith("/onboarding"))) {
+  if (!user && (path.startsWith("/dashboard") || (path.startsWith("/main") && !path.startsWith("/main-login")) || path.startsWith("/admin") || path.startsWith("/onboarding"))) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/entrar";
     return NextResponse.redirect(redirectUrl);

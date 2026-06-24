@@ -28,6 +28,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
 
   const filteredOrgs = organizations?.filter(org => {
     const matchesSearch = org.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          org.internal_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          org.slug?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterModel === "ALL" || org.business_model === filterModel;
     return matchesSearch && matchesFilter;
@@ -107,8 +108,11 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-lg font-black truncate leading-tight" style={{ color: "var(--dash-text-primary)" }}>
-                    {org.name || "Sem Nome"}
+                    {org.internal_name || org.name || "Sem Nome"}
                   </h3>
+                  {org.internal_name && (
+                    <p className="text-[10px] text-[var(--dash-text-muted)] mt-1">Original: {org.name}</p>
+                  )}
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] truncate max-w-[150px] mt-1">
                     /{org.slug}
                   </p>

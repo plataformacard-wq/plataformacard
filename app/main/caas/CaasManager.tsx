@@ -69,6 +69,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
 
   const filteredOrgs = organizations.filter(org => 
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (org.internal_name && org.internal_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     org.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -586,7 +587,11 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                     </div>
                     <div>
                       <h3 className="font-bold text-lg flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
-                        {org.name}
+                        {org.internal_name || org.name}
+                      </h3>
+                      {org.internal_name && (
+                        <p className="text-[10px] text-[var(--dash-text-muted)] mt-1">Original: {org.name}</p>
+                      )}
                         {org.business_model === "CaaS" && (
                           <span className="text-[10px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-full">CaaS</span>
                         )}
