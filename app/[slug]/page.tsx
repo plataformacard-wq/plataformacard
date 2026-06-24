@@ -410,13 +410,16 @@ export default async function Page(props: PageProps) {
           width: "100%",
           maxWidth: 400,
           borderRadius: 32,
-          overflow: "hidden",
+          position: "relative",
+          marginTop: 46, // Espaço para a foto vazar
         }}
       >
         {/* Barra verde de destaque no topo */}
         <div
           style={{
             height: 4,
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
             background:
               `linear-gradient(90deg, transparent 0%, ${accentColor} 40%, ${secondaryColor} 60%, transparent 100%)`,
           }}
@@ -430,9 +433,13 @@ export default async function Page(props: PageProps) {
             </div>
           )}
 
-          {/* Avatar com anel brilhante */}
+          {/* Avatar com anel brilhante (Vazando para fora) */}
           <div
             style={{
+              position: "absolute",
+              top: -46, // Metade de 92px
+              left: "50%",
+              transform: "translateX(-50%)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -529,7 +536,7 @@ export default async function Page(props: PageProps) {
           </div>
 
           {/* Nome e bio */}
-          <div className="animate-stagger-2" style={{ textAlign: "center", marginTop: 20 }}>
+          <div className="animate-stagger-2" style={{ textAlign: "center", marginTop: 40 }}>
             <h1
               className="public-text-name"
               style={{

@@ -19,7 +19,7 @@ graph TD
 *Lógica: Pendências de negócio essenciais para que a plataforma opere legal e financeiramente como um SaaS na internet pública.*
 - [ ] **Gateway de Pagamento (Checkout):** Integração com Stripe ou MercadoPago para vendas automatizadas (planos e limites). Atualmente os acessos são manuais (High Touch).
 - [ ] **Infraestrutura de Identidade (E-mail e Domínio):** Configurar um domínio próprio na Vercel e registrar um provedor SMTP (ex: Resend) no Supabase. Sem isso, e-mails de recuperação de senha cairão no SPAM e o sistema sofrerá rate-limit após 50 disparos.
-- [ ] **Políticas Jurídicas (LGPD e Termos):** Redigir e publicar páginas estáticas de "Termos de Uso" e "Política de Privacidade". Adicionar checkbox obrigatório "Li e aceito os termos" no formulário de cadastro.
+- [x] **Políticas Jurídicas (LGPD e Termos):** Redigir e publicar páginas estáticas de "Termos de Uso" e "Política de Privacidade". Adicionar checkbox obrigatório "Li e aceito os termos" no formulário de cadastro.
 
 ### 🔹 Fase 1: Estabilização de Infraestrutura (Pré-requisito Crítico)
 *Lógica: Precisamos de um ambiente de homologação seguro para testar qualquer alteração subsequente sem colocar os dados de produção em risco.*
@@ -47,7 +47,7 @@ graph TD
 *Lógica: Atrair clientes para o SaaS e viabilizar a cobrança de planos.*
 - [ ] **Landing Page de Captura:** Criar página oficial para conversão de novos clientes do SaaS.
 - [ ] **Sistemas de Pagamento:** Iniciar planejamento da arquitetura para checkout e assinaturas.
-- [ ] **Domínios Próprios:** Analisar viabilidade técnica e arquitetura para clientes usarem seus próprios domínios.
+- [x] **Domínios Próprios:** Arquitetura de `custom_domain` automatizada via API da Vercel.
 - [ ] **Análise Estratégica - Gestão de Acessos B2B:** Criação e validação do sistema de acesso de vendedores ao dashboard com as limitações configuradas pelo Gestor B2B.
 - [ ] **Análise Estratégica - Planos e Funções:** Definição e criação de Planos e Funções (Roles) do SaaS.
 - [ ] **Pesquisa de Mercado:** Estudo de precificação e análise de concorrência.

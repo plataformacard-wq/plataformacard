@@ -131,6 +131,8 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
     if (role === "admin" || role === "b2b_admin" || role === "b2c_admin" || isActuallySuperAdmin) {
       const isB2B = businessModel === "B2B";
+      const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
+      const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS;
 
       navLinks.push({ 
         label: "Empresa", 
@@ -138,6 +140,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         subItems: [
           ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
           { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
+          { href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
         ]
       });
       navLinks.push({ 
@@ -150,9 +153,6 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         ]
       });
 
-      const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
-      const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS;
-      
       if (!isB2C && !isCaaS) {
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
       }
@@ -174,6 +174,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           subItems: [
             ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
             { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
+            { href: "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
           ]
         } as any);
       }

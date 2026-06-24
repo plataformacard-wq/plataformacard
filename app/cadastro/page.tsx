@@ -32,6 +32,8 @@ export default function CadastroPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [acceptTerms, setAcceptTerms] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -96,6 +98,11 @@ export default function CadastroPage() {
 
     if (!trimmedName) {
       setErrorMessage("Preencha seu nome.");
+      return;
+    }
+
+    if (!acceptTerms) {
+      setErrorMessage("Você deve aceitar os Termos de Uso e a Política de Privacidade para continuar.");
       return;
     }
 
@@ -277,16 +284,23 @@ export default function CadastroPage() {
             Acessando sistema...
           </div>
         ) : (
-          <div className="flex w-full justify-center overflow-hidden rounded-xl">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => {
-                setErrorMessage("Falha na autenticação do Google. Tente novamente.");
-              }}
-              theme="filled_black"
-              shape="rectangular"
-              text="signup_with"
-            />
+          <div className="flex flex-col w-full items-center justify-center gap-3">
+            <div className="w-full overflow-hidden rounded-xl flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {
+                  setErrorMessage("Falha na autenticação do Google. Tente novamente.");
+                }}
+                theme="filled_black"
+                shape="rectangular"
+                text="signup_with"
+              />
+            </div>
+            <p className="text-[10px] text-zinc-500 text-center max-w-[280px]">
+              Ao continuar com o Google, você declara que leu e concorda com nossos{" "}
+              <Link href="/termos" target="_blank" className="text-zinc-400 hover:text-white underline underline-offset-2">Termos de Uso</Link> e{" "}
+              <Link href="/privacidade" target="_blank" className="text-zinc-400 hover:text-white underline underline-offset-2">Política de Privacidade</Link>.
+            </p>
           </div>
         )}
 
@@ -388,9 +402,32 @@ export default function CadastroPage() {
             </div>
           ) : null}
 
+          <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/5 p-4">
+            <div className="mt-0.5 flex h-5 items-center">
+              <input
+                id="terms"
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-zinc-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-zinc-950"
+              />
+            </div>
+            <label htmlFor="terms" className="text-xs text-zinc-400">
+              Li e concordo com os{" "}
+              <Link href="/termos" target="_blank" className="font-medium text-white hover:underline">
+                Termos de Uso
+              </Link>{" "}
+              e a{" "}
+              <Link href="/privacidade" target="_blank" className="font-medium text-white hover:underline">
+                Política de Privacidade
+              </Link>
+              .
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={loading || loadingGoogle}
+            disabled={loading || loadingGoogle || !acceptTerms}
             className="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-zinc-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Criando conta..." : "Criar conta"}

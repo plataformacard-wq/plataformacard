@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package } from "lucide-react";
+import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getOrganizationById } from "@/lib/admin-actions";
 
@@ -984,6 +984,27 @@ function PerfilContent() {
                 <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>
                   O e-mail é a chave primária da conta e não pode ser alterado por aqui.
                 </p>
+              </div>
+
+              {/* Domínio Próprio */}
+              <div
+                className="rounded-2xl border p-6 shadow-sm transition-colors mb-6"
+                style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+              >
+                <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                  <Globe size={18} className="text-primary" /> Domínio Próprio
+                </h2>
+                <p className="mt-1 text-sm text-[var(--dash-text-muted)] leading-relaxed">
+                  Configure um domínio personalizado (ex: meu-nome.com.br) para o seu cartão virtual, transmitindo ainda mais profissionalismo.
+                </p>
+                <div className="mt-6">
+                  <a
+                    href="/dashboard/perfil/dominio"
+                    className="inline-flex px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90"
+                  >
+                    Configurar Domínio
+                  </a>
+                </div>
               </div>
 
               {/* Sessões e Dispositivos */}
