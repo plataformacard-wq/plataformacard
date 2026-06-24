@@ -86,7 +86,7 @@ export async function updateOrganizationPlan(orgId: string, planId: string) {
   return { success: true };
 }
  
-export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C') {
+export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C' | 'CaaS') {
   await verifySuperAdmin();
   const supabase = createAdminClient();
   
@@ -99,12 +99,12 @@ export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C
     if (error) throw error;
  
     // Também atualizamos o role de todos os admins dessa org para manter sincronia
-    const newRole = model === 'B2B' ? 'b2b_admin' : 'b2c_admin';
+    const newRole = model === 'B2B' ? 'b2b_admin' : model === 'CaaS' ? 'caas_admin' : 'b2c_admin';
     await supabase
       .from('profiles')
       .update({ role: newRole })
       .eq('organization_id', orgId)
-      .in('role', ['b2b_admin', 'b2c_admin', 'admin']);
+      .in('role', ['b2b_admin', 'b2c_admin', 'caas_admin', 'admin']);
  
     // revalidatePath("/main"); // Removido para evitar race condition no modal
     return { success: true };

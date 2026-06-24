@@ -38,7 +38,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
     setIsModalOpen(true);
   };
 
-  const handleModelChange = async (orgId: string, newModel: string) => {
+  const handleModelChange = async (orgId: string, newModel: 'B2B' | 'B2C' | 'CaaS') => {
     if (updatingId === orgId) return;
     setUpdatingId(orgId);
     const result = await updateOrganizationModel(orgId, newModel);
