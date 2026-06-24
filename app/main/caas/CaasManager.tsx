@@ -25,6 +25,7 @@ interface Organization {
   business_model: string;
   assigned_catalog_id?: string | null;
   allow_caas_detachment?: boolean;
+  internal_name?: string | null;
 }
 
 interface CaasManagerProps {
@@ -595,7 +596,6 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
                         {org.business_model === "CaaS" && (
                           <span className="text-[10px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-full">CaaS</span>
                         )}
-                      </h3>
                       <p className="text-xs font-medium" style={{ color: "var(--dash-text-secondary)" }}>
                         /{org.slug}
                       </p>
