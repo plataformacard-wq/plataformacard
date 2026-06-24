@@ -26,7 +26,9 @@ export default function DashboardPage() {
   const [sellerCount, setSellerCount] = useState<number | null>(null);
   const [sellers, setSellers] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState<number | null>(null);
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2C");
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2C");
+  const isB2B = businessModel === "B2B";
+  const isCaaS = businessModel === "CaaS";
   const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
@@ -228,18 +230,18 @@ export default function DashboardPage() {
   const quickActions = [
     {
       title: "Gerenciar Catálogo",
-      desc: "Adicione, edite ou remova produtos do seu card digital.",
+      desc: isCaaS ? "Adicione, edite ou remova produtos do seu catálogo." : "Adicione, edite ou remova produtos do seu card digital.",
       icon: "📦",
       href: "/dashboard/catalogo",
       color: "from-emerald-500/10 to-emerald-500/5"
     },
-    {
+    ...(businessModel !== "CaaS" ? [{
       title: "Personalizar Perfil",
       desc: "Altere cores, fotos e informações do seu cartão.",
       icon: "👤",
       href: businessModel === "B2C" ? "/dashboard/perfil#cartao" : "/dashboard/perfil#perfil",
       color: "from-blue-500/10 to-blue-500/5"
-    },
+    }] : []),
     {
       title: "Ver Analytics",
       desc: "Entenda o comportamento dos seus clientes.",
@@ -257,7 +259,6 @@ export default function DashboardPage() {
   ];
 
   // Lógica do Checklist Dinâmico
-  const isB2B = businessModel === "B2B";
   
   const checklist = [
     { 
@@ -316,7 +317,7 @@ export default function DashboardPage() {
             {nome ? `Olá, ${nome.split(" ")[0]} 👋` : "Dashboard"}
           </h1>
           <p className="text-[var(--dash-text-secondary)]">
-            {isB2B ? "Gerencie sua equipe e seu catálogo matriz." : "Aqui está o que está acontecendo com sua plataforma hoje."}
+            {isB2B ? "Gerencie sua equipe e seu catálogo matriz." : isCaaS ? "Gerencie seus produtos e vendas do seu catálogo CaaS." : "Aqui está o que está acontecendo com sua plataforma hoje."}
           </p>
         </div>
       </section>
@@ -483,7 +484,7 @@ export default function DashboardPage() {
             <div className="relative z-10">
               <span className="inline-block rounded-full bg-primary/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">Dica Premium</span>
               <h3 className="mt-4 text-xl font-bold">Aumente suas vendas</h3>
-              <p className="mt-2 text-sm text-slate-400">Personalize o link do seu cartão e compartilhe em suas redes sociais para atrair mais clientes.</p>
+              <p className="mt-2 text-sm text-slate-400">Personalize o link do seu {isCaaS ? 'catálogo' : 'cartão'} e compartilhe em suas redes sociais para atrair mais clientes.</p>
               <button className="mt-6 flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80">
                 Saber mais <ChevronRight size={16} />
               </button>

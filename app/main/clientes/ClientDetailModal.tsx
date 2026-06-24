@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess } from "@/lib/admin-actions";
+import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess, suspendOrganization, reactivateOrganization } from "@/lib/admin-actions";
 import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS } from "@/lib/plans";
 
 interface ClientDetailModalProps {
@@ -42,6 +42,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   const [businessModel, setBusinessModel] = useState(organization?.business_model || 'B2B');
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const [updatingModel, setUpdatingModel] = useState(false);
+  const [suspending, setSuspending] = useState(false);
   const [showSellers, setShowSellers] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   // Estado para o painel de confirmação de downgrade
@@ -155,6 +156,36 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
     }
   };
 
+  const handleToggleSuspend = async () => {
+    if (suspending) return;
+    setSuspending(true);
+    try {
+      const isSuspended = !!organization.deleted_at;
+      let result;
+      if (isSuspended) {
+        result = await reactivateOrganization(organization.id);
+      } else {
+        if (!confirm(`Tem certeza que deseja suspender a conta ${organization.name}? O acesso será bloqueado.`)) {
+          setSuspending(false);
+          return;
+        }
+        result = await suspendOrganization(organization.id);
+      }
+      
+      if (result.success) {
+        // Fechar o modal para forçar um refresh da lista pai
+        onClose();
+        window.location.reload();
+      } else {
+        alert("Erro ao alterar status: " + result.error);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSuspending(false);
+    }
+  };
+
   // Lógica de Contrato
   const adherenceDate = organization?.created_at ? new Date(organization.created_at) : new Date();
   const expirationDate = new Date(adherenceDate);
@@ -210,6 +241,11 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                 </h2>
                 <div className="flex flex-wrap items-center gap-4">
                     <span className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)]">/{organization.slug}</span>
+                    {organization.deleted_at && (
+                      <span className="bg-red-500/10 text-red-500 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest border border-red-500/20">
+                        CONTA SUSPENSA
+                      </span>
+                    )}
                     
                     {/* AÇÕES DE COMANDO UNIFICADAS NO MODAL */}
                     <div className="flex flex-wrap items-center gap-4 py-2">
@@ -528,9 +564,17 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                   <Globe size={18} />
                   ACESSAR DASHBOARD (SIMULAR)
                 </button>
-                <button className="flex-1 py-4 rounded-lg border border-red-500/20 text-red-500 font-bold text-sm hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
+                <button 
+                  onClick={handleToggleSuspend}
+                  disabled={suspending}
+                  className={`flex-1 py-4 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                    organization.deleted_at 
+                      ? "bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20" 
+                      : "border border-red-500/20 text-red-500 hover:bg-red-500/5"
+                  }`}
+                >
                   <ShieldAlert size={18} />
-                  Suspender Conta
+                  {suspending ? "Aguarde..." : organization.deleted_at ? "Reativar Conta" : "Suspender Conta"}
                 </button>
               </div>
             </div>

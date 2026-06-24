@@ -19,7 +19,7 @@ interface ClientListProps {
 export default function ClientList({ organizations: initialOrgs }: ClientListProps) {
   const [organizations] = useState(initialOrgs);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterModel, setFilterModel] = useState<"ALL" | "B2B" | "B2C">("ALL");
+  const [filterModel, setFilterModel] = useState<"ALL" | "B2B" | "B2C" | "CaaS">("ALL");
   
   // Modal State
   const [selectedOrg, setSelectedOrg] = useState<any>(null);
@@ -38,8 +38,8 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
     setIsModalOpen(true);
   };
 
-  const handleModelToggle = async (orgId: string, currentModel: string) => {
-    const newModel = currentModel === 'B2B' ? 'B2C' : 'B2B';
+  const handleModelChange = async (orgId: string, newModel: string) => {
+    if (updatingId === orgId) return;
     setUpdatingId(orgId);
     const result = await updateOrganizationModel(orgId, newModel);
     if (!result.success) {
@@ -74,7 +74,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[var(--dash-text-muted)]" />
           <div className="flex bg-[var(--dash-bg)] p-1 rounded-lg border border-[var(--dash-border)]">
-            {(["ALL", "B2B", "B2C"] as const).map((model) => (
+            {(["ALL", "B2B", "B2C", "CaaS"] as const).map((model) => (
               <button
                 key={model}
                 onClick={() => setFilterModel(model)}
@@ -102,7 +102,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
             >
               {/* 1. Identidade da Empresa (Esquerda) */}
               <div className="flex items-center gap-5 md:w-72 shrink-0">
-                <div className={`h-16 w-16 rounded-lg flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
+                <div className={`h-16 w-16 rounded-lg flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : org.business_model === 'CaaS' ? 'bg-purple-600' : 'bg-emerald-600'}`}>
                   <Building2 size={32} />
                 </div>
                 <div className="min-w-0">
@@ -142,7 +142,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                       </div>
                     )}
                     <button 
-                      onClick={() => org.business_model !== 'B2B' && handleModelToggle(org.id, 'B2C')}
+                      onClick={() => org.business_model !== 'B2B' && handleModelChange(org.id, 'B2B')}
                       className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
                         org.business_model === 'B2B' 
                           ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
@@ -152,7 +152,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                       B2B
                     </button>
                     <button 
-                      onClick={() => org.business_model !== 'B2C' && handleModelToggle(org.id, 'B2B')}
+                      onClick={() => org.business_model !== 'B2C' && handleModelChange(org.id, 'B2C')}
                       className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
                         org.business_model === 'B2C' 
                           ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
@@ -160,6 +160,16 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                       }`}
                     >
                       B2C
+                    </button>
+                    <button 
+                      onClick={() => org.business_model !== 'CaaS' && handleModelChange(org.id, 'CaaS')}
+                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
+                        org.business_model === 'CaaS' 
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' 
+                          : 'text-[var(--dash-text-muted)] hover:text-purple-500'
+                      }`}
+                    >
+                      CaaS
                     </button>
                   </div>
                 </div>

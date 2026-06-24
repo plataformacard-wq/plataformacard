@@ -130,7 +130,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         }
 
         const userRole = profile.role || "admin";
-        const displayName = profile.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
+        const displayName = user.user_metadata?.full_name || profile.full_name || user.email?.split('@')[0] || "Usuário";
         
         setNome(displayName);
         setAvatar(profile.avatar_url || null);

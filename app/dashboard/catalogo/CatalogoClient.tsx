@@ -1126,12 +1126,12 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tight" style={{ color: "var(--dash-text-primary)" }}>
-            {adminCatalogId ? `Master: ${catalog?.name || 'Carregando...'}` : 'Adicionar/Gerenciar categorias e produtos'}
+            {adminCatalogId ? `Master: ${catalog?.name || 'Carregando...'}` : (catalog?.name || 'Gerenciando Catálogo')}
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
             {adminCatalogId 
               ? 'Gerenciamento centralizado de categorias e produtos deste Catálogo Master para distribuição CaaS.'
-              : `Gerencie seus ${catalogType === 'service' ? 'serviços' : catalogType === 'hybrid' ? 'produtos e serviços' : 'produtos'}, categorias e a vitrine digital da sua marca.`}
+              : `Gerencie as categorias e os ${catalogType === 'service' ? 'serviços' : catalogType === 'hybrid' ? 'produtos e serviços' : 'produtos'} da sua vitrine digital.`}
           </p>
 
           <div className="mt-4 flex items-center gap-2">

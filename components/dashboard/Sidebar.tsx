@@ -148,8 +148,8 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         ]
       });
 
-      const isB2C = businessModel === "B2C" || (role as any) === "b2c_admin";
       const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
+      const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS;
       
       if (!isB2C && !isCaaS) {
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });

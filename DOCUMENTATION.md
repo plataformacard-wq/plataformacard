@@ -37,6 +37,7 @@ O sistema utiliza uma hierarquia de três níveis para determinar se um catálog
 4.  **Fallback de Segurança:** Se nem o vendedor nem a empresa tiverem horários salvos, o sistema aplica o `DEFAULT_BUSINESS_HOURS` (Seg-Sex 08-18h, Sáb 08-12h) para evitar catálogos "sempre abertos" por erro de configuração.
 
 ## 6. Prevenção de Regressões (Protocolo de Resiliência)
+- **Prevenção de Monolitos (Code Health):** A cada 5 invocações do `protocolo start`, o assistente executará automaticamente uma varredura para identificar arquivos TypeScript/TSX com mais de 500 linhas, sugerindo um plano de refatoração para evitar acúmulo de débito técnico. O contador está mantido em `app/_protocol/protocol_state.json`.
 - **Suspense Boundaries:** Obrigatório o uso de `Suspense` em componentes que utilizam `useSearchParams` ou dados dinâmicos de BI (ex: Analytics).
 - **Hooks Management:** Nunca chamar hooks (`useState`, `useEffect`) dentro de condicionais ou após retornos antecipados. Centralizar todos no topo do componente.
 - **Tokenização:** Proibido o uso de cores hexadecimais fixas no JSX. Sempre usar tokens CSS (`var(--dash-...)`).
@@ -143,6 +144,9 @@ Ambos possuem o mesmo formato de catálogo vitrine, o mesmo controle de recesso 
 
 ## Hierarquia de Permissões
 -   `main_admin`: Deus. Acessa painel QG, cadastra planos, administra todos os assinantes (B2B e B2C), pode logar como qualquer empresa.
+-   `b2b_admin`: Identificado no SaaS visualmente como **[Gestor Empresarial]**. Controla a empresa corporativa e os vendedores vinculados.
+-   `b2c_admin`: Identificado no SaaS visualmente como **[Gestor Individual]**. Atua de forma autônoma (Essential).
+-   `caas_admin`: Identificado no SaaS visualmente como **[Gestor Catálogo]**.
 
 - **2026-06-20:**
   - **Sincronização de Módulos Core:** Integração do sistema de **Banners** no catálogo (upload via Supabase Storage, gestão de exibição), módulo de **Assinaturas** no painel do Dashboard e fluxo de **Onboarding/Setup Principal** (`main-setup`).

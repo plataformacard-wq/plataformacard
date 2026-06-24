@@ -15,9 +15,15 @@ graph TD
     F5 --> F6[Fase 6: Débito Técnico]
 ```
 
+### 🚨 Bloqueadores de Lançamento Online (Go-Live)
+*Lógica: Pendências de negócio essenciais para que a plataforma opere legal e financeiramente como um SaaS na internet pública.*
+- [ ] **Gateway de Pagamento (Checkout):** Integração com Stripe ou MercadoPago para vendas automatizadas (planos e limites). Atualmente os acessos são manuais (High Touch).
+- [ ] **Infraestrutura de Identidade (E-mail e Domínio):** Configurar um domínio próprio na Vercel e registrar um provedor SMTP (ex: Resend) no Supabase. Sem isso, e-mails de recuperação de senha cairão no SPAM e o sistema sofrerá rate-limit após 50 disparos.
+- [ ] **Políticas Jurídicas (LGPD e Termos):** Redigir e publicar páginas estáticas de "Termos de Uso" e "Política de Privacidade". Adicionar checkbox obrigatório "Li e aceito os termos" no formulário de cadastro.
+
 ### 🔹 Fase 1: Estabilização de Infraestrutura (Pré-requisito Crítico)
 *Lógica: Precisamos de um ambiente de homologação seguro para testar qualquer alteração subsequente sem colocar os dados de produção em risco.*
-- [x] **Separação de Ambientes Supabase (Staging vs Produção):** Criar um novo projeto no Supabase para Staging/Dev, aplicar as migrações existentes e configurar variáveis de ambiente locais e branches de preview da Vercel para este novo banco.
+- [ ] **(Prioridade Média) Separação de Ambientes Supabase (Staging vs Produção):** Criar um novo projeto no Supabase para Staging/Dev, aplicar as migrações existentes e configurar variáveis de ambiente locais e branches de preview da Vercel para este novo banco. Isso protegerá os dados reais após o lançamento.
 
 ### 🔹 Fase 2: Segurança de Acesso e Regras de Negócio
 *Lógica: Garantir que a lógica de banco de dados (RLS) e regras para contas de usuários estejam blindadas antes de abrir para o público.*

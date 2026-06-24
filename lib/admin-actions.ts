@@ -114,6 +114,46 @@ export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C
   }
 }
 
+export async function suspendOrganization(orgId: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  // Marca o status dos perfis como suspended
+  await supabase
+    .from('profiles')
+    .update({ status: 'suspended' })
+    .eq('organization_id', orgId);
+
+  // Usa deleted_at como flag de suspensão na org
+  const { error } = await supabase
+    .from('organizations')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', orgId);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function reactivateOrganization(orgId: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  // Reativa os perfis
+  await supabase
+    .from('profiles')
+    .update({ status: 'active' })
+    .eq('organization_id', orgId);
+
+  // Remove a flag de suspensão da org
+  const { error } = await supabase
+    .from('organizations')
+    .update({ deleted_at: null })
+    .eq('id', orgId);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
 export async function getOrganizationStats(orgId: string) {
   const supabase = createAdminClient();
 

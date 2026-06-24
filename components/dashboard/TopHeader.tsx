@@ -49,6 +49,7 @@ export function TopHeader({
   notifications = []
 }: TopHeaderProps) {
   const isB2B = businessModel === "B2B";
+  const isCaaS = businessModel === "CaaS";
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -218,16 +219,16 @@ export function TopHeader({
                 ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:scale-105" 
                 : "bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] border border-[var(--dash-border)] opacity-80 hover:opacity-100"
             }`}
-            title={isReady ? "Seu cartão está online" : "Ainda em rascunho - Complete o checklist"}
+            title={isReady ? "Seu sistema está online" : "Ainda em rascunho - Complete o checklist"}
           >
             {isReady ? <ExternalLink size={18} /> : <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
             <span className="hidden lg:inline">
               {isReady 
-                ? "Ver meu Cartão" 
+                ? (isCaaS ? "Ver meu Catálogo" : "Ver meu Cartão") 
                 : "Visualizar Rascunho"
               }
             </span>
-            <span className="lg:hidden">{isReady ? (isB2B ? "Vitrine" : "Cartão") : "Rascunho"}</span>
+            <span className="lg:hidden">{isReady ? (isCaaS ? "Catálogo" : "Cartão") : "Rascunho"}</span>
           </Link>
         )}
 
@@ -254,9 +255,10 @@ export function TopHeader({
               <span className="text-xs font-semibold leading-none text-[var(--dash-text-primary)]">{nome}</span>
               <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">
                 {role === "main_admin" ? "MAIN Admin" : 
-                 role === "b2b_admin" ? "Gestor B2B" : 
+                 businessModel === "CaaS" ? "Gestor de Catálogo" :
+                 role === "b2b_admin" ? "Gestor Empresarial" : 
                  role === "b2c_admin" ? "Gestor Individual" : 
-                 role === "caas_admin" ? "Gestor Catálogo" : 
+                 role === "caas_admin" ? "Gestor de Catálogo" : 
                  role === "seller" ? "Vendedor" : role}
               </span>
             </div>

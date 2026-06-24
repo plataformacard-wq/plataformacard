@@ -236,7 +236,7 @@ export default async function Page(props: PageProps) {
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
     supabase
       .from("organizations")
-      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url")
+      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url, business_model")
       .eq("id", safeProfile.organization_id)
       .maybeSingle(),
     getCatalogStats(supabase, safeProfile),
@@ -244,6 +244,12 @@ export default async function Page(props: PageProps) {
       p_profile_id: safeProfile.id,
     }),
   ]);
+
+  // Se a organização for CaaS ou o perfil for caas_admin, desabilita o Cartão Digital e vai direto para a Vitrine
+  const isCaaS = orgRes.data?.business_model === 'CaaS' || (safeProfile as any).role === 'caas_admin';
+  if (isCaaS) {
+    redirect(`/${slug}/catalogo`);
+  }
 
   const orgName = orgRes.data?.name?.trim() ?? null;
   const orgSlug = orgRes.data?.slug ?? safeProfile.organization_id;
