@@ -14,6 +14,7 @@ export const ProductModal = ({
   modalY,
   selectedImageUrl,
   isZoomed,
+  zoomOrigin,
   handleImageZoomMove,
   setIsZoomed,
   hasMultipleImages,
@@ -86,7 +87,7 @@ export const ProductModal = ({
                   }}
                   src={selectedImageUrl} 
                   alt={selectedProduct.name}
-                  style={{ transformOrigin: isZoomed ? "var(--zoom-origin, center center)" : "center center" }}
+                  style={{ transformOrigin: isZoomed ? (zoomOrigin || "center center") : "center center" }}
                   className={`w-full h-full object-contain ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
                   onClick={() => setIsZoomed(!isZoomed)}
                 />

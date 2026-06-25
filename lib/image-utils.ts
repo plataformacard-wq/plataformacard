@@ -31,9 +31,13 @@ export async function getCroppedImg(
   ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
   ctx.translate(-canvas.width / 2, -canvas.height / 2);
 
-  // draw white background for transparency handling
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const isPng = imageSrc.startsWith('data:image/png');
+
+  // draw white background for transparency handling ONLY if it's a JPEG
+  if (!isPng) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   // draw rotated image
   ctx.drawImage(
@@ -48,22 +52,25 @@ export async function getCroppedImg(
     pixelCrop.height
   );
 
+  const mimeType = isPng ? 'image/png' : 'image/jpeg';
+
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       resolve(blob);
-    }, 'image/jpeg', 0.95);
+    }, mimeType, 0.95);
   });
 }
 
 export async function compressImage(file: File | Blob, fileName: string): Promise<File> {
   const options = {
-    maxSizeMB: 0.2, // Aim for ~200KB to stay well within 1GB limit
-    maxWidthOrHeight: 1200,
+    maxSizeMB: 0.8, // Increased quality for zoom capabilities
+    maxWidthOrHeight: 2000,
     useWebWorker: true,
+    fileType: file.type as any, // preserve the original type
   };
   
   const compressedBlob = await imageCompression(file as File, options);
-  return new File([compressedBlob], fileName, { type: 'image/jpeg' });
+  return new File([compressedBlob], fileName, { type: file.type || 'image/jpeg' });
 }
 
 export function validateImageResolution(image: HTMLImageElement, minWidth = 600, minHeight = 600): boolean {

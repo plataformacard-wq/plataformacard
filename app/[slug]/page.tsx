@@ -46,17 +46,23 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   const title = orgData?.meta_title || (profile ? profile.full_name : (orgData ? orgData.name : "Perfil")) + " | PlataformaCard";
   const description = orgData?.meta_description || (profile?.bio) || "Confira meu perfil e catálogo digital.";
-  const iconBase = orgData?.favicon_url || "/favicon.ico";
-  const icon = `${iconBase}${iconBase.includes('?') ? '&' : '?'}t=${Date.now()}`;
+  
+  let iconsMetadata = undefined;
+  if (orgData?.favicon_url) {
+    const iconBase = orgData.favicon_url;
+    const icon = `${iconBase}${iconBase.includes('?') ? '&' : '?'}t=${Date.now()}`;
+    const iconType = iconBase.toLowerCase().endsWith('.jpg') || iconBase.toLowerCase().endsWith('.jpeg') ? 'image/jpeg' : iconBase.toLowerCase().endsWith('.png') ? 'image/png' : 'image/x-icon';
+    iconsMetadata = {
+      icon: [{ url: icon, sizes: "any", type: iconType }],
+      shortcut: [{ url: icon, type: iconType }],
+      apple: [{ url: icon, type: iconType }],
+    };
+  }
 
   return {
     title,
     description,
-    icons: {
-      icon: icon,
-      shortcut: icon,
-      apple: icon,
-    },
+    ...(iconsMetadata ? { icons: iconsMetadata } : {}),
     openGraph: {
       title,
       description,
@@ -236,7 +242,7 @@ export default async function Page(props: PageProps) {
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
     supabase
       .from("organizations")
-      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url, business_model")
+      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url, business_model, whatsapp")
       .eq("id", safeProfile.organization_id)
       .maybeSingle(),
     getCatalogStats(supabase, safeProfile),
@@ -244,6 +250,34 @@ export default async function Page(props: PageProps) {
       p_profile_id: safeProfile.id,
     }),
   ]);
+
+  // Trava de Segurança (Under Construction) se não atingir configuração mínima (100% da barra)
+  const hasContact = !!safeProfile.whatsapp || !!orgRes.data?.whatsapp;
+  const isReady = catalogStats.productCount > 0 && hasContact;
+
+  if (!isReady) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center dark:bg-slate-950">
+        <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-500"></div>
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20">
+            <span className="text-4xl">🚧</span>
+          </div>
+          <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">
+            Em Construção
+          </h1>
+          <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
+            {orgRes.data?.name || safeProfile.full_name || "Esta empresa"} está preparando novidades incríveis para você. O catálogo estará disponível muito em breve!
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse"></div>
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse delay-75"></div>
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse delay-150"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Se a organização for CaaS ou o perfil for caas_admin, desabilita o Cartão Digital e vai direto para a Vitrine
   const isCaaS = orgRes.data?.business_model === 'CaaS' || (safeProfile as any).role === 'caas_admin';

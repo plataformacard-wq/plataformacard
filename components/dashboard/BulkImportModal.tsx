@@ -375,7 +375,7 @@ export default function BulkImportModal({
                       <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
                         1
                       </div>
-                      <div className="flex-1 p-6 rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
+                      <div className="flex-1 p-6 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
                         <div className="p-3 bg-green-100 text-green-600 rounded-xl">
                           <FileSpreadsheet size={24} />
                         </div>
@@ -395,7 +395,7 @@ export default function BulkImportModal({
                       <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
                         2
                       </div>
-                      <div className="flex-1 p-6 rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
+                      <div className="flex-1 p-6 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
                         <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
                           <Upload size={24} />
                         </div>
@@ -412,7 +412,7 @@ export default function BulkImportModal({
                       <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
                         3
                       </div>
-                      <div className="flex-1 p-6 rounded-2xl border border-primary bg-primary/5 transition-all w-full flex flex-col items-center gap-3 shadow-xl shadow-primary/5">
+                      <div className="flex-1 p-6 rounded-xl border border-primary bg-primary/5 transition-all w-full flex flex-col items-center gap-3 shadow-xl shadow-primary/5">
                         <div className="p-3 bg-primary text-white rounded-xl">
                           <RefreshCw size={24} />
                         </div>
@@ -442,7 +442,7 @@ export default function BulkImportModal({
                   <div className="pt-8 border-t border-[var(--dash-border)]">
                     <div 
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full border-2 border-dashed rounded-2xl p-6 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                      className="w-full border-2 border-dashed rounded-xl p-6 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
                       style={{ borderColor: "var(--dash-border)" }}
                     >
                       <div className="flex items-center gap-4">
@@ -494,7 +494,7 @@ export default function BulkImportModal({
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl flex gap-3 items-start border border-amber-200 dark:border-amber-800">
+                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl flex gap-3 items-start border border-amber-200 dark:border-amber-800">
                   <AlertCircle className="text-amber-600 shrink-0" size={20} />
                   <p className="text-xs text-amber-800 dark:text-amber-300">
                     Mapeie as colunas do seu arquivo para os campos correspondentes do sistema. Campos marcados com * são obrigatórios.
@@ -505,7 +505,7 @@ export default function BulkImportModal({
                   {productFields.map((field) => (
                     <div 
                       key={field.key} 
-                      className="flex items-center gap-4 p-4 rounded-2xl border"
+                      className="flex items-center gap-4 p-4 rounded-xl border"
                       style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
                     >
                       <div className="flex-1">
@@ -529,7 +529,7 @@ export default function BulkImportModal({
                   ))}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6">
+                <div className="flex justify-end ga pl-3 pr-10 py-3  pt-6 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[position:calc(100%-20px)_center] bg-no-repeat">
                   <button 
                     onClick={() => setStep("upload")}
                     className="px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[var(--dash-hover-bg)] transition-colors"
@@ -557,7 +557,7 @@ export default function BulkImportModal({
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="border rounded-2xl overflow-hidden" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="border rounded-xl overflow-hidden" style={{ borderColor: "var(--dash-border)" }}>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="bg-[var(--dash-hover-bg)]/50">
@@ -632,11 +632,11 @@ export default function BulkImportModal({
                 </p>
                 
                 <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-12">
-                  <div className="bg-[var(--dash-bg)] p-4 rounded-2xl border" style={{ borderColor: "var(--dash-border)" }}>
+                  <div className="bg-[var(--dash-bg)] p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
                     <p className="text-2xl font-bold text-primary">{stats.created}</p>
                     <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Produtos Criados</p>
                   </div>
-                  <div className="bg-[var(--dash-bg)] p-4 rounded-2xl border" style={{ borderColor: "var(--dash-border)" }}>
+                  <div className="bg-[var(--dash-bg)] p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
                     <p className="text-2xl font-bold text-red-500">{stats.failed}</p>
                     <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Falhas</p>
                   </div>

@@ -196,6 +196,7 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         modalY={state.modalY}
         selectedImageUrl={computed.selectedImageUrl}
         isZoomed={state.isZoomed}
+        zoomOrigin={state.zoomOrigin}
         handleImageZoomMove={actions.handleImageZoomMove}
         setIsZoomed={actions.setIsZoomed}
         hasMultipleImages={computed.hasMultipleImages}

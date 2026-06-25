@@ -37,7 +37,7 @@ import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 // Carregamento dinâmico do editor RichTextEditor wrapper para evitar erros de SSR e ChunkLoadError
 const RichTextEditor = nextDynamic(() => import("./RichTextEditor"), { 
   ssr: false,
-  loading: () => <div className="h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50 animate-pulse" />
+  loading: () => <div className="h-[120px] w-full rounded-xl border border-zinc-200 bg-zinc-50 animate-pulse" />
 });
 
 type Spec = { id?: string; chave: string; valor: string };
@@ -355,7 +355,10 @@ export default function ProductModal({
     const filename = `${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const path = `${user.id}/${productId}/${filename}`;
     const { error } = await supabase.storage.from("products").upload(path, file);
-    if (error) return null;
+    if (error) {
+      console.error("Storage upload error:", error);
+      return null;
+    }
     const { data } = supabase.storage.from("products").getPublicUrl(path);
     return data.publicUrl;
   }
@@ -613,7 +616,7 @@ export default function ProductModal({
                 </div>
               )}
             </div>
-            <button onClick={onClose} className="rounded-2xl p-3 transition-colors" style={{ background: "var(--dash-surface)", color: "var(--dash-text-muted)" }}>
+            <button onClick={onClose} className="rounded-xl p-3 transition-colors" style={{ background: "var(--dash-surface)", color: "var(--dash-text-muted)" }}>
               <XIcon size={24} />
             </button>
           </div>
@@ -621,11 +624,11 @@ export default function ProductModal({
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8">
           <form id="productForm" onSubmit={handleSubmit} className="space-y-8">
-            {productFormError && <p className="text-xs text-red-500 font-bold bg-red-50 p-4 rounded-2xl border border-red-100">{productFormError}</p>}
+            {productFormError && <p className="text-xs text-red-500 font-bold bg-red-50 p-4 rounded-xl border border-red-100">{productFormError}</p>}
 
             {/* Seletor de Tipo (Apenas se Híbrido) */}
             {catalogType === 'hybrid' && (
-              <div className="flex p-1.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50">
+              <div className="flex p-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50">
                 <button
                   type="button"
                   onClick={() => { setItemType("product"); setEnableSku(true); }}
@@ -648,7 +651,7 @@ export default function ProductModal({
               <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
                 <Package size={16} /> Identidade do {itemType === 'service' ? 'Serviço' : 'Produto'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-2xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                 <div className="md:col-span-2">
                   <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
                     <Tag size={16} className="text-emerald-500" /> Categoria
@@ -656,12 +659,12 @@ export default function ProductModal({
                   <select
                     value={selectedCategoryId}
                     onChange={(e) => setSelectedCategoryId(e.target.value)}
-                    className="w-full rounded-2xl border px-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500/50"
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    className="w-full rounded-xl border  pl-5 pr-12 py-4  text-sm font-medium outline-none transition-all focus:border-emerald-500/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[position:calc(100%-20px)_center] bg-no-repeat"
+                    style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   >
-                    <option value="" style={{ background: "var(--dash-input-bg)" }}>Selecione uma categoria</option>
+                    <option value="" style={{ backgroundColor: "var(--dash-input-bg)" }}>Selecione uma categoria</option>
                     {isCaaS && editingProduct?.original_category_id && (
-                      <option value={editingProduct.original_category_id} style={{ background: "var(--dash-input-bg)" }}>
+                      <option value={editingProduct.original_category_id} style={{ backgroundColor: "var(--dash-input-bg)" }}>
                         Categoria Padrão ({
                           Array.isArray(editingProduct?.categories)
                             ? (editingProduct.categories[0]?.name || "Mestre")
@@ -672,7 +675,7 @@ export default function ProductModal({
                     {categories.map((c) => {
                       if (isCaaS && c.id === editingProduct?.original_category_id) return null;
                       return (
-                        <option key={c.id} value={c.id} style={{ background: "var(--dash-input-bg)" }}>
+                        <option key={c.id} value={c.id} style={{ backgroundColor: "var(--dash-input-bg)" }}>
                           {c.name}
                         </option>
                       );
@@ -687,8 +690,8 @@ export default function ProductModal({
                     disabled={isCaasLocked}
                     value={productName}
                     onChange={(e) => setProductName(e.target.value.toUpperCase())}
-                    className="w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    className="w-full rounded-xl border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
+                    style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                   {nameError && <p className="mt-1.5 text-xs text-red-500">{nameError}</p>}
                 </div>
@@ -711,8 +714,8 @@ export default function ProductModal({
                     onChange={(e) => setSku(e.target.value)}
                     disabled={!enableSku || isCaasLocked}
                     placeholder="Ex: SERV-01, PROD-99..."
-                    className={`w-full rounded-2xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    className={`w-full rounded-xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
+                    style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
 
@@ -744,7 +747,7 @@ export default function ProductModal({
                     }}
                     placeholder={itemType === 'service' ? 'Ex: ATENDIMENTO EM 24H, GARANTIA TOTAL...' : 'Ex: PRODUTO EXCLUSIVO, SEM CNH...'}
                     disabled={!showHighlight || isCaasLocked}
-                    className={`w-full rounded-2xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
+                    className={`w-full rounded-xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
                     style={{ background: showHighlight ? "rgba(16, 185, 129, 0.02)" : "var(--dash-input-bg)", borderColor: showHighlight ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                   {showHighlight && (
@@ -762,7 +765,7 @@ export default function ProductModal({
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                   <div 
                     onClick={() => setIsActive(!isActive)} 
-                    className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all cursor-pointer ${isActive ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
+                    className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${isActive ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
                     style={{ 
                       borderColor: isActive ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                       background: isActive ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
@@ -787,7 +790,7 @@ export default function ProductModal({
 
                   <div 
                     onClick={() => setIsInStock(!isInStock)} 
-                    className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all cursor-pointer ${isInStock ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
+                    className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${isInStock ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
                     style={{ 
                       borderColor: isInStock ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                       background: isInStock ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
@@ -828,7 +831,7 @@ export default function ProductModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* VAREJO */}
                 <div 
-                  className={`relative p-8 rounded-2xl border-2 transition-all duration-500 ${
+                  className={`relative p-8 rounded-xl border-2 transition-all duration-500 ${
                     hasRetail 
                       ? 'border-emerald-500 bg-emerald-500/[0.05] shadow-[0_20px_40px_rgba(16,185,129,0.12)]' 
                       : 'opacity-20 grayscale'
@@ -840,7 +843,7 @@ export default function ProductModal({
                 >
                   <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-2xl ${hasRetail ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <div className={`p-3 rounded-xl ${hasRetail ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
                         <Tag size={20} />
                       </div>
                       <span className="text-sm font-black uppercase tracking-tighter" style={{ color: hasRetail ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Varejo</span>
@@ -879,11 +882,11 @@ export default function ProductModal({
                         value={productPrice} 
                         onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-2xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
-                        style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
+                        style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       {editingProduct?.is_caas && editingProduct.original_master_price != null && parsePrice(productPrice) !== editingProduct.original_master_price && (
-                        <div className="mt-2 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center justify-between gap-3">
+                        <div className="mt-2 p-3 rounded-xl bg-blue-50/50 border border-blue-100 flex items-center justify-between gap-3">
                            <div className="flex items-center gap-2 text-[10px]">
                              <div className="p-1.5 rounded-full bg-blue-100 text-blue-500"><BellRing size={14} /></div>
                              <span className="text-blue-900/80 font-medium">O preço no Master é <b className="text-blue-700">R$ {editingProduct.original_master_price.toFixed(2).replace('.', ',')}</b></span>
@@ -903,7 +906,7 @@ export default function ProductModal({
                         value={productCompareAtPrice} 
                         onChange={(e) => setProductCompareAtPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-2xl border-2 border-dashed pl-12 pr-6 py-3 text-sm font-bold line-through outline-none focus:border-zinc-400 transition-all"
+                        className="w-full rounded-xl border-2 border-dashed pl-12 pr-6 py-3 text-sm font-bold line-through outline-none focus:border-zinc-400 transition-all"
                         style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}
                       />
                     </div>
@@ -912,7 +915,7 @@ export default function ProductModal({
 
                 {/* ATACADO */}
                 <div 
-                  className={`relative p-8 rounded-2xl border-2 transition-all duration-500 ${
+                  className={`relative p-8 rounded-xl border-2 transition-all duration-500 ${
                     hasWholesale 
                       ? 'border-emerald-500 bg-emerald-500/[0.05] shadow-[0_20px_40px_rgba(16,185,129,0.12)]' 
                       : 'opacity-20 grayscale'
@@ -924,7 +927,7 @@ export default function ProductModal({
                 >
                   <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-2xl ${hasWholesale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <div className={`p-3 rounded-xl ${hasWholesale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
                         <DollarSign size={20} />
                       </div>
                       <span className="text-sm font-black uppercase tracking-tighter" style={{ color: hasWholesale ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Atacado</span>
@@ -952,8 +955,8 @@ export default function ProductModal({
                         value={wholesalePrice} 
                         onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-2xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
-                        style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
+                        style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
 
@@ -964,7 +967,7 @@ export default function ProductModal({
                         value={wholesaleMinQuantity} 
                         onChange={(e) => setWholesaleMinQuantity(e.target.value)} 
                         placeholder="Ex: 10" 
-                        className="w-full rounded-2xl border-2 pl-6 pr-16 py-3 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all"
+                        className="w-full rounded-xl border-2 pl-6 pr-16 py-3 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all"
                         style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       <span className="absolute right-4 top-[38px] text-[10px] font-black uppercase tracking-widest pointer-events-none" style={{ color: "var(--dash-text-muted)" }}>UNID.</span>
@@ -980,7 +983,7 @@ export default function ProductModal({
                 <button 
                   type="button" 
                   onClick={() => setShowSpecs(!effectiveShowSpecs)} 
-                  className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all ${effectiveShowSpecs ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
+                  className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all ${effectiveShowSpecs ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
                   style={{ 
                     borderColor: effectiveShowSpecs ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                     background: effectiveShowSpecs ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
@@ -1000,7 +1003,7 @@ export default function ProductModal({
                 <button 
                   type="button" 
                   onClick={() => setShowColors(!effectiveShowColors)} 
-                  className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all ${effectiveShowColors ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
+                  className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all ${effectiveShowColors ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
                   style={{ 
                     borderColor: effectiveShowColors ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                     background: effectiveShowColors ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
@@ -1032,7 +1035,7 @@ export default function ProductModal({
                   <div className="flex flex-wrap gap-4">
                     {productColors.map((c, i) => (
                       <div key={i} className="group relative">
-                        <div className="h-14 w-14 rounded-2xl border-4 shadow-xl cursor-pointer transition-transform hover:scale-110" style={{ backgroundColor: c, borderColor: "var(--dash-surface)" }} onClick={() => removeColor(i)} />
+                        <div className="h-14 w-14 rounded-xl border-4 shadow-xl cursor-pointer transition-transform hover:scale-110" style={{ backgroundColor: c, borderColor: "var(--dash-surface)" }} onClick={() => removeColor(i)} />
                         <div className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                           <XIcon size={10} />
                         </div>
@@ -1042,7 +1045,7 @@ export default function ProductModal({
                       <button 
                         type="button" 
                         onClick={() => setIsPickerOpen(!isPickerOpen)} 
-                        className="h-14 w-14 rounded-2xl border-2 border-dashed flex items-center justify-center text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 transition-all"
+                        className="h-14 w-14 rounded-xl border-2 border-dashed flex items-center justify-center text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 transition-all"
                         style={{ borderColor: "var(--dash-border)" }}
                       >
                         <Plus size={24} />
@@ -1084,7 +1087,7 @@ export default function ProductModal({
                       value={specsTitle} 
                       onChange={e => setSpecsTitle(e.target.value)} 
                       placeholder="Ex: ESPECIFICAÇÕES TÉCNICAS" 
-                      className="w-full rounded-2xl border-2 px-5 py-3 text-xs font-black uppercase tracking-widest outline-none focus:border-emerald-500/50 transition-all" 
+                      className="w-full rounded-xl border-2 px-5 py-3 text-xs font-black uppercase tracking-widest outline-none focus:border-emerald-500/50 transition-all" 
                       style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
@@ -1096,8 +1099,8 @@ export default function ProductModal({
                         value={specChaveDraft} 
                         onChange={e => setSpecChaveDraft(e.target.value)} 
                         placeholder="Nome (ex: Peso)" 
-                        className="w-full rounded-2xl border-2 px-5 py-4 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
-                        style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-xl border-2 px-5 py-4 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
+                        style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
                     <div className="flex-1 relative">
@@ -1106,14 +1109,14 @@ export default function ProductModal({
                         value={specValorDraft} 
                         onChange={e => setSpecValorDraft(e.target.value)} 
                         placeholder="Valor (ex: 500g)" 
-                        className="w-full rounded-2xl border-2 px-5 py-4 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
-                        style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        className="w-full rounded-xl border-2 px-5 py-4 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
+                        style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
                     <button 
                       type="button" 
                       onClick={addSpec} 
-                      className="p-4 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all"
+                      className="p-4 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all"
                     >
                       <Plus size={24} />
                     </button>
@@ -1133,8 +1136,8 @@ export default function ProductModal({
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9 }}
-                          className="group flex items-center justify-between p-4 rounded-2xl border-2 hover:border-emerald-500/30 transition-all shadow-sm cursor-grab active:cursor-grabbing"
-                          style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
+                          className="group flex items-center justify-between p-4 rounded-xl border-2 hover:border-emerald-500/30 transition-all shadow-sm cursor-grab active:cursor-grabbing"
+                          style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
                         >
                           <div className="flex-1 flex items-center gap-3">
                             <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
@@ -1177,7 +1180,7 @@ export default function ProductModal({
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      className="relative h-24 w-24 rounded-2xl overflow-hidden border-2 cursor-grab active:cursor-grabbing group shadow-sm hover:shadow-md transition-all"
+                      className="relative h-24 w-24 rounded-xl overflow-hidden border-2 cursor-grab active:cursor-grabbing group shadow-sm hover:shadow-md transition-all"
                       style={{ 
                         borderColor: i === 0 ? "var(--dash-primary)" : "var(--dash-border)",
                         background: "var(--dash-surface-secondary)"
@@ -1210,8 +1213,8 @@ export default function ProductModal({
                   <button 
                     type="button"
                     onClick={() => setShowImageEditor(true)}
-                    className="h-24 w-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 group"
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
+                    className="h-24 w-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 group"
+                    style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
                   >
                     <Upload size={20} className="text-zinc-500 group-hover:text-emerald-500 transition-colors" />
                     <span className="text-[10px] font-black uppercase text-zinc-500 group-hover:text-emerald-500">Adicionar</span>
@@ -1268,7 +1271,7 @@ export default function ProductModal({
                     }
                   }}
                   disabled={!!aiLoadingType}
-                  className="flex items-center justify-between p-6 rounded-2xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
+                  className="flex items-center justify-between p-6 rounded-xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
                 >
                   <div className="text-left">
                     <p className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">
@@ -1314,7 +1317,7 @@ export default function ProductModal({
                     }
                   }}
                   disabled={!!aiLoadingType}
-                  className="flex items-center justify-between p-6 rounded-2xl border-2 border-dashed border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] hover:border-blue-500/40 transition-all group disabled:opacity-50"
+                  className="flex items-center justify-between p-6 rounded-xl border-2 border-dashed border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] hover:border-blue-500/40 transition-all group disabled:opacity-50"
                 >
                   <div className="text-left">
                     <p className="text-xs font-black uppercase tracking-widest text-blue-500 mb-1">Corretor Profissional</p>
@@ -1344,7 +1347,7 @@ export default function ProductModal({
             form="productForm"
             type="submit" 
             disabled={saving}
-            className="px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+            className="px-10 py-4 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
           >
             {saving ? "Salvando..." : isEditMode ? "Atualizar" : "Criar Produto"}
           </button>

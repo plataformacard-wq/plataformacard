@@ -13,9 +13,13 @@ import {
   Send,
   Zap,
   Eye,
-  EyeOff
+  EyeOff,
+  Image as ImageIcon,
+  Upload,
+  Trash2
 } from "lucide-react";
 import { updateSystemConfig } from "@/lib/admin-actions";
+import { uploadStorageFile } from "@/lib/dashboard/sellerActions";
 
 interface SettingsManagerProps {
   configs: Record<string, string>;
@@ -32,6 +36,8 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
   const [maintenanceMode, setMaintenanceMode] = useState(configs.maintenance_mode === "true");
   const [noticeText, setNoticeText] = useState(configs.system_notice_text || "");
   const [noticeActive, setNoticeActive] = useState(configs.system_notice_active === "true");
+  const [fallbackFaviconUrl, setFallbackFaviconUrl] = useState(configs.fallback_favicon_url || "");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   async function handleSave(key: string, value: string) {
     setLoading(key);
@@ -50,9 +56,126 @@ export default function SettingsManager({ configs }: SettingsManagerProps) {
     { label: "Instabilidade WhatsApp", text: "Identificamos uma instabilidade global no WhatsApp. A função de clique pode ser afetada." }
   ];
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    setIsUploadingImage(true);
+    setMessage("");
+
+    const fileExt = file.name.split(".").pop();
+    const filePath = `system/fallback-favicon-${Date.now()}.${fileExt}`;
+    
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    uploadFormData.append("bucket", "avatars");
+    uploadFormData.append("path", filePath);
+
+    const result = await uploadStorageFile(uploadFormData);
+    if (result.error || !result.publicUrl) {
+      setMessage("Erro ao fazer upload da imagem.");
+      setIsUploadingImage(false);
+      return;
+    }
+
+    setFallbackFaviconUrl(result.publicUrl);
+    const saveResult = await updateSystemConfig("fallback_favicon_url", result.publicUrl);
+    
+    if (saveResult.success) {
+      setMessage("Favicon de Fallback atualizado com sucesso!");
+      setTimeout(() => setMessage(""), 3000);
+    }
+    setIsUploadingImage(false);
+  }
+
+  async function handleRemoveFavicon() {
+    setFallbackFaviconUrl("");
+    const result = await updateSystemConfig("fallback_favicon_url", "");
+    if (result.success) {
+      setMessage("Favicon removido.");
+      setTimeout(() => setMessage(""), 3000);
+    }
+  }
+
   return (
     <div className="max-w-4xl space-y-8 pb-20">
-      {/* Seção 1: Segurança */}
+      {/* Mensagem Global */}
+      {message && (
+        <div className="fixed bottom-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 font-medium animate-in fade-in slide-in-from-bottom-4">
+          {message}
+        </div>
+      )}
+
+      {/* Seção: Identidade Global */}
+      <div className="rounded-lg border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
+        <div className="px-8 py-6 border-b border-[var(--dash-border)] bg-primary/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="text-primary" size={24} />
+            <h3 className="font-bold text-lg" style={{ color: "var(--dash-text-primary)" }}>Identidade Global</h3>
+          </div>
+        </div>
+        <div className="p-8 space-y-6">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--dash-text-muted)" }}>Favicon Padrão (Fallback)</label>
+            <p className="text-sm mb-4" style={{ color: "var(--dash-text-secondary)" }}>Esta imagem será servida como Favicon para todos os catálogos B2C e B2B que ainda não enviaram a sua própria logomarca. Substitui o "P" padrão.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3 relative">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1:1 Quadrado (ex: 256x256 px)</span>
+                </div>
+                
+                <label 
+                  className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden block w-full"
+                  style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
+                >
+                  <input 
+                    type="file" 
+                    accept="image/png, image/jpeg, image/x-icon" 
+                    className="hidden" 
+                    onChange={handleImageUpload} 
+                    disabled={isUploadingImage} 
+                  />
+                  
+                  {isUploadingImage ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-6 w-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Enviando...</span>
+                    </div>
+                  ) : fallbackFaviconUrl ? (
+                    <>
+                      <img src={fallbackFaviconUrl} className="w-12 h-12 object-contain" />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault(); // Evita acionar o label
+                          e.stopPropagation();
+                          handleRemoveFavicon();
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors z-10"
+                        title="Remover Favicon"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon size={24} style={{ color: "var(--dash-text-muted)" }} />
+                      <span className="text-sm font-semibold" style={{ color: "var(--dash-text-secondary)" }}>Fazer Upload</span>
+                    </>
+                  )}
+                  
+                  <div className="pointer-events-none absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Upload size={20} className="text-white" />
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Seção: Segurança */}
       <div className="rounded-lg border bg-[var(--dash-surface)] border-[var(--dash-border)] overflow-hidden shadow-sm">
         <div className="px-8 py-6 border-b border-[var(--dash-border)] bg-primary/5 flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -214,7 +214,7 @@ export default function ProductDetailDrawer({
               {/* Imagem Principal */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Imagem Principal</label>
-                <div className="relative aspect-square rounded-2xl border-2 border-dashed border-[var(--dash-border)] overflow-hidden flex items-center justify-center bg-[var(--dash-hover-bg)] group">
+                <div className="relative aspect-square rounded-xl border-2 border-dashed border-[var(--dash-border)] overflow-hidden flex items-center justify-center bg-[var(--dash-hover-bg)] group">
                   {product.image_url ? (
                     <>
                       <img src={product.image_url} alt="Principal" className="w-full h-full object-cover" />
@@ -251,7 +251,7 @@ export default function ProductDetailDrawer({
                     }
                     if (!Array.isArray(urls)) urls = [];
                     return urls.map((url: string, idx: number) => (
-                      <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group">
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group">
                         <img src={url} alt="Extra" className="w-full h-full object-cover" />
                         <button 
                           onClick={() => removeGalleryImage(url)}
@@ -262,7 +262,7 @@ export default function ProductDetailDrawer({
                       </div>
                     ));
                   })()}
-                  <label className="aspect-square rounded-2xl border-2 border-dashed border-[var(--dash-border)] flex items-center justify-center cursor-pointer hover:bg-[var(--dash-hover-bg)] transition-colors">
+                  <label className="aspect-square rounded-xl border-2 border-dashed border-[var(--dash-border)] flex items-center justify-center cursor-pointer hover:bg-[var(--dash-hover-bg)] transition-colors">
                     <PlusCircle size={20} className="text-[var(--dash-text-muted)]" />
                     <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, true)} disabled={uploading} />
                   </label>
@@ -278,7 +278,7 @@ export default function ProductDetailDrawer({
             </h4>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
                 <div className="flex items-center gap-2">
                   <List size={18} className="text-[var(--dash-text-muted)]" />
                   <span className="text-sm font-medium">Especificações</span>
@@ -291,7 +291,7 @@ export default function ProductDetailDrawer({
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
                 <div className="flex items-center gap-2">
                   <Palette size={18} className="text-[var(--dash-text-muted)]" />
                   <span className="text-sm font-medium">Cores do Produto</span>
@@ -304,7 +304,7 @@ export default function ProductDetailDrawer({
                 </button>
               </div>
 
-              <div className="md:col-span-2 flex flex-col gap-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+              <div className="md:col-span-2 flex flex-col gap-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Tag size={18} className="text-emerald-500" />
@@ -331,7 +331,7 @@ export default function ProductDetailDrawer({
             </div>
 
             {effectiveShowColors && (
-              <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl space-y-6">
+              <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl space-y-6">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
                     <Palette size={14} /> Adicione suas cores
@@ -351,7 +351,7 @@ export default function ProductDetailDrawer({
                           setColorPickerValue(color);
                           setIsPickerOpen(true);
                         }}
-                        className={`h-14 w-14 rounded-2xl border-4 shadow-xl transition-all hover:scale-105 active:scale-95 ${editingColorIdx === idx ? 'border-primary ring-4 ring-primary/20' : 'border-white'}`}
+                        className={`h-14 w-14 rounded-xl border-4 shadow-xl transition-all hover:scale-105 active:scale-95 ${editingColorIdx === idx ? 'border-primary ring-4 ring-primary/20' : 'border-white'}`}
                         style={{ backgroundColor: color }}
                       />
                       <button 
@@ -382,7 +382,7 @@ export default function ProductDetailDrawer({
                           setIsPickerOpen(!isPickerOpen);
                         }
                       }}
-                      className="h-14 w-14 rounded-2xl border-4 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all relative"
+                      className="h-14 w-14 rounded-xl border-4 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all relative"
                       style={{ background: "linear-gradient(to bottom, #ff0000 0%, #ff00ff 17%, #0000ff 33%, #00ffff 50%, #00ff00 67%, #ffff00 83%, #ff0000 100%)" }}
                     >
                       <div className="absolute inset-0 flex items-center justify-center bg-black/5 hover:bg-transparent transition-colors">
@@ -433,7 +433,7 @@ export default function ProductDetailDrawer({
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-4 p-4 rounded-2xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                              <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                                 <div className="h-10 w-10 rounded-xl border shadow-inner shrink-0" style={{ backgroundColor: colorPickerValue, borderColor: "var(--dash-border)" }} />
                                 <div className="flex-1">
                                   <p className="text-[9px] font-black uppercase tracking-widest mb-0.5" style={{ color: "var(--dash-text-muted)" }}>[Cor Personalizada]</p>
@@ -448,7 +448,7 @@ export default function ProductDetailDrawer({
                                     setIsPickerOpen(false);
                                     setEditingColorIdx(null);
                                   }}
-                                  className="px-4 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                                  className="px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
                                   style={{ background: "var(--dash-surface-secondary)", color: "var(--dash-text-muted)", borderColor: "var(--dash-border)" }}
                                 >
                                   Cancelar
@@ -459,7 +459,7 @@ export default function ProductDetailDrawer({
                                     addColor(colorPickerValue);
                                     setIsPickerOpen(false);
                                   }}
-                                  className="px-4 py-3.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-95 border-none"
+                                  className="px-4 py-3.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-95 border-none"
                                 >
                                   {editingColorIdx !== null ? "Atualizar" : "Confirmar"}
                                 </button>
@@ -487,7 +487,7 @@ export default function ProductDetailDrawer({
                 <input 
                   value={product.name}
                   onChange={(e) => updateData(rowIndex, "name", e.target.value)}
-                  className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -497,7 +497,7 @@ export default function ProductDetailDrawer({
                   <select 
                     value={product.category_id || ""}
                     onChange={(e) => updateData(rowIndex, "category_id", e.target.value)}
-                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none"
+                    className="w-full  pl-3 pr-10 py-3  bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[position:calc(100%-20px)_center] bg-no-repeat"
                   >
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -509,7 +509,7 @@ export default function ProductDetailDrawer({
                   <input 
                     value={product.sku || ""}
                     onChange={(e) => updateData(rowIndex, "sku", e.target.value)}
-                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none"
+                    className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
                   />
                 </div>
               </div>
@@ -526,7 +526,7 @@ export default function ProductDetailDrawer({
               onChange={(e) => updateData(rowIndex, "description", e.target.value)}
               rows={5}
               placeholder="Descreva as características principais do produto..."
-              className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl focus:ring-2 focus:ring-primary outline-none resize-none"
+              className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none resize-none"
             />
           </section>
 
@@ -584,7 +584,7 @@ export default function ProductDetailDrawer({
           <div className="sticky bottom-0 left-0 right-0 p-6 bg-[var(--dash-surface)] border-t border-[var(--dash-border)] flex gap-4">
             <button 
               onClick={onClose}
-              className="flex-1 p-3 font-bold border border-[var(--dash-border)] rounded-2xl hover:bg-[var(--dash-hover-bg)] transition-colors"
+              className="flex-1 p-3 font-bold border border-[var(--dash-border)] rounded-xl hover:bg-[var(--dash-hover-bg)] transition-colors"
             >
               Concluir Edição
             </button>

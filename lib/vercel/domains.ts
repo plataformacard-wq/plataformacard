@@ -79,5 +79,23 @@ export async function checkDomainStatus(domain: string): Promise<VercelDomainRes
     throw new Error(`Erro ao checar status do domínio na Vercel: ${errorBody.error?.message || response.statusText}`);
   }
 
-  return await response.json();
+  let data = await response.json();
+
+  // Se o domínio ainda não está verificado, forçamos a Vercel a realizar uma nova checagem (POST /verify)
+  // Isso resolve casos onde o DNS já propagou, mas a Vercel está com o status em cache
+  if (data && !data.verified) {
+    try {
+      const verifyResponse = await fetch(`${VERCEL_API_URL}/${projectId}/domains/${domain}/verify`, {
+        method: "POST",
+        headers,
+      });
+      if (verifyResponse.ok) {
+        data = await verifyResponse.json();
+      }
+    } catch (e) {
+      console.error("Erro ao forçar verificação do domínio:", e);
+    }
+  }
+
+  return data;
 }

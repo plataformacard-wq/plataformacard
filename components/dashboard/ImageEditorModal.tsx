@@ -107,7 +107,9 @@ export default function ImageEditorModal({
       if (!croppedBlob) throw new Error("Falha ao recortar imagem.");
 
       // 2. Compress image
-      const fileName = `product-${Date.now()}.jpg`;
+      const isPng = imageSrc.startsWith('data:image/png');
+      const ext = isPng ? 'png' : 'jpg';
+      const fileName = `image-${Date.now()}.${ext}`;
       const compressedFile = await compressImage(croppedBlob, fileName);
 
       // 3. Create preview URL

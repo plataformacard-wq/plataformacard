@@ -438,7 +438,7 @@ export default function BulkPromoModal({
                       <button
                         type="button"
                         onClick={() => setActionType("apply_promo")}
-                        className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all hover:border-primary/50 ${
+                        className={`p-4 rounded-xl border text-left flex flex-col gap-2 transition-all hover:border-primary/50 ${
                           actionType === "apply_promo" 
                             ? "border-primary bg-primary/5 shadow-md shadow-primary/5 font-bold" 
                             : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]"
@@ -454,7 +454,7 @@ export default function BulkPromoModal({
                       <button
                         type="button"
                         onClick={() => setActionType("apply_markup")}
-                        className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all hover:border-emerald-500/50 ${
+                        className={`p-4 rounded-xl border text-left flex flex-col gap-2 transition-all hover:border-emerald-500/50 ${
                           actionType === "apply_markup" 
                             ? "border-emerald-500 bg-emerald-500/5 shadow-md shadow-emerald-500/5 font-bold" 
                             : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]"
@@ -470,7 +470,7 @@ export default function BulkPromoModal({
                       <button
                         type="button"
                         onClick={() => setActionType("revert")}
-                        className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all hover:border-amber-500/50 ${
+                        className={`p-4 rounded-xl border text-left flex flex-col gap-2 transition-all hover:border-amber-500/50 ${
                           actionType === "revert" 
                             ? "border-amber-500 bg-amber-500/5 shadow-md shadow-amber-500/5 font-bold" 
                             : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]"
@@ -551,7 +551,7 @@ export default function BulkPromoModal({
 
                   {/* Step 3: Value configuration (hide for Revert) */}
                   {actionType !== "revert" && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-2xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-xl">
                       <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
                           Tipo de Ajuste
@@ -615,11 +615,11 @@ export default function BulkPromoModal({
                       <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
                         Canal de Preço a Reajustar
                       </label>
-                      <div className="flex gap-3">
+                      <div className="flex ga pl-3 pr-10 py-3  appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[position:calc(100%-20px)_center] bg-no-repeat">
                         <button
                           type="button"
                           onClick={() => setTargetChannel("both")}
-                          className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition-all ${
+                          className={`flex-1 py-3 text-xs font-bold rounded-xl border transition-all ${
                             targetChannel === "both"
                               ? "bg-primary border-primary text-white font-bold"
                               : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
@@ -630,7 +630,7 @@ export default function BulkPromoModal({
                         <button
                           type="button"
                           onClick={() => setTargetChannel("b2c")}
-                          className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition-all ${
+                          className={`flex-1 py-3 text-xs font-bold rounded-xl border transition-all ${
                             targetChannel === "b2c"
                               ? "bg-primary border-primary text-white font-bold"
                               : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
@@ -641,7 +641,7 @@ export default function BulkPromoModal({
                         <button
                           type="button"
                           onClick={() => setTargetChannel("b2b")}
-                          className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition-all ${
+                          className={`flex-1 py-3 text-xs font-bold rounded-xl border transition-all ${
                             targetChannel === "b2b"
                               ? "bg-primary border-primary text-white font-bold"
                               : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
@@ -654,7 +654,7 @@ export default function BulkPromoModal({
                   )}
 
                   {/* Step 4: Preview Area */}
-                  <div className="space-y-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-2xl">
+                  <div className="space-y-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-xl">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)] flex items-center justify-between">
                       <span>Simulação do Reajuste</span>
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-bold">

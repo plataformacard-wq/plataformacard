@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [slug, setSlug] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [whatsapp, setWhatsapp] = useState<string | null>(null);
+  const [hasValidWhatsapp, setHasValidWhatsapp] = useState(false);
   const [bio, setBio] = useState<string | null>(null);
   const [productCount, setProductCount] = useState<number | null>(null);
   const [sellerCount, setSellerCount] = useState<number | null>(null);
@@ -33,6 +34,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
   const [showNoWhatsappWarning, setShowNoWhatsappWarning] = useState(false);
+  const [showNoCatalogBanner, setShowNoCatalogBanner] = useState(false);
+  const [orgName, setOrgName] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -97,7 +100,8 @@ export default function DashboardPage() {
             }
           }
 
-          setNome(profile.full_name ?? "");
+          const displayName = user.user_metadata?.full_name || profile.full_name || "";
+          setNome(displayName);
           setSlug(profile.slug ?? null);
           setAvatarUrl(profile.avatar_url ?? null);
           setWhatsapp(profile.whatsapp ?? null);
@@ -128,20 +132,29 @@ export default function DashboardPage() {
             // Buscar modelo de negócio e whatsapp
             const { data: org } = await supabase
               .from("organizations")
-              .select("business_model, whatsapp")
+              .select("name, business_model, whatsapp")
               .eq("id", activeOrgId)
               .maybeSingle();
             
             if (org?.business_model) {
               setBusinessModel(org.business_model as "B2B" | "B2C");
             }
+            if (org?.name) {
+              setOrgName(org.name);
+            }
 
-            // Warning de WhatsApp
+            // Warning de WhatsApp e Catálogo Vazio
             const hasProfileWhatsapp = !!profile.whatsapp;
             const hasOrgWhatsapp = !!org?.whatsapp;
             const hasPublishedLink = !!profile.slug;
             
-            if (hasPublishedLink && !hasProfileWhatsapp && !hasOrgWhatsapp) {
+            // In B2B or CaaS, org whatsapp is valid. In B2C, org whatsapp might also be valid.
+            const validWhatsapp = hasProfileWhatsapp || hasOrgWhatsapp;
+            setHasValidWhatsapp(validWhatsapp);
+            
+            if ((pCount ?? 0) === 0) {
+              setShowNoCatalogBanner(true);
+            } else if (hasPublishedLink && !validWhatsapp) {
               setShowNoWhatsappWarning(true);
             }
 
@@ -258,40 +271,31 @@ export default function DashboardPage() {
     }] : [])
   ];
 
-  // Lógica do Checklist Dinâmico
-  
-  const checklist = [
+  // Lógica do Progresso Dinâmico (Core 3 pillars for publishing)
+  const coreChecklist = [
     { 
-      label: isB2B ? "Central de Contatos" : "WhatsApp de Vendas", 
-      done: !!whatsapp, 
-      href: "/dashboard/perfil#cartao" 
-    },
-    { 
-      label: isB2B ? "Catálogo de Produtos" : "Pelo menos 1 Produto", 
-      done: (productCount ?? 0) > 0, 
-      href: "/dashboard/catalogo" 
-    },
-    ...(isB2B ? [{
-      label: "Cadastrar Vendedores",
-      done: (sellerCount ?? 0) > 0,
-      href: "/dashboard/vendedores"
-    }] : []),
-    { 
-      label: isB2B ? "Link da Organização" : "Link Personalizado", 
+      label: isB2B ? "Link da Empresa" : "Link do Perfil", 
       done: !!slug, 
-      href: "/dashboard/perfil#cartao" 
+      href: "/dashboard/perfil#cartao",
+      icon: "🔗"
     },
     { 
-      label: isB2B ? "Bio da Empresa" : "Bio ou Slogan", 
-      done: !!bio, 
-      href: "/dashboard/perfil#cartao" 
+      label: isB2B ? "Central de Contatos (WhatsApp)" : "WhatsApp de Vendas", 
+      done: hasValidWhatsapp,
+      href: "/dashboard/perfil#cartao",
+      icon: "📱"
     },
+    { 
+      label: "Pelo menos 1 Produto", 
+      done: (productCount ?? 0) > 0, 
+      href: "/dashboard/catalogo",
+      icon: "📦"
+    }
   ];
 
-  const itemsDone = checklist.filter(i => i.done).length;
-  // B2B exige todos os itens para estar pronto (incluindo vendedores)
-  const isReady = isB2B ? (itemsDone === checklist.length) : (itemsDone >= 4);
-  const progressPercent = Math.round((itemsDone / checklist.length) * 100);
+  const itemsDone = coreChecklist.filter(i => i.done).length;
+  const isReady = itemsDone === coreChecklist.length;
+  const progressPercent = Math.round((itemsDone / coreChecklist.length) * 100);
 
   const container = {
     hidden: { opacity: 0 },
@@ -314,7 +318,7 @@ export default function DashboardPage() {
       <section className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[var(--dash-text-primary)]">
-            {nome ? `Olá, ${nome.split(" ")[0]} 👋` : "Dashboard"}
+            {nome ? `Olá, ${nome} 👋` : "Dashboard"}
           </h1>
           <p className="text-[var(--dash-text-secondary)]">
             {isB2B ? "Gerencie sua equipe e seu catálogo matriz." : isCaaS ? "Gerencie seus produtos e vendas do seu catálogo CaaS." : "Aqui está o que está acontecendo com sua plataforma hoje."}
@@ -345,6 +349,36 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
+      {/* Banner: Sem Catálogo (Ação Positiva) */}
+      {showNoCatalogBanner && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-[32px] border border-blue-500/20 bg-blue-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+              <Package size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-blue-800 dark:text-blue-400">
+                Comece por aqui: Cadastre seu novo catálogo
+              </h3>
+              <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1 leading-relaxed max-w-2xl">
+                Seu catálogo está vazio. Adicione produtos para começar a vender e compartilhar com seus clientes.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/catalogo/configuracoes"
+            className="shrink-0 w-full sm:w-auto rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 flex items-center justify-center gap-2 mt-4 md:mt-0"
+          >
+            Cadastrar Catálogo
+            <ArrowUpRight size={16} />
+          </Link>
+        </motion.div>
+      )}
+
       {/* Warning WhatsApp */}
       {showNoWhatsappWarning && (
         <motion.div 
@@ -365,6 +399,69 @@ export default function DashboardPage() {
                 {isB2B ? " Configure o WhatsApp Central em Configurações > SEO e Marca, ou no Perfil do vendedor." : " Configure no seu Perfil."}
               </p>
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Progress Bar (Setup Checklist) */}
+      {!isReady && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-sm"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+            <div>
+              <h3 className="text-lg font-bold text-[var(--dash-text-primary)]">Configuração do Catálogo</h3>
+              <p className="text-sm text-[var(--dash-text-secondary)] mt-1">
+                Seu link público permanecerá em construção até que as 3 configurações obrigatórias sejam concluídas.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-2xl font-bold text-primary">{progressPercent}%</span>
+              <div className="w-32 h-3 rounded-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-1000 ease-out" 
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {coreChecklist.map((item, idx) => (
+              <Link key={idx} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--dash-surface-secondary)] transition group border border-transparent hover:border-[var(--dash-border)]">
+                <div className={`flex items-center justify-center h-8 w-8 rounded-full shrink-0 ${item.done ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[var(--dash-border)] text-[var(--dash-text-muted)]'}`}>
+                  {item.done ? "✓" : item.icon}
+                </div>
+                <div className="flex-1">
+                  <span className={`text-sm font-semibold transition ${item.done ? 'text-[var(--dash-text-secondary)] line-through opacity-70' : 'text-[var(--dash-text-primary)] group-hover:text-primary'}`}>
+                    {item.label}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Dica de Foto de Perfil (Mostra se isReady ou não, caso esteja faltando) */}
+      {!avatarUrl && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-2xl border border-violet-500/20 bg-violet-500/5 backdrop-blur-md flex items-start gap-3"
+        >
+          <div className="h-10 w-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 shrink-0">
+            <span className="text-lg">📸</span>
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-violet-800 dark:text-violet-400">
+              Dica: Adicione uma Foto de Perfil ou Logo
+            </h4>
+            <p className="text-xs text-violet-700/80 dark:text-violet-400/80 mt-1">
+              Catálogos com fotos de perfil reais ou logotipos de empresas transmitem muito mais confiança e vendem até 40% a mais. <Link href="/dashboard/perfil#cartao" className="font-semibold underline">Adicionar agora</Link>.
+            </p>
           </div>
         </motion.div>
       )}

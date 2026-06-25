@@ -32,12 +32,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
     if (org?.favicon_url) {
       const iconUrl = `${org.favicon_url}${org.favicon_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      const iconType = org.favicon_url.toLowerCase().endsWith('.jpg') || org.favicon_url.toLowerCase().endsWith('.jpeg') ? 'image/jpeg' : org.favicon_url.toLowerCase().endsWith('.png') ? 'image/png' : 'image/x-icon';
       return {
         title: `Dashboard | ${org.name}`,
         icons: {
-          icon: iconUrl,
-          shortcut: iconUrl,
-          apple: iconUrl,
+          icon: [
+            { url: iconUrl, sizes: "any", type: iconType }
+          ],
+          shortcut: [
+            { url: iconUrl, type: iconType }
+          ],
+          apple: [
+            { url: iconUrl, type: iconType }
+          ],
         },
       };
     }
