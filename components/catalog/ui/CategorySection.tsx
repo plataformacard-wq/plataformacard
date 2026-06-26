@@ -40,6 +40,10 @@ const ProductCard = memo(({
   const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
   const productGallery = product.image_url ? [product.image_url, ...(product.image_urls || [])] : (product.image_urls || []);
   
+  const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  const isNew = product.created_at ? new Date(product.created_at).getTime() > sevenDaysAgo : false;
+  const isUpdated = product.updated_at ? new Date(product.updated_at).getTime() > sevenDaysAgo && !isNew : false;
+  
   const wpUrl = (() => {
     if (!whatsapp) return null;
     const cleanNumber = whatsapp.replace(/\D/g, "");
@@ -100,12 +104,12 @@ const ProductCard = memo(({
               Serviço
             </span>
           )}
-          {lastViewTimestamp !== null && new Date(product.created_at).getTime() > lastViewTimestamp && (
+          {isNew && (
             <span className="text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg border" style={{ backgroundColor: primaryColor, borderColor: `${primaryColor}aa` }}>
               NOVO
             </span>
           )}
-          {lastViewTimestamp !== null && new Date(product.updated_at).getTime() > lastViewTimestamp && new Date(product.created_at).getTime() <= lastViewTimestamp && (
+          {isUpdated && (
             <span className="bg-blue-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-blue-400">
               ATUALIZADO
             </span>

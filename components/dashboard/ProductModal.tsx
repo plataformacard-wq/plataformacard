@@ -143,6 +143,7 @@ export default function ProductModal({
   // Drafts
   const [specChaveDraft, setSpecChaveDraft] = useState("");
   const [specValorDraft, setSpecValorDraft] = useState("");
+  const [editingSpecIndex, setEditingSpecIndex] = useState<number | null>(null);
   
   // UI Errors
   const [nameError, setNameError] = useState("");
@@ -301,10 +302,7 @@ export default function ProductModal({
   };
 
   const editSpec = (idx: number) => {
-    const s = specs[idx];
-    setSpecChaveDraft(s.chave);
-    setSpecValorDraft(s.valor);
-    removeSpec(idx);
+    setEditingSpecIndex(idx);
   };
 
   const handleCopyLastProduct = () => {
@@ -1092,33 +1090,31 @@ export default function ProductModal({
                     />
                   </div>
 
-                  <div className="flex gap-3">
-                    <div className="flex-1 relative">
-                      <input 
-                        type="text" 
-                        value={specChaveDraft} 
-                        onChange={e => setSpecChaveDraft(e.target.value)} 
-                        placeholder="Nome (ex: Peso)" 
-                        className="w-full rounded-xl border-2 px-5 py-4 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
-                        style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                      />
-                    </div>
-                    <div className="flex-1 relative">
-                      <input 
-                        type="text" 
-                        value={specValorDraft} 
-                        onChange={e => setSpecValorDraft(e.target.value)} 
-                        placeholder="Valor (ex: 500g)" 
-                        className="w-full rounded-xl border-2 px-5 py-4 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
-                        style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                      />
-                    </div>
+                  <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed shadow-sm transition-all hover:border-emerald-500/30" style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+                    <input 
+                      type="text" 
+                      value={specChaveDraft} 
+                      onChange={e => setSpecChaveDraft(e.target.value)} 
+                      placeholder="Nome (ex: Peso)" 
+                      className="w-1/3 rounded-lg border px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500/50 transition-all" 
+                      style={{ backgroundColor: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                    <input 
+                      type="text" 
+                      value={specValorDraft} 
+                      onChange={e => setSpecValorDraft(e.target.value)} 
+                      onKeyDown={(e) => { if(e.key === 'Enter') addSpec(); }}
+                      placeholder="Valor (ex: 500g)" 
+                      className="flex-1 rounded-lg border px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
+                      style={{ backgroundColor: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
                     <button 
                       type="button" 
                       onClick={addSpec} 
-                      className="p-4 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all"
+                      disabled={!specChaveDraft.trim() || !specValorDraft.trim()}
+                      className="p-2 text-emerald-500 hover:scale-110 transition-transform disabled:opacity-30 disabled:hover:scale-100"
                     >
-                      <Plus size={24} />
+                      <Plus size={18} />
                     </button>
                   </div>
                   
@@ -1133,25 +1129,59 @@ export default function ProductModal({
                         <Reorder.Item 
                           key={s.id || `${s.chave}-${i}`}
                           value={s}
+                          dragListener={editingSpecIndex !== i}
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9 }}
-                          className="group flex items-center justify-between p-4 rounded-xl border-2 hover:border-emerald-500/30 transition-all shadow-sm cursor-grab active:cursor-grabbing"
+                          className={`group flex items-center justify-between p-4 rounded-xl border-2 hover:border-emerald-500/30 transition-all shadow-sm ${editingSpecIndex === i ? '' : 'cursor-grab active:cursor-grabbing'}`}
                           style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
                         >
-                          <div className="flex-1 flex items-center gap-3">
-                            <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
-                              <GripVertical size={16} />
+                          {editingSpecIndex === i ? (
+                            <div className="flex-1 flex items-center gap-3">
+                              <input
+                                type="text"
+                                value={s.chave}
+                                onChange={(e) => {
+                                  const newSpecs = [...specs];
+                                  newSpecs[i].chave = e.target.value;
+                                  setSpecs(newSpecs);
+                                }}
+                                className="w-1/3 rounded-lg border px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500/50"
+                                style={{ backgroundColor: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                                autoFocus
+                              />
+                              <input
+                                type="text"
+                                value={s.valor}
+                                onChange={(e) => {
+                                  const newSpecs = [...specs];
+                                  newSpecs[i].valor = e.target.value;
+                                  setSpecs(newSpecs);
+                                }}
+                                className="flex-1 rounded-lg border px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500/50"
+                                style={{ backgroundColor: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                              />
+                              <button type="button" onClick={() => setEditingSpecIndex(null)} className="p-2 text-emerald-500 hover:scale-110">
+                                <Check size={18} />
+                              </button>
                             </div>
-                            <div className="flex-1 flex items-center justify-between pr-4">
-                              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">{s.chave}</span>
-                              <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>{s.valor}</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button type="button" onClick={() => editSpec(i)} className="p-2 text-zinc-400 hover:text-emerald-500"><EditIcon size={14}/></button>
-                            <button type="button" onClick={() => removeSpec(i)} className="p-2 text-zinc-400 hover:text-red-500"><TrashIcon size={14}/></button>
-                          </div>
+                          ) : (
+                            <>
+                              <div className="flex-1 flex items-center gap-3">
+                                <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
+                                  <GripVertical size={16} />
+                                </div>
+                                <div className="flex-1 flex items-center justify-between pr-4">
+                                  <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">{s.chave}</span>
+                                  <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>{s.valor}</span>
+                                </div>
+                              </div>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button type="button" onClick={() => editSpec(i)} className="p-2 text-zinc-400 hover:text-emerald-500"><EditIcon size={14}/></button>
+                                <button type="button" onClick={() => removeSpec(i)} className="p-2 text-zinc-400 hover:text-red-500"><TrashIcon size={14}/></button>
+                              </div>
+                            </>
+                          )}
                         </Reorder.Item>
                       ))}
                     </AnimatePresence>

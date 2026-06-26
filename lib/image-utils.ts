@@ -63,9 +63,10 @@ export async function getCroppedImg(
 
 export async function compressImage(file: File | Blob, fileName: string): Promise<File> {
   const options = {
-    maxSizeMB: 0.8, // Increased quality for zoom capabilities
-    maxWidthOrHeight: 2000,
+    maxSizeMB: 1, // Aumentado ligeiramente para evitar loops de compressão infinitos
+    maxWidthOrHeight: 1200, // Reduzido de 2000 para 1200 (suficiente para zoom HD no catálogo web)
     useWebWorker: true,
+    initialQuality: 0.8, // Força a compressão inicial a 80%, acelerando drasticamente o processo
     fileType: file.type as any, // preserve the original type
   };
   

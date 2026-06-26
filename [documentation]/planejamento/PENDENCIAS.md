@@ -57,12 +57,14 @@ graph TD
 - [ ] **Watchdog Telegram:** Deploy da Edge Function e configuração de Secrets.
 - [ ] **Auditoria de Tipagem:** Remoção de `any` e unificação de interfaces (`ProductRow`, etc.).
 - [ ] **Auditoria de Tema:** Varredura de cores hardcoded e classes Tailwind residuais.
+- [ ] **Integração Bling (Sincronização de Estoque):** Implementar sincronização manual pelo SKU. Requer adição de `bling_api_key` na tabela `organizations` e tela de configuração na aba Empresa. O saldo retornado será convertido em `is_in_stock` (Disponível/Esgotado) via Server Action.
 
 ---
 
 ## 🏆 Histórico de Itens Concluídos
 
 ### ✅ Infraestrutura e Super Admin (QG)
+- [x] **Gestão Global de IA (Prompts e Modelos):** Criação de painel dedicado (`/main/ia`) para controle dinâmico de Prompts de SEO e Descrição, integrados à infraestrutura de configuração nativa.
 - [x] **Tela de Gestão de Assinaturas & Financeiro no Super Admin (QG):** Página dedicada no painel global para gerenciar assinaturas, overrides de recursos e parametrização financeira.
 - [x] **Gestão de Recursos (Super Admin):** Monitoração de consumo de tokens da IA (Gemini) integrada ao dashboard de infraestrutura.
 - [x] **Teste de Desvinculação CaaS:** Validação do fluxo de permissão do Super Admin, edição no inquilino, geração do clone e restauração da versão mestre original.

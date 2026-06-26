@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAuthenticated } from "@/lib/utils/auth-validation";
+import { getFullPlatformConfig } from "@/lib/admin-actions";
 
 /**
  * Função interna para buscar a API Key do Gemini com fallback para o banco de dados.
@@ -118,14 +119,15 @@ export async function enhanceDescriptionWithAI(payload: {
   }
 
   const specsText = payload.specs?.map(s => `${s.chave}: ${s.valor}`).join(', ') || 'Não informadas';
-
-  const prompt = `
+  const configs = await getFullPlatformConfig();
+  
+  let prompt = configs.ai_description_prompt || `
     Aja como um copywriter de alta conversão, focado em vendas diretas e "papo reto".
-    Seu objetivo é criar uma descrição impactante, concisa e profissional para o produto: "${payload.name}".
+    Seu objetivo é criar uma descrição impactante, concisa e profissional para o produto: "[PRODUTO]".
     
     FONTES DE DADOS:
-    - Especificações Técnicas: "${specsText}"
-    - Descrição atual: "${payload.currentDescription || 'Vazia'}"
+    - Especificações Técnicas: "[ESPECIFICACOES]"
+    - Descrição atual: "[DESCRICAO_ATUAL]"
 
     REGRAS CRÍTICAS:
     1. O texto deve ter NO MÁXIMO 10 LINHAS. Seja direto e evite enrolação.
@@ -145,14 +147,23 @@ export async function enhanceDescriptionWithAI(payload: {
     }
   `;
 
+  // Substituir variáveis
+  prompt = prompt.replace(/\[PRODUTO\]/g, payload.name);
+  prompt = prompt.replace(/\[ESPECIFICACOES\]/g, specsText);
+  prompt = prompt.replace(/\[DESCRICAO_ATUAL\]/g, payload.currentDescription || 'Vazia');
+
+  const modelId = (configs.ai_model && configs.ai_model.includes("gemini")) ? configs.ai_model : "gemini-2.5-flash";
+  const temperature = parseFloat(configs.ai_temperature || "0.7");
+
   try {
     const response = await fetchGeminiWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature }
         }),
       }
     );
@@ -266,29 +277,30 @@ export async function generateSEOWithAI(
   const apiKey = await getGeminiApiKey();
   if (!apiKey) return { error: "API Key do Gemini não configurada." };
 
-  let prompt = "";
-  if (businessModel === "B2C") {
-    prompt = `
-      Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para o portfólio/catálogo pessoal do profissional "${orgName}" do ramo "${businessType}".
-      Retorne APENAS um JSON no formato:
-      {"title": "...", "description": "...", "keywords": "..."}
-    `;
-  } else {
-    prompt = `
-      Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para a empresa "${orgName}" do ramo "${businessType}".
-      Retorne APENAS um JSON no formato:
-      {"title": "...", "description": "...", "keywords": "..."}
-    `;
-  }
+  const configs = await getFullPlatformConfig();
+  
+  let prompt = configs.ai_seo_prompt || `
+    Aja como um especialista em SEO. Gere o Título (max 60 carac), Descrição (150-160 carac) e Keywords para o catálogo do "[NOME_DA_EMPRESA]" que atua no ramo "[TIPO_DE_NEGOCIO]".
+    Retorne APENAS um JSON no formato:
+    {"title": "...", "description": "...", "keywords": "..."}
+  `;
+
+  // Substituir variáveis
+  prompt = prompt.replace(/\[NOME_DA_EMPRESA\]/g, orgName);
+  prompt = prompt.replace(/\[TIPO_DE_NEGOCIO\]/g, businessType);
+
+  const modelId = (configs.ai_model && configs.ai_model.includes("gemini")) ? configs.ai_model : "gemini-2.5-flash";
+  const temperature = parseFloat(configs.ai_temperature || "0.7");
 
   try {
     const response = await fetchGeminiWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature }
         }),
       }
     );

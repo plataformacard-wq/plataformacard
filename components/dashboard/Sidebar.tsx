@@ -20,7 +20,8 @@ import {
   Globe,
   HardDrive,
   BadgeDollarSign,
-  CreditCard
+  CreditCard,
+  Sparkles
 } from "lucide-react";
 
 interface SidebarProps {
@@ -99,6 +100,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Configurações", 
         icon: ShieldCheck,
         subItems: [
+          { href: "/main/ia", label: "Inteligência Artificial", icon: Sparkles },
           { href: "/main/settings", label: "Geral & Planos", icon: Settings },
           { href: "/main/maintenance", label: "Manutenção Global", icon: Info },
         ]
