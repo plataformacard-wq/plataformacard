@@ -16,7 +16,7 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
     if (!orgId) return;
     
     setLoadingId(profileId);
-    const newModel = currentModel === "B2C" ? "B2B" : "B2C";
+    const newModel = currentModel === "B2C" ? "CaaS" : currentModel === "CaaS" ? "ALL_SERVICE" : currentModel === "ALL_SERVICE" ? "B2B" : "B2C";
     
     try {
       // 1. Atualizar organização
@@ -122,14 +122,15 @@ export default function UserList({ profiles: initialProfiles }: UserListProps) {
                   </a>
                 </td>
                 <td className="px-6 py-4">
-                  <button
-                    onClick={() => toggleBusinessModel(p.id, p.organization_id, currentModel)}
-                    disabled={loadingId === p.id || !p.organization_id}
-                    className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-bold transition-all ${
-                      currentModel === "B2B" 
-                        ? "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" 
-                        : "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
-                    } disabled:opacity-50`}
+                  <button 
+                    onClick={() => toggleBusinessModel(p.id, org?.id, currentModel)}
+                    disabled={loadingId === p.id}
+                    className={`inline-flex flex-col items-center justify-center rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white shadow-sm transition-all active:scale-95 disabled:opacity-50 ${
+                      currentModel === 'B2B' ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20' : 
+                      currentModel === 'CaaS' ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20' : 
+                      currentModel === 'ALL_SERVICE' ? 'bg-zinc-900 hover:bg-zinc-800 shadow-zinc-900/20' : 
+                      'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
+                    }`}
                   >
                     {loadingId === p.id ? "Salvando..." : currentModel}
                     <span className="text-[8px] opacity-50 font-normal">(Clique p/ mudar)</span>

@@ -28,6 +28,7 @@ export default async function AdminDashboardPage() {
   const { count: b2bCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("business_model", "B2B").neq("name", "Start - Super Admin");
   const { count: b2cCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("business_model", "B2C");
   const { count: caasCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("business_model", "CaaS");
+  const { count: allServiceCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("business_model", "ALL_SERVICE");
 
   // 3. BI por Plano
   const { count: starterCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0");
@@ -71,7 +72,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Grid BI de Performance (Principais Modelos) */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
          {/* B2B Segment */}
          <div className="rounded-[32px] border p-8 flex flex-col justify-between group hover:border-blue-500/30 transition-all" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
            <div>
@@ -146,6 +147,32 @@ export default async function AdminDashboardPage() {
               </div>
               <div className="mt-2 h-1.5 w-full bg-[var(--dash-bg)] rounded-full overflow-hidden">
                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${orgCount ? (caasCount || 0) / orgCount * 100 : 0}%` }} />
+              </div>
+           </div>
+         </div>
+
+        {/* All Service Segment */}
+         <div className="rounded-[32px] border p-8 flex flex-col justify-between group hover:border-zinc-500/30 transition-all" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+           <div>
+             <div className="flex items-center gap-3 mb-6">
+               <div className="h-12 w-12 rounded-lg bg-zinc-900/10 flex items-center justify-center text-zinc-900 dark:text-white">
+                 <Building2 size={24} />
+               </div>
+               <div>
+                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Solução Completa</p>
+                 <h3 className="text-xl font-black text-zinc-900 dark:text-white">All Service</h3>
+               </div>
+             </div>
+             <p className="text-5xl font-black mb-2" style={{ color: "var(--dash-text-primary)" }}>{allServiceCount || 0}</p>
+             <p className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>B2B, B2C e CaaS integrados</p>
+           </div>
+           <div className="mt-8 pt-6 border-t border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)]">
+                 <span>Penetração de Mercado</span>
+                 <span className="text-zinc-900 dark:text-white">{orgCount ? Math.round((allServiceCount || 0) / orgCount * 100) : 0}%</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full bg-[var(--dash-bg)] rounded-full overflow-hidden">
+                 <div className="h-full bg-zinc-900 rounded-full" style={{ width: `${orgCount ? (allServiceCount || 0) / orgCount * 100 : 0}%` }} />
               </div>
            </div>
          </div>

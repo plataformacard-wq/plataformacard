@@ -64,6 +64,7 @@ export type ProductCatalogClientProps = {
   isAvailable?: boolean | null;
   businessHours?: Record<string, any>;
   customBusinessHours?: Record<string, any>;
+  nationalHolidays?: string[];
   canCustomizeHours?: boolean | null;
   organizationId?: string | null;
   whatsappTemplate?: string | null;

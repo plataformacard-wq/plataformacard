@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
 import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
+import { getNationalHolidays } from "@/lib/utils/holidays";
 import CatalogBadge from "@/components/catalog/CatalogBadge";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import PublicShareButton from "@/components/PublicShareButton";
@@ -323,7 +324,10 @@ export default async function Page(props: PageProps) {
     ? customBusinessHours 
     : orgBusinessHours;
 
-  const businessStatus = getBusinessStatus(activeHours);
+  const currentYear = new Date().getFullYear();
+  const nationalHolidays = await getNationalHolidays(currentYear);
+
+  const businessStatus = getBusinessStatus(activeHours, nationalHolidays);
   
   // Se o perfil estava com is_available = false (manual) ou em recesso, forçamos o fechamento. 
   // Caso contrário, seguimos a regra.

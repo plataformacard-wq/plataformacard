@@ -32,6 +32,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
     organizationId,
     whatsappTemplate,
     sellerStatus,
+    nationalHolidays,
   } = props;
 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       ? customBusinessHours 
       : businessHours;
 
-    const status = getBusinessStatus((activeHours ?? null) as any);
+    const status = getBusinessStatus((activeHours ?? null) as any, nationalHolidays);
     const isRecessActive = recessEndsAt && new Date(recessEndsAt) > new Date();
     const isAvailableNow = (isRecessActive || isAvailable === false || isAcceptingOrders === false) ? false : status.isOpenNow;
     const statusMessage = (isRecessActive || isAcceptingOrders === false)
@@ -94,7 +95,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
         ? "Indisponível"
         : status.message;
     return { isAvailableNow, statusMessage };
-  }, [businessHours, customBusinessHours, canCustomizeHours, isAvailable, recessEndsAt]);
+  }, [businessHours, customBusinessHours, canCustomizeHours, isAvailable, recessEndsAt, nationalHolidays, isAcceptingOrders]);
 
   const whatsappUrl = useMemo(() => {
     if (!whatsapp) return null;

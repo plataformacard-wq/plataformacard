@@ -108,7 +108,7 @@ const EditableCell = ({
             setValue(e.target.value);
             updateData(row.index, id, e.target.value);
           }}
-          className="w-full bg-transparent border-none focus:ring-0 text-sm p-1 pr-6 appearance-none cursor-pointer truncate"
+          className="dash-select w-full bg-transparent border-none focus:ring-0 text-sm pl-1 py-1 cursor-pointer truncate"
           style={{ color: "var(--dash-text-primary)" }}
         >
           <option value="">Selecione...</option>

@@ -26,7 +26,7 @@ import {
 
 interface SidebarProps {
   role: "main_admin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
-  businessModel: "B2B" | "B2C" | "CaaS";
+  businessModel?: "B2B" | "B2C" | "CaaS" | "ALL_SERVICE";
   planId?: string | null;
   isOpen: boolean;
   onClose: () => void;
@@ -133,6 +133,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
     if (role === "admin" || role === "b2b_admin" || role === "b2c_admin" || isActuallySuperAdmin) {
       const isB2B = businessModel === "B2B";
+      const isAllService = businessModel === "ALL_SERVICE";
       const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
       const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS;
 
@@ -140,7 +141,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Empresa", 
         icon: Building2,
         subItems: [
-          ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
+          { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
           { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
           { href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
         ]
@@ -155,11 +156,11 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         ]
       });
 
-      if (!isB2C && !isCaaS) {
+      if (!isB2C && !isCaaS) { // isB2B || isAllService
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
       }
       
-      if (isB2C) {
+      if (isB2C || isAllService) {
         navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
       }
     } else if (role === "seller") {
@@ -174,7 +175,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           label: "Empresa", 
           icon: Building2,
           subItems: [
-            ...(!isB2B ? [{ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock }] : []),
+            { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
             { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
             { href: "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
           ]

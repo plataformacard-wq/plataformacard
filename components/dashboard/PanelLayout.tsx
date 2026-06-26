@@ -31,7 +31,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [nome, setNome] = useState("Carregando...");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [role, setRole] = useState("admin");
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | null>(null);
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | "ALL_SERVICE" | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(true);

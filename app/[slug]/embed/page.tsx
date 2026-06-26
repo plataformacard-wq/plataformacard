@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
+import { getNationalHolidays } from "@/lib/utils/holidays";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -189,6 +191,10 @@ export default async function EmbedPage(props: PageProps) {
     finalWhatsapp = orgData.whatsapp || profile?.whatsapp || null;
   }
 
+  // Get national holidays
+  const currentYear = new Date().getFullYear();
+  const nationalHolidays = await getNationalHolidays(currentYear);
+
   return (
     <div className="w-full min-h-screen bg-white overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -222,6 +228,7 @@ export default async function EmbedPage(props: PageProps) {
         products={(productsData ?? []) as any}
         whatsapp={finalWhatsapp}
         businessHours={orgData?.business_hours}
+        nationalHolidays={nationalHolidays}
         hideCta={!!catalogData?.hide_cta}
         banners={catalogData?.banners}
         bannerSpeedSeconds={catalogData?.banner_speed_seconds || 5}

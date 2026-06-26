@@ -144,7 +144,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
   };
 
 
-  const handleModelToggle = async (newModel: 'B2B' | 'B2C' | 'CaaS') => {
+  const handleModelToggle = async (newModel: 'B2B' | 'B2C' | 'CaaS' | 'ALL_SERVICE') => {
     if (newModel === businessModel || updatingModel) return;
     
     setUpdatingModel(true);
@@ -333,6 +333,16 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           }`}
                         >
                           CaaS
+                        </button>
+                        <button 
+                          onClick={() => handleModelToggle('ALL_SERVICE')}
+                          className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
+                            businessModel === 'ALL_SERVICE' 
+                              ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' 
+                              : 'text-[var(--dash-text-muted)] hover:text-zinc-600'
+                          }`}
+                        >
+                          ALL SERVICE
                         </button>
                       </div>
 

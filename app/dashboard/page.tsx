@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [sellerCount, setSellerCount] = useState<number | null>(null);
   const [sellers, setSellers] = useState<any[]>([]);
   const [profileViews, setProfileViews] = useState<number | null>(null);
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2C");
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | "ALL_SERVICE">("B2C");
   const isB2B = businessModel === "B2B";
   const isCaaS = businessModel === "CaaS";
   const [userRole, setUserRole] = useState<string>("");
@@ -137,7 +137,7 @@ export default function DashboardPage() {
               .maybeSingle();
             
             if (org?.business_model) {
-              setBusinessModel(org.business_model as "B2B" | "B2C");
+              setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS" | "ALL_SERVICE");
             }
             if (org?.name) {
               setOrgName(org.name);

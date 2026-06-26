@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
+import { getNationalHolidays } from "@/lib/utils/holidays";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -349,6 +350,10 @@ export default async function Page(props: PageProps) {
     );
   }
 
+  // 7. Definir status de funcionamento (para os labels do catálogo se necessário)
+  const currentYear = new Date().getFullYear();
+  const nationalHolidays = await getNationalHolidays(currentYear);
+
   // Filtra catalogIds para conter apenas os IDs dos catálogos que não estão na lixeira
   catalogIds = catalogs.map(c => c.id);
 
@@ -500,7 +505,7 @@ export default async function Page(props: PageProps) {
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
         logoUrl={(orgData as any)?.logo_url}
         isPureCatalog={(orgData as any)?.business_model === "CaaS"}
-        isB2B={(orgData as any)?.business_model === "B2B"}
+        isB2B={(orgData as any)?.business_model === "B2B" || (orgData as any)?.business_model === "ALL_SERVICE"}
         hidePrices={catalog.hide_prices || false}
         isEmbed={isEmbed}
         accentColor={orgData?.accent_color || (orgData as any)?.accent_color}
@@ -514,6 +519,7 @@ export default async function Page(props: PageProps) {
         isAvailable={profile?.is_available}
         businessHours={orgData?.business_hours}
         customBusinessHours={profile?.custom_business_hours}
+        nationalHolidays={nationalHolidays}
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
         whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}

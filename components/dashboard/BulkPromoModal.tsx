@@ -494,7 +494,7 @@ export default function BulkPromoModal({
                       <select
                         value={scope}
                         onChange={(e) => setScope(e.target.value as ScopeType)}
-                        className="w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        className="dash-select w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl pl-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       >
                         <option value="all">Todo o Catálogo</option>
                         <option value="category">Por Categoria</option>
@@ -511,7 +511,7 @@ export default function BulkPromoModal({
                         <select
                           value={selectedCategoryId}
                           onChange={(e) => setSelectedCategoryId(e.target.value)}
-                          className="w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                          className="dash-select w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl pl-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                         >
                           {categories.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
@@ -536,7 +536,7 @@ export default function BulkPromoModal({
                           <select
                             value={selectedProductId}
                             onChange={(e) => setSelectedProductId(e.target.value)}
-                            className="w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all max-h-32"
+                            className="dash-select w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl pl-4 py-2 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all max-h-32"
                           >
                             {filteredSearchProducts.map((p) => (
                               <option key={p.id} value={p.id}>

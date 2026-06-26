@@ -13,6 +13,8 @@ export default async function GlobalAnalyticsPage() {
 
   const b2bCount = orgs?.filter(o => o.business_model === 'B2B').length || 0;
   const b2cCount = orgs?.filter(o => o.business_model === 'B2C').length || 0;
+  const caasCount = orgs?.filter(o => o.business_model === 'CaaS').length || 0;
+  const allServiceCount = orgs?.filter(o => o.business_model === 'ALL_SERVICE').length || 0;
 
   // 2. Growth Data (Last 6 Months)
   const { data: profiles } = await supabase
@@ -56,6 +58,8 @@ export default async function GlobalAnalyticsPage() {
     totalOrgs: orgs?.length || 0,
     b2bCount,
     b2cCount,
+    caasCount,
+    allServiceCount,
     globalFunnel: funnel,
     growthData
   };

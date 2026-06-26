@@ -19,7 +19,7 @@ interface ClientListProps {
 export default function ClientList({ organizations: initialOrgs }: ClientListProps) {
   const [organizations] = useState(initialOrgs);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterModel, setFilterModel] = useState<"ALL" | "B2B" | "B2C" | "CaaS">("ALL");
+  const [filterModel, setFilterModel] = useState<"ALL" | "B2B" | "B2C" | "CaaS" | "ALL_SERVICE">("ALL");
   
   // Modal State
   const [selectedOrg, setSelectedOrg] = useState<any>(null);
@@ -39,7 +39,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
     setIsModalOpen(true);
   };
 
-  const handleModelChange = async (orgId: string, newModel: 'B2B' | 'B2C' | 'CaaS') => {
+  const handleModelChange = async (orgId: string, newModel: 'B2B' | 'B2C' | 'CaaS' | 'ALL_SERVICE') => {
     if (updatingId === orgId) return;
     setUpdatingId(orgId);
     const result = await updateOrganizationModel(orgId, newModel);
@@ -75,7 +75,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[var(--dash-text-muted)]" />
           <div className="flex bg-[var(--dash-bg)] p-1 rounded-lg border border-[var(--dash-border)]">
-            {(["ALL", "B2B", "B2C", "CaaS"] as const).map((model) => (
+            {(["ALL", "B2B", "B2C", "CaaS", "ALL_SERVICE"] as const).map((model) => (
               <button
                 key={model}
                 onClick={() => setFilterModel(model)}
@@ -85,7 +85,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                     : "text-[var(--dash-text-secondary)] hover:text-[var(--dash-text-primary)]"
                 }`}
               >
-                {model === "ALL" ? "Todos" : model}
+                {model === "ALL" ? "Todos" : model === "ALL_SERVICE" ? "All Service" : model}
               </button>
             ))}
           </div>
@@ -103,7 +103,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
             >
               {/* 1. Identidade da Empresa (Esquerda) */}
               <div className="flex items-center gap-5 md:w-72 shrink-0">
-                <div className={`h-16 w-16 rounded-lg flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : org.business_model === 'CaaS' ? 'bg-purple-600' : 'bg-emerald-600'}`}>
+                <div className={`h-16 w-16 rounded-lg flex items-center justify-center text-white shadow-2xl shrink-0 ${org.business_model === 'B2B' ? 'bg-blue-600' : org.business_model === 'CaaS' ? 'bg-purple-600' : org.business_model === 'ALL_SERVICE' ? 'bg-zinc-900' : 'bg-emerald-600'}`}>
                   <Building2 size={32} />
                 </div>
                 <div className="min-w-0">
@@ -174,6 +174,16 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                       }`}
                     >
                       CaaS
+                    </button>
+                    <button 
+                      onClick={() => org.business_model !== 'ALL_SERVICE' && handleModelChange(org.id, 'ALL_SERVICE')}
+                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
+                        org.business_model === 'ALL_SERVICE' 
+                          ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' 
+                          : 'text-[var(--dash-text-muted)] hover:text-zinc-600'
+                      }`}
+                    >
+                      ALL SERVICE
                     </button>
                   </div>
                 </div>

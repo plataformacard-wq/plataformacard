@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe } from "lucide-react";
+import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getOrganizationById } from "@/lib/admin-actions";
 
@@ -343,6 +343,22 @@ function PerfilContent() {
             shifts: newShifts,
             isOpen: newShifts.length > 0
           }
+        }
+      };
+    });
+  }
+
+  function handleCopyMondayToWeek() {
+    setCustomBusinessHours(prev => {
+      const mondayData = prev.schedule.monday;
+      return {
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          tuesday: JSON.parse(JSON.stringify(mondayData)),
+          wednesday: JSON.parse(JSON.stringify(mondayData)),
+          thursday: JSON.parse(JSON.stringify(mondayData)),
+          friday: JSON.parse(JSON.stringify(mondayData)),
         }
       };
     });
@@ -889,9 +905,19 @@ function PerfilContent() {
                             const dayData = customBusinessHours.schedule[day];
                             return (
                               <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
-                                <div className="w-32 flex items-center gap-2">
+                                <div className="w-auto min-w-[12rem] shrink-0 flex flex-wrap items-center gap-2">
                                   <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4" />
                                   <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
+                                  {day === 'monday' && (
+                                    <button
+                                      type="button"
+                                      onClick={handleCopyMondayToWeek}
+                                      className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                                      title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
+                                    >
+                                      <Copy size={12} /> Copiar para a semana
+                                    </button>
+                                  )}
                                 </div>
                                 <div className="flex-1 flex flex-wrap gap-2">
                                   {dayData.isOpen && dayData.shifts.map((shift, idx) => (

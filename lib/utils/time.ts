@@ -8,9 +8,15 @@ export type DaySchedule = {
   shifts: TimeShift[];
 };
 
+export type HolidaySettings = {
+  autoCloseOnNationalHolidays: boolean;
+  customDates: string[]; // YYYY-MM-DD
+};
+
 export type BusinessHours = {
   timezone: string;
   manual_override: "open" | "closed" | null;
+  holiday_settings?: HolidaySettings;
   schedule: {
     monday: DaySchedule;
     tuesday: DaySchedule;
@@ -25,6 +31,10 @@ export type BusinessHours = {
 export const DEFAULT_BUSINESS_HOURS: BusinessHours = {
   timezone: "America/Sao_Paulo",
   manual_override: null,
+  holiday_settings: {
+    autoCloseOnNationalHolidays: false,
+    customDates: [],
+  },
   schedule: {
     monday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
     tuesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
@@ -43,7 +53,7 @@ export type BusinessStatus = {
 
 const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
 
-export function getBusinessStatus(businessHours: BusinessHours | null): BusinessStatus {
+export function getBusinessStatus(businessHours: BusinessHours | null, nationalHolidays: string[] = []): BusinessStatus {
   const hours = (!businessHours || !businessHours.schedule || Object.keys(businessHours.schedule).length === 0)
     ? DEFAULT_BUSINESS_HOURS
     : businessHours;
@@ -63,6 +73,9 @@ export function getBusinessStatus(businessHours: BusinessHours | null): Business
     timeZone: hours.timezone || "America/Sao_Paulo",
     hour12: false,
     weekday: "long",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -73,6 +86,22 @@ export function getBusinessStatus(businessHours: BusinessHours | null): Business
   const parts = formatter.formatToParts(now);
 
   const getPart = (type: string) => parts.find((p) => p.type === type)?.value || "";
+  
+  const currentYear = getPart("year");
+  const currentMonth = getPart("month");
+  const currentDay = getPart("day");
+  
+  const localDateStr = `${currentYear}-${currentMonth}-${currentDay}`; // YYYY-MM-DD
+  
+  // Check Holidays
+  if (hours.holiday_settings) {
+    const isCustomHoliday = hours.holiday_settings.customDates?.includes(localDateStr);
+    const isNationalHoliday = hours.holiday_settings.autoCloseOnNationalHolidays && nationalHolidays.includes(localDateStr);
+    
+    if (isCustomHoliday || isNationalHoliday) {
+      return { isOpenNow: false, message: "Fechado (Feriado)" };
+    }
+  }
   
   const currentHour = parseInt(getPart("hour"), 10);
   const currentMinute = parseInt(getPart("minute"), 10);

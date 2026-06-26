@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, DaySchedule, TimeShift } from "@/lib/utils/time";
+import { Copy } from "lucide-react";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -37,6 +38,7 @@ export default function EmpresaPage() {
   const [role, setRole] = useState<string | null>(null);
   
   const [businessHours, setBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
+  const [newCustomDate, setNewCustomDate] = useState("");
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
   const [centralizeLeads, setCentralizeLeads] = useState(false);
 
@@ -151,6 +153,64 @@ export default function EmpresaPage() {
     });
   }
 
+  function handleCopyMondayToWeek() {
+    setBusinessHours(prev => {
+      const mondayData = prev.schedule.monday;
+      return {
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          tuesday: JSON.parse(JSON.stringify(mondayData)),
+          wednesday: JSON.parse(JSON.stringify(mondayData)),
+          thursday: JSON.parse(JSON.stringify(mondayData)),
+          friday: JSON.parse(JSON.stringify(mondayData)),
+        }
+      };
+    });
+  }
+
+  function handleToggleAutoCloseHolidays() {
+    setBusinessHours(prev => {
+      const current = prev.holiday_settings || { autoCloseOnNationalHolidays: false, customDates: [] };
+      return {
+        ...prev,
+        holiday_settings: {
+          ...current,
+          autoCloseOnNationalHolidays: !current.autoCloseOnNationalHolidays
+        }
+      };
+    });
+  }
+
+  function handleAddCustomHoliday() {
+    if (!newCustomDate) return;
+    setBusinessHours(prev => {
+      const current = prev.holiday_settings || { autoCloseOnNationalHolidays: false, customDates: [] };
+      if (current.customDates.includes(newCustomDate)) return prev;
+      return {
+        ...prev,
+        holiday_settings: {
+          ...current,
+          customDates: [...(current.customDates || []), newCustomDate].sort()
+        }
+      };
+    });
+    setNewCustomDate("");
+  }
+
+  function handleRemoveCustomHoliday(dateToRemove: string) {
+    setBusinessHours(prev => {
+      const current = prev.holiday_settings || { autoCloseOnNationalHolidays: false, customDates: [] };
+      return {
+        ...prev,
+        holiday_settings: {
+          ...current,
+          customDates: current.customDates.filter(d => d !== dateToRemove)
+        }
+      };
+    });
+  }
+
   async function handleSave() {
     if (!orgId) return;
     setSaving(true);
@@ -212,7 +272,7 @@ export default function EmpresaPage() {
             <select
               value={businessHours.manual_override || "null"}
               onChange={(e) => setBusinessHours({ ...businessHours, manual_override: e.target.value === "null" ? null : e.target.value as any })}
-              className="rounded-lg border px-3 py-1.5 text-sm outline-none cursor-pointer transition-all focus:border-emerald-500"
+              className="dash-select rounded-lg border pl-3 py-1.5 text-sm outline-none cursor-pointer transition-all focus:border-emerald-500"
               style={{
                 background: "var(--dash-input-bg)",
                 borderColor: "var(--dash-input-border)",
@@ -231,7 +291,7 @@ export default function EmpresaPage() {
             const dayData = businessHours.schedule[day];
             return (
               <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
-                <div className="w-40 pt-1 flex items-center gap-3">
+                <div className="w-auto min-w-[12rem] shrink-0 pt-1 flex flex-wrap items-center gap-3">
                   <input
                     type="checkbox"
                     checked={dayData.isOpen}
@@ -241,6 +301,17 @@ export default function EmpresaPage() {
                   <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
                     {dayNames[day]}
                   </span>
+                  
+                  {day === 'monday' && (
+                    <button
+                      type="button"
+                      onClick={handleCopyMondayToWeek}
+                      className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                      title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
+                    >
+                      <Copy size={12} /> Copiar para a semana
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex-1 space-y-3">
@@ -298,6 +369,83 @@ export default function EmpresaPage() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div className="rounded-[32px] p-8 border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+          <div>
+            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+              Feriados e Exceções
+            </h2>
+            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+              Feche a loja automaticamente em feriados nacionais ou datas locais.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+              Fechar em Feriados Nacionais
+            </label>
+            <button
+              type="button"
+              onClick={handleToggleAutoCloseHolidays}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                businessHours.holiday_settings?.autoCloseOnNationalHolidays ? "bg-emerald-500" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  businessHours.holiday_settings?.autoCloseOnNationalHolidays ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+          <h3 className="text-sm font-medium mb-3" style={{ color: "var(--dash-text-primary)" }}>
+            Adicionar Data Personalizada (Feriado local ou recesso)
+          </h3>
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="date"
+              value={newCustomDate}
+              onChange={(e) => setNewCustomDate(e.target.value)}
+              className="rounded-lg border px-3 py-2 text-sm outline-none"
+              style={{
+                background: "var(--dash-input-bg)",
+                borderColor: "var(--dash-input-border)",
+                color: "var(--dash-text-primary)",
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleAddCustomHoliday}
+              className="rounded-lg px-4 py-2 text-sm font-bold bg-purple-500 text-white transition-colors hover:bg-purple-600"
+            >
+              Adicionar
+            </button>
+          </div>
+
+          {businessHours.holiday_settings?.customDates && businessHours.holiday_settings.customDates.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {businessHours.holiday_settings.customDates.map((dateStr) => {
+                const [y, m, d] = dateStr.split('-');
+                return (
+                  <div key={dateStr} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-[var(--dash-hover-bg)]" style={{ borderColor: "var(--dash-border)" }}>
+                    <span className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{`${d}/${m}/${y}`}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomHoliday(dateStr)}
+                      className="text-red-500 hover:text-red-700 ml-1 rounded-full p-0.5"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

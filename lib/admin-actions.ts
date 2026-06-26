@@ -86,7 +86,7 @@ export async function updateOrganizationPlan(orgId: string, planId: string) {
   return { success: true };
 }
  
-export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C' | 'CaaS') {
+export async function updateOrganizationModel(orgId: string, model: 'B2B' | 'B2C' | 'CaaS' | 'ALL_SERVICE') {
   await verifySuperAdmin();
   const supabase = createAdminClient();
   

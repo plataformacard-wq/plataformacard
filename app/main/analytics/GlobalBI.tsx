@@ -17,6 +17,8 @@ interface GlobalBIProps {
     totalOrgs: number;
     b2bCount: number;
     b2cCount: number;
+    caasCount: number;
+    allServiceCount: number;
     globalFunnel: {
       views: number;
       catalog: number;
@@ -134,6 +136,38 @@ export default function GlobalBI({ stats }: GlobalBIProps) {
                 <div 
                   className="h-full bg-emerald-500 transition-all duration-1000" 
                   style={{ width: `${(stats.b2cCount / stats.totalOrgs) * 100}%` }} 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-end">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-purple-500" />
+                  <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>CaaS (Infra/Vitrine)</span>
+                </div>
+                <span className="text-sm font-black">{stats.caasCount}</span>
+              </div>
+              <div className="h-3 w-full bg-[var(--dash-bg)] rounded-full overflow-hidden border border-[var(--dash-border)]">
+                <div 
+                  className="h-full bg-purple-500 transition-all duration-1000" 
+                  style={{ width: `${(stats.caasCount / stats.totalOrgs) * 100}%` }} 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-end">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-zinc-900 dark:bg-white" />
+                  <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>All Service (Solução Completa)</span>
+                </div>
+                <span className="text-sm font-black">{stats.allServiceCount}</span>
+              </div>
+              <div className="h-3 w-full bg-[var(--dash-bg)] rounded-full overflow-hidden border border-[var(--dash-border)]">
+                <div 
+                  className="h-full bg-zinc-900 dark:bg-white transition-all duration-1000" 
+                  style={{ width: `${(stats.allServiceCount / stats.totalOrgs) * 100}%` }} 
                 />
               </div>
             </div>

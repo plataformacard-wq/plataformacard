@@ -17,6 +17,8 @@ export default async function ClientesPage() {
   // 2. Metrics for the header
   const totalB2B = organizations?.filter(o => o.business_model === 'B2B').length || 0;
   const totalB2C = organizations?.filter(o => o.business_model === 'B2C').length || 0;
+  const totalCaaS = organizations?.filter(o => o.business_model === 'CaaS').length || 0;
+  const totalAllService = organizations?.filter(o => o.business_model === 'ALL_SERVICE').length || 0;
 
   return (
     <div className="space-y-10">
@@ -34,10 +36,12 @@ export default async function ClientesPage() {
           <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-lg flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-blue-500" />
             <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalB2B} B2B</span>
-          </div>
-          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-lg flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-[10px] text-[var(--dash-text-muted)]">•</span>
             <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalB2C} B2C</span>
+            <span className="text-[10px] text-[var(--dash-text-muted)]">•</span>
+            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalCaaS} CaaS</span>
+            <span className="text-[10px] text-[var(--dash-text-muted)]">•</span>
+            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalAllService} All Service</span>
           </div>
         </div>
       </div>

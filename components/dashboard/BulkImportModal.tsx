@@ -517,7 +517,7 @@ export default function BulkImportModal({
                       <select 
                         value={mapping[field.key] || ""}
                         onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
-                        className="w-64 bg-[var(--dash-surface)] border rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="dash-select w-64 bg-[var(--dash-surface)] border rounded-xl pl-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       >
                         <option value="">Não importar</option>

@@ -27,7 +27,7 @@ interface TopHeaderProps {
   onMenuClick: () => void;
   slug?: string | null;
   isReady: boolean;
-  businessModel: "B2B" | "B2C" | "CaaS";
+  businessModel?: "B2B" | "B2C" | "CaaS" | "ALL_SERVICE";
   isAdminPath?: boolean;
   subscriptionStatus?: string;
   notifications?: any[];
