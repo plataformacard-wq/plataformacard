@@ -46,6 +46,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
   const [newDesc, setNewDesc] = useState("");
   const [viewingAnalyticsId, setViewingAnalyticsId] = useState<string | null>(null);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const [errorAlert, setErrorAlert] = useState<string | null>(null);
   
   // Estados para Edição rápida (nome/descrição)
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -127,7 +128,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
       );
       setIsConfigOpen(false);
     } catch (err: any) {
-      alert("Erro ao salvar configurações do catálogo: " + err.message);
+      setErrorAlert("Erro ao salvar configurações do catálogo: " + err.message);
     } finally {
       setSavingConfig(false);
     }
@@ -146,7 +147,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
         router.push(`/main/caas/editor?catalogId=${res.id}`);
       }
     } catch (error) {
-      alert("Erro ao criar catálogo.");
+      setErrorAlert("Erro ao criar catálogo.");
     } finally {
       setLoadingId(null);
     }
@@ -157,7 +158,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     try {
       await duplicateMasterCatalog(id);
     } catch (error) {
-      alert("Erro ao duplicar catálogo.");
+      setErrorAlert("Erro ao duplicar catálogo.");
     } finally {
       setLoadingId(null);
     }
@@ -170,7 +171,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
       await deleteMasterCatalog(id);
       if (viewingAnalyticsId === id) setViewingAnalyticsId(null);
     } catch (error) {
-      alert("Erro ao excluir catálogo.");
+      setErrorAlert("Erro ao excluir catálogo.");
     } finally {
       setLoadingId(null);
     }
@@ -181,7 +182,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     try {
       await restoreMasterCatalog(id);
     } catch (error) {
-      alert("Erro ao restaurar catálogo.");
+      setErrorAlert("Erro ao restaurar catálogo.");
     } finally {
       setLoadingId(null);
     }
@@ -194,7 +195,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
       await permanentlyDeleteMasterCatalog(id);
       if (viewingAnalyticsId === id) setViewingAnalyticsId(null);
     } catch (error) {
-      alert("Erro ao excluir catálogo permanentemente.");
+      setErrorAlert("Erro ao excluir catálogo permanentemente.");
     } finally {
       setLoadingId(null);
     }
@@ -222,7 +223,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
       );
       setEditingId(null);
     } catch (error) {
-      alert("Erro ao atualizar catálogo.");
+      setErrorAlert("Erro ao atualizar catálogo.");
     } finally {
       setLoadingId(null);
     }
@@ -233,13 +234,13 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     try {
       const res = await assignMasterCatalog(orgId, catalogId);
       if (res && !res.success) {
-        alert(res.error || "Erro ao atribuir catálogo.");
+        setErrorAlert(res.error || "Erro ao atribuir catálogo.");
       } else {
         router.refresh();
       }
     } catch (error) {
       console.error(error);
-      alert("Erro ao atribuir catálogo.");
+      setErrorAlert("Erro ao atribuir catálogo.");
     } finally {
       setLoadingId(null);
     }
@@ -250,7 +251,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     try {
       await toggleCaasDetachmentPermission(orgId, !current);
     } catch (error) {
-      alert("Erro ao alterar permissão.");
+      setErrorAlert("Erro ao alterar permissão.");
     } finally {
       setLoadingId(null);
     }
@@ -434,6 +435,38 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
           categories={configCategories}
           products={configProducts}
         />
+      )}
+
+      {/* Modal de Erro/Alerta Padrão Plataforma Card */}
+      {errorAlert && (
+        <div className="fixed inset-0 z-[9000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div 
+            className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl flex flex-col"
+            style={{ 
+              background: "var(--dash-surface)", 
+              borderColor: "var(--dash-border)",
+              color: "var(--dash-text-primary)"
+            }}
+          >
+            <div className="p-8 pb-4 flex flex-col items-center text-center gap-4">
+              <div className="h-16 w-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+                <AlertTriangle size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black tracking-tight mb-2">Aviso</h3>
+                <p className="text-sm font-medium text-[var(--dash-text-muted)]">{errorAlert}</p>
+              </div>
+            </div>
+            <div className="p-6 pt-2">
+              <button 
+                onClick={() => setErrorAlert(null)}
+                className="w-full h-12 bg-[var(--dash-hover-bg)] hover:bg-[var(--dash-border)] text-sm font-black uppercase tracking-widest rounded-xl transition-all"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

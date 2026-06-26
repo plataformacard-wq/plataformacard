@@ -1,1 +1,1 @@
-Sempre verifique se há atualizações no GitHub (git fetch) ao iniciar uma nova sessão e informe o usuário. Utilize comandos compatíveis com o SO atual e priorize a manutenção dos arquivos de documentação.
+Sempre verifique se há atualizações no GitHub (git fetch e pull) ao iniciar uma nova sessão e informe o usuário. Após a sincronização, inicie o servidor Next.js em segundo plano (npm run dev) e forneça o link (http://localhost:3000). Utilize comandos compatíveis com o SO atual e priorize a manutenção dos arquivos de documentação.

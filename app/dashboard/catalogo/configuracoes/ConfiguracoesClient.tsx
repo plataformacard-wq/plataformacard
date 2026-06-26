@@ -65,6 +65,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">(initialCatalog.type || initialCatalog.catalog_type || "product");
   const [hidePrices, setHidePrices] = useState<boolean>(initialCatalog.hide_prices || false);
   const [outOfStockAtEnd, setOutOfStockAtEnd] = useState<boolean>(initialCatalog.out_of_stock_at_end || false);
+  const [isActive, setIsActive] = useState<boolean>(initialCatalog.is_active !== false);
   
   const [localBanners, setLocalBanners] = useState<any[]>(initialCatalog.banners || []);
   const [bannerSpeed, setBannerSpeed] = useState<number>(initialCatalog.banner_speed_seconds || 5);
@@ -153,7 +154,8 @@ ${iframeResizerCode}
         banners: localBanners,
         banner_speed_seconds: bannerSpeed,
         banner_initial_index: bannerInitialIndex,
-        show_banners: showBanners
+        show_banners: showBanners,
+        is_active: isActive
       };
 
       const orgPayload = catalog.organization_id ? {
@@ -291,6 +293,30 @@ ${iframeResizerCode}
               </div>
 
               <div className="grid gap-10">
+                {/* Status do Catálogo */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+                      <Zap size={14} className="text-primary" /> Ativar/Desativar Catálogo
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsActive(!isActive)}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-zinc-300'}`}
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
+                  {!isActive && (
+                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400">
+                      <p className="text-sm font-medium flex items-start gap-2">
+                        <Info size={18} className="shrink-0 mt-0.5" />
+                        Seu catálogo próprio está <strong>desativado</strong>. Os clientes não conseguirão ver seus produtos personalizados. Mantenha desativado caso esteja usando um Catálogo Master (Franquia/Plataforma).
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Nome do Catálogo */}
                 <div className="space-y-3">
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">

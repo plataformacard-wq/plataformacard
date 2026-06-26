@@ -37,21 +37,28 @@ export default async function ConfiguracoesPage() {
 
   let catalogIds = orgCatalogs?.map((c) => c.catalog_id) || [];
 
-  if (catalogIds.length === 0) {
-    const res = await getOrCreateCatalog(activeOrgId);
-    if (res?.catalog?.id) {
-      catalogIds.push(res.catalog.id);
-    } else {
-      return <div>Nenhum catálogo ativo encontrado.</div>;
-    }
-  }
   const { data: catalogsData } = await supabase
     .from("catalogs")
     .select("*")
-    .in("id", catalogIds);
+    .in("id", catalogIds.length > 0 ? catalogIds : [ '00000000-0000-0000-0000-000000000000' ]); // Dummy id se vazio para evitar erro
 
-  const ownCatalog = catalogsData?.find((c) => c.catalog_type !== "CaaS" && c.catalog_type !== "platform");
-  const catalogData = ownCatalog || catalogsData?.[0];
+  let ownCatalog = catalogsData?.find((c) => c.catalog_type !== "CaaS" && c.catalog_type !== "platform");
+
+  // Se a organização não tiver um catálogo PRÓPRIO, cria um.
+  // Mesmo que ela tenha um Master vinculado, ela precisa de um próprio para a tela de configurações.
+  if (!ownCatalog) {
+    const res = await getOrCreateCatalog(activeOrgId);
+    if (res?.catalog?.id) {
+      ownCatalog = res.catalog;
+      if (!catalogIds.includes(res.catalog.id)) {
+        catalogIds.push(res.catalog.id);
+      }
+    } else {
+      return <div>Erro ao carregar ou criar o seu catálogo próprio. Detalhes: {JSON.stringify(res)}</div>;
+    }
+  }
+
+  const catalogData = ownCatalog;
 
   if (!catalogData) {
     return <div>Nenhum catálogo ativo encontrado.</div>;

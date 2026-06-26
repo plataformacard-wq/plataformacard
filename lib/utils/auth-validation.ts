@@ -48,7 +48,7 @@ export async function verifyOrgAdmin(orgId: string): Promise<string> {
     .maybeSingle();
 
   const isSuperAdmin = profile?.role === "main_admin" || profile?.role === "main_admin";
-  const isOrgAdmin = (profile?.role === "b2b_admin" || profile?.role === "admin") && profile?.organization_id === orgId;
+  const isOrgAdmin = (profile?.role === "b2b_admin" || profile?.role === "admin" || profile?.role === "b2c_admin") && profile?.organization_id === orgId;
 
   if (!isSuperAdmin && !isOrgAdmin) {
     throw new Error("Não autorizado. Esta ação requer privilégios administrativos nesta organização.");

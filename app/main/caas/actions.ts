@@ -57,7 +57,7 @@ export async function assignMasterCatalog(orgId: string, catalogId: string | nul
   // 1. Busca os vínculos de catálogo para identificar o catálogo mestre e o próprio
   const { data: linked } = await supabase
     .from("organization_catalogs")
-    .select("catalog_id, catalogs(catalog_type)")
+    .select("catalog_id, catalogs(catalog_type, is_active)")
     .eq("organization_id", orgId);
 
   const platformCatalogIds = linked
@@ -72,8 +72,19 @@ export async function assignMasterCatalog(orgId: string, catalogId: string | nul
     return cat && cat.catalog_type !== 'platform' && cat.catalog_type !== 'CaaS';
   });
 
+  const activeCustomCatalog = linked?.find((item: any) => {
+    const cat = Array.isArray(item.catalogs) ? item.catalogs[0] : item.catalogs;
+    return cat && cat.catalog_type !== 'platform' && cat.catalog_type !== 'CaaS' && cat.is_active === true;
+  });
+
+  // Trava solicitada: impedir atribuição se a org já tiver um catálogo próprio ativo
+  if (catalogId && activeCustomCatalog) {
+    return { success: false, error: "A organização possui um catálogo próprio ativo. Solicite que desativem seu catálogo nas configurações para herdar o catálogo Master." };
+  }
+
   // 2. Garante que o catálogo próprio esteja ativo (se existir) para corrigir desativações antigas
-  if (ownCatalogLink) {
+  if (ownCatalogLink && !catalogId) {
+    // Se não estiver atribuindo um novo catálogo master (ou seja, está apenas limpando), reativa o link do próprio.
     await supabase
       .from("organization_catalogs")
       .update({ is_enabled: true })
