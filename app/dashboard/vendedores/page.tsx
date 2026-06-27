@@ -5,7 +5,7 @@ import { PLAN_LIMITS } from "@/lib/plans";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Vendedores | PlataformaCard",
+  title: "Vendedores | PlataformaShop",
   description: "Gerencie sua equipe de vendedores e permissões.",
 };
 
@@ -15,6 +15,7 @@ export default async function VendedoresPage() {
 
   let sellerLimit = 0;
   let sellerCount = 0;
+  let customDomain: string | null = null;
 
   if (user) {
     // Busca o perfil e o plano da organização
@@ -34,13 +35,14 @@ export default async function VendedoresPage() {
     if (activeOrgId) {
       const { data: org } = await supabase
         .from("organizations")
-        .select("plan_id")
+        .select("plan_id, custom_domain")
         .eq("id", activeOrgId)
         .maybeSingle();
 
       // Limite de vendedores do plano
       const planLimits = org?.plan_id ? PLAN_LIMITS[org.plan_id] : null;
       sellerLimit = planLimits?.max_users ?? 0;
+      customDomain = org?.custom_domain ?? null;
 
       // Contagem atual de vendedores
       const { count } = await supabase
@@ -57,6 +59,7 @@ export default async function VendedoresPage() {
     <VendedoresClient
       initialSellerLimit={sellerLimit}
       initialSellerCount={sellerCount}
+      customDomain={customDomain}
     />
   );
 }

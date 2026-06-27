@@ -1,6 +1,6 @@
 # Perfil e Avaliação do Product Manager (Idealizador)
 
-Este documento registra a avaliação estrutural do perfil do idealizador do projeto **PlataformaCard**, atuando no papel misto de Tech Lead e Product Manager, com base na arquitetura, decisões técnicas e estruturação documental do projeto.
+Este documento registra a avaliação estrutural do perfil do idealizador do projeto **PlataformaShop**, atuando no papel misto de Tech Lead e Product Manager, com base na arquitetura, decisões técnicas e estruturação documental do projeto.
 
 ---
 

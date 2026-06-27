@@ -1,6 +1,6 @@
 # Estratégia Financeira, Preços e Upsell (Maj Mobilidade)
 
-Este documento centraliza as decisões táticas e a arquitetura desenvolvidas durante as sessões de alinhamento (`/grill-me`) sobre o sistema financeiro, cobranças automatizadas e os limites dos planos da PlataformaCard / Maj Mobilidade.
+Este documento centraliza as decisões táticas e a arquitetura desenvolvidas durante as sessões de alinhamento (`/grill-me`) sobre o sistema financeiro, cobranças automatizadas e os limites dos planos da PlataformaShop / Maj Mobilidade.
 
 ---
 

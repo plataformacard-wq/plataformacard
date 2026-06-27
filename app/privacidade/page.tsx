@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Política de Privacidade | PlataformaCard",
+  title: "Política de Privacidade | PlataformaShop",
   description: "Política de Privacidade e Proteção de Dados (LGPD)",
 };
 
@@ -27,7 +27,7 @@ export default function PrivacidadePage() {
             <section>
               <h2 className="text-xl font-bold text-white mt-8 mb-4">1. Nosso Compromisso com a Privacidade</h2>
               <p>
-                A PlataformaCard está comprometida em proteger a sua privacidade e os seus dados pessoais, operando em conformidade 
+                A PlataformaShop está comprometida em proteger a sua privacidade e os seus dados pessoais, operando em conformidade 
                 com a Lei Geral de Proteção de Dados Pessoais (LGPD - Lei nº 13.709/2018).
               </p>
             </section>

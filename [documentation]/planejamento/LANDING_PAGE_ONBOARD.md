@@ -1,6 +1,6 @@
 # Landing Page Onboard (Mapa de Construção)
 
-Este documento serve como o **Guia Mestre (Blueprint)** e Fonte Única de Verdade (SSOT) para a estratégia, design e arquitetura de conversão da Landing Page da PlataformaCard. 
+Este documento serve como o **Guia Mestre (Blueprint)** e Fonte Única de Verdade (SSOT) para a estratégia, design e arquitetura de conversão da Landing Page da PlataformaShop. 
 
 Ele deve ser utilizado como referência para qualquer futura manutenção de código, expansão de copywriting ou contratação de tráfego pago (Ads).
 
@@ -30,7 +30,7 @@ Baseado no *Brand Book*, a página transmite uma "vibe" de SaaS/Fintech moderna,
 - **Tema:** Dark Mode Absoluto (Glassmorphism sutil).
 - **Cores Principais:**
   - Background Base: `#23262D` (Chumbo/Carvão profundo - Nunca preto puro).
-  - Acento Primário: `#2CCB68` (Verde "PlataformaCard", dita o ritmo dos cliques).
+  - Acento Primário: `#2CCB68` (Verde "PlataformaShop", dita o ritmo dos cliques).
   - Acento Secundário: `#23994A` (Verde escuro para profundidade e hovers).
   - Textos: `#FFFFFF` (Títulos) e `#9AA0A6` (Corpo de texto - Cinza elegante).
 - **Tipografia:**
@@ -44,7 +44,7 @@ Baseado no *Brand Book*, a página transmite uma "vibe" de SaaS/Fintech moderna,
 
 ### Bloco 1: Header (Navegação)
 - **Objetivo:** Credibilidade instantânea e rotas de fuga estratégicas.
-- **Elementos:** Logo (PlataformaCard) à esquerda. Dois botões à direita: "Fazer Login" (Texto sutil) e "Falar com Especialista" (Botão Verde Chamativo). O Header afunila a atenção para a conversão B2B.
+- **Elementos:** Logo (PlataformaShop) à esquerda. Dois botões à direita: "Fazer Login" (Texto sutil) e "Falar com Especialista" (Botão Verde Chamativo). O Header afunila a atenção para a conversão B2B.
 
 ### Bloco 2: Hero Section (A Primeira Impressão)
 - **Objetivo:** Reter a atenção nos primeiros 3 segundos batendo na maior dor do B2B.
@@ -61,7 +61,7 @@ Baseado no *Brand Book*, a página transmite uma "vibe" de SaaS/Fintech moderna,
   3. *Falta de Métricas:* O PDF como uma "caixa preta" sem dados de engajamento.
 
 ### Bloco 4: Funcionalidades Premium (A Solução)
-- **Objetivo:** Mostrar como a PlataformaCard cura a dor de forma mágica.
+- **Objetivo:** Mostrar como a PlataformaShop cura a dor de forma mágica.
 - **Layout:** Z-Pattern (Ziguezague de Texto/Imagem).
 - **Tópicos de Venda:**
   - **Catálogo Mestre:** Atualizou no painel, atualizou na rua.

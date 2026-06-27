@@ -181,7 +181,7 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         <footer className="mt-32 pb-20 text-center">
           <div className="flex items-center justify-center gap-3 text-[var(--public-text-dim)] text-xs font-bold uppercase tracking-[0.2em]">
             <span className="w-8 h-px bg-[var(--public-card-border)]" />
-            PlataformaCard
+            PlataformaShop
             <span className="w-8 h-px bg-[var(--public-card-border)]" />
           </div>
         </footer>

@@ -80,7 +80,7 @@ export default function ResetSenhaPage() {
         <div className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="mb-6">
             <span className="inline-flex rounded-full bg-black px-3 py-1 text-xs font-medium text-white">
-              PlataformaCard
+              PlataformaShop
             </span>
 
             <h1 className="mt-4 text-3xl font-bold tracking-tight text-neutral-900">

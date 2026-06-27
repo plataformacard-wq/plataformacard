@@ -170,6 +170,12 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             setPlanId(orgPlanId);
             setCurrentPlanName(getPlanName(orgPlanId));
 
+            // Substitui o avatar pelo icone da empresa, caso exista. Se não, mantém o do perfil (ou null para fallback 'M')
+            if (org?.favicon_url) {
+              const cacheBuster = `${org.favicon_url}${org.favicon_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+              setAvatar(cacheBuster);
+            }
+
             // Detecta excedência de plano (uso acima do limite)
             // Só verifica para clientes reais (não super admin sem shadow)
             if (orgPlanId && userRole !== "main_admin") {

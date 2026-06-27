@@ -67,6 +67,43 @@ export async function getFullPlatformConfig() {
   
   return config;
 }
+
+export async function updateGlobalBranding(branding: {
+  global_primary_color_light?: string;
+  global_primary_color_dark?: string;
+  global_sidebar_color_light?: string;
+  global_sidebar_color_dark?: string;
+  global_logo_url?: string;
+  global_icon_url?: string;
+}) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+
+  const updates = [];
+  for (const [key, value] of Object.entries(branding)) {
+    if (value !== undefined) {
+      updates.push({
+        key,
+        value,
+        updated_at: new Date().toISOString()
+      });
+    }
+  }
+
+  if (updates.length > 0) {
+    const { error } = await supabase
+      .from("platform_config")
+      .upsert(updates);
+
+    if (error) {
+      console.error("Error updating global branding:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  revalidatePath("/"); // Revalidate the whole app to pick up changes
+  return { success: true };
+}
  
 export async function updateOrganizationPlan(orgId: string, planId: string) {
   await verifySuperAdmin();

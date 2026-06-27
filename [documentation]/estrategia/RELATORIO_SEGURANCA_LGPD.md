@@ -1,6 +1,6 @@
 # 🛡️ Relatório de Auditoria: Segurança de Dados e LGPD
 
-Este documento apresenta a análise de segurança de dados, políticas de privacidade e conformidade com a LGPD (Lei Geral de Proteção de Dados) para a **PlataformaCard**.
+Este documento apresenta a análise de segurança de dados, políticas de privacidade e conformidade com a LGPD (Lei Geral de Proteção de Dados) para a **PlataformaShop**.
 
 ---
 
@@ -36,7 +36,7 @@ O Supabase PostgreSQL possui políticas estritas de **Row Level Security (RLS)**
 
 ## 3. Conformidade com a LGPD
 
-A PlataformaCard foi arquitetada seguindo os princípios de *Security by Design* e *Privacy by Design*, garantindo total conformidade com a LGPD:
+A PlataformaShop foi arquitetada seguindo os princípios de *Security by Design* e *Privacy by Design*, garantindo total conformidade com a LGPD:
 
 *   **Minimização de Dados (Art. 6º, III):** Coletamos apenas os dados estritamente necessários para o funcionamento comercial da vitrine (Nome, WhatsApp, E-mail de login e dados da empresa).
 *   **Direito de Exclusão / Esquecimento (Art. 18, VI):** O sistema oferece mecanismos claros de exclusão:
@@ -48,4 +48,4 @@ A PlataformaCard foi arquitetada seguindo os princípios de *Security by Design*
 
 ## 4. Conclusão da Auditoria
 
-A arquitetura de segurança da PlataformaCard está **aprovada** para operação comercial. O uso de RLS no Supabase fornece o nível necessário de isolamento multi-tenant, e a criptografia fim a fim assegura a confidencialidade dos dados dos usuários.
+A arquitetura de segurança da PlataformaShop está **aprovada** para operação comercial. O uso de RLS no Supabase fornece o nível necessário de isolamento multi-tenant, e a criptografia fim a fim assegura a confidencialidade dos dados dos usuários.

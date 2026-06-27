@@ -271,7 +271,7 @@ export default function ResourceManagementClient() {
       <div className="flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-widest pt-8 border-t" style={{ color: "var(--dash-text-muted)", borderColor: "var(--dash-border)" }}>
         <span className="flex items-center gap-1.5"><RefreshCw size={10} /> Última atualização: {metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleTimeString() : '--:--'}</span>
         <span className="w-1 h-1 bg-[var(--dash-border)] rounded-full" />
-        <span>Infraestrutura PlataformaCard v1.0</span>
+        <span>Infraestrutura PlataformaShop v1.0</span>
       </div>
     </div>
   );

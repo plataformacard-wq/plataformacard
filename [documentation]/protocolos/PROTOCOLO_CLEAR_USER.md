@@ -48,7 +48,7 @@ async function clearTestUsers() {
 
   // Itera e apaga cada usuário listado (Protegendo o dono do app)
   for (const user of users.users) {
-    if (user.email === "plataformacard@gmail.com") {
+    if (user.email === "plataformashop@gmail.com") {
       console.log(`[PULADO] E-mail: ${user.email} (Dono do App)`);
       continue;
     }

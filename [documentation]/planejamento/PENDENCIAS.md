@@ -70,7 +70,7 @@ graph TD
 - [x] **Teste de Desvinculação CaaS:** Validação do fluxo de permissão do Super Admin, edição no inquilino, geração do clone e restauração da versão mestre original.
 
 ### ✅ Segurança e Cadastro
-- [x] **Segurança de Dados:** Relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD) em [RELATORIO_SEGURANCA_LGPD.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/RELATORIO_SEGURANCA_LGPD.md).
+- [x] **Segurança de Dados:** Relatório/auditoria sobre a segurança dos dados dos clientes (Criptografia, RLS, LGPD) em [RELATORIO_SEGURANCA_LGPD.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/RELATORIO_SEGURANCA_LGPD.md).
 - [x] **Validação de Cadastro via OTP (E-mail):** Substituição do fluxo de link de confirmação por código numérico (OTP) de 6 dígitos e criação da tela de verificação no frontend.
 - [x] **Validação Manual do Sistema OTP:** Teste completo de ponta a ponta e correção do frontend para aceitar códigos de 6 a 8 dígitos conforme enviado pelo Supabase.
 

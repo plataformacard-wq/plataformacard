@@ -89,7 +89,7 @@ export default function BulkImportModal({
 
     // Ativa a proteção da planilha (Trancar Títulos)
     ws['!protect'] = {
-      password: 'plataformacard',
+      password: 'plataformashop',
       selectLockedCells: true,
       selectUnlockedCells: true,
       formatCells: false,
@@ -108,7 +108,7 @@ export default function BulkImportModal({
     const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
     XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
     XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
-    XLSX.writeFile(wb, "plataformacard_v1.0.xlsx");
+    XLSX.writeFile(wb, "plataformashop_v1.0.xlsx");
   };
 
   const productFields = [

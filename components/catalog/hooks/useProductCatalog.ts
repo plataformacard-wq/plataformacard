@@ -118,7 +118,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       const sendHeight = () => {
         // Use offsetHeight of documentElement for better accuracy in some browsers
         const height = document.documentElement.offsetHeight || document.body.scrollHeight;
-        window.parent.postMessage({ type: 'plataformacard-height', height }, '*');
+        window.parent.postMessage({ type: 'plataformashop-height', height }, '*');
       };
 
       // Envia a altura inicial e monitora mudanças de tamanho do corpo

@@ -50,7 +50,7 @@ export async function addProfileCustomDomain(domain: string) {
 
   const blacklistedDomains = [
     "anotameucontato.com.br",
-    "plataformacard.com.br",
+    "plataformashop.com.br",
     "vercel.app"
   ];
 

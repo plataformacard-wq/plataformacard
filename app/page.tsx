@@ -5,7 +5,7 @@ import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
 const inter = Inter({ subsets: ["latin"] });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
-const WA_B2B = "https://wa.me/5527999999999?text=Ol%C3%A1%2C%20gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20da%20PlataformaCard%20para%20minha%20empresa.";
+const WA_B2B = "https://wa.me/5527999999999?text=Ol%C3%A1%2C%20gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20da%20PlataformaShop%20para%20minha%20empresa.";
 
 function WhatsAppIcon({ size = 20 }: { size?: number }) {
   return (
@@ -406,7 +406,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer style={{ borderTop: "1px solid rgba(255, 255, 255, 0.05)", padding: "40px 0", textAlign: "center", color: "#9AA0A6", fontSize: 14 }}>
-          <p>© {new Date().getFullYear()} PlataformaCard. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} PlataformaShop. Todos os direitos reservados.</p>
         </footer>
 
       </div>

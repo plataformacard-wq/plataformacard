@@ -37,8 +37,8 @@ Após garantir a sincronização do repositório, o agente deve mapear o context
    * Rodar `git log -n 3 --stat` para ver quais foram os últimos arquivos alterados e comitados na sessão recente.
    * Se aplicável, olhar o status do repositório para ver quais arquivos foram editados recentemente.
 2. **Consultar Fontes de Contexto**:
-   * Ler e analisar o arquivo [PROMPT_DE_CONTINUIDADE.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/PROMPT_DE_CONTINUIDADE.md) para capturar o contexto de negócios, bugs resolvidos recentes e o próximo passo imediato sugerido.
-   * Analisar o arquivo [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaCard/PENDENCIAS.md) para cruzar os próximos passos com a lista global de pendências urgentes e bloqueadoras de lançamento.
+   * Ler e analisar o arquivo [PROMPT_DE_CONTINUIDADE.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/PROMPT_DE_CONTINUIDADE.md) para capturar o contexto de negócios, bugs resolvidos recentes e o próximo passo imediato sugerido.
+   * Analisar o arquivo [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/PENDENCIAS.md) para cruzar os próximos passos com a lista global de pendências urgentes e bloqueadoras de lançamento.
 3. **Apresentar Diagnóstico e Sugestão**:
    * Apresentar um resumo claro de onde o projeto parou.
    * Sugerir de 1 a 3 caminhos lógicos imediatos de continuidade com base no que leu, pedindo a confirmação do usuário.

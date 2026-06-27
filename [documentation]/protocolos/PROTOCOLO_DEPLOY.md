@@ -1,6 +1,6 @@
 # Protocolo de Deploy (CI/CD Seguro)
 
-Este documento estabelece a regra de ouro para implementação de novas funcionalidades na PlataformaCard enquanto ela está em produção ("no ar"). 
+Este documento estabelece a regra de ouro para implementação de novas funcionalidades na PlataformaShop enquanto ela está em produção ("no ar"). 
 
 **Regra Absoluta:** NUNCA codifique ou aplique migrações destrutivas diretamente contra o banco de dados de Produção ou diretamente na branch `main`.
 

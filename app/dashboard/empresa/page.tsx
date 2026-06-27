@@ -274,7 +274,7 @@ export default function EmpresaPage() {
               onChange={(e) => setBusinessHours({ ...businessHours, manual_override: e.target.value === "null" ? null : e.target.value as any })}
               className="dash-select rounded-lg border pl-3 py-1.5 text-sm outline-none cursor-pointer transition-all focus:border-emerald-500"
               style={{
-                background: "var(--dash-input-bg)",
+                backgroundColor: "var(--dash-input-bg)",
                 borderColor: "var(--dash-input-border)",
                 color: "var(--dash-text-primary)",
               }}
@@ -301,30 +301,19 @@ export default function EmpresaPage() {
                   <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
                     {dayNames[day]}
                   </span>
-                  
-                  {day === 'monday' && (
-                    <button
-                      type="button"
-                      onClick={handleCopyMondayToWeek}
-                      className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-                      title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
-                    >
-                      <Copy size={12} /> Copiar para a semana
-                    </button>
-                  )}
                 </div>
 
                 <div className="flex-1 space-y-3">
                   {dayData.isOpen ? (
                     dayData.shifts.map((shift, index) => (
-                      <div key={index} className="flex items-center gap-3">
+                      <div key={index} className="flex flex-wrap items-center gap-3">
                         <input
                           type="time"
                           value={shift.open}
                           onChange={(e) => handleShiftChange(day, index, "open", e.target.value)}
                           className="rounded-lg border px-3 py-1.5 text-sm outline-none w-28"
                           style={{
-                            background: "var(--dash-input-bg)",
+                            backgroundColor: "var(--dash-input-bg)",
                             borderColor: "var(--dash-input-border)",
                             color: "var(--dash-text-primary)",
                           }}
@@ -336,7 +325,7 @@ export default function EmpresaPage() {
                           onChange={(e) => handleShiftChange(day, index, "close", e.target.value)}
                           className="rounded-lg border px-3 py-1.5 text-sm outline-none w-28"
                           style={{
-                            background: "var(--dash-input-bg)",
+                            backgroundColor: "var(--dash-input-bg)",
                             borderColor: "var(--dash-input-border)",
                             color: "var(--dash-text-primary)",
                           }}
@@ -349,10 +338,33 @@ export default function EmpresaPage() {
                         >
                           ✕
                         </button>
+                        
+                        {day === 'monday' && index === 0 && (
+                          <button
+                            type="button"
+                            onClick={handleCopyMondayToWeek}
+                            className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                            title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
+                          >
+                            <Copy size={12} /> Copiar para a semana
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
-                    <span className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Fechado</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Fechado</span>
+                      {day === 'monday' && (
+                        <button
+                          type="button"
+                          onClick={handleCopyMondayToWeek}
+                          className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                          title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
+                        >
+                          <Copy size={12} /> Copiar para a semana
+                        </button>
+                      )}
+                    </div>
                   )}
                   
                   {dayData.isOpen && dayData.shifts.length < 2 && (

@@ -77,9 +77,12 @@ export async function assignMasterCatalog(orgId: string, catalogId: string | nul
     return cat && cat.catalog_type !== 'platform' && cat.catalog_type !== 'CaaS' && cat.is_active === true;
   });
 
-  // Trava solicitada: impedir atribuição se a org já tiver um catálogo próprio ativo
+  // Desativar catálogo próprio se existir e estiver ativo, para dar lugar ao Master
   if (catalogId && activeCustomCatalog) {
-    return { success: false, error: "A organização possui um catálogo próprio ativo. Solicite que desativem seu catálogo nas configurações para herdar o catálogo Master." };
+    await supabase
+      .from("catalogs")
+      .update({ is_active: false })
+      .eq("id", activeCustomCatalog.catalog_id);
   }
 
   // 2. Garante que o catálogo próprio esteja ativo (se existir) para corrigir desativações antigas

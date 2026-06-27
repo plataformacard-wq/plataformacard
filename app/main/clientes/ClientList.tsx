@@ -17,7 +17,7 @@ interface ClientListProps {
 }
 
 export default function ClientList({ organizations: initialOrgs }: ClientListProps) {
-  const [organizations] = useState(initialOrgs);
+  const [organizations, setOrganizations] = useState(initialOrgs);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterModel, setFilterModel] = useState<"ALL" | "B2B" | "B2C" | "CaaS" | "ALL_SERVICE">("ALL");
   
@@ -29,7 +29,7 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
   const filteredOrgs = organizations?.filter(org => {
     const matchesSearch = org.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           org.internal_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         org.slug?.toLowerCase().includes(searchQuery.toLowerCase());
+                          org.slug?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterModel === "ALL" || org.business_model === filterModel;
     return matchesSearch && matchesFilter;
   });
@@ -42,9 +42,16 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
   const handleModelChange = async (orgId: string, newModel: 'B2B' | 'B2C' | 'CaaS' | 'ALL_SERVICE') => {
     if (updatingId === orgId) return;
     setUpdatingId(orgId);
+    
+    // Optimistic Update
+    const oldOrganizations = [...organizations];
+    setOrganizations(prev => prev.map(org => org.id === orgId ? { ...org, business_model: newModel } : org));
+    
     const result = await updateOrganizationModel(orgId, newModel);
     if (!result.success) {
       alert("Erro ao mudar modelo: " + result.error);
+      // Revert on failure
+      setOrganizations(oldOrganizations);
     }
     setUpdatingId(null);
   };
@@ -146,14 +153,14 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                       </div>
                     )}
                     <button 
-                      onClick={() => org.business_model !== 'B2B' && handleModelChange(org.id, 'B2B')}
+                      onClick={() => org.business_model !== 'CaaS' && handleModelChange(org.id, 'CaaS')}
                       className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
-                        org.business_model === 'B2B' 
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                          : 'text-[var(--dash-text-muted)] hover:text-blue-500'
+                        org.business_model === 'CaaS' 
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' 
+                          : 'text-[var(--dash-text-muted)] hover:text-purple-500'
                       }`}
                     >
-                      B2B
+                      CaaS
                     </button>
                     <button 
                       onClick={() => org.business_model !== 'B2C' && handleModelChange(org.id, 'B2C')}
@@ -166,14 +173,14 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                       B2C
                     </button>
                     <button 
-                      onClick={() => org.business_model !== 'CaaS' && handleModelChange(org.id, 'CaaS')}
+                      onClick={() => org.business_model !== 'B2B' && handleModelChange(org.id, 'B2B')}
                       className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
-                        org.business_model === 'CaaS' 
-                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' 
-                          : 'text-[var(--dash-text-muted)] hover:text-purple-500'
+                        org.business_model === 'B2B' 
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                          : 'text-[var(--dash-text-muted)] hover:text-blue-500'
                       }`}
                     >
-                      CaaS
+                      B2B
                     </button>
                     <button 
                       onClick={() => org.business_model !== 'ALL_SERVICE' && handleModelChange(org.id, 'ALL_SERVICE')}

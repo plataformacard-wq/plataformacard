@@ -1,4 +1,4 @@
-# 🚀 Guia de Configuração Rápida: PlataformaCard
+# 🚀 Guia de Configuração Rápida: PlataformaShop
 
 Este documento contém as instruções necessárias para configurar o ambiente de desenvolvimento em uma nova máquina, garantindo que o projeto esteja sincronizado com o GitHub e pronto para rodar.
 
@@ -9,7 +9,7 @@ Copie e cole o texto abaixo para o agente na nova máquina para automatizar a co
 
 > **"Olá! Estou configurando este projeto nesta nova máquina. Por favor, execute o seguinte Protocolo de Inicialização:**
 >
-> 1. **Repositório:** Verifique se esta pasta já é um repositório Git. Se não for, inicialize o Git e conecte ao repositório: `https://github.com/startagenciadigital/plataformacard.git`.
+> 1. **Repositório:** Verifique se esta pasta já é um repositório Git. Se não for, inicialize o Git e conecte ao repositório: `https://github.com/startagenciadigital/plataformashop.git`.
 > 2. **Sincronização:** Faça um `git fetch` e um `pull` (ou reset) para garantir que os arquivos locais são exatamente os mesmos da branch `main` do GitHub.
 > 3. **Dependências:** Verifique se o Node.js e o Homebrew estão instalados. Se sim, rode `npm install` para preparar o projeto.
 > 4. **Variáveis de Ambiente:** Crie o arquivo `.env.local` na raiz. (Eu vou te fornecer as chaves do Supabase ou você pode buscá-las no projeto antigo).

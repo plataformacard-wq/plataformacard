@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import ImageUploadModal from "@/components/dashboard/ImageUploadModal";
+import { getPublicUrl } from "@/lib/utils/url";
 
 interface Catalog {
   id: string;
@@ -53,9 +54,11 @@ interface ConfiguracoesClientProps {
   slug: string;
   products?: { id: string; name: string; image_url?: string }[];
   categoryCount?: number;
+  customDomain?: string | null;
+  isInheritingMaster?: boolean;
 }
 
-export default function ConfiguracoesClient({ catalog: initialCatalog, slug, products = [], categoryCount = 0 }: ConfiguracoesClientProps) {
+export default function ConfiguracoesClient({ catalog: initialCatalog, slug, products = [], categoryCount = 0, customDomain = null, isInheritingMaster = false }: ConfiguracoesClientProps) {
   const [catalog, setCatalog] = useState(initialCatalog);
   const [activeTab, setActiveTab] = useState<"geral" | "implementar" | "banners">("geral");
   const [saving, setSaving] = useState(false);
@@ -95,11 +98,11 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
 
   const supabase = createClient();
 
-  const embedUrl = `https://anotameucontato.com.br/${slug}/embed`;
+  const embedUrl = `${getPublicUrl(slug, customDomain, true, true)}/embed`;
   
   const iframeResizerCode = `<script>
   window.addEventListener('message', function(e) {
-    if (e.data.type === 'plataformacard-height') {
+    if (e.data.type === 'plataformashop-height') {
       var iframes = document.querySelectorAll('iframe');
       for (var i = 0; i < iframes.length; i++) {
         if (iframes[i].src.indexOf('${slug}/embed') !== -1) {
@@ -110,7 +113,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   });
 </script>`;
 
-  const iframeCode = `<!-- PlataformaCard: Catálogo de Produtos -->
+  const iframeCode = `<!-- PlataformaShop: Catálogo de Produtos -->
 ${iframeResizerCode}
 <iframe 
   src="${embedUrl}" 
@@ -253,13 +256,15 @@ ${iframeResizerCode}
               <Layout size={16} />
               Geral
             </button>
-            <button
-              onClick={() => setActiveTab("implementar")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
-            >
-              <Code size={16} />
-              Implementar
-            </button>
+            {initialCatalog.business_model === "ALL_SERVICE" && (
+              <button
+                onClick={() => setActiveTab("implementar")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+              >
+                <Code size={16} />
+                Implementar
+              </button>
+            )}
             <button
               onClick={() => setActiveTab("banners")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
@@ -291,6 +296,15 @@ ${iframeResizerCode}
                   <p className="text-sm text-[var(--dash-text-muted)] font-medium">Como seu catálogo aparece para os clientes.</p>
                 </div>
               </div>
+
+              {isInheritingMaster && (
+                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400 mb-2">
+                  <p className="text-sm font-medium flex items-start gap-2">
+                    <Info size={18} className="shrink-0 mt-0.5" />
+                    Você está operando com um Catálogo Franqueado (Master). As informações básicas do seu catálogo são herdadas automaticamente. Você ainda pode alterar o Comportamento da Vitrine e Banners.
+                  </p>
+                </div>
+              )}
 
               <div className="grid gap-10">
                 {/* Status do Catálogo */}
@@ -325,8 +339,9 @@ ${iframeResizerCode}
                   <input
                     type="text"
                     value={catalog.name || ""}
+                    disabled={isInheritingMaster}
                     onChange={(e) => setCatalog({ ...catalog, name: e.target.value })}
-                    className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm"
+                    className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
                     placeholder="Ex: Minha Loja Virtual"
                   />
                   <p className="text-[11px] text-[var(--dash-text-muted)] font-medium pl-2">
@@ -339,21 +354,21 @@ ${iframeResizerCode}
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
                     <Zap size={14} className="text-primary" /> Tipo de Catálogo
                   </label>
-                  <div className="flex flex-wrap p-1.5 rounded-xl bg-[var(--dash-hover-bg)] border border-[var(--dash-border)]">
+                  <div className={`flex flex-wrap p-1.5 rounded-xl bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] ${isInheritingMaster ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
                     <button
-                      onClick={() => setCatalogType("product")}
+                      onClick={() => !isInheritingMaster && setCatalogType("product")}
                       className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Package size={18} /> Produto
                     </button>
                     <button
-                      onClick={() => setCatalogType("service")}
+                      onClick={() => !isInheritingMaster && setCatalogType("service")}
                       className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Settings size={18} /> Serviço
                     </button>
                     <button
-                      onClick={() => setCatalogType("hybrid")}
+                      onClick={() => !isInheritingMaster && setCatalogType("hybrid")}
                       className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Sparkles size={18} /> Híbrido
@@ -375,9 +390,10 @@ ${iframeResizerCode}
                     </label>
                     <textarea
                       value={catalog.description || ""}
+                      disabled={isInheritingMaster}
                       onChange={(e) => setCatalog({ ...catalog, description: e.target.value })}
                       rows={6}
-                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                      className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
                       placeholder="Descreva seu negócio para seus clientes e para o Google..."
                     />
                   </div>
@@ -396,19 +412,20 @@ ${iframeResizerCode}
                     </div>
                     <textarea
                       value={whatsappTemplate}
+                      disabled={isInheritingMaster}
                       onChange={(e) => setWhatsappTemplate(e.target.value)}
                       rows={6}
-                      className="w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm"
+                      className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
                       placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e gostaria de saber mais..."
                     />
                     
                     {/* Tags Rápidas */}
-                    <div className="flex flex-wrap gap-2 pt-2">
+                    <div className={`flex flex-wrap gap-2 pt-2 ${isInheritingMaster ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
                       {['nome', 'preco', 'sku', 'link', 'tipo'].map(tag => (
                         <button
                           key={tag}
                           type="button"
-                          onClick={() => setWhatsappTemplate((prev: string) => prev + `{${tag}}`)}
+                          onClick={() => !isInheritingMaster && setWhatsappTemplate((prev: string) => prev + `{${tag}}`)}
                           className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
                         >
                           {`{${tag}}`}

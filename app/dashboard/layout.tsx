@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
-  return { title: "PlataformaCard | Dashboard" };
+  return { title: "PlataformaShop | Dashboard" };
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

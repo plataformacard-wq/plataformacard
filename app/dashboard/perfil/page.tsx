@@ -8,6 +8,7 @@ import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getOrganizationById } from "@/lib/admin-actions";
+import { getPublicUrl } from "@/lib/utils/url";
 
 const defaultBusinessHours: BusinessHours = {
   timezone: "America/Sao_Paulo",
@@ -99,6 +100,7 @@ function PerfilContent() {
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
   const [activeProfileUserId, setActiveProfileUserId] = useState<string | null>(null);
+  const [customDomain, setCustomDomain] = useState<string | null>(null);
   
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -196,6 +198,17 @@ function PerfilContent() {
         }
 
         setActiveProfileUserId(targetProfileUserId);
+
+        if (activeOrgId) {
+          const { data: orgData } = await supabase
+            .from("organizations")
+            .select("custom_domain")
+            .eq("id", activeOrgId)
+            .maybeSingle();
+          if (orgData) {
+            setCustomDomain(orgData.custom_domain);
+          }
+        }
 
         setNome(profile.full_name || "Cliente");
         setNomeInput(profile.full_name || "");
@@ -365,7 +378,7 @@ function PerfilContent() {
   }
 
   const avatarPreview = avatarFile ? URL.createObjectURL(avatarFile) : avatar;
-  const slugPreview = slugInput ? `anotameucontato.com.br/${slugInput}` : null;
+  const slugPreview = slugInput ? getPublicUrl(slugInput, customDomain, true, false) : null;
 
   async function handleSave() {
     setSaving(true);
@@ -617,7 +630,7 @@ function PerfilContent() {
                   {/* Link de Cartão Público */}
                   {slugInput && (
                     <a 
-                      href={`/${slugInput}`} 
+                      href={getPublicUrl(slugInput, customDomain, true, true)} 
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
@@ -739,8 +752,8 @@ function PerfilContent() {
                     {slugError ? (
                       <p className="mt-2 text-[10px] font-bold text-red-500 truncate">{slugError}</p>
                     ) : slugInput ? (
-                      <p className="mt-2 text-[10px] font-medium text-primary/60 truncate">
-                        Link: <span className="font-bold">anotameucontato.com.br/{slugInput}</span>
+                      <p className="mt-2 text-xs font-medium text-[var(--dash-text-muted)] truncate max-w-[200px] sm:max-w-none">
+                        Link: <span className="font-bold">{getPublicUrl(slugInput, customDomain, true, false)}</span>
                       </p>
                     ) : null}
                   </div>

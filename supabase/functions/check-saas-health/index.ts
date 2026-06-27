@@ -50,7 +50,7 @@ serve(async (req) => {
         (new Date().getTime() - new Date(lastAlert.last_sent_at).getTime() > 1000 * 60 * 60 * 12) // 12h gap
 
       if (shouldSend) {
-        const message = `🤖 *SaaS Watchdog | PlataformaCard*\n\n` +
+        const message = `🤖 *SaaS Watchdog | PlataformaShop*\n\n` +
           `${severity === 'emergency' ? '🚨' : '⚠️'} *Alerta de Infraestrutura*\n` +
           `Uso do Banco de Dados atingiu *${usagePercent}%*.\n\n` +
           `📊 *Métricas:*\n` +

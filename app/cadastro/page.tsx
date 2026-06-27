@@ -275,7 +275,7 @@ export default function CadastroPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Criar conta</h1>
           <p className="mt-2 text-sm text-zinc-300">
-            Cadastre-se para acessar o seu painel na PlataformaCard.
+            Cadastre-se para acessar o seu painel na PlataformaShop.
           </p>
         </div>
 

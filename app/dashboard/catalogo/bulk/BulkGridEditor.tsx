@@ -911,11 +911,11 @@ export default function BulkGridEditor() {
               const wb = XLSX.utils.book_new();
               const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
               ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-              ws['!protect'] = { password: 'plataformacard' };
+              ws['!protect'] = { password: 'plataformashop' };
               const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
               XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
               XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
-              XLSX.writeFile(wb, "plataformacard_v1.0.xlsx");
+              XLSX.writeFile(wb, "plataformashop_v1.0.xlsx");
             }}
             className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-secondary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
             title="Baixar planilha modelo v1.0"

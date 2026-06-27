@@ -16,6 +16,7 @@ import {
   Clock
 } from "lucide-react";
 import Link from "next/link";
+import { useGlobalBranding } from "@/components/providers/GlobalBrandingProvider";
 
 interface TopHeaderProps {
   nome: string;
@@ -50,6 +51,7 @@ export function TopHeader({
 }: TopHeaderProps) {
   const isB2B = businessModel === "B2B";
   const isCaaS = businessModel === "CaaS";
+  const { globalIconUrl } = useGlobalBranding();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -244,7 +246,13 @@ export function TopHeader({
               <img
                 src={avatar}
                 alt={nome}
-                className="h-9 w-9 rounded-lg border border-[var(--dash-border)] object-cover"
+                className="h-9 w-9 rounded-lg object-contain"
+              />
+            ) : (role === "main_admin" && globalIconUrl) ? (
+              <img
+                src={globalIconUrl}
+                alt={nome}
+                className="h-9 w-9 rounded-lg object-contain p-1"
               />
             ) : (
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white text-sm font-bold shadow-sm">
@@ -252,7 +260,7 @@ export function TopHeader({
               </div>
             )}
             <div className="hidden sm:flex flex-col items-start text-left">
-              <span className="text-xs font-semibold leading-none text-[var(--dash-text-primary)]">{nome}</span>
+              <span className="text-xs font-semibold leading-none text-[var(--dash-text-primary)]">{role === "main_admin" ? "Gestor Global" : nome}</span>
               <span className="text-[10px] text-[var(--dash-text-muted)] font-medium capitalize mt-1">
                 {role === "main_admin" ? "MAIN Admin" : 
                  businessModel === "CaaS" ? "Gestor de Catálogo" :
@@ -275,7 +283,7 @@ export function TopHeader({
               >
                 <div className="px-3 py-2 mb-1 border-b border-[var(--dash-border)]/50 pb-3">
                   <p className="text-[10px] font-bold text-[var(--dash-text-muted)] uppercase tracking-wider">Conta</p>
-                  <p className="text-xs font-medium text-[var(--dash-text-primary)] mt-0.5 truncate">{nome}</p>
+                  <p className="text-xs font-medium text-[var(--dash-text-primary)] mt-0.5 truncate">{role === "main_admin" ? "Gestor Global" : nome}</p>
                 </div>
                 <div className="flex flex-col gap-1">
                   <Link

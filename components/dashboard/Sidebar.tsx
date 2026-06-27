@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useGlobalBranding } from "@/components/providers/GlobalBrandingProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, 
@@ -21,7 +22,8 @@ import {
   HardDrive,
   BadgeDollarSign,
   CreditCard,
-  Sparkles
+  Sparkles,
+  Paintbrush
 } from "lucide-react";
 
 interface SidebarProps {
@@ -50,6 +52,7 @@ interface NavLink {
 
 export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, isReady, permissions }: SidebarProps) {
   const pathname = usePathname();
+  const { globalLogoUrl, globalIconUrl } = useGlobalBranding();
   const [currentHash, setCurrentHash] = useState("");
 
   useEffect(() => {
@@ -102,6 +105,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         subItems: [
           { href: "/main/ia", label: "Inteligência Artificial", icon: Sparkles },
           { href: "/main/settings", label: "Geral & Planos", icon: Settings },
+          { href: "/main/branding", label: "Marca e Cores", icon: Paintbrush },
           { href: "/main/maintenance", label: "Manutenção Global", icon: Info },
         ]
       },
@@ -239,17 +243,21 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           </button>
 
           {/* Logo Area */}
-          <div className={`mb-10 flex items-center px-4 ${isCollapsed ? "justify-center" : "justify-between"}`}>
+          <div className={`mb-10 flex items-center ${isCollapsed ? "justify-center px-4" : "justify-between px-6"}`}>
             <Link href={isAdminPath ? "/main" : "/dashboard"} className="flex items-center gap-2 group">
-              <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
-              {!isCollapsed && (
-                <div className="flex flex-col overflow-hidden whitespace-nowrap transition-all">
-                  <span className="text-base font-bold tracking-tight leading-none text-[var(--dash-text-primary)]">PlataformaCard</span>
-                    <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider">
+              {isCollapsed ? (
+                <div className="h-9 flex-shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <img src={globalIconUrl || "/icone_ps.png"} alt="Ícone Plataforma" className="h-9 w-9 object-contain" />
+                </div>
+              ) : (
+                <div className="flex flex-col items-start overflow-hidden transition-all pt-2">
+                  <img src={globalLogoUrl || "/logo_fundo_escuro_ps.png"} alt="Logo Plataforma" className="h-[54px] object-contain object-left" />
+                  <span className="text-[10px] text-amber-500 font-black uppercase tracking-wider ml-1 mt-1">
                       {isAdminPath ? "CENTRO DE INTELIGÊNCIA (QG)" : (isShadowMode ? "Modo Simulação" : (isActuallySuperAdmin ? "Painel Super Admin" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor")))}
                     </span>
+                  <span className="text-[9px] text-gray-500 font-medium ml-1 mt-0.5">
+                    Build v{process.env.NEXT_PUBLIC_APP_VERSION || "0.9.0"} ({process.env.NEXT_PUBLIC_GIT_COMMIT || "local"})
+                  </span>
                 </div>
               )}
             </Link>

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Termos de Uso | PlataformaCard",
-  description: "Termos e Condições de Uso da PlataformaCard",
+  title: "Termos de Uso | PlataformaShop",
+  description: "Termos e Condições de Uso da PlataformaShop",
 };
 
 export default function TermosPage() {
@@ -27,7 +27,7 @@ export default function TermosPage() {
             <section>
               <h2 className="text-xl font-bold text-white mt-8 mb-4">1. Aceitação dos Termos</h2>
               <p>
-                Ao acessar e utilizar a PlataformaCard, você concorda em cumprir e estar vinculado a estes Termos de Uso. 
+                Ao acessar e utilizar a PlataformaShop, você concorda em cumprir e estar vinculado a estes Termos de Uso. 
                 Se você não concordar com qualquer parte destes termos, não deverá utilizar nossos serviços.
               </p>
             </section>
@@ -35,7 +35,7 @@ export default function TermosPage() {
             <section>
               <h2 className="text-xl font-bold text-white mt-8 mb-4">2. Descrição do Serviço</h2>
               <p>
-                A PlataformaCard fornece uma infraestrutura digital no modelo Software as a Service (SaaS), permitindo a criação 
+                A PlataformaShop fornece uma infraestrutura digital no modelo Software as a Service (SaaS), permitindo a criação 
                 de catálogos digitais, vitrines e gestão B2B/B2C/CaaS. O serviço é oferecido "no estado em que se encontra", 
                 podendo passar por atualizações e manutenções periódicas.
               </p>
@@ -64,7 +64,7 @@ export default function TermosPage() {
             <section>
               <h2 className="text-xl font-bold text-white mt-8 mb-4">5. Assinaturas e Pagamentos</h2>
               <p>
-                Alguns recursos da PlataformaCard estão sujeitos ao pagamento de assinaturas. Os valores, ciclos de faturamento 
+                Alguns recursos da PlataformaShop estão sujeitos ao pagamento de assinaturas. Os valores, ciclos de faturamento 
                 e políticas de cancelamento estarão descritos no painel de gestão financeira do usuário. O não pagamento 
                 poderá resultar na suspensão temporária ou cancelamento da conta.
               </p>
@@ -73,7 +73,7 @@ export default function TermosPage() {
             <section>
               <h2 className="text-xl font-bold text-white mt-8 mb-4">6. Propriedade Intelectual</h2>
               <p>
-                A estrutura, design, código fonte e logotipos da PlataformaCard são de nossa propriedade exclusiva. 
+                A estrutura, design, código fonte e logotipos da PlataformaShop são de nossa propriedade exclusiva. 
                 O conteúdo, imagens e dados dos produtos cadastrados pelo usuário são de responsabilidade e propriedade do próprio usuário.
               </p>
             </section>
@@ -81,7 +81,7 @@ export default function TermosPage() {
             <section>
               <h2 className="text-xl font-bold text-white mt-8 mb-4">7. Limitação de Responsabilidade</h2>
               <p>
-                A PlataformaCard não se responsabiliza por lucros cessantes, perdas de dados ou danos indiretos resultantes 
+                A PlataformaShop não se responsabiliza por lucros cessantes, perdas de dados ou danos indiretos resultantes 
                 do uso ou da incapacidade de uso do serviço. Nós atuamos apenas como provedores da tecnologia de vitrine digital, 
                 não tendo responsabilidade sobre as transações entre você e seus clientes finais.
               </p>

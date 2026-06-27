@@ -51,11 +51,12 @@ function parseLLMJsonResponse(text: string) {
 /**
  * Envia a requisição para a API do Gemini com tentativas de reprocessamento em caso de erro 503/500 temporário.
  */
-async function fetchGeminiWithRetry(url: string, options: RequestInit, retries = 2, delay = 1000): Promise<Response> {
+async function fetchGeminiWithRetry(url: string, options: RequestInit, retries = 3, initialDelay = 1500): Promise<Response> {
+  let delay = initialDelay;
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
-      if (response.status !== 503 && response.status !== 500) {
+      if (response.status !== 503 && response.status !== 500 && response.status !== 429) {
         return response;
       }
       console.warn(`[GEMINI-RETRY]: Recebido status ${response.status}. Tentando novamente em ${delay}ms... (Tentativa ${i + 1} de ${retries})`);
@@ -63,6 +64,7 @@ async function fetchGeminiWithRetry(url: string, options: RequestInit, retries =
       if (i === retries - 1) throw err;
     }
     await new Promise(resolve => setTimeout(resolve, delay));
+    delay = delay * 2; // Exponential backoff
   }
   return fetch(url, options);
 }
@@ -98,14 +100,14 @@ async function logAiUsage(actionType: string, usage: any) {
 }
 
 /**
- * Gera ou melhora a descrição do produto com explicação das mudanças.
+ * Otimiza o cadastro do produto com IA (Corretor Ortográfico + Geração de Descrição)
  */
-export async function enhanceDescriptionWithAI(payload: { 
+export async function optimizeProductWithAI(payload: { 
   name: string; 
-  currentDescription?: string; 
-  price?: string;
+  highlight?: string;
+  description?: string; 
   specs?: { chave: string; valor: string }[];
-}) {
+}, mode: 'full' | 'spelling_only' = 'full') {
   try {
     await verifyAuthenticated();
   } catch (err: any) {
@@ -121,15 +123,11 @@ export async function enhanceDescriptionWithAI(payload: {
   const specsText = payload.specs?.map(s => `${s.chave}: ${s.valor}`).join(', ') || 'Não informadas';
   const configs = await getFullPlatformConfig();
   
-  let prompt = configs.ai_description_prompt || `
+  const customDescriptionPrompt = configs.ai_description_prompt || `
     Aja como um copywriter de alta conversão, focado em vendas diretas e "papo reto".
-    Seu objetivo é criar uma descrição impactante, concisa e profissional para o produto: "[PRODUTO]".
+    Seu objetivo é criar uma descrição impactante, concisa e profissional.
     
-    FONTES DE DADOS:
-    - Especificações Técnicas: "[ESPECIFICACOES]"
-    - Descrição atual: "[DESCRICAO_ATUAL]"
-
-    REGRAS CRÍTICAS:
+    REGRAS CRÍTICAS DA DESCRIÇÃO:
     1. O texto deve ter NO MÁXIMO 10 LINHAS. Seja direto e evite enrolação.
     2. Use as Especificações Técnicas como base para não ser genérico.
     3. Use HTML básico (<b>, <p>, <ul>, <li>).
@@ -137,20 +135,43 @@ export async function enhanceDescriptionWithAI(payload: {
     5. AO FINAL, inclua 3 hashtags relevantes.
     6. JAMAIS cite o preço do produto no texto. 
     7. NÃO gere títulos ou campos extras.
-    8. Se a "Descrição atual" for "Vazia", crie uma descrição totalmente nova, cativante e completa do zero a partir do nome do produto e das especificações técnicas fornecidas.
-
-    RETORNO:
-    Retorne APENAS um JSON no formato:
-    {
-      "proposed": "HTML da nova descrição",
-      "explanation": "Uma breve explicação do que foi feito (ex: 'Criei uma descrição comercial focada nas especificações técnicas fornecidas' ou 'Melhorei a legibilidade do texto e foquei na potência')."
-    }
   `;
 
-  // Substituir variáveis
-  prompt = prompt.replace(/\[PRODUTO\]/g, payload.name);
-  prompt = prompt.replace(/\[ESPECIFICACOES\]/g, specsText);
-  prompt = prompt.replace(/\[DESCRICAO_ATUAL\]/g, payload.currentDescription || 'Vazia');
+  const prompt = mode === 'spelling_only' ? `
+    Você é um assistente de revisão ortográfica e gramatical focado em precisão.
+    
+    Corrija APENAS erros de ortografia, gramática e pontuação dos seguintes campos.
+    NÃO crie novos textos. Se estiver correto, mantenha igual.
+    - O "Destaque" deve ser retornado sempre em CAIXA ALTA.
+    - Na "Ficha Técnica", mantenha as mesmas chaves e corrija os valores.
+    - Na "Descrição", preserve TODAS as formatações HTML (como <p>, <b>, <ul>).
+
+    === DADOS DO PRODUTO ===
+    Nome: "${payload.name}"
+    Destaque: "${payload.highlight || ''}"
+    Ficha Técnica: ${specsText}
+    Descrição Atual: ${payload.description || ''}
+  ` : `
+    Você é um assistente completo de cadastro de produtos e atua em duas frentes simultâneas:
+    
+    PARTE 1: REVISÃO ORTOGRÁFICA (Nome, Destaque e Ficha Técnica)
+    Corrija APENAS erros de ortografia, gramática e pontuação do "Nome", "Destaque" e dos valores da "Ficha Técnica".
+    - O Destaque deve ser retornado sempre em CAIXA ALTA.
+    - Na Ficha Técnica, mantenha exatamente as mesmas chaves, corrigindo apenas a ortografia dos valores.
+    - Não modifique a essência das palavras. Se estiver correto, mantenha igual.
+    
+    PARTE 2: COPYWRITING (Descrição)
+    Siga RIGOROSAMENTE as regras do usuário para reescrever/criar a descrição:
+    """
+    ${customDescriptionPrompt}
+    """
+    
+    === DADOS DO PRODUTO PARA ESTA REQUISIÇÃO ===
+    Nome Original: "${payload.name}"
+    Destaque Original: "${payload.highlight || ''}"
+    Especificações Técnicas: ${specsText}
+    Descrição Atual: ${payload.description || 'Vazia'}
+  `;
 
   const modelId = (configs.ai_model && configs.ai_model.includes("gemini")) ? configs.ai_model : "gemini-2.5-flash";
   const temperature = parseFloat(configs.ai_temperature || "0.7");
@@ -163,7 +184,31 @@ export async function enhanceDescriptionWithAI(payload: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature }
+          generationConfig: { 
+            temperature, 
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                name: { type: "STRING" },
+                highlight: { type: "STRING" },
+                description: { type: "STRING" },
+                explanation: { type: "STRING" },
+                specs: { 
+                  type: "ARRAY", 
+                  items: { 
+                    type: "OBJECT", 
+                    properties: { 
+                      chave: { type: "STRING" }, 
+                      valor: { type: "STRING" } 
+                    },
+                    required: ["chave", "valor"]
+                  }
+                }
+              },
+              required: ["name", "highlight", "description", "explanation", "specs"]
+            }
+          }
         }),
       }
     );
@@ -174,25 +219,26 @@ export async function enhanceDescriptionWithAI(payload: {
     
     // Log de uso
     if (data.usageMetadata) {
-      await logAiUsage('enhance_description', data.usageMetadata);
+      await logAiUsage('optimize_product', data.usageMetadata);
     }
 
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta vazia");
 
     const parsedData = parseLLMJsonResponse(resultText);
+    console.log("LLM PARSED (Optimize):", parsedData);
     return { success: true, data: parsedData };
 
   } catch (error: any) {
-    console.error("ERRO ENHANCE:", error);
-    return { error: "Falha ao melhorar descrição." };
+    console.error("ERRO OPTIMIZE:", error);
+    return { error: "Falha ao otimizar o produto." };
   }
 }
 
 /**
- * Corrige a ortografia de múltiplos campos com explicação.
+ * Corrige a ortografia de um único campo do modal de IA.
  */
-export async function fixProductOrthography(payload: { name: string; highlight?: string; description: string }) {
+export async function fixSingleFieldOrthography(text: string, type: 'name' | 'highlight' | 'description') {
   try {
     await verifyAuthenticated();
   } catch (err: any) {
@@ -204,37 +250,38 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
   if (!apiKey) {
     return { error: "API Key do Gemini não configurada." };
   }
+  
+  const configs = await getFullPlatformConfig();
+  const modelId = (configs.ai_model && configs.ai_model.includes("gemini")) ? configs.ai_model : "gemini-2.5-flash";
+  const temperature = 0.2; // Baixa criatividade, apenas correção
 
-  const prompt = `
-    Aja como um revisor profissional. Corrija APENAS erros de ortografia, gramática e pontuação dos seguintes campos.
-    
-    CAMPOS:
-    1. Nome: "${payload.name}"
-    2. Destaque: "${payload.highlight || ''}"
-    3. Descrição: "${payload.description}"
-
-    REGRAS:
-    - O campo "Destaque" deve ser retornado em CAIXA ALTA (UPPERCASE).
-    - Mantenha tags HTML na descrição.
-    
-    RETORNO:
-    Retorne APENAS um JSON no formato:
-    {
-      "name": "Nome corrigido",
-      "highlight": "Destaque corrigido",
-      "description": "Descrição corrigida",
-      "explanation": "Lista breve dos erros encontrados e corrigidos."
-    }
-  `;
+  let prompt = `Corrija APENAS erros de ortografia, gramática e pontuação do seguinte texto: "${text}".\n\nREGRAS:\n`;
+  if (type === 'highlight') {
+    prompt += `- O texto corrigido deve ser retornado inteiramente em CAIXA ALTA (MAIÚSCULAS).\n`;
+  } else if (type === 'description') {
+    prompt += `- O texto contém formatação HTML. Você DEVE preservar todas as tags HTML (como <p>, <b>, <ul>, <li>) exatamente como estão, corrigindo apenas o texto visível.\n`;
+  }
+  prompt += `- Não modifique a essência, o estilo ou o tamanho do texto. Se já estiver correto, retorne igual.\n\nRetorne APENAS um JSON no formato:\n{ "corrected": "texto corrigido aqui" }`;
 
   try {
     const response = await fetchGeminiWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { 
+            temperature,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                corrected: { type: "STRING" }
+              },
+              required: ["corrected"]
+            }
+          }
         }),
       }
     );
@@ -242,23 +289,88 @@ export async function fixProductOrthography(payload: { name: string; highlight?:
     if (!response.ok) return { error: `Erro na API do Google: status ${response.status}` };
 
     const data = await response.json();
-    
-    // Log de uso
-    if (data.usageMetadata) {
-      await logAiUsage('fix_orthography', data.usageMetadata);
-    }
-
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) throw new Error("Resposta vazia");
 
     const parsedData = parseLLMJsonResponse(resultText);
-    return { success: true, data: parsedData };
+    return { success: true, data: parsedData.corrected };
 
   } catch (error: any) {
-    console.error("ERRO FIX_ALL:", error);
-    return { error: "Falha ao corrigir campos." };
+    console.error("ERRO FIX_SINGLE:", error);
+    return { error: "Falha ao corrigir o campo." };
   }
 }
+
+/**
+ * Fallback de contingência para gerar apenas a descrição caso venha vazia.
+ * Utiliza um prompt mais permissivo/seguro.
+ */
+export async function regenerateDescriptionFallback(name: string, specs: any[]) {
+  try {
+    await verifyAuthenticated();
+  } catch (err: any) {
+    return { error: err.message || "Não autorizado." };
+  }
+ 
+  const apiKey = await getGeminiApiKey();
+  if (!apiKey) return { error: "API Key do Gemini não configurada." };
+  
+  const configs = await getFullPlatformConfig();
+  const modelId = (configs.ai_model && configs.ai_model.includes("gemini")) ? configs.ai_model : "gemini-2.5-flash";
+  
+  const specsText = specs.map(s => `- ${s.chave}: ${s.valor}`).join('\n');
+  
+  const prompt = `Gere uma descrição comercial altamente atrativa em HTML para o produto "${name}".
+  
+Use as seguintes especificações como base:
+${specsText}
+
+REGRAS:
+- Retorne APENAS HTML válido (parágrafos <p>, listas <ul><li>, e negritos <b>).
+- Não use markdown (\`\`\`).
+- Seja persuasivo e foque nos benefícios.
+
+Retorne APENAS um JSON no formato: { "description": "html aqui" }`;
+
+  try {
+    const response = await fetchGeminiWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { 
+            temperature: 0.7,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                description: { type: "STRING" }
+              },
+              required: ["description"]
+            }
+          }
+        }),
+      }
+    );
+
+    if (!response.ok) return { error: `Erro na API do Google: status ${response.status}` };
+
+    const data = await response.json();
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) throw new Error("Resposta vazia");
+
+    const parsedData = parseLLMJsonResponse(resultText);
+    return { success: true, data: parsedData.description };
+  } catch (error: any) {
+    console.error("ERRO REGENERATE_DESC:", error);
+    return { error: "Falha ao gerar a descrição novamente." };
+  }
+}
+
+
+
 
 /**
  * Gera sugestões de SEO (Título e Descrição) usando Google Gemini 1.5 Flash

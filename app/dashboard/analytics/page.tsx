@@ -88,7 +88,7 @@ export default async function AnalyticsPage(props: {
   }
 
   // Busca dados da organização para o relatório
-  let organizationName = "PlataformaCard";
+  let organizationName = "PlataformaShop";
   const orgId = activeOrgId;
   
   if (orgId) {

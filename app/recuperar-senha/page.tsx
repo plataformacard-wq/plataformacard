@@ -119,7 +119,7 @@ export default function RecuperarSenhaPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur">
           <div className="mb-8">
             <div className="inline-flex rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black mb-4">
-              PlataformaCard
+              PlataformaShop
             </div>
             <h1 className="text-2xl font-bold">Recuperar acesso</h1>
             <p className="mt-2 text-sm text-zinc-300">

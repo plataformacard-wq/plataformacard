@@ -43,12 +43,14 @@ const CatalogHeaderBase = ({
         </Link>
 
         <div className="flex-1 flex items-center justify-center sm:justify-start gap-3 min-w-0">
-          {isPureCatalog && logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="h-7 sm:h-9 w-auto object-contain" />
-          ) : (
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {isPureCatalog && logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-7 sm:h-9 w-auto object-contain shrink-0" />
+            ) : (
               <div className="relative shrink-0">
-                <div className="absolute inset-[-2px] rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-400 opacity-60" />
+                {!isPureCatalog && (
+                  <div className="absolute inset-[-2px] rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-400 opacity-60" />
+                )}
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={fullName || "Avatar"} className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover border-2 border-[var(--public-card-bg)] relative z-10" />
                 ) : (
@@ -56,26 +58,28 @@ const CatalogHeaderBase = ({
                     {(fullName || slug || "?").charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--public-card-bg)] z-20 ${businessStatus.isAvailableNow ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-              </div>
-              
-              <div className="min-w-0 flex flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm sm:text-base font-bold text-[var(--public-text-main)] leading-none truncate">
-                    {fullName || "Vendedor"}
-                  </p>
-                  <span className="hidden sm:inline-block text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider border border-emerald-500/20">
-                    {businessStatus.statusMessage}
-                  </span>
-                </div>
-                {bio && (
-                  <p className="text-[10px] sm:text-xs text-[var(--public-text-dim)] truncate mt-1 max-w-[200px] sm:max-w-xs font-medium">
-                    {bio}
-                  </p>
+                {!isPureCatalog && (
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--public-card-bg)] z-20 ${businessStatus.isAvailableNow ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                 )}
               </div>
+            )}
+            
+            <div className="min-w-0 flex flex-col">
+              <div className="flex items-center gap-2">
+                <p className="text-sm sm:text-base font-bold text-[var(--public-text-main)] leading-none truncate">
+                  {fullName || (isPureCatalog ? "Catálogo" : "Vendedor")}
+                </p>
+                <span className="inline-block shrink-0 text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider border border-emerald-500/20 whitespace-nowrap">
+                  {businessStatus.statusMessage}
+                </span>
+              </div>
+              {!isPureCatalog && bio && (
+                <p className="text-[10px] sm:text-xs text-[var(--public-text-dim)] truncate mt-1 max-w-[200px] sm:max-w-xs font-medium">
+                  {bio}
+                </p>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">

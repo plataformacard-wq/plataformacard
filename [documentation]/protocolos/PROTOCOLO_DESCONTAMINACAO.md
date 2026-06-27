@@ -1,6 +1,6 @@
 # 🧼 Protocolo de Descontaminação Acidental
 
-Este protocolo define os passos rápidos e definitivos para limpar e restabelecer o ambiente local caso ocorra uma **contaminação de cookies/sessões** entre o **PlataformaCard** e o **ecclesianapp**.
+Este protocolo define os passos rápidos e definitivos para limpar e restabelecer o ambiente local caso ocorra uma **contaminação de cookies/sessões** entre o **PlataformaShop** e o **ecclesianapp**.
 
 ---
 
@@ -36,7 +36,7 @@ Se a página continuar travada em um carregamento infinito mesmo após a limpeza
    rm -rf .next
    ```
 3. Reinicie o servidor de desenvolvimento de forma isolada:
-   * **Para o PlataformaCard**:
+   * **Para o PlataformaShop**:
      ```bash
      npm run dev -- -p 3000
      ```
@@ -50,5 +50,5 @@ Se a página continuar travada em um carregamento infinito mesmo após a limpeza
 ### Passo 03: Reabrir usando Acessos Isolados
 Abra uma nova aba (ou uma aba anônima para testar inicialmente) e use os links isolados para impedir novos conflitos:
 
-* **PlataformaCard**: Acesse por **`http://127.0.0.1:3000/entrar`** ou **`http://plataformacard.localhost:3000/entrar`**
+* **PlataformaShop**: Acesse por **`http://127.0.0.1:3000/entrar`** ou **`http://plataformashop.localhost:3000/entrar`**
 * **ecclesianapp**: Acesse por **`http://localhost:3001`** ou **`http://ecclesianapp.localhost:3001`**

@@ -147,7 +147,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     orgData = org;
   }
 
-  const title = orgData?.meta_title || (profile ? `Catálogo de ${profile.full_name}` : (orgData ? `Catálogo de ${orgData.name}` : "Catálogo")) + " | PlataformaCard";
+  const title = orgData?.meta_title || (profile ? `Catálogo de ${profile.full_name}` : (orgData ? `Catálogo de ${orgData.name}` : "Catálogo")) + " | PlataformaShop";
   const description = orgData?.meta_description || (profile?.bio) || "Confira nossos produtos e ofertas exclusivas.";
   const iconBase = orgData?.favicon_url || "/favicon.ico";
   const icon = `${iconBase}${iconBase.includes('?') ? '&' : '?'}t=${Date.now()}`;
@@ -172,6 +172,7 @@ export default async function Page(props: PageProps) {
   const supabase = await createClient();
   
   const { slug } = await props.params;
+  const searchParams = await props.searchParams;
 
   let profile: Profile | null = null;
   let orgData: Organization | null = null;
@@ -236,9 +237,13 @@ export default async function Page(props: PageProps) {
 
   let catalogIds: string[] = [];
   let primaryCatalogId: string | null = null;
+  const previewCatalogId = searchParams.preview_catalog as string | undefined;
 
-  // PRIORIDADE 1: Catálogos Master/Próprios habilitados
-  if (targetOrgId) {
+  if (previewCatalogId) {
+    catalogIds = [previewCatalogId];
+  } else {
+    // PRIORIDADE 1: Catálogos Master/Próprios habilitados
+    if (targetOrgId) {
     const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
       .select("catalog_id")
@@ -308,6 +313,7 @@ export default async function Page(props: PageProps) {
           .maybeSingle();
 
         if (profileCatalog?.id) catalogIds.push(profileCatalog.id);
+      }
       }
     }
   }
@@ -480,7 +486,6 @@ export default async function Page(props: PageProps) {
     }
   }
 
-  const searchParams = await props.searchParams;
   const isEmbed = searchParams.embed === "true";
 
   return (
@@ -504,7 +509,7 @@ export default async function Page(props: PageProps) {
         fullName={profile?.full_name || orgData?.name}
         avatarUrl={profile?.avatar_url || orgData?.favicon_url}
         logoUrl={(orgData as any)?.logo_url}
-        isPureCatalog={(orgData as any)?.business_model === "CaaS"}
+        isPureCatalog={!profile || (profile as any)?.role === 'main_admin' || (orgData as any)?.business_model === "CaaS" || (orgData as any)?.business_model === "platform"}
         isB2B={(orgData as any)?.business_model === "B2B" || (orgData as any)?.business_model === "ALL_SERVICE"}
         hidePrices={catalog.hide_prices || false}
         isEmbed={isEmbed}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getPublicUrl } from "@/lib/utils/url";
 import { 
   Users, 
   UserPlus, 
@@ -122,9 +123,11 @@ function RecessCountdown({ endsAt }: { endsAt: string }) {
 export default function VendedoresClient({
   initialSellerLimit = 0,
   initialSellerCount = 0,
+  customDomain = null,
 }: {
   initialSellerLimit?: number;
   initialSellerCount?: number;
+  customDomain?: string | null;
 }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -566,7 +569,7 @@ export default function VendedoresClient({
                         {v.bio || "Consultor de Vendas"}
                       </p>
                       <span className="inline-block px-2 py-0.5 rounded-lg bg-primary/5 text-[10px] font-bold text-primary truncate max-w-full">
-                        anotameucontato.com.br/{v.slug}
+                        {getPublicUrl(v.slug || "", customDomain, false, false)}
                       </span>
                       {v.recess_ends_at && new Date(v.recess_ends_at) > new Date() && (
                         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
@@ -630,7 +633,7 @@ export default function VendedoresClient({
                     
                     <div className="flex flex-col gap-2 w-full">
                       <a 
-                        href={`/${v.slug}`} 
+                        href={getPublicUrl(v.slug || "", customDomain, false, true)} 
                         target="_blank"
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all"
@@ -695,7 +698,7 @@ export default function VendedoresClient({
                 {/* Link de Cartão Público */}
                 {selectedSeller && (
                   <a 
-                    href={`/${formSlug}`} 
+                    href={getPublicUrl(formSlug, customDomain, false, true)} 
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
@@ -813,7 +816,7 @@ export default function VendedoresClient({
                     />
                     {formSlug && (
                       <p className="mt-2 text-[10px] font-medium text-primary/60 truncate">
-                        Link: <span className="font-bold">anotameucontato.com.br/{formSlug}</span>
+                        Link: <span className="font-bold">{getPublicUrl(formSlug, customDomain, false, false)}</span>
                       </p>
                     )}
                   </div>

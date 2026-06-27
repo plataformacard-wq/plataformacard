@@ -45,7 +45,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     orgData = org;
   }
 
-  const title = orgData?.meta_title || (profile ? profile.full_name : (orgData ? orgData.name : "Perfil")) + " | PlataformaCard";
+  const title = orgData?.meta_title || (profile ? profile.full_name : (orgData ? orgData.name : "Perfil")) + " | PlataformaShop";
   const description = orgData?.meta_description || (profile?.bio) || "Confira meu perfil e catálogo digital.";
   
   let iconsMetadata = undefined;

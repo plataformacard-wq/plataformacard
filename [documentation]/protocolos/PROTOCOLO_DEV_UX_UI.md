@@ -1,4 +1,4 @@
-# Protocolo de Desenvolvimento UX / UI (PlataformaCard)
+# Protocolo de Desenvolvimento UX / UI (PlataformaShop)
 
 Este documento estabelece as regras estritas de interface (UI) e experiência do usuário (UX) que o Agente de IA e os desenvolvedores devem seguir OBRIGATORIAMENTE ao criar ou modificar páginas, modais e componentes dentro da aplicação. 
 

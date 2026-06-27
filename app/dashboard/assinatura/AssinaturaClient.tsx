@@ -345,7 +345,7 @@ export default function AssinaturaClient() {
           </div>
         </div>
         <button
-          onClick={() => window.open(`https://wa.me/5548999999999?text=Olá,%20gostaria%20de%20tirar%20dúvidas%20sobre%20o%20faturamento%20do%20PlataformaCard%20da%20minha%20org:%20${orgId}`, '_blank')}
+          onClick={() => window.open(`https://wa.me/5548999999999?text=Olá,%20gostaria%20de%20tirar%20dúvidas%20sobre%20o%20faturamento%20do%20PlataformaShop%20da%20minha%20org:%20${orgId}`, '_blank')}
           className="px-6 py-3 rounded-lg border border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)] font-bold text-xs uppercase tracking-widest text-[var(--dash-text-primary)] transition-all shrink-0 active:scale-95"
         >
           Falar com Suporte

@@ -27,10 +27,12 @@ import {
   Check,
   BellRing,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  ToggleLeft,
+  ToggleRight
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
-import { enhanceDescriptionWithAI, fixProductOrthography } from "@/lib/ai-actions";
+import { optimizeProductWithAI } from "@/lib/ai-actions";
 import AiReviewModal from "./AiReviewModal";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
@@ -163,6 +165,7 @@ export default function ProductModal({
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [itemType, setItemType] = useState<"product" | "service">("product");
   const [enableSku, setEnableSku] = useState(true);
+  const [isAiGenerationEnabled, setIsAiGenerationEnabled] = useState(true);
 
   const isEditMode = !!editingProduct;
   const isCaaS = editingProduct?.is_caas === true;
@@ -1095,6 +1098,9 @@ export default function ProductModal({
                       type="text" 
                       value={specChaveDraft} 
                       onChange={e => setSpecChaveDraft(e.target.value)} 
+                      onKeyDown={(e) => {
+                        if(e.key === 'Enter') e.preventDefault();
+                      }}
                       placeholder="Nome (ex: Peso)" 
                       className="w-1/3 rounded-lg border px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500/50 transition-all" 
                       style={{ backgroundColor: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
@@ -1103,7 +1109,12 @@ export default function ProductModal({
                       type="text" 
                       value={specValorDraft} 
                       onChange={e => setSpecValorDraft(e.target.value)} 
-                      onKeyDown={(e) => { if(e.key === 'Enter') addSpec(); }}
+                      onKeyDown={(e) => { 
+                        if(e.key === 'Enter') {
+                          e.preventDefault();
+                          addSpec(); 
+                        }
+                      }}
                       placeholder="Valor (ex: 500g)" 
                       className="flex-1 rounded-lg border px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all" 
                       style={{ backgroundColor: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
@@ -1171,9 +1182,9 @@ export default function ProductModal({
                                 <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
                                   <GripVertical size={16} />
                                 </div>
-                                <div className="flex-1 flex items-center justify-between pr-4">
-                                  <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">{s.chave}</span>
-                                  <span className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>{s.valor}</span>
+                                <div className="flex-1 flex items-start sm:items-center justify-between pr-4 gap-4">
+                                  <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest shrink-0 mt-0.5 sm:mt-0">{s.chave}</span>
+                                  <span className="text-sm font-bold text-right break-words" style={{ color: "var(--dash-text-primary)" }}>{s.valor}</span>
                                 </div>
                               </div>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1265,99 +1276,87 @@ export default function ProductModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Melhorar Descrição */}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!productName) return alert("Dê um nome ao produto primeiro.");
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!productName) return alert("Dê um nome ao produto primeiro.");
 
-                    const validSpecs = specs.filter(s => s.chave.trim() && s.valor.trim());
-                    const hasMinSpecs = validSpecs.length >= 3;
-                    const hasDescription = !!productDescription?.trim();
+                  const validSpecs = specs.filter(s => s.chave.trim() && s.valor.trim());
+                  const hasMinSpecs = validSpecs.length >= 3;
+                  const hasDescription = !!productDescription?.trim();
 
-                    if (!hasDescription && !hasMinSpecs) {
-                      return alert("Para gerar uma descrição com a IA, insira pelo menos 3 especificações técnicas na ficha técnica ou escreva um rascunho de descrição.");
-                    }
+                  if (!hasDescription && !hasMinSpecs) {
+                    return alert("Para gerar uma descrição com a IA, insira pelo menos 3 especificações técnicas na ficha técnica ou escreva um rascunho de descrição.");
+                  }
 
-                    setAiLoadingType('description');
-                    try {
-                      const result = await enhanceDescriptionWithAI({
-                        name: productName,
-                        currentDescription: productDescription,
-                        specs: validSpecs
+                  setAiLoadingType('fixAll');
+                  try {
+                    const result = await optimizeProductWithAI({
+                      name: productName,
+                      highlight: productHighlightText,
+                      description: productDescription,
+                      specs: validSpecs
+                    }, isAiGenerationEnabled ? 'full' : 'spelling_only');
+                    
+                    const formatSpecsList = (s: { chave: string, valor: string }[]) => {
+                      if (!s || s.length === 0) return '(Vazia)';
+                      return `<ul class="list-disc pl-4 space-y-1">` + s.map(x => `<li><strong>${x.chave}:</strong> ${x.valor}</li>`).join('') + `</ul>`;
+                    };
+
+                    if (result.success && result.data) {
+                      setReviewData({
+                        type: 'fixAll',
+                        title: 'Otimização com IA',
+                        explanation: result.data.explanation,
+                        changes: [
+                          { id: 'name', field: 'Nome', from: productName, to: result.data.name },
+                          { id: 'highlight', field: 'Destaque', from: productHighlightText, to: result.data.highlight },
+                          { id: 'description', field: 'Descrição', from: productDescription, to: result.data.description },
+                          { id: 'specs', field: 'Ficha Técnica', from: formatSpecsList(validSpecs), to: formatSpecsList(result.data.specs) }
+                        ],
+                        payload: result.data
                       });
-                      if (result.success && result.data) {
-                        setReviewData({
-                          type: 'description',
-                          title: hasDescription ? 'Melhoria de Descrição' : 'Geração de Descrição',
-                          explanation: result.data.explanation,
-                          original: productDescription,
-                          proposed: result.data.proposed
-                        });
-                      }
-                    } finally {
-                      setAiLoadingType(null);
+                    } else {
+                      alert(result.error || "Erro ao otimizar com IA.");
                     }
-                  }}
-                  disabled={!!aiLoadingType}
-                  className="flex items-center justify-between p-6 rounded-xl border-2 border-dashed border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] hover:border-emerald-500/40 transition-all group disabled:opacity-50"
-                >
-                  <div className="text-left">
-                    <p className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">
-                      {productDescription?.trim() ? "Melhorar Legenda" : "Gerar Descrição"}
-                    </p>
-                    <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">
-                      {productDescription?.trim() 
-                        ? "IA cria um texto de alta conversão" 
-                        : "Criar descrição a partir da Ficha Técnica"}
-                    </p>
+                  } catch (e: any) {
+                    alert("Erro inesperado: " + e.message);
+                  } finally {
+                    setAiLoadingType(null);
+                  }
+                }}
+                disabled={!!aiLoadingType}
+                className={`w-full flex items-center justify-between p-6 rounded-2xl border-2 border-dashed transition-all group disabled:opacity-50 ${isAiGenerationEnabled ? 'border-emerald-500/30 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.08] hover:border-emerald-500/50' : 'border-blue-500/30 bg-blue-500/[0.03] hover:bg-blue-500/[0.08] hover:border-blue-500/50'}`}
+              >
+                <div className="text-left flex-1">
+                  <p className={`text-sm font-black uppercase tracking-widest mb-1 transition-colors ${isAiGenerationEnabled ? 'text-emerald-500' : 'text-blue-500'}`}>
+                    {isAiGenerationEnabled ? "Otimizar Cadastro Completo com IA" : "Revisão Ortográfica Inteligente"}
+                  </p>
+                  <p className="text-xs font-bold text-[var(--dash-text-muted)]">
+                    {isAiGenerationEnabled 
+                      ? "Revisão ortográfica do Nome e Destaque + Geração avançada de Descrição com Copywriting."
+                      : "Apenas revisão ortográfica e gramatical de todos os campos. Mantém a descrição atual intacta."}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAiGenerationEnabled(!isAiGenerationEnabled);
+                    }}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer ${isAiGenerationEnabled ? 'border-emerald-500/20 text-emerald-500' : 'border-blue-500/20 text-blue-500'}`}
+                    title={isAiGenerationEnabled ? "Desativar Geração de Descrição" : "Ativar Geração de Descrição"}
+                  >
+                    {isAiGenerationEnabled ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                    <span className="text-[9px] font-black uppercase tracking-widest">
+                      {isAiGenerationEnabled ? 'Gerar Desc.' : 'Apenas Revisão'}
+                    </span>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    {aiLoadingType === 'description' ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                  <div className={`h-12 w-12 rounded-full flex items-center justify-center group-hover:scale-110 transition-all shadow-lg ${isAiGenerationEnabled ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-emerald-500/30' : 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-blue-500/30'}`}>
+                    {aiLoadingType === 'fixAll' ? <Loader2 className="animate-spin" size={24} /> : <Sparkles size={24} />}
                   </div>
-                </button>
-
-                {/* Corretor com IA */}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setAiLoadingType('fixAll');
-                    try {
-                      const result = await fixProductOrthography({
-                        name: productName,
-                        highlight: productHighlightText,
-                        description: productDescription
-                      });
-                      if (result.success && result.data) {
-                        setReviewData({
-                          type: 'fixAll',
-                          title: 'Corretor com IA',
-                          explanation: result.data.explanation,
-                          changes: [
-                            { id: 'name', field: 'Nome', from: productName, to: result.data.name },
-                            { id: 'highlight', field: 'Destaque', from: productHighlightText, to: result.data.highlight },
-                            { id: 'description', field: 'Descrição', from: productDescription, to: result.data.description }
-                          ],
-                          payload: result.data
-                        });
-                      }
-                    } finally {
-                      setAiLoadingType(null);
-                    }
-                  }}
-                  disabled={!!aiLoadingType}
-                  className="flex items-center justify-between p-6 rounded-xl border-2 border-dashed border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] hover:border-blue-500/40 transition-all group disabled:opacity-50"
-                >
-                  <div className="text-left">
-                    <p className="text-xs font-black uppercase tracking-widest text-blue-500 mb-1">Corretor Profissional</p>
-                    <p className="text-[10px] font-bold text-[var(--dash-text-muted)]">Corrige erros de todos os campos</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    {aiLoadingType === 'fixAll' ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  </div>
-                </button>
-              </div>
+                </div>
+              </button>
             </div>
           </form>
         </div>
@@ -1399,18 +1398,29 @@ export default function ProductModal({
       <AiReviewModal
         isOpen={!!reviewData}
         onClose={() => setReviewData(null)}
-        onConfirm={(acceptedFields) => {
+        onConfirm={(acceptedFields, editedValues) => {
           if (reviewData.type === 'description') {
             if (acceptedFields['single']) {
               setLastDescription(productDescription);
-              setProductDescription(reviewData.proposed);
+              setProductDescription(editedValues['single']);
             }
           } else if (reviewData.type === 'fixAll') {
-            if (acceptedFields['name']) setProductName(reviewData.payload.name);
-            if (acceptedFields['highlight']) setProductHighlightText(reviewData.payload.highlight);
+            if (acceptedFields['name']) setProductName(editedValues['name']);
+            if (acceptedFields['highlight']) setProductHighlightText(editedValues['highlight']);
             if (acceptedFields['description']) {
               setLastDescription(productDescription);
-              setProductDescription(reviewData.payload.description);
+              setProductDescription(editedValues['description']);
+            }
+            if (acceptedFields['specs'] && reviewData.payload.specs) {
+              // Precisamos garantir que todos os campos (id, custom) existam ao atualizar.
+              // A IA retorna só { chave, valor }. Então geramos IDs.
+              const newSpecs = reviewData.payload.specs.map((s: any) => ({
+                id: Math.random().toString(36).substring(7),
+                chave: s.chave,
+                valor: s.valor,
+                custom: true
+              }));
+              setSpecs(newSpecs);
             }
           }
           setReviewData(null);
@@ -1420,6 +1430,7 @@ export default function ProductModal({
         original={reviewData?.original}
         proposed={reviewData?.proposed}
         changes={reviewData?.changes}
+        contextData={{ name: productName, specs }}
       />
 
       <style jsx global>{`

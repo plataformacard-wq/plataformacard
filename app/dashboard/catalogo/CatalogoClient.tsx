@@ -1469,7 +1469,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                                 <div className="flex items-center gap-1">
                                   {userSlug ? (
                                     <Link
-                                      href={`/${userSlug}/catalogo#${product.id}`}
+                                      href={`/${userSlug}/catalogo?preview_catalog=${adminCatalogId || catalogId || ''}#${product.id}`}
                                       target="_blank"
                                       onClick={(e) => e.stopPropagation()}
                                       className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
@@ -1658,7 +1658,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                                 <div className="flex items-center gap-1">
                                   {userSlug ? (
                                     <Link
-                                      href={`/${userSlug}/catalogo#${product.id}`}
+                                      href={`/${userSlug}/catalogo?preview_catalog=${adminCatalogId || catalogId || ''}#${product.id}`}
                                       target="_blank"
                                       onClick={(e) => e.stopPropagation()}
                                       className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm active:scale-95"

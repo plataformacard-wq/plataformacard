@@ -43,6 +43,7 @@ export default async function ConfiguracoesPage() {
     .in("id", catalogIds.length > 0 ? catalogIds : [ '00000000-0000-0000-0000-000000000000' ]); // Dummy id se vazio para evitar erro
 
   let ownCatalog = catalogsData?.find((c) => c.catalog_type !== "CaaS" && c.catalog_type !== "platform");
+  let hasMasterCatalog = catalogsData?.some((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform");
 
   // Se a organização não tiver um catálogo PRÓPRIO, cria um.
   // Mesmo que ela tenha um Master vinculado, ela precisa de um próprio para a tela de configurações.
@@ -66,7 +67,7 @@ export default async function ConfiguracoesPage() {
 
   const { data: orgData } = await supabase
     .from("organizations")
-    .select("accent_color, business_model, slug")
+    .select("accent_color, business_model, slug, custom_domain")
     .eq("id", activeOrgId)
     .single();
 
@@ -98,5 +99,5 @@ export default async function ConfiguracoesPage() {
     products = fetchedProducts || [];
   }
 
-  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} categoryCount={categoryIds.length} />;
+  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} categoryCount={categoryIds.length} customDomain={orgData?.custom_domain || null} isInheritingMaster={!!hasMasterCatalog} />;
 }

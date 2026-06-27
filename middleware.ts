@@ -64,21 +64,36 @@ export async function middleware(request: NextRequest) {
   const isMainDomain = hostname.includes("anotameucontato") || hostname.includes("plataformacard");
 
   if (!isLocalhost && !isVercel && !isMainDomain) {
-    // É um domínio customizado, vamos buscar o slug no banco
+    // É um domínio customizado, vamos buscar a org no banco
     const { data: org } = await supabase
       .from("organizations")
-      .select("slug")
+      .select("id, slug")
       .eq("custom_domain", hostname)
       .maybeSingle();
 
     if (org && org.slug) {
-      // Reescreve a URL internamente para a rota pública do catálogo
       const url = request.nextUrl.clone();
       
-      // Se a rota for a raiz do domínio, vai para /p/[slug]
-      // Se for /produtos, vai para /p/[slug]/produtos
-      const pathSuffix = url.pathname === "/" ? "" : url.pathname;
-      url.pathname = `/p/${org.slug}${pathSuffix}`;
+      if (url.pathname === "/" || url.pathname.startsWith("/catalogo")) {
+        // Acesso à empresa principal
+        url.pathname = `/${org.slug}${url.pathname === "/" ? "" : url.pathname}`;
+      } else {
+        // Acesso a um vendedor (ex: /joao ou /joao/catalogo)
+        const vendorSlug = url.pathname.split("/")[1];
+        
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("slug", vendorSlug)
+          .eq("organization_id", org.id)
+          .maybeSingle();
+          
+        if (!profile) {
+          return new NextResponse("Not Found", { status: 404 });
+        }
+        
+        // A URL já está no formato /vendorSlug, deixamos assim pois app/[slug] lida com isso.
+      }
       
       return NextResponse.rewrite(url);
     }

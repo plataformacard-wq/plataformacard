@@ -15,12 +15,12 @@
 
 # PROMPT DE ENTRADA (COPIE A PARTIR DAQUI)
 
-Olá! Você está assumindo a continuidade do desenvolvimento do projeto **PlataformaCard** a partir de uma sessão anterior no macOS. O desenvolvimento atual foi sincronizado e o build local está **100% funcional e aprovado**.
+Olá! Você está assumindo a continuidade do desenvolvimento do projeto **PlataformaShop** a partir de uma sessão anterior no macOS. O desenvolvimento atual foi sincronizado e o build local está **100% funcional e aprovado**.
 
 Aqui estão as diretrizes e o estado atual para restabelecer sua sincronia de contexto no Windows:
 
 ## 1. Informações Básicas do Repositório
-*   **Nome do Projeto**: PlataformaCard (`startagenciadigital/plataformacard`)
+*   **Nome do Projeto**: PlataformaShop (`startagenciadigital/plataformashop`)
 *   **Stack Principal**: Next.js 16.1.6 (Turbopack), Supabase (PostgreSQL), TypeScript, Lucide Icons, Framer Motion.
 *   **Ambiente de Produção**: Vercel.
 *   **Branch Atual**: `main` (com upstream configurado e atualizado).
