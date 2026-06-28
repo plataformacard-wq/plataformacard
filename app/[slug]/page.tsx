@@ -295,7 +295,17 @@ export default async function Page(props: PageProps) {
   const secondaryColor = orgRes.data?.secondary_color || "#128C7E";
   const customBusinessHours = (safeProfile.custom_business_hours as unknown as BusinessHours) ?? null;
 
-  const isRecessActive = safeProfile.recess_ends_at && new Date(safeProfile.recess_ends_at) > new Date();
+  let isHolidayRecessActive = false;
+  if (customBusinessHours?.holiday_decisions) {
+    const spDate = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const todayStr = spDate.toISOString().split('T')[0];
+    const todayDecision = customBusinessHours.holiday_decisions.find((d: any) => d.date === todayStr);
+    if (todayDecision && todayDecision.work === false) {
+      isHolidayRecessActive = true;
+    }
+  }
+
+  const isRecessActive = (safeProfile.recess_ends_at && new Date(safeProfile.recess_ends_at) > new Date()) || isHolidayRecessActive;
   const isTerminated = safeProfile.status === 'terminated';
   const isPaused = safeProfile.status === 'paused' || isRecessActive || safeProfile.is_accepting_orders === false;
   const isRedirecting = !!safeProfile.redirect_leads;

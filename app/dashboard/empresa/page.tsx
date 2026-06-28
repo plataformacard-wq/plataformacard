@@ -182,6 +182,19 @@ export default function EmpresaPage() {
     });
   }
 
+  function handleUpdateAlertAdvanceDays(days: number) {
+    setBusinessHours(prev => {
+      const current = prev.holiday_settings || { autoCloseOnNationalHolidays: false, customDates: [] };
+      return {
+        ...prev,
+        holiday_settings: {
+          ...current,
+          alertAdvanceDays: days
+        }
+      };
+    });
+  }
+
   function handleAddCustomHoliday() {
     if (!newCustomDate) return;
     setBusinessHours(prev => {
@@ -207,6 +220,40 @@ export default function EmpresaPage() {
           ...current,
           customDates: current.customDates.filter(d => d !== dateToRemove)
         }
+      };
+    });
+  }
+
+  function handleAddAlert() {
+    setBusinessHours(prev => {
+      const currentAlerts = prev.custom_alerts || [];
+      if (currentAlerts.length >= 3) return prev;
+      return {
+        ...prev,
+        custom_alerts: [
+          ...currentAlerts,
+          { id: crypto.randomUUID(), message: "", color: "blue", advanceDays: 7 }
+        ]
+      };
+    });
+  }
+
+  function handleUpdateAlert(id: string, field: "message" | "color" | "advanceDays", value: string | number) {
+    setBusinessHours(prev => {
+      const currentAlerts = prev.custom_alerts || [];
+      return {
+        ...prev,
+        custom_alerts: currentAlerts.map(a => a.id === id ? { ...a, [field]: value } : a)
+      };
+    });
+  }
+
+  function handleRemoveAlert(id: string) {
+    setBusinessHours(prev => {
+      const currentAlerts = prev.custom_alerts || [];
+      return {
+        ...prev,
+        custom_alerts: currentAlerts.filter(a => a.id !== id)
       };
     });
   }
@@ -296,7 +343,7 @@ export default function EmpresaPage() {
                     type="checkbox"
                     checked={dayData.isOpen}
                     onChange={() => handleDayToggle(day)}
-                    className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
                   />
                   <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
                     {dayNames[day]}
@@ -414,52 +461,147 @@ export default function EmpresaPage() {
           </div>
         </div>
 
-        <div className="pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
-          <h3 className="text-sm font-medium mb-3" style={{ color: "var(--dash-text-primary)" }}>
-            Adicionar Data Personalizada (Feriado local ou recesso)
-          </h3>
-          <div className="flex items-center gap-2 mb-4">
-            <input
-              type="date"
-              value={newCustomDate}
-              onChange={(e) => setNewCustomDate(e.target.value)}
-              className="rounded-lg border px-3 py-2 text-sm outline-none"
-              style={{
-                background: "var(--dash-input-bg)",
-                borderColor: "var(--dash-input-border)",
-                color: "var(--dash-text-primary)",
-              }}
-            />
+        {businessHours.holiday_settings?.autoCloseOnNationalHolidays && (
+          <>
+            <div className="pt-4 border-t mt-4" style={{ borderColor: "var(--dash-border)" }}>
+              <h3 className="text-sm font-medium mb-3" style={{ color: "var(--dash-text-primary)" }}>
+                Adicionar Data Personalizada (Feriado local ou recesso)
+              </h3>
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="date"
+                  value={newCustomDate}
+                  onChange={(e) => setNewCustomDate(e.target.value)}
+                  className="rounded-lg border px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: "var(--dash-input-bg)",
+                    borderColor: "var(--dash-input-border)",
+                    color: "var(--dash-text-primary)",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomHoliday}
+                  className="rounded-lg px-4 py-2 text-sm font-bold bg-purple-500 text-white transition-colors hover:bg-purple-600"
+                >
+                  Adicionar
+                </button>
+              </div>
+
+              {businessHours.holiday_settings?.customDates && businessHours.holiday_settings.customDates.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {businessHours.holiday_settings.customDates.map((dateStr) => {
+                    const [y, m, d] = dateStr.split('-');
+                    return (
+                      <div key={dateStr} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-[var(--dash-hover-bg)]" style={{ borderColor: "var(--dash-border)" }}>
+                        <span className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{`${d}/${m}/${y}`}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomHoliday(dateStr)}
+                          className="text-red-500 hover:text-red-700 ml-1 rounded-full p-0.5"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {businessHours.holiday_settings?.autoCloseOnNationalHolidays && (
+        <div className="rounded-[32px] p-8 border shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+            <div>
+              <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+                Mural de Avisos (Alertas)
+              </h2>
+              <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+                {businessModel === "B2B" 
+                  ? "Crie até três alertas para comunicar ao seu time de vendas que os feriados estão chegando." 
+                  : "Crie até três alertas para se organizar no próximo feriado."}
+              </p>
+            </div>
             <button
               type="button"
-              onClick={handleAddCustomHoliday}
-              className="rounded-lg px-4 py-2 text-sm font-bold bg-purple-500 text-white transition-colors hover:bg-purple-600"
+              onClick={handleAddAlert}
+              disabled={(businessHours.custom_alerts || []).length >= 3}
+              className="rounded-lg px-4 py-2 text-sm font-bold bg-blue-500 text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
             >
-              Adicionar
+              + Novo Alerta
             </button>
           </div>
 
-          {businessHours.holiday_settings?.customDates && businessHours.holiday_settings.customDates.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {businessHours.holiday_settings.customDates.map((dateStr) => {
-                const [y, m, d] = dateStr.split('-');
-                return (
-                  <div key={dateStr} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-[var(--dash-hover-bg)]" style={{ borderColor: "var(--dash-border)" }}>
-                    <span className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{`${d}/${m}/${y}`}</span>
+          {businessHours.custom_alerts && businessHours.custom_alerts.length > 0 && (
+            <div className="space-y-4">
+              {businessHours.custom_alerts.map((alert) => (
+                <div key={alert.id} className="flex flex-col sm:flex-row gap-3 p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={alert.message}
+                      onChange={(e) => handleUpdateAlert(alert.id, "message", e.target.value)}
+                      placeholder="Digite a mensagem do alerta..."
+                      className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
+                      style={{
+                        background: "var(--dash-input-bg)",
+                        borderColor: "var(--dash-input-border)",
+                        color: "var(--dash-text-primary)",
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Exibir</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={alert.advanceDays ?? 7}
+                      onChange={(e) => handleUpdateAlert(alert.id, "advanceDays", Number(e.target.value))}
+                      className="w-16 rounded-lg border px-2 py-2 text-sm outline-none text-center"
+                      title="Dias de antecedência para exibir o alerta"
+                      style={{
+                        background: "var(--dash-input-bg)",
+                        borderColor: "var(--dash-input-border)",
+                        color: "var(--dash-text-primary)",
+                      }}
+                    />
+                    <span className="text-sm text-gray-500 whitespace-nowrap">dias antes</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={alert.color}
+                      onChange={(e) => handleUpdateAlert(alert.id, "color", e.target.value)}
+                      className="dash-select rounded-lg border pl-3 pr-10 py-2 text-sm outline-none"
+                      style={{
+                        background: "var(--dash-input-bg)",
+                        borderColor: "var(--dash-input-border)",
+                        color: "var(--dash-text-primary)",
+                      }}
+                    >
+                      <option value="blue">Azul (Informativo)</option>
+                      <option value="yellow">Amarelo (Atenção)</option>
+                      <option value="red">Vermelho (Urgente)</option>
+                      <option value="green">Verde (Sucesso)</option>
+                    </select>
                     <button
                       type="button"
-                      onClick={() => handleRemoveCustomHoliday(dateStr)}
-                      className="text-red-500 hover:text-red-700 ml-1 rounded-full p-0.5"
+                      onClick={() => handleRemoveAlert(alert.id)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remover alerta"
                     >
                       ✕
                     </button>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-4">
         <button

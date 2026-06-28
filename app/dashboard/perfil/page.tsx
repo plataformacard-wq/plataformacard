@@ -912,14 +912,19 @@ function PerfilContent() {
                     >
                       <div className="p-6 pt-0 space-y-6 border-t" style={{ borderColor: "var(--dash-border)" }}>
                         
-                        <div className="pt-4 space-y-4">
+                        {!canCustomize && (
+                          <div className="mb-4 text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-2">
+                            <Info size={14} /> Você está utilizando o horário padrão da sua empresa.
+                          </div>
+                        )}
+                        <div className={`pt-4 space-y-4 ${!canCustomize ? "opacity-60 pointer-events-none" : ""}`}>
                           <p className="text-xs font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Quadro de Horários:</p>
                           {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
                             const dayData = customBusinessHours.schedule[day];
                             return (
                               <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
                                 <div className="w-auto min-w-[12rem] shrink-0 flex flex-wrap items-center gap-2">
-                                  <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4" />
+                                  <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500" />
                                   <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
                                   {day === 'monday' && (
                                     <button
@@ -937,12 +942,12 @@ function PerfilContent() {
                                     <div key={idx} className="flex items-center gap-2">
                                       <input 
                                         type="time" value={shift.open} onChange={e => handleShiftChange(day, idx, "open", e.target.value)}
-                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
                                       />
                                       <span className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>até</span>
                                       <input 
                                         type="time" value={shift.close} onChange={e => handleShiftChange(day, idx, "close", e.target.value)}
-                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                                        className="px-2 py-1 rounded-lg border text-xs" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
                                       />
                                     </div>
                                   ))}

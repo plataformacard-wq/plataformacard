@@ -139,7 +139,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       const isB2B = businessModel === "B2B";
       const isAllService = businessModel === "ALL_SERVICE";
       const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
-      const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS;
+      const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS && role !== "b2b_admin";
 
       navLinks.push({ 
         label: "Empresa", 
@@ -164,7 +164,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
       }
       
-      if (isB2C || isAllService) {
+      if ((isB2C || isAllService) && role !== "b2b_admin" && businessModel !== "B2B") {
         navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
       }
     } else if (role === "seller") {

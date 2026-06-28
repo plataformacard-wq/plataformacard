@@ -761,7 +761,7 @@ export default function VendedoresClient({
                   <div className="flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor <span className="text-red-500">*</span></label>
                         <input 
                           type="text" value={formName} onChange={e => setFormName(e.target.value)}
                           className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
@@ -770,7 +770,7 @@ export default function VendedoresClient({
                       </div>
                       <div>
                         <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between items-center">
-                          <span>Bio / Cargo</span>
+                          <span>Bio / Cargo <span className="text-red-500">*</span></span>
                           <span className={`text-[10px] ${formBio.length >= 70 ? 'text-amber-500 font-bold' : 'text-zinc-400'}`}>
                             {formBio.length}/80
                           </span>
@@ -796,7 +796,7 @@ export default function VendedoresClient({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp <span className="text-red-500">*</span></label>
                     <input 
                       type="tel" 
                       value={formWhatsapp} 
@@ -807,7 +807,7 @@ export default function VendedoresClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Link do Cartão (Slug)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Link do Cartão (Slug) <span className="text-red-500">*</span></label>
                     <input 
                       type="text" value={formSlug} onChange={e => setFormSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                       placeholder="ex: nome_do_vendedor"

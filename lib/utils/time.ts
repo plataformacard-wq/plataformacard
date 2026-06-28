@@ -13,10 +13,24 @@ export type HolidaySettings = {
   customDates: string[]; // YYYY-MM-DD
 };
 
+export type CustomAlert = {
+  id: string;
+  message: string;
+  color: string;
+  advanceDays: number; // Days in advance to show this specific alert
+};
+
+export type HolidayDecision = {
+  date: string;
+  work: boolean;
+};
+
 export type BusinessHours = {
   timezone: string;
   manual_override: "open" | "closed" | null;
   holiday_settings?: HolidaySettings;
+  custom_alerts?: CustomAlert[];
+  holiday_decisions?: HolidayDecision[];
   schedule: {
     monday: DaySchedule;
     tuesday: DaySchedule;

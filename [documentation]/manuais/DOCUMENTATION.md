@@ -35,6 +35,11 @@ O sistema utiliza uma hierarquia de três níveis para determinar se um catálog
 2.  **Permissão de Customização:** Se `can_customize_hours` for `true` e houver horários configurados no perfil, estes têm prioridade.
 3.  **Herança da Empresa:** Caso o vendedor não tenha permissão ou não tenha configurado horários, o sistema herda os horários da `Organization`.
 4.  **Fallback de Segurança:** Se nem o vendedor nem a empresa tiverem horários salvos, o sistema aplica o `DEFAULT_BUSINESS_HOURS` (Seg-Sex 08-18h, Sáb 08-12h) para evitar catálogos "sempre abertos" por erro de configuração.
+5.  **Sistema Inteligente de Feriados (Novo):** A gestão de feriados reside no objeto `holiday_settings` de `organizations.business_hours`.
+    - Ao ativar o fechamento em Feriados Nacionais, o sistema consulta a BrasilAPI no Dashboard.
+    - Se houver um feriado iminente (dentro de 60 dias), o gestor pode configurar "Alertas Customizáveis" em sequência, usando o campo `advanceDays` de cada alerta para exibir mensagens estratégicas para o time B2B ou B2C.
+    - Faltando 7 dias para o feriado, o vendedor recebe um Card de Decisão onde salva sua preferência em `holiday_decisions` no perfil.
+    - Se a decisão for "Vou folgar", o sistema força `isRecessActive = true` nas rotas públicas (Catálogo e Vitrine), acionando imediatamente as pausas e roteamento de leads para aquele dia específico, via fuso horário "America/Sao_Paulo".
 
 ## 6. Prevenção de Regressões (Protocolo de Resiliência)
 - **Prevenção de Monolitos (Code Health):** A cada 5 invocações do `protocolo start`, o assistente executará automaticamente uma varredura para identificar arquivos TypeScript/TSX com mais de 500 linhas, sugerindo um plano de refatoração para evitar acúmulo de débito técnico. O contador está mantido em `app/_protocol/protocol_state.json`.

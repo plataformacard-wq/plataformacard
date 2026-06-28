@@ -209,7 +209,20 @@ export default async function Page(props: PageProps) {
     }
   }
 
-  const isRecessActive = profile?.recess_ends_at && new Date(profile.recess_ends_at) > new Date();
+  let isHolidayRecessActive = false;
+  if (profile?.custom_business_hours) {
+    const customHours = profile.custom_business_hours as any;
+    if (customHours.holiday_decisions) {
+      const spDate = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+      const todayStr = spDate.toISOString().split('T')[0];
+      const todayDecision = customHours.holiday_decisions.find((d: any) => d.date === todayStr);
+      if (todayDecision && todayDecision.work === false) {
+        isHolidayRecessActive = true;
+      }
+    }
+  }
+
+  const isRecessActive = (profile?.recess_ends_at && new Date(profile.recess_ends_at) > new Date()) || isHolidayRecessActive;
   const isTerminated = profile?.status === 'terminated';
   const isPaused = profile?.status === 'paused' || isRecessActive;
   const isRedirecting = !!profile?.redirect_leads;
