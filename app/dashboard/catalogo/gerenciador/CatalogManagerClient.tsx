@@ -69,8 +69,8 @@ export default function CatalogManagerClient({
             }`}
           >
             {/* Tag Herdado / Próprio */}
-            <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+            <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-1.5">
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shadow-sm whitespace-nowrap ${
                 catalog.isInherited
                   ? "bg-purple-600 text-white dark:bg-purple-500"
                   : "bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900"
@@ -94,11 +94,11 @@ export default function CatalogManagerClient({
                     <Globe size={28} />
                   </div>
                 )}
-                <div>
-                  <h3 className="font-bold text-lg text-[var(--dash-text)] pr-24 line-clamp-2 leading-tight">
+                <div className="flex-1 min-w-0 pr-28 sm:pr-32">
+                  <h3 className="font-bold text-lg text-[var(--dash-text)] line-clamp-2 leading-tight">
                     {catalog.name}
                   </h3>
-                  <p className="text-sm text-[var(--dash-text-secondary)] mt-1">
+                  <p className="text-sm text-[var(--dash-text-secondary)] mt-1 truncate">
                     {catalog.type === 'CaaS' ? 'Master Catalog' : catalog.type}
                   </p>
                 </div>
