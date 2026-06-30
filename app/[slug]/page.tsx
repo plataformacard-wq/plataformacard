@@ -177,16 +177,8 @@ async function getCatalogStats(
   const categoryCount = categoryIds.length;
 
   let productCount = 0;
-  let latestUpdate = null;
-
+  let latestUpdate: string | null = null;
   if (categoryIds.length > 0) {
-    const { data: prods1 } = await supabase
-      .from("products")
-      .select("id, created_at, updated_at")
-      .in("catalog_id", catalogIds)
-      .eq("is_active", true)
-      .is("deleted_at", null);
-
     const { data: prods2 } = await supabase
       .from("products")
       .select("id, created_at, updated_at")
@@ -195,7 +187,6 @@ async function getCatalogStats(
       .is("deleted_at", null);
 
     const allProdsMap = new Map();
-    prods1?.forEach(p => allProdsMap.set(p.id, p));
     prods2?.forEach(p => allProdsMap.set(p.id, p));
     
     productCount = allProdsMap.size;
@@ -210,25 +201,8 @@ async function getCatalogStats(
       }
     });
   } else {
-    const [{ count: pCount }, { data: latestProduct }] = await Promise.all([
-      supabase
-        .from("products")
-        .select("*", { count: "exact", head: true })
-        .in("catalog_id", catalogIds)
-        .eq("is_active", true)
-        .is("deleted_at", null),
-      supabase
-        .from("products")
-        .select("created_at, updated_at")
-        .in("catalog_id", catalogIds)
-        .eq("is_active", true)
-        .is("deleted_at", null)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-    ]);
-    productCount = pCount ?? 0;
-    latestUpdate = latestProduct?.updated_at || latestProduct?.created_at || null;
+    productCount = 0;
+    latestUpdate = null;
   }
 
   return {

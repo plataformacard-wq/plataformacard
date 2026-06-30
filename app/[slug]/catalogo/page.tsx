@@ -409,35 +409,20 @@ export default async function Page(props: PageProps) {
   let overrides: any[] = [];
 
   if (catalogIds.length > 0) {
-    const { data: prods1 } = await supabase
-      .from("products")
-      .select(
-        "id, catalog_id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
-      )
-      .in("catalog_id", catalogIds)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .order("sort_order", { ascending: true });
-
-    let prods2: any[] = [];
+    let fetchedProducts: Product[] = [];
     if (categories.length > 0) {
       const { data: p2 } = await supabase
         .from("products")
         .select(
-          "id, catalog_id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
+          "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
         )
         .in("category_id", categories.map(c => c.id))
         .eq("is_active", true)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
-      prods2 = p2 || [];
+        
+      fetchedProducts = (p2 || []) as Product[];
     }
-
-    const allProdsMap = new Map();
-    prods1?.forEach(p => allProdsMap.set(p.id, p));
-    prods2?.forEach(p => allProdsMap.set(p.id, p));
-    
-    const fetchedProducts = Array.from(allProdsMap.values()) as Product[];
 
     const missingCatIds = Array.from(new Set(fetchedProducts.map(p => p.category_id))).filter(id => !categories.some(c => c.id === id));
     if (missingCatIds.length > 0) {
@@ -474,7 +459,8 @@ export default async function Page(props: PageProps) {
       .map(c => c.id);
 
     products = fetchedProducts.reduce((acc, product) => {
-      const isCaasProduct = product.catalog_id ? caasCatalogIds.includes(product.catalog_id) : false;
+      const category = categories.find(c => c.id === product.category_id);
+      const isCaasProduct = category ? caasCatalogIds.includes(category.catalog_id) : false;
       
       if (isCaasProduct) {
         const override = overrides.find((o: any) => o.product_id === product.id) as any;
