@@ -201,7 +201,7 @@ async function getCatalogStats(
     productCount = allProdsMap.size;
     
     // Find latest update
-    let latest = null;
+    let latest: Date | null = null;
     allProdsMap.forEach(p => {
       const dt = new Date(p.updated_at || p.created_at || 0);
       if (!latest || dt > latest) {
