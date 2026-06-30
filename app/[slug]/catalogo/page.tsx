@@ -474,7 +474,7 @@ export default async function Page(props: PageProps) {
       .map(c => c.id);
 
     products = fetchedProducts.reduce((acc, product) => {
-      const isCaasProduct = caasCatalogIds.includes(product.catalog_id);
+      const isCaasProduct = product.catalog_id ? caasCatalogIds.includes(product.catalog_id) : false;
       
       if (isCaasProduct) {
         const override = overrides.find(o => o.product_id === product.id);
