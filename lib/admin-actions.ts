@@ -208,13 +208,44 @@ export async function hardDeleteOrganization(orgId: string) {
 export async function getOrganizationStats(orgId: string) {
   const supabase = createAdminClient();
 
-  // 1. Busca Catálogo Ativo
-  const { data: orgCatalog } = await supabase
+  // 1. Busca Catálogos Ativos (via org)
+  const { data: orgCatalogs } = await supabase
     .from("organization_catalogs")
     .select("catalog_id")
     .eq("organization_id", orgId)
-    .eq("is_enabled", true)
-    .maybeSingle();
+    .eq("is_enabled", true);
+
+  const orgCatalogIds = orgCatalogs?.map((c) => c.catalog_id) || [];
+
+  // 1.5. Busca Catálogos Vinculados aos Perfis da Org (ex: herança B2C)
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("organization_id", orgId);
+    
+  let profileCatalogIds: string[] = [];
+  if (profiles && profiles.length > 0) {
+    const pIds = profiles.map(p => p.id);
+    const { data: profileCatalogs } = await supabase
+      .from("profile_catalogs")
+      .select("organization_catalog_id")
+      .in("profile_id", pIds)
+      .eq("is_selected", true);
+      
+    if (profileCatalogs && profileCatalogs.length > 0) {
+      const ocIds = profileCatalogs.map(pc => pc.organization_catalog_id);
+      const { data: orgCats } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .in("id", ocIds);
+        
+      if (orgCats) {
+        profileCatalogIds = orgCats.map(c => c.catalog_id);
+      }
+    }
+  }
+
+  const catalogIds = Array.from(new Set([...orgCatalogIds, ...profileCatalogIds]));
 
   // 2. Contagem de Vendedores
   const { count: sellers } = await supabase
@@ -225,16 +256,21 @@ export async function getOrganizationStats(orgId: string) {
 
   // 3. Contagem de Categorias
   let categoryCount = 0;
-  if (orgCatalog?.catalog_id) {
-    const { count: catCount } = await supabase
+  let catIds: string[] = [];
+  if (catalogIds.length > 0) {
+    const { data: categories } = await supabase
       .from("categories")
-      .select("*", { count: "exact", head: true })
-      .eq("catalog_id", orgCatalog.catalog_id);
-    categoryCount = catCount || 0;
+      .select("id")
+      .in("catalog_id", catalogIds);
+
+    if (categories) {
+      categoryCount = categories.length;
+      catIds = categories.map((c) => c.id);
+    }
   }
 
   // 4. Contagem de Produtos (Busca Híbrida)
-  // Tenta por organization_id primeiro
+  // Conta produtos próprios da organização
   const { count: directProducts } = await supabase
     .from("products")
     .select("*", { count: "exact", head: true })
@@ -243,23 +279,16 @@ export async function getOrganizationStats(orgId: string) {
 
   let productCount = directProducts || 0;
 
-  // Se não encontrou nada por organization_id, tenta via categorias do catálogo
-  if (productCount === 0 && orgCatalog?.catalog_id) {
-    const { data: categories } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("catalog_id", orgCatalog.catalog_id);
+  // Soma produtos de catálogos herdados (onde organization_id é diferente)
+  if (catIds.length > 0) {
+    const { count: indirectProducts } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .in("category_id", catIds)
+      .neq("organization_id", orgId)
+      .is("deleted_at", null);
 
-    if (categories && categories.length > 0) {
-      const catIds = categories.map(c => c.id);
-      const { count: indirectProducts } = await supabase
-        .from("products")
-        .select("*", { count: "exact", head: true })
-        .in("category_id", catIds)
-        .is("deleted_at", null);
-      
-      productCount = indirectProducts || 0;
-    }
+    productCount += (indirectProducts || 0);
   }
 
   return {

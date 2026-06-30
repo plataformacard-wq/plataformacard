@@ -112,6 +112,9 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         const instantName = user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
         setNome(instantName);
 
+        let hasContactInfo = false;
+        let hasProducts = false;
+
         // Tenta obter o perfil via Server Action
         let profile = null;
         try {
@@ -125,7 +128,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           setBusinessModel("B2C");
           const fallbackName = user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário";
           setNome(fallbackName);
-          setIsReady(true);
+          setIsReady(false);
           return;
         }
 
@@ -142,6 +145,10 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           dash_access_analytics: !!profile.dash_access_analytics,
           dash_access_company: !!profile.dash_access_company,
         });
+
+        if (profile.whatsapp) {
+          hasContactInfo = true;
+        }
 
         // GUARDA CLIENT-SIDE: Super Admin não deve ficar no /dashboard sem Shadow Mode
         const shadowOrgId = document.cookie
@@ -176,21 +183,27 @@ export function PanelLayout({ children }: PanelLayoutProps) {
               setAvatar(cacheBuster);
             }
 
-            // Detecta excedência de plano (uso acima do limite)
-            // Só verifica para clientes reais (não super admin sem shadow)
-            if (orgPlanId && userRole !== "main_admin") {
-              try {
-                const usageResult = await getOrganizationStats(targetOrgId);
-                if (usageResult.success) {
+            if (org?.whatsapp) {
+              hasContactInfo = true;
+            }
+
+            // Sempre buscamos stats para verificar se o catálogo está pronto (products > 0)
+            try {
+              const usageResult = await getOrganizationStats(targetOrgId);
+              if (usageResult.success) {
+                hasProducts = usageResult.stats.products > 0;
+                
+                // Detecta excedência de plano apenas para clientes reais
+                if (orgPlanId && userRole !== "main_admin") {
                   const overages = detectOverage(orgPlanId, {
                     products: usageResult.stats.products,
                     sellers: usageResult.stats.sellers,
                   });
                   setPlanOverages(overages);
                 }
-              } catch (overageErr) {
-                console.warn("Erro ao verificar excedência de plano:", overageErr);
               }
+            } catch (statsErr) {
+              console.warn("Erro ao buscar stats da organização:", statsErr);
             }
             
             // Se estiver em shadow mode, podemos querer mostrar o nome da empresa em algum lugar
@@ -300,18 +313,18 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             )
             .subscribe();
           
-          setIsReady(true);
+          setIsReady(hasContactInfo && hasProducts);
           return () => {
             supabase.removeChannel(channel);
           };
         }
         
-        setIsReady(true);
+        setIsReady(hasContactInfo && hasProducts);
       } catch (err) {
         console.error("Erro crítico ao carregar painel:", err);
         // Garantimos que o app não trave em loading infinito mesmo com erro
         setBusinessModel("B2B");
-        setIsReady(true);
+        setIsReady(false);
       }
     }
 
