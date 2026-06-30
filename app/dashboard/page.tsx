@@ -35,9 +35,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState<string>("");
   const isB2B = businessModel === "B2B" || (!isCaaS && userRole === "b2b_admin");
   const [loading, setLoading] = useState(true);
-  const [showUnlinkedWarning, setShowUnlinkedWarning] = useState(false);
   const [showNoWhatsappWarning, setShowNoWhatsappWarning] = useState(false);
-  const [showNoCatalogBanner, setShowNoCatalogBanner] = useState(false);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [hasActiveMasterState, setHasActiveMasterState] = useState(false);
   const [hasSellersWithoutPhoto, setHasSellersWithoutPhoto] = useState(false);
@@ -249,13 +247,9 @@ export default function DashboardPage() {
             const b2bNeedsSellers = currentIsB2B && (sCount ?? 0) === 0;
             const b2cNeedsWhatsapp = !currentIsB2B && hasPublishedLink && !validWhatsapp;
 
-            if ((pCount ?? 0) === 0 && !hasActiveMaster) {
-              setShowNoCatalogBanner(true);
-            } else if (b2bNeedsSellers || b2cNeedsWhatsapp) {
+            if (b2bNeedsSellers || b2cNeedsWhatsapp) {
               setShowNoWhatsappWarning(true);
             }
-
-            setShowUnlinkedWarning(!hasActiveMaster && !!hasAnyMaster);
           }
 
           // Visitas via RPC
@@ -436,28 +430,49 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Warning Banner */}
-      {showUnlinkedWarning && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-[32px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-        >
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
-              <Package size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-base text-amber-800 dark:text-amber-400">
-                Catálogo Master Desvinculado
-              </h3>
-              <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed max-w-2xl">
-                O catálogo master (CaaS) foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
-              </p>
-            </div>
+      {/* Permanent Catalog Status Banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`p-6 rounded-[32px] border backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
+          hasActiveMasterState 
+            ? "border-purple-500/20 bg-purple-500/5"
+            : "border-emerald-500/20 bg-emerald-500/5"
+        }`}
+      >
+        <div className="flex items-center gap-4">
+          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${
+            hasActiveMasterState 
+              ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          }`}>
+            <Package size={24} />
           </div>
-        </motion.div>
-      )}
+          <div>
+            <h3 className={`font-bold text-base ${
+              hasActiveMasterState ? "text-purple-800 dark:text-purple-400" : "text-emerald-800 dark:text-emerald-400"
+            }`}>
+              {hasActiveMasterState ? "Operando com Catálogo Herdado (CaaS)" : "Operando com Catálogo Próprio"}
+            </h3>
+            <p className={`text-xs mt-1 leading-relaxed max-w-2xl ${
+              hasActiveMasterState ? "text-purple-700/80 dark:text-purple-400/80" : "text-emerald-700/80 dark:text-emerald-400/80"
+            }`}>
+              {hasActiveMasterState 
+                ? "Os produtos exibidos na sua vitrine e configurações principais são baseados no catálogo matriz da sua franqueadora."
+                : "Os produtos exibidos na sua vitrine são gerenciados exclusivamente por você."}
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/dashboard/catalogo/gerenciador"
+          className={`shrink-0 w-full sm:w-auto rounded-xl px-5 py-2.5 text-sm font-bold text-white transition flex items-center justify-center gap-2 mt-4 md:mt-0 ${
+            hasActiveMasterState ? "bg-purple-600 hover:bg-purple-700" : "bg-emerald-600 hover:bg-emerald-700"
+          }`}
+        >
+          Gerenciar
+          <ArrowUpRight size={16} />
+        </Link>
+      </motion.div>
 
       {/* Banner: Sem Catálogo (Ação Positiva) */}
       {/* Mural de Avisos */}
@@ -525,34 +540,7 @@ export default function DashboardPage() {
       )}
 
       {/* Banners existentes de WhatsApp, Catálogo Vazio, etc. */}
-      {showNoCatalogBanner && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-[32px] border border-blue-500/20 bg-blue-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-        >
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
-              <Package size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-base text-blue-800 dark:text-blue-400">
-                Comece por aqui: Cadastre seu novo catálogo
-              </h3>
-              <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1 leading-relaxed max-w-2xl">
-                Seu catálogo está vazio. Adicione produtos para começar a vender e compartilhar com seus clientes.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/dashboard/catalogo/configuracoes"
-            className="shrink-0 w-full sm:w-auto rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 flex items-center justify-center gap-2 mt-4 md:mt-0"
-          >
-            Cadastrar Catálogo
-            <ArrowUpRight size={16} />
-          </Link>
-        </motion.div>
-      )}
+
 
       {/* Warning WhatsApp */}
       {showNoWhatsappWarning && (

@@ -225,12 +225,9 @@ export function TopHeader({
           >
             {isReady ? <ExternalLink size={18} /> : <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
             <span className="hidden lg:inline">
-              {isReady 
-                ? (isCaaS || isB2B ? "Ver meu Catálogo" : "Ver meu Cartão") 
-                : "Visualizar Rascunho"
-              }
+              {isCaaS || isB2B ? "Ver catálogo online" : "Visualizar cartão online"}
             </span>
-            <span className="lg:hidden">{isReady ? (isCaaS || isB2B ? "Catálogo" : "Cartão") : "Rascunho"}</span>
+            <span className="lg:hidden">{isCaaS || isB2B ? "Catálogo" : "Cartão"}</span>
           </Link>
         )}
 

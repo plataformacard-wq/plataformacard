@@ -407,20 +407,48 @@ export default async function Page(props: PageProps) {
   let products: Product[] = [];
   let overrides: any[] = [];
 
-  if (categories.length > 0) {
-    const categoryIds = categories.map(c => c.id);
-    
-    const { data: productsData } = await supabase
+  if (catalogIds.length > 0) {
+    const { data: prods1 } = await supabase
       .from("products")
       .select(
-        "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
+        "id, catalog_id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
       )
-      .in("category_id", categoryIds)
+      .in("catalog_id", catalogIds)
       .eq("is_active", true)
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });
 
-    const fetchedProducts = (productsData ?? []) as Product[];
+    let prods2: any[] = [];
+    if (categories.length > 0) {
+      const { data: p2 } = await supabase
+        .from("products")
+        .select(
+          "id, catalog_id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
+        )
+        .in("category_id", categories.map(c => c.id))
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("sort_order", { ascending: true });
+      prods2 = p2 || [];
+    }
+
+    const allProdsMap = new Map();
+    prods1?.forEach(p => allProdsMap.set(p.id, p));
+    prods2?.forEach(p => allProdsMap.set(p.id, p));
+    
+    const fetchedProducts = Array.from(allProdsMap.values()) as Product[];
+
+    const missingCatIds = Array.from(new Set(fetchedProducts.map(p => p.category_id))).filter(id => !categories.some(c => c.id === id));
+    if (missingCatIds.length > 0) {
+      const { data: extraCats } = await supabase
+        .from("categories")
+        .select("id, catalog_id, name, description, sort_order, specs_title:default_specs_title, show_specs:show_specs_by_default, show_colors:show_colors_by_default")
+        .in("id", missingCatIds)
+        .order("sort_order", { ascending: true });
+      if (extraCats) {
+        categories.push(...(extraCats as Category[]));
+      }
+    }
 
     // Fetch overrides se o usuário pertence a uma organização
     if (targetOrgId) {
@@ -443,10 +471,9 @@ export default async function Page(props: PageProps) {
         return !isOwner;
       })
       .map(c => c.id);
-    const caasCategoryIds = categories.filter(c => caasCatalogIds.includes(c.catalog_id)).map(c => c.id);
 
     products = fetchedProducts.reduce((acc, product) => {
-      const isCaasProduct = caasCategoryIds.includes(product.category_id);
+      const isCaasProduct = caasCatalogIds.includes(product.catalog_id);
       
       if (isCaasProduct) {
         const override = overrides.find(o => o.product_id === product.id);

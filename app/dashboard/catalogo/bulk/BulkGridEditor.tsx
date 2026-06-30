@@ -290,8 +290,20 @@ export default function BulkGridEditor() {
 
           const caasCats = activeCats.filter((c) => caasCatalogIds.includes(c.catalog_id));
 
-          if (caasCats.length > 0) {
-            const { data: caasProductsData } = await supabase
+          if (caasCatalogIds.length > 0) {
+            const { data: prods1 } = await supabase
+              .from("products")
+              .select(`
+                id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
+                has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, 
+                is_active, is_in_stock, highlight_text, show_highlight, sort_order, created_at,
+                categories (id, name)
+              `)
+              .in("catalog_id", caasCatalogIds)
+              .eq("is_active", true)
+              .is("deleted_at", null);
+              
+            const { data: prods2 } = caasCats.length > 0 ? await supabase
               .from("products")
               .select(`
                 id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
@@ -301,7 +313,12 @@ export default function BulkGridEditor() {
               `)
               .in("category_id", caasCats.map((c) => c.id))
               .eq("is_active", true)
-              .is("deleted_at", null);
+              .is("deleted_at", null) : { data: [] };
+              
+            const allCaasMap = new Map();
+            prods1?.forEach(p => allCaasMap.set(p.id, p));
+            prods2?.forEach(p => allCaasMap.set(p.id, p));
+            const caasProductsData = Array.from(allCaasMap.values());
 
             if (caasProductsData && caasProductsData.length > 0) {
               const { data: overridesData } = await supabase

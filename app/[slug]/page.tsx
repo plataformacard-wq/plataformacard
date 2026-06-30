@@ -176,32 +176,65 @@ async function getCatalogStats(
   const categoryIds = (categoriesData ?? []).map((c) => c.id);
   const categoryCount = categoryIds.length;
 
-  if (categoryIds.length === 0) {
-    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId: catalogIds[0] };
+  let productCount = 0;
+  let latestUpdate = null;
+
+  if (categoryIds.length > 0) {
+    const { data: prods1 } = await supabase
+      .from("products")
+      .select("id, created_at, updated_at")
+      .in("catalog_id", catalogIds)
+      .eq("is_active", true)
+      .is("deleted_at", null);
+
+    const { data: prods2 } = await supabase
+      .from("products")
+      .select("id, created_at, updated_at")
+      .in("category_id", categoryIds)
+      .eq("is_active", true)
+      .is("deleted_at", null);
+
+    const allProdsMap = new Map();
+    prods1?.forEach(p => allProdsMap.set(p.id, p));
+    prods2?.forEach(p => allProdsMap.set(p.id, p));
+    
+    productCount = allProdsMap.size;
+    
+    // Find latest update
+    let latest = null;
+    allProdsMap.forEach(p => {
+      const dt = new Date(p.updated_at || p.created_at || 0);
+      if (!latest || dt > latest) {
+        latest = dt;
+        latestUpdate = p.updated_at || p.created_at;
+      }
+    });
+  } else {
+    const [{ count: pCount }, { data: latestProduct }] = await Promise.all([
+      supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .in("catalog_id", catalogIds)
+        .eq("is_active", true)
+        .is("deleted_at", null),
+      supabase
+        .from("products")
+        .select("created_at, updated_at")
+        .in("catalog_id", catalogIds)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    ]);
+    productCount = pCount ?? 0;
+    latestUpdate = latestProduct?.updated_at || latestProduct?.created_at || null;
   }
 
-  const [{ count: productCount }, { data: latestProduct }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .in("category_id", categoryIds)
-      .eq("is_active", true)
-      .is("deleted_at", null),
-    supabase
-      .from("products")
-      .select("created_at, updated_at")
-      .in("category_id", categoryIds)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-  ]);
-
   return {
-    productCount: productCount ?? 0,
+    productCount,
     categoryCount,
-    latestUpdate: latestProduct?.updated_at || latestProduct?.created_at || null,
+    latestUpdate,
     catalogId: catalogIds[0],
   };
 }

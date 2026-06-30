@@ -154,6 +154,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "Catálogo", 
         icon: BookOpen,
         subItems: [
+          { href: "/dashboard/catalogo/gerenciador", label: "Meus Catálogos", icon: BookOpen },
           { href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings },
           { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
           { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
@@ -191,6 +192,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           label: "Catálogo", 
           icon: BookOpen,
           subItems: [
+            { href: "/dashboard/catalogo/gerenciador", label: "Meus Catálogos", icon: BookOpen },
             { href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings },
             { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
             { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },

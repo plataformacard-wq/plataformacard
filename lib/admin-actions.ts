@@ -280,15 +280,40 @@ export async function getOrganizationStats(orgId: string) {
   let productCount = directProducts || 0;
 
   // Soma produtos de catálogos herdados (onde organization_id é diferente)
-  if (catIds.length > 0) {
-    const { count: indirectProducts } = await supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .in("category_id", catIds)
-      .neq("organization_id", orgId)
-      .is("deleted_at", null);
+  if (catalogIds.length > 0) {
+    let indirectCount = 0;
+    
+    if (catIds.length > 0) {
+      const { data: prods1 } = await supabase
+        .from("products")
+        .select("id")
+        .in("catalog_id", catalogIds)
+        .neq("organization_id", orgId)
+        .is("deleted_at", null);
+        
+      const { data: prods2 } = await supabase
+        .from("products")
+        .select("id")
+        .in("category_id", catIds)
+        .neq("organization_id", orgId)
+        .is("deleted_at", null);
+        
+      const allIds = new Set([
+        ...(prods1?.map(p => p.id) || []),
+        ...(prods2?.map(p => p.id) || [])
+      ]);
+      indirectCount = allIds.size;
+    } else {
+      const { count: c } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .in("catalog_id", catalogIds)
+        .neq("organization_id", orgId)
+        .is("deleted_at", null);
+      indirectCount = c || 0;
+    }
 
-    productCount += (indirectProducts || 0);
+    productCount += indirectCount;
   }
 
   return {

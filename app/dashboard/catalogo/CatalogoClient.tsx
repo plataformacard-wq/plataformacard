@@ -518,6 +518,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         `
       id,
       organization_id,
+      catalog_id,
       category_id,
       name,
       description,
@@ -556,8 +557,22 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
 
     let prodList = (ownData ?? []) as unknown as ProductRow[];
 
-    // Filter out products belonging to deleted catalogs
+    // 2. Fetch CaaS Products (if any)
+    const { data: enabledCatalogs } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
+      .eq("organization_id", orgId);
+
+    const activeCatalogIds = enabledCatalogs
+      ?.filter((c: any) => c.is_enabled)
+      .map((c: any) => c.catalog_id) || [];
+
+    // Filter out products belonging to deleted catalogs AND non-active catalogs
     prodList = prodList.filter(p => {
+      // Filtrar produtos que não pertencem ao catálogo ativo (para alternância de catálogos Próprio/Herdado)
+      if (p.catalog_id && !activeCatalogIds.includes(p.catalog_id)) {
+        return false;
+      }
       if (!p.category_id) return true;
       const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
       if (!category) return false;
@@ -565,12 +580,6 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       if (catalog && catalog.deleted_at) return false;
       return true;
     });
-
-    // 2. Fetch CaaS Products (if any)
-    const { data: enabledCatalogs } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
-      .eq("organization_id", orgId);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hasPlatformCatalog = enabledCatalogs?.some((c: any) => {
@@ -604,10 +613,10 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         .select("id")
         .in("catalog_id", caasCatalogIds);
 
-      if (caasCategories && caasCategories.length > 0) {
-        const caasCategoryIds = caasCategories.map(c => c.id);
+      if (caasCatalogIds && caasCatalogIds.length > 0) {
+        const caasCategoryIds = caasCategories ? caasCategories.map(c => c.id) : [];
         
-        let query = supabase
+        let query1 = supabase
           .from("products")
           .select(
             `
@@ -646,15 +655,70 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           )
         `
           )
-          .in("category_id", caasCategoryIds)
+          .in("catalog_id", caasCatalogIds)
           .eq("is_active", true) // Only active master products
           .is("deleted_at", null);
 
-        if (orgId) {
-          query = query.or(`organization_id.is.null,organization_id.neq.${orgId}`); // Exclude cloned products from CaaS stream
+        let query2 = null;
+        if (caasCategoryIds.length > 0) {
+          query2 = supabase
+            .from("products")
+            .select(
+              `
+            id,
+            organization_id,
+            category_id,
+            name,
+            description,
+            specs,
+            price,
+            compare_at_price,
+            sku,
+            has_retail,
+            has_wholesale,
+            wholesale_price,
+            wholesale_min_quantity,
+            image_url,
+            image_urls,
+            is_active,
+            is_in_stock,
+            price_display_mode,
+            highlight_text,
+            show_highlight,
+            type,
+            sort_order,
+            created_at,
+            categories (
+              id,
+              name,
+              catalog_id,
+              catalogs (
+                id,
+                name,
+                catalog_type
+              )
+            )
+          `
+            )
+            .in("category_id", caasCategoryIds)
+            .eq("is_active", true)
+            .is("deleted_at", null);
         }
 
-        const { data: caasProductsData } = await query;
+        if (orgId) {
+          query1 = query1.or(`organization_id.is.null,organization_id.neq.${orgId}`);
+          if (query2) {
+            query2 = query2.or(`organization_id.is.null,organization_id.neq.${orgId}`);
+          }
+        }
+
+        const { data: prods1 } = await query1;
+        const { data: prods2 } = query2 ? await query2 : { data: [] };
+        
+        const allCaasMap = new Map();
+        prods1?.forEach(p => allCaasMap.set(p.id, p));
+        prods2?.forEach(p => allCaasMap.set(p.id, p));
+        const caasProductsData = Array.from(allCaasMap.values());
 
         if (caasProductsData && caasProductsData.length > 0) {
           // Fetch overrides

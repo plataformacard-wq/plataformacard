@@ -31,9 +31,8 @@ export default async function ConfiguracoesPage() {
 
   const { data: orgCatalogs } = await supabase
     .from("organization_catalogs")
-    .select("catalog_id")
-    .eq("organization_id", activeOrgId)
-    .eq("is_enabled", true);
+    .select("catalog_id, is_enabled")
+    .eq("organization_id", activeOrgId);
 
   let catalogIds = orgCatalogs?.map((c) => c.catalog_id) || [];
 
