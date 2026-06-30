@@ -69,6 +69,7 @@ const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 type ProductRow = {
   id: string;
+  catalog_id?: string | null;
   organization_id: string;
   whatsapp_template: string | null;
   category_id: string | null;
