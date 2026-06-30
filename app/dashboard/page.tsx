@@ -224,7 +224,7 @@ export default function DashboardPage() {
             const validWhatsapp = hasProfileWhatsapp || hasOrgWhatsapp;
             setHasValidWhatsapp(validWhatsapp);
             
-            // Verifica se o catálogo master foi desvinculado/vinculado antes dos banners
+            // Verifica se o catálogo franquias foi desvinculado/vinculado antes dos banners
             const { data: orgCatalogs } = await supabase
               .from("organization_catalogs")
               .select("is_enabled, catalogs(catalog_type, deleted_at)")
@@ -452,7 +452,7 @@ export default function DashboardPage() {
             <h3 className={`font-bold text-base ${
               hasActiveMasterState ? "text-purple-800 dark:text-purple-400" : "text-emerald-800 dark:text-emerald-400"
             }`}>
-              {hasActiveMasterState ? "Operando com Catálogo Herdado (CaaS)" : "Operando com Catálogo Próprio"}
+              {hasActiveMasterState ? "Operando com Catálogo Catálogo Franqueado" : "Operando com Catálogo Próprio"}
             </h3>
             <p className={`text-xs mt-1 leading-relaxed max-w-2xl ${
               hasActiveMasterState ? "text-purple-700/80 dark:text-purple-400/80" : "text-emerald-700/80 dark:text-emerald-400/80"

@@ -113,10 +113,10 @@ export default async function CaasAdminPage({ searchParams }: PageProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--dash-text-primary)" }}>
-            Gestão de Catálogos & CaaS
+            Gestão de Catálogos Franquias
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-            Controle de Catálogos Master, análise de estoque global e distribuição para parceiros CaaS.
+            Controle de Catálogos de Franquias, análise de estoque global e distribuição para parceiros CaaS.
           </p>
         </div>
 

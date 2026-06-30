@@ -75,7 +75,7 @@ export default function CatalogManagerClient({
                   ? "bg-purple-600 text-white dark:bg-purple-500"
                   : "bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900"
               }`}>
-                {catalog.isInherited ? "Herdado (CaaS)" : "Catálogo Próprio"}
+                {catalog.isInherited ? "Catálogo Franqueado" : "Catálogo Próprio"}
               </span>
               
               {catalog.isActive && (

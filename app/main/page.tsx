@@ -134,7 +134,7 @@ export default async function AdminDashboardPage() {
                </div>
                <div>
                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Infraestrutura</p>
-                 <h3 className="text-xl font-black text-purple-500">CaaS / Vitrine</h3>
+                 <h3 className="text-xl font-black text-purple-500">Vitrine Franqueado</h3>
                </div>
              </div>
              <p className="text-5xl font-black mb-2" style={{ color: "var(--dash-text-primary)" }}>{caasCount || 0}</p>

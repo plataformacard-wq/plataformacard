@@ -72,7 +72,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
     org.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Carrega categorias e produtos do catálogo master quando a aba de reajustes ou o BulkPromoModal é acionado
+  // Carrega categorias e produtos do catálogo franquias quando a aba de reajustes ou o BulkPromoModal é acionado
   useEffect(() => {
     if (!configCatalogId || !isConfigOpen) return;
 
@@ -100,7 +100,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
           setConfigProducts([]);
         }
       } catch (err) {
-        console.error("Erro ao carregar dados adicionais do catálogo master:", err);
+        console.error("Erro ao carregar dados adicionais do catálogo franquias:", err);
       } finally {
         setLoadingConfigData(false);
       }
@@ -165,7 +165,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Deseja realmente excluir este catálogo master?")) return;
+    if (!confirm("Deseja realmente excluir este catálogo franquias?")) return;
     setLoadingId(id);
     try {
       await deleteMasterCatalog(id);
@@ -277,7 +277,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
             <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Abastecer Itens</span>
           </div>
           <p className="text-xs font-bold leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
-            Adicione categorias e produtos ao catálogo master (via Shadow Mode ou DB).
+            Adicione categorias e produtos ao catálogo franquias (via Shadow Mode ou DB).
           </p>
         </div>
 
@@ -302,14 +302,14 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
         </div>
       </div>
 
-      {/* Seção de Criação de Catálogo Master */}
+      {/* Seção de Criação de Catálogo Franquias */}
       <div className="bg-[var(--dash-surface)] p-6 rounded-[32px] border border-[var(--dash-border)]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
               <Plus size={20} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Novo Catálogo Master</h2>
+            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Novo Catálogo Franquias</h2>
           </div>
           <button 
             onClick={() => setIsCreating(!isCreating)}
@@ -345,7 +345,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
               disabled={loadingId === "creating"}
               className="w-full bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-lg hover:bg-purple-600 transition-all disabled:opacity-50"
             >
-              {loadingId === "creating" ? "Criando..." : "Salvar Catálogo Master"}
+              {loadingId === "creating" ? "Criando..." : "Salvar Catálogo Franquias"}
             </button>
           </form>
         )}
@@ -389,7 +389,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
              ) : (
                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
                   <BarChart3 size={48} className="mb-4 text-[var(--dash-text-muted)]" />
-                  <p className="font-bold text-[var(--dash-text-muted)]">Selecione um catálogo master<br/>para ver o desempenho de leads.</p>
+                  <p className="font-bold text-[var(--dash-text-muted)]">Selecione um catálogo franquias<br/>para ver o desempenho de leads.</p>
                </div>
              )}
           </div>
@@ -431,7 +431,7 @@ export default function CaasManager({ masterCatalogs, deletedCatalogs, organizat
             setTimeout(() => setConfigCatalogId(configCatalogId), 50);
           }}
           catalogId={configCatalogId}
-          orgId="" // orgId não é relevante para a RPC de ajuste em lote direta no catálogo master
+          orgId="" // orgId não é relevante para a RPC de ajuste em lote direta no catálogo franquias
           categories={configCategories}
           products={configProducts}
         />

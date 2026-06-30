@@ -272,7 +272,7 @@ export default function HomePage() {
           <div style={{ display: "grid", gap: 64 }}>
             {[
               {
-                title: "Catálogo Mestre (CaaS)",
+                title: "Catálogo Franquias",
                 desc: "Crie a estrutura de produtos uma única vez. Quando você atualiza um preço, foto ou descrição, a vitrine de todos os seus vendedores e franqueados é atualizada instantaneamente.",
                 green: true,
               },

@@ -1130,7 +1130,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     const isCaaSProduct = product.is_caas === true;
     
     if (isCaaSProduct) {
-      if (!confirm("Este é um produto herdado (CaaS). Ele não pode ser excluído permanentemente, mas será desativado e ocultado da sua vitrine. Deseja desativá-lo?")) return;
+      if (!confirm("Este é um produto catálogo franqueado. Ele não pode ser excluído permanentemente, mas será desativado e ocultado da sua vitrine. Deseja desativá-lo?")) return;
       
       const supabase = createClient();
       const overridePayload = {
@@ -1226,10 +1226,10 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             </div>
             <div>
               <h3 className="font-bold text-base text-amber-800 dark:text-amber-400">
-                Catálogo Master Desvinculado
+                Catálogo Franquias Desvinculado
               </h3>
               <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed max-w-2xl">
-                O catálogo master (CaaS) foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
+                O Catálogo Franquias foi desvinculado ou removido desta franquia. No momento, você não está herdando nenhum produto da franqueadora. Entre em contato com o super administrador para vincular um catálogo.
               </p>
             </div>
           </div>
@@ -1244,7 +1244,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
             {adminCatalogId 
-              ? 'Gerenciamento centralizado de categorias e produtos deste Catálogo Master para distribuição CaaS.'
+              ? 'Gerenciamento centralizado de categorias e produtos deste Catálogo Franquias para distribuição CaaS.'
               : `Gerencie as categorias e os ${catalogType === 'service' ? 'serviços' : catalogType === 'hybrid' ? 'produtos e serviços' : 'produtos'} da sua vitrine digital.`}
           </p>
 
@@ -1303,7 +1303,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             </div>
             <p className="text-xl font-black text-purple-500" style={{ color: "rgb(168, 85, 247)" }}>{productUsageCount} Itens Cadastrados</p>
             <p className="text-[10px] font-bold" style={{ color: "var(--dash-text-muted)" }}>
-              Catálogo Master CaaS (Disponível para franquias)
+              Catálogo Franquias CaaS (Disponível para franquias)
             </p>
           </div>
         )}
