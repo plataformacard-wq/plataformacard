@@ -49,7 +49,7 @@ export function TopHeader({
   subscriptionStatus,
   notifications = []
 }: TopHeaderProps) {
-  const isB2B = businessModel === "B2B";
+  const isB2B = businessModel === "B2B" || businessModel === "ALL_SERVICE";
   const isCaaS = businessModel === "CaaS";
   const { globalIconUrl } = useGlobalBranding();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -212,9 +212,9 @@ export function TopHeader({
         </button>
 
 
-        {!isAdminPath && !isB2B && slug && (
+        {!isAdminPath && slug && (
           <Link
-            href={`/${slug}`}
+            href={isB2B ? `/${slug}/catalogo` : `/${slug}`}
             target="_blank"
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap shadow-lg ${
               isReady 
@@ -226,11 +226,11 @@ export function TopHeader({
             {isReady ? <ExternalLink size={18} /> : <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
             <span className="hidden lg:inline">
               {isReady 
-                ? (isCaaS ? "Ver meu Catálogo" : "Ver meu Cartão") 
+                ? (isCaaS || isB2B ? "Ver meu Catálogo" : "Ver meu Cartão") 
                 : "Visualizar Rascunho"
               }
             </span>
-            <span className="lg:hidden">{isReady ? (isCaaS ? "Catálogo" : "Cartão") : "Rascunho"}</span>
+            <span className="lg:hidden">{isReady ? (isCaaS || isB2B ? "Catálogo" : "Cartão") : "Rascunho"}</span>
           </Link>
         )}
 

@@ -103,19 +103,19 @@ function initialsFromName(name: string | null): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-async function resolveCatalogId(
+async function resolveCatalogIds(
   supabase: Awaited<ReturnType<typeof createClient>>,
   profile: ProfileRow
-): Promise<string | null> {
+): Promise<string[]> {
+  const catalogIds: string[] = [];
+
+  // 1. Prioridade: Vínculo Individual do Perfil
   const { data: profileCatalogData } = await supabase
     .from("profile_catalogs")
     .select("organization_catalog_id")
     .eq("profile_id", profile.id)
     .eq("is_selected", true)
-    .limit(1)
     .maybeSingle();
-
-  let catalogId: string | null = null;
 
   if (profileCatalogData?.organization_catalog_id) {
     const { data: orgCatalogFromProfile } = await supabase
@@ -124,67 +124,75 @@ async function resolveCatalogId(
       .eq("id", profileCatalogData.organization_catalog_id)
       .maybeSingle();
 
-    catalogId = orgCatalogFromProfile?.catalog_id ?? null;
-  }
-
-  if (!catalogId) {
-    // Tenta primeiro catálogo habilitado
-    const { data: enabledCatalog } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id")
-      .eq("organization_id", profile.organization_id)
-      .eq("is_enabled", true)
-      .limit(1)
-      .maybeSingle();
-
-    catalogId = enabledCatalog?.catalog_id ?? null;
-
-    // Fallback B2B: se não há catálogo habilitado, pega qualquer catálogo da organização
-    if (!catalogId) {
-      const { data: anyCatalog } = await supabase
-        .from("organization_catalogs")
-        .select("catalog_id")
-        .eq("organization_id", profile.organization_id)
-        .limit(1)
-        .maybeSingle();
-
-      catalogId = anyCatalog?.catalog_id ?? null;
+    if (orgCatalogFromProfile?.catalog_id) {
+      catalogIds.push(orgCatalogFromProfile.catalog_id);
     }
   }
 
-  return catalogId;
+  // 2. Fallback: Catálogos habilitados da organização
+  if (catalogIds.length === 0) {
+    const { data: enabledCatalogs } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", profile.organization_id)
+      .eq("is_enabled", true);
+
+    if (enabledCatalogs && enabledCatalogs.length > 0) {
+      catalogIds.push(...enabledCatalogs.map(c => c.catalog_id));
+    }
+  }
+
+  // 3. Fallback B2B: qualquer catálogo da organização
+  if (catalogIds.length === 0) {
+    const { data: anyCatalog } = await supabase
+      .from("organization_catalogs")
+      .select("catalog_id")
+      .eq("organization_id", profile.organization_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (anyCatalog?.catalog_id) {
+      catalogIds.push(anyCatalog.catalog_id);
+    }
+  }
+
+  return catalogIds;
 }
 
 async function getCatalogStats(
   supabase: Awaited<ReturnType<typeof createClient>>,
   profile: ProfileRow
 ): Promise<{ productCount: number; categoryCount: number; latestUpdate: string | null; catalogId: string | null }> {
-  const catalogId = await resolveCatalogId(supabase, profile);
-  if (!catalogId) {
+  const catalogIds = await resolveCatalogIds(supabase, profile);
+  if (catalogIds.length === 0) {
     return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId: null };
   }
 
   const { data: categoriesData } = await supabase
     .from("categories")
     .select("id")
-    .eq("catalog_id", catalogId);
+    .in("catalog_id", catalogIds);
 
   const categoryIds = (categoriesData ?? []).map((c) => c.id);
   const categoryCount = categoryIds.length;
 
   if (categoryIds.length === 0) {
-    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId };
+    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId: catalogIds[0] };
   }
 
   const [{ count: productCount }, { data: latestProduct }] = await Promise.all([
     supabase
       .from("products")
       .select("*", { count: "exact", head: true })
-      .in("category_id", categoryIds),
+      .in("category_id", categoryIds)
+      .eq("is_active", true)
+      .is("deleted_at", null),
     supabase
       .from("products")
       .select("created_at, updated_at")
       .in("category_id", categoryIds)
+      .eq("is_active", true)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -194,7 +202,7 @@ async function getCatalogStats(
     productCount: productCount ?? 0,
     categoryCount,
     latestUpdate: latestProduct?.updated_at || latestProduct?.created_at || null,
-    catalogId,
+    catalogId: catalogIds[0],
   };
 }
 

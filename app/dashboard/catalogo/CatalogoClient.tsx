@@ -185,6 +185,11 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ product: ProductRow, field: 'is_active' | 'is_in_stock' } | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
+  const [makingAllVisible, setMakingAllVisible] = useState(false);
+
+  const hiddenInheritedProducts = useMemo(() => {
+    return products.filter(p => p.is_caas && p.is_new_from_master);
+  }, [products]);
 
   const stripHtml = (html: string) => {
     if (!html) return "";
@@ -824,6 +829,50 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     setSavingOrder(false);
   }
 
+  async function handleMakeAllVisible() {
+    if (!orgId || hiddenInheritedProducts.length === 0) return;
+    
+    const confirmMessage = `Você está prestes a tornar ${hiddenInheritedProducts.length} produtos herdados visíveis na sua vitrine. Deseja continuar?`;
+    if (!confirm(confirmMessage)) return;
+
+    setMakingAllVisible(true);
+    const supabase = createClient();
+    
+    try {
+      const overridesPayload = hiddenInheritedProducts.map((p, i) => ({
+        organization_id: orgId,
+        product_id: p.id,
+        price_b2c: p.price,
+        price_b2b: p.wholesale_price,
+        compare_at_price: p.compare_at_price,
+        has_retail: p.has_retail,
+        has_wholesale: p.has_wholesale,
+        is_available: true,
+        is_in_stock: p.is_in_stock,
+        image_url: p.image_url || null,
+        image_urls: p.image_urls || [],
+        sort_order: (p.sort_order || 0) + i,
+        category_id: p.category_id === p.original_category_id ? null : p.category_id
+      }));
+
+      const { error } = await supabase
+        .from("organization_product_overrides")
+        .upsert(overridesPayload, { onConflict: 'organization_id, product_id' });
+        
+      if (error) {
+        throw error;
+      }
+      
+      alert("Produtos ativados com sucesso!");
+      fetchProducts(orgId);
+    } catch (err: unknown) {
+      console.error("Erro ao visibilizar produtos:", err);
+      alert("Erro ao executar a ação: " + (err as Error).message);
+    } finally {
+      setMakingAllVisible(false);
+    }
+  }
+
   function handleOpenCreateProduct() {
     if (categories.length === 0) {
       setShowNoCategoryModal(true);
@@ -1222,15 +1271,31 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                 </div>
                 <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Categorias</h2>
               </div>
-              <button
-                onClick={() => {
-                  setEditingCategory(null);
-                  setShowCategoryModal(true);
-                }}
-                className="flex items-center gap-2 rounded-xl px-5 py-2.5 bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/10"
-              >
-                <Plus size={18} /> Nova Categoria
-              </button>
+              <div className="flex items-center gap-3">
+                {hiddenInheritedProducts.length > 0 && (
+                  <button
+                    onClick={handleMakeAllVisible}
+                    disabled={makingAllVisible}
+                    className="flex items-center gap-2 rounded-xl px-5 py-2.5 bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
+                  >
+                    {makingAllVisible ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                    {makingAllVisible ? "Processando..." : `Herdar Todos (${hiddenInheritedProducts.length})`}
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setEditingCategory(null);
+                    setShowCategoryModal(true);
+                  }}
+                  className="flex items-center gap-2 rounded-xl px-5 py-2.5 bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/10"
+                >
+                  <Plus size={18} /> Nova Categoria
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

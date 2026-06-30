@@ -255,40 +255,40 @@ export default async function Page(props: PageProps) {
   if (previewCatalogId) {
     catalogIds = [previewCatalogId];
   } else {
-    // PRIORIDADE 1: Catálogos Master/Próprios habilitados
-    if (targetOrgId) {
-    const { data: enabledCatalogs } = await supabase
-      .from("organization_catalogs")
-      .select("catalog_id")
-      .eq("organization_id", targetOrgId)
-      .eq("is_enabled", true);
-      
-    if (enabledCatalogs && enabledCatalogs.length > 0) {
-      catalogIds = enabledCatalogs.map(c => c.catalog_id);
-    }
-  }
-
-  // PRIORIDADE 2: Vínculo Individual do Perfil (Caso não haja catálogos habilitados na ORG)
-  if (catalogIds.length === 0 && profile) {
-    const { data: profileCatalogData } = await supabase
-      .from("profile_catalogs")
-      .select("organization_catalog_id")
-      .eq("profile_id", profile.id)
-      .eq("is_selected", true)
-      .maybeSingle();
-
-    if (profileCatalogData?.organization_catalog_id) {
-      const { data: orgCatalogFromProfile } = await supabase
-        .from("organization_catalogs")
-        .select("catalog_id")
-        .eq("id", profileCatalogData.organization_catalog_id)
+    // PRIORIDADE 1: Vínculo Individual do Perfil (Catálogo selecionado especificamente para o vendedor)
+    if (profile) {
+      const { data: profileCatalogData } = await supabase
+        .from("profile_catalogs")
+        .select("organization_catalog_id")
+        .eq("profile_id", profile.id)
+        .eq("is_selected", true)
         .maybeSingle();
 
-      if (orgCatalogFromProfile?.catalog_id) {
-        catalogIds.push(orgCatalogFromProfile.catalog_id);
+      if (profileCatalogData?.organization_catalog_id) {
+        const { data: orgCatalogFromProfile } = await supabase
+          .from("organization_catalogs")
+          .select("catalog_id")
+          .eq("id", profileCatalogData.organization_catalog_id)
+          .maybeSingle();
+
+        if (orgCatalogFromProfile?.catalog_id) {
+          catalogIds.push(orgCatalogFromProfile.catalog_id);
+        }
       }
     }
-  }
+
+    // PRIORIDADE 2: Catálogos Master/Próprios habilitados da ORG
+    if (catalogIds.length === 0 && targetOrgId) {
+      const { data: enabledCatalogs } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id")
+        .eq("organization_id", targetOrgId)
+        .eq("is_enabled", true);
+        
+      if (enabledCatalogs && enabledCatalogs.length > 0) {
+        catalogIds = enabledCatalogs.map(c => c.catalog_id);
+      }
+    }
 
   // FALLBACK 3: Busca direta por organization_id ou owner_id
   if (catalogIds.length === 0 && targetOrgId) {

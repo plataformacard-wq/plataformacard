@@ -52,6 +52,8 @@ O sistema utiliza uma hierarquia de três níveis para determinar se um catálog
 - **Comunicação via Props:** A comunicação deve ocorrer estritamente via props (`isOpen`, `onClose`, `onSuccess`), mantendo o componente pai (`CatalogoClient`) como orquestrador de dados.
 - **Persistência de Rascunhos:** Formulários complexos devem utilizar `localStorage` para persistir rascunhos de descrições e especificações, evitando perda de dados em caso de refresh acidental.
 - **Separação de Preocupações:** O cliente principal foca na listagem e filtros; os modais focam no CRUD e interações específicas (IA, Uploads).
+- **Prioridade de Resolução de Catálogo:** Para vendedores B2C ou perfis individuais, a aplicação resolve os catálogos sempre verificando primeiro o vínculo explícito na tabela `profile_catalogs` (`is_selected: true`). Apenas se não houver vínculo específico é que o sistema fará fallback para os catálogos ativados da `organization_catalogs` mãe.
+- **Estratégia de Bulk Overrides:** Ao herdar catálogos Master (CaaS), os produtos são ocultados por padrão. Para aprovar lotes de produtos, foi instituída a técnica de Bulk Upsert (Tornar Todos Visíveis) que realiza inserções otimizadas na tabela `organization_product_overrides`, mitigando o peso de múltiplas requisições.
 
 
 ## 8. Tipografia e Quebra de Palavras (Word Wrapping)
