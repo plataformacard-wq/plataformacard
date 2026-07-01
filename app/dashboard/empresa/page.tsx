@@ -2,32 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { BusinessHours, DaySchedule, TimeShift } from "@/lib/utils/time";
+import { BusinessHours, DaySchedule, TimeShift, DEFAULT_BUSINESS_HOURS, DAY_NAMES_PT } from "@/lib/utils/time";
 import { Copy } from "lucide-react";
-
-const defaultBusinessHours: BusinessHours = {
-  timezone: "America/Sao_Paulo",
-  manual_override: null,
-  schedule: {
-    monday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    tuesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    wednesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    thursday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    friday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    saturday: { isOpen: true, shifts: [{ open: "08:00", close: "12:00" }] },
-    sunday: { isOpen: false, shifts: [] },
-  },
-};
-
-const dayNames = {
-  monday: "Segunda-feira",
-  tuesday: "Terça-feira",
-  wednesday: "Quarta-feira",
-  thursday: "Quinta-feira",
-  friday: "Sexta-feira",
-  saturday: "Sábado",
-  sunday: "Domingo",
-};
 
 export default function EmpresaPage() {
   const supabase = createClient();
@@ -37,7 +13,7 @@ export default function EmpresaPage() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   
-  const [businessHours, setBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
+  const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
   const [newCustomDate, setNewCustomDate] = useState("");
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
   const [centralizeLeads, setCentralizeLeads] = useState(false);
@@ -334,7 +310,7 @@ export default function EmpresaPage() {
         </div>
 
         <div className="space-y-6">
-          {(Object.keys(dayNames) as Array<keyof typeof dayNames>).map((day) => {
+          {(Object.keys(DAY_NAMES_PT) as Array<keyof typeof DAY_NAMES_PT>).map((day) => {
             const dayData = businessHours.schedule[day];
             return (
               <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
@@ -346,7 +322,7 @@ export default function EmpresaPage() {
                     className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
                   />
                   <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
-                    {dayNames[day]}
+                    {DAY_NAMES_PT[day]}
                   </span>
                 </div>
 

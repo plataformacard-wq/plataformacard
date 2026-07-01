@@ -3,36 +3,12 @@
 import { useEffect, useState, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { BusinessHours, TimeShift, DaySchedule } from "@/lib/utils/time";
+import { BusinessHours, TimeShift, DaySchedule, DEFAULT_BUSINESS_HOURS, DAY_NAMES_PT } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getOrganizationById } from "@/lib/admin-actions";
 import { getPublicUrl } from "@/lib/utils/url";
-
-const defaultBusinessHours: BusinessHours = {
-  timezone: "America/Sao_Paulo",
-  manual_override: null,
-  schedule: {
-    monday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    tuesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    wednesday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    thursday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    friday: { isOpen: true, shifts: [{ open: "08:00", close: "18:00" }] },
-    saturday: { isOpen: true, shifts: [{ open: "08:00", close: "12:00" }] },
-    sunday: { isOpen: false, shifts: [] },
-  },
-};
-
-const dayNamesMap = {
-  monday: "Segunda-feira",
-  tuesday: "Terça-feira",
-  wednesday: "Quarta-feira",
-  thursday: "Quinta-feira",
-  friday: "Sexta-feira",
-  saturday: "Sábado",
-  sunday: "Domingo",
-};
 
 type ProfileData = {
   user_id?: string | null;
@@ -90,7 +66,7 @@ function PerfilContent() {
   const [redirectLeads, setRedirectLeads] = useState(false);
   const [showHoursConfig, setShowHoursConfig] = useState(false);
   const [canCustomize, setCanCustomize] = useState(false);
-  const [customBusinessHours, setCustomBusinessHours] = useState<BusinessHours>(defaultBusinessHours);
+  const [customBusinessHours, setCustomBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -919,13 +895,13 @@ function PerfilContent() {
                         )}
                         <div className={`pt-4 space-y-4 ${!canCustomize ? "opacity-60 pointer-events-none" : ""}`}>
                           <p className="text-xs font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Quadro de Horários:</p>
-                          {(Object.keys(dayNamesMap) as Array<keyof typeof dayNamesMap>).map((day) => {
+                          {(Object.keys(DAY_NAMES_PT) as Array<keyof typeof DAY_NAMES_PT>).map((day) => {
                             const dayData = customBusinessHours.schedule[day];
                             return (
                               <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
                                 <div className="w-auto min-w-[12rem] shrink-0 flex flex-wrap items-center gap-2">
                                   <input type="checkbox" checked={dayData.isOpen} onChange={() => handleDayToggle(day)} className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500" />
-                                  <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{dayNamesMap[day]}</span>
+                                  <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{DAY_NAMES_PT[day]}</span>
                                   {day === 'monday' && (
                                     <button
                                       type="button"

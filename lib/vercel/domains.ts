@@ -97,5 +97,37 @@ export async function checkDomainStatus(domain: string): Promise<VercelDomainRes
     }
   }
 
+  // BUGFIX: A Vercel retorna "verified: true" instantaneamente para domínios que não pertencem a outra conta,
+  // mas isso apenas significa "Verificado a propriedade". Precisamos checar se o DNS está de fato configurado.
+  try {
+    const configResponse = await fetch(`https://api.vercel.com/v6/domains/${domain}/config`, {
+      method: "GET",
+      headers: {
+        Authorization: headers.Authorization,
+        "Content-Type": headers["Content-Type"]
+      },
+    });
+    
+    if (configResponse.ok) {
+      const configData = await configResponse.json();
+      
+      // Se a Vercel acusa que está mal configurado, marcamos como não verificado
+      // e injetamos as instruções de configuração para a interface exibir ao lojista.
+      if (configData.misconfigured) {
+        data.verified = false;
+        data.verification = [
+          {
+            type: "A",
+            domain: domain,
+            value: "76.76.21.21", // IP Global da Vercel
+            reason: "Configuração de DNS Pendente"
+          }
+        ];
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao checar configuração de DNS na Vercel:", e);
+  }
+
   return data;
 }

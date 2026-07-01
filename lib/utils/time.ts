@@ -67,6 +67,16 @@ export type BusinessStatus = {
 
 const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
 
+export const DAY_NAMES_PT = {
+  monday: "Segunda-feira",
+  tuesday: "Terça-feira",
+  wednesday: "Quarta-feira",
+  thursday: "Quinta-feira",
+  friday: "Sexta-feira",
+  saturday: "Sábado",
+  sunday: "Domingo",
+} as const;
+
 export function getBusinessStatus(businessHours: BusinessHours | null, nationalHolidays: string[] = []): BusinessStatus {
   const hours = (!businessHours || !businessHours.schedule || Object.keys(businessHours.schedule).length === 0)
     ? DEFAULT_BUSINESS_HOURS
