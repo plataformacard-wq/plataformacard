@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Globe, AlertTriangle, CheckCircle2, Loader2, Copy, ArrowRight, Trash2, Info, RefreshCw, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { getProfileDomain, addProfileCustomDomain, removeProfileCustomDomain, checkVercelDomainStatus } from "@/app/actions/profile-domain";
+import { checkNativeDNS } from "@/app/actions/dns";
 import { VercelDomainResponse } from "@/lib/vercel/domains";
 
 export default function PerfilDominioPage() {
@@ -16,6 +17,7 @@ export default function PerfilDominioPage() {
   const [copied, setCopied] = useState("");
   const [elapsedTime, setElapsedTime] = useState("");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [nativeStatus, setNativeStatus] = useState<Record<string, boolean | "loading">>({});
 
   useEffect(() => {
     loadData();
@@ -38,6 +40,48 @@ export default function PerfilDominioPage() {
       
       updateElapsed();
       const interval = setInterval(updateElapsed, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [domainStatus]);
+
+  useEffect(() => {
+    if (domainStatus?.verification && !domainStatus.verified) {
+      const checkRecords = async () => {
+        let hasChanges = false;
+        
+        // Copiamos o estado anterior para não perdermos as flags
+        setNativeStatus(prev => {
+          const newStatus = { ...prev };
+          domainStatus.verification!.forEach((v, idx) => {
+            if (newStatus[`host-${idx}`] !== true) {
+              newStatus[`host-${idx}`] = "loading";
+            }
+          });
+          return newStatus;
+        });
+
+        for (const [idx, v] of domainStatus.verification.entries()) {
+          const key = `host-${idx}`;
+          // Só verificar se não estiver verde
+          setNativeStatus(prev => {
+            if (prev[key] === true) return prev;
+            return prev;
+          });
+          
+          const res = await checkNativeDNS(v.domain, v.type, v.value);
+          
+          setNativeStatus(prev => ({
+            ...prev,
+            [key]: res.success
+          }));
+        }
+      };
+
+      // Executa de imediato
+      checkRecords();
+      
+      // E a cada 30 segundos
+      const interval = setInterval(checkRecords, 30000);
       return () => clearInterval(interval);
     }
   }, [domainStatus]);
@@ -241,7 +285,13 @@ export default function PerfilDominioPage() {
                   }
 
                   return (
-                    <div key={idx} className="rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 shadow-sm">
+                    <div key={idx} className="relative rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 shadow-sm">
+                      <div className="absolute top-4 right-4 flex items-center gap-2">
+                        {nativeStatus[`host-${idx}`] === "loading" && <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Testando DNS...</span>}
+                        {nativeStatus[`host-${idx}`] === true && <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> Propagado</span>}
+                        {nativeStatus[`host-${idx}`] === false && <span className="text-[10px] text-red-500 font-bold flex items-center gap-1"><AlertTriangle className="w-3 h-3"/> Pendente</span>}
+                      </div>
+
                       <div className="mb-2 flex items-center gap-2">
                         <span className="rounded bg-[var(--dash-border)] px-2 py-0.5 text-xs font-mono font-bold text-[var(--dash-text-primary)]">
                           Tipo: {v.type}
