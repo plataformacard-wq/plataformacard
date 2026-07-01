@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "";
   const isLocalhost = hostname.includes("localhost");
   const isVercel = hostname.includes("vercel.app");
-  const isMainDomain = hostname.includes("anotameucontato") || hostname.includes("plataformacard");
+  const isMainDomain = hostname.includes("anotameucontato") || hostname.includes("plataformacard") || hostname.includes("plataformashop");
 
   if (!isLocalhost && !isVercel && !isMainDomain) {
     // É um domínio customizado, vamos buscar a org no banco
