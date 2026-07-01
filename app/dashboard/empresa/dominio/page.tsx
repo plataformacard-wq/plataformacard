@@ -60,7 +60,7 @@ export default function DominioPage() {
           return newStatus;
         });
 
-        for (const [idx, v] of domainStatus.verification.entries()) {
+        for (const [idx, v] of domainStatus.verification!.entries()) {
           const key = `host-${idx}`;
           // Só verificar se não estiver verde
           setNativeStatus(prev => {
