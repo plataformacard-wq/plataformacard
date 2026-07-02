@@ -164,6 +164,10 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       if (!isB2C && !isCaaS) { // isB2B || isAllService
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
       }
+
+      if (isAllService) {
+        navLinks.push({ href: "/dashboard/franquias", label: "Franquias", icon: Globe });
+      }
       
       if ((isB2C || isAllService) && role !== "b2b_admin" && businessModel !== "B2B") {
         navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });

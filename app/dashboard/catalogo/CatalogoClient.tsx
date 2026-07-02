@@ -104,6 +104,7 @@ type ProductRow = {
   created_at: string;
   sort_order: number | null;
   categories: any;
+  allow_price_overrides?: boolean;
 };
 
 function getProductCategoryId(product: ProductRow): string {
@@ -561,7 +562,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
-      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
+      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, allow_price_overrides, organizations(name))")
       .eq("organization_id", orgId);
 
     const activeCatalogIds = enabledCatalogs
@@ -752,9 +753,14 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
               const org = Array.isArray(cat?.organizations) ? cat?.organizations[0] : cat?.organizations;
               return org?.name || "Catálogo Mestre";
             })();
+            const allowOverrides = (() => {
+              const cat = Array.isArray(catalogLink?.catalogs) ? catalogLink?.catalogs[0] : catalogLink?.catalogs;
+              return cat?.allow_price_overrides ?? true;
+            })();
             
             return {
               ...p,
+              allow_price_overrides: allowOverrides,
               is_caas: isCaaSProduct,
               override_id: override?.id,
               caas_owner_name: masterOrgName,

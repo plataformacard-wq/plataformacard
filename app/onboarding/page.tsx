@@ -60,6 +60,9 @@ export default function OnboardingPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const [refOrgId, setRefOrgId] = useState<string | null>(null);
+  const [refCatalogId, setRefCatalogId] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     const supabase = createClient();
@@ -98,6 +101,16 @@ export default function OnboardingPage() {
       setFullName(name);
       setSlug(slugify(name));
       setSlugManual(false);
+
+      // Check for franchise invite
+      const storedOrg = localStorage.getItem("franchise_ref_org");
+      const storedCat = localStorage.getItem("franchise_ref_catalog");
+      if (storedOrg && storedCat) {
+        setRefOrgId(storedOrg);
+        setRefCatalogId(storedCat);
+        setBusinessModel("CaaS"); // Force CaaS for franchisees
+      }
+
       setInitializing(false);
     }
 
@@ -190,7 +203,8 @@ export default function OnboardingPage() {
         whatsapp: trimmedWhatsapp,
         bio: trimmedBio,
         avatarUrl: avatarUrl,
-        businessModel: businessModel
+        businessModel: businessModel,
+        masterCatalogId: refCatalogId || undefined
       });
 
       if (error) {
@@ -228,14 +242,18 @@ export default function OnboardingPage() {
             >
               <div className="text-center">
                 <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-                  Escolha seu <span className="text-emerald-500">Modelo</span>
+                  {refCatalogId ? "Configuração da " : "Escolha seu "}
+                  <span className="text-emerald-500">{refCatalogId ? "Franquia" : "Modelo"}</span>
                 </h1>
                 <p className="mt-4 text-zinc-400">
-                  Como você pretende utilizar a plataforma? Você poderá mudar isso depois.
+                  {refCatalogId 
+                    ? "Você foi convidado para ser um franqueado. Continue para configurar sua vitrine."
+                    : "Como você pretende utilizar a plataforma? Você poderá mudar isso depois."}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {!refCatalogId && (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[
                   {
                     id: "B2B",
@@ -289,6 +307,7 @@ export default function OnboardingPage() {
                   </button>
                 ))}
               </div>
+              )}
 
               <div className="flex justify-center">
                 <button

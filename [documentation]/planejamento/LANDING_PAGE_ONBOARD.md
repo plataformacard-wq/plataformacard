@@ -7,20 +7,27 @@ Ele deve ser utilizado como referência para qualquer futura manutenção de có
 ---
 
 ## 1. Posicionamento Estratégico (O "Core")
-A página não vende um "simples link na bio". Ela vende uma **solução de tecnologia corporativa** (CaaS - Catalog as a Service). 
+A página não vende um "simples link na bio". Ela vende uma **solução de tecnologia para gestão e distribuição de catálogos e cartões de visita digitais**. 
 
-**Pilar Principal (Autoridade):** Posicionar o produto como nível *Enterprise* para fisgar o decisor B2B (Dono de Distribuidora, Gestor de Franquias), gerando um contraste de altíssimo valor percebido quando o vendedor autônomo (B2C) descobrir que existe um plano inicial gratuito.
+**Pilar Principal (Autoridade):** Posicionar o produto como uma ferramenta de nível profissional/corporativo para fisgar o tomador de decisão (Dono de Distribuidora, Gestor de Franquias, Redes de Lojas), gerando um contraste de altíssimo valor percebido quando o vendedor autônomo descobrir que existe um plano inicial gratuito.
+
+> [!IMPORTANT]
+> **PROIBIÇÃO DE JARGÕES TÉCNICOS NA LP PÚBLICA:**
+> Para garantir a clareza e evitar confusão no público final, os termos **CaaS**, **B2B** e **B2C** são estritamente PROIBIDOS em qualquer texto ou copy da landing page pública. 
+> - Substitua **CaaS** por: *Catálogo para Franqueados, Catálogo Centralizado, Rede de Vendas, Distribuição em Lote*.
+> - Substitua **B2B** por: *Para Empresas, Para Equipes de Vendas, Para Redes de Lojas*.
+> - Substitua **B2C** por: *Para Profissionais Autônomos, Plano Individual, Vendedor Independente*.
 
 ### Os Dois Funis Simultâneos:
-1. **O Funil B2B (Primário / High-Ticket):** 
-   - **Alvo:** Diretores e Donos de Negócios.
-   - **Comportamento:** Eles leem o topo da página, sentem a autoridade corporativa e não querem "fuçar" no sistema sozinhos. 
-   - **Ação:** Clicar em "Falar com Especialista" ou "Agendar Demonstração" -> Redirecionamento para o WhatsApp do Fundador para fechamento manual.
+1. **O Funil para Empresas (Primário / Venda Consultiva):** 
+   - **Alvo:** Diretores, Gerentes e Donos de Redes/Franquias.
+   - **Comportamento:** Eles leem o topo da página, sentem a autoridade da solução e não querem configurar o sistema sozinhos. 
+   - **Ação:** Clicar em "Falar com Especialista" ou "Agendar Demonstração" -> Redirecionamento para o WhatsApp para fechamento manual.
 
-2. **O Funil B2C (Secundário / Product-Led Growth):** 
-   - **Alvo:** Vendedor autônomo, Representante individual.
+2. **O Funil Individual (Secundário / Autocadastro):** 
+   - **Alvo:** Vendedor autônomo, Representante comercial individual, Profissional liberal.
    - **Comportamento:** Eles descem a página impactados pela tecnologia e se deparam com a Tabela de Preços, descobrindo o Plano Start.
-   - **Ação:** Clicar em "Criar Conta Grátis" -> Redirecionamento para o onboarding nativo (Self-Service).
+   - **Ação:** Clicar em "Criar Conta Grátis" -> Redirecionamento para o cadastro nativo.
 
 ---
 
@@ -44,14 +51,14 @@ Baseado no *Brand Book*, a página transmite uma "vibe" de SaaS/Fintech moderna,
 
 ### Bloco 1: Header (Navegação)
 - **Objetivo:** Credibilidade instantânea e rotas de fuga estratégicas.
-- **Elementos:** Logo (PlataformaShop) à esquerda. Dois botões à direita: "Fazer Login" (Texto sutil) e "Falar com Especialista" (Botão Verde Chamativo). O Header afunila a atenção para a conversão B2B.
+- **Elementos:** Logo (PlataformaShop) à esquerda. Dois botões à direita: "Fazer Login" (Texto sutil) e "Falar com Especialista" (Botão Verde Chamativo). O Header afunila a atenção para a conversão das Empresas.
 
 ### Bloco 2: Hero Section (A Primeira Impressão)
-- **Objetivo:** Reter a atenção nos primeiros 3 segundos batendo na maior dor do B2B.
-- **Micro-copy (Tag):** SOLUÇÃO CAAS (CATALOG AS A SERVICE).
+- **Objetivo:** Reter a atenção nos primeiros 3 segundos batendo na maior dor de redes e empresas.
+- **Micro-copy (Tag):** CATÁLOGO PARA FRANQUEADOS & CARTÕES DIGITAIS.
 - **Headline (H1):** "O fim do caos em PDFs. Retome o controle absoluto das suas vendas."
 - **Sub-Headline:** Explicação lógica e direta ("Centralize seus produtos, atualize preços em tempo real para toda a rede... e receba pedidos no WhatsApp").
-- **Ação Principal:** Botão gigante "Agendar Demonstração B2B" (Efeito hover invertendo as cores).
+- **Ação Principal:** Botão gigante "Falar com Especialista" ou "Agendar Demonstração" (Efeito hover invertendo as cores).
 
 ### Bloco 3: Agitação da Dor (Pain Points)
 - **Objetivo:** Fazer o cliente concordar com o problema antes de você vender a solução.
@@ -64,23 +71,23 @@ Baseado no *Brand Book*, a página transmite uma "vibe" de SaaS/Fintech moderna,
 - **Objetivo:** Mostrar como a PlataformaShop cura a dor de forma mágica.
 - **Layout:** Z-Pattern (Ziguezague de Texto/Imagem).
 - **Tópicos de Venda:**
-  - **Catálogo Mestre:** Atualizou no painel, atualizou na rua.
+  - **Catálogo Integrado:** Atualizou no painel, atualizou na rua.
   - **Vitrine Blindada:** O vendedor ganha o link com o nome dele, mas a empresa mantém as rédeas do que é ofertado.
   - **Negociação no WhatsApp:** Como gerar fluxo para fechamento humano em vez de um carrinho de compras abandonado.
 
-### Bloco 5: A Ponte B2C (O Gancho de Preços)
+### Bloco 5: A Ponte para o Plano Individual (O Gancho de Preços)
 - **Objetivo:** Acolher o "Pequeno peixe" que chegou na página e mostrar que ele também pode usar.
 - **Headline da Seção:** "Planos desenhados para o seu tamanho. Você não precisa ser gigante para usar tecnologia."
 - **Tabela de Preços (Dual Card):**
-  - **Card Esquerdo (Start):** Grande destaque para o texto "Grátis". Focado no indivíduo (limite de 20 produtos). Botão outline chamando para o Self-Service (`/cadastro`).
-  - **Card Direito (Enterprise):** Destaque verde maciço com tag "Recomendado para Empresas". Customizado, foco no gestor. Botão chamando para o WhatsApp do Especialista.
+  - **Card Esquerdo (Start):** Grande destaque para o texto "Grátis". Focado no indivíduo / autônomo (limite de 20 produtos). Botão outline chamando para o cadastro (`/cadastro`).
+  - **Card Direito (Enterprise/Empresas):** Destaque verde maciço com tag "Recomendado para Empresas". Customizado, foco no gestor de equipes. Botão chamando para o WhatsApp do Especialista.
 
 ---
 
 ## 4. Gatilhos Mentais Utilizados no Copy
 1. **Inimigo Comum:** O "PDF" tradicional é tratado como o vilão arcaico que trava as vendas.
-2. **Autoridade (Efeito Halo):** O uso rigoroso de termos em inglês do mercado tech (`CaaS`, `Enterprise`) e a estética Dark Mode associam a ferramenta instantaneamente a gigantes do Vale do Silício.
-3. **Ancoragem de Preço:** Ao vender uma solução "Customizada para Corporações", o cliente pequeno imediatamente entende que a ferramenta vale milhares de reais. Quando ele vê que o uso básico é gratuito, o "Deal" (negócio) parece irrecusável.
+2. **Autoridade (Efeito Halo):** A estética Dark Mode e a organização limpa associam a ferramenta instantaneamente a gigantes de tecnologia.
+3. **Ancoragem de Preço:** Ao vender uma solução "Customizada para Empresas", o cliente pequeno imediatamente entende que a ferramenta vale muito. Quando ele vê que o uso básico é gratuito, a oferta parece irrecusável.
 
 ---
 *Este documento reflete a engenharia do `app/page.tsx` gerada na Sprint de Estratégia de Captação.*

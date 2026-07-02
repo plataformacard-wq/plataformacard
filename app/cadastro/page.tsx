@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
 import { isReservedSlug } from "@/lib/utils/reserved-slugs";
 import { GoogleLogin } from "@react-oauth/google";
 
@@ -22,6 +23,17 @@ function slugify(value: string) {
 
 export default function CadastroPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const refOrgId = searchParams?.get("ref");
+    const refCatalogId = searchParams?.get("catalog");
+    if (refOrgId && refCatalogId) {
+      localStorage.setItem("franchise_ref_org", refOrgId);
+      localStorage.setItem("franchise_ref_catalog", refCatalogId);
+    }
+  }, [searchParams]);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

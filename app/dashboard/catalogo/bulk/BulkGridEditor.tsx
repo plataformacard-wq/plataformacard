@@ -89,7 +89,13 @@ const EditableCell = ({
     setValue(initialValue);
   }, [initialValue]);
 
-  const isReadOnly = row.original.is_caas && (id === "name" || id === "sku");
+  const isReadOnly = 
+    row.original.is_caas && 
+    (
+      id === "name" || 
+      id === "sku" || 
+      (row.original.allow_price_overrides === false && (id === "price" || id === "compare_at_price" || id === "wholesale_price" || id === "wholesale_min_quantity"))
+    );
 
   if (isReadOnly) {
     return (
@@ -264,7 +270,7 @@ export default function BulkGridEditor() {
           // Fetch catalog details to identify types
           const { data: catalogsData } = await supabase
             .from("catalogs")
-            .select("id, name, catalog_type")
+            .select("id, name, catalog_type, allow_price_overrides")
             .in("id", catalogIds);
 
           const caasCatalog = catalogsData?.find((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform");
@@ -331,9 +337,11 @@ export default function BulkGridEditor() {
 
               const caasProductsList = caasProductsData.map((p: any) => {
                 const override = overrides.find((o) => o.product_id === p.id);
+                const catalog = catalogsData?.find(c => caasCats.find(cat => cat.id === p.category_id)?.catalog_id === c.id);
                 return {
                   ...p,
                   is_caas: true,
+                  allow_price_overrides: catalog?.allow_price_overrides ?? true,
                   override_id: override?.id,
                   original_category_id: p.category_id,
                   category_id: override?.category_id || p.category_id,
@@ -413,7 +421,7 @@ export default function BulkGridEditor() {
         // Fetch catalog details to identify types
         const { data: catalogsData } = await supabase
           .from("catalogs")
-          .select("id, name, catalog_type")
+          .select("id, name, catalog_type, allow_price_overrides")
           .in("id", catalogIds);
 
         const caasCatalog = catalogsData?.find((c) => c.catalog_type === "CaaS" || c.catalog_type === "platform");
@@ -462,9 +470,11 @@ export default function BulkGridEditor() {
 
             const caasProductsList = caasProductsData.map((p: any) => {
               const override = overrides.find((o) => o.product_id === p.id);
+              const catalog = catalogsData?.find(c => caasCats.find(cat => cat.id === p.category_id)?.catalog_id === c.id);
               return {
                 ...p,
                 is_caas: true,
+                allow_price_overrides: catalog?.allow_price_overrides ?? true,
                 override_id: override?.id,
                 original_category_id: p.category_id,
                 category_id: override?.category_id || p.category_id,

@@ -77,6 +77,7 @@ interface ProductRow {
   caas_owner_name?: string;
   original_category_id?: string | null;
   categories?: { id: string; name: string } | { id: string; name: string }[] | null;
+  allow_price_overrides?: boolean;
 }
 
 interface Category {
@@ -883,10 +884,11 @@ export default function ProductModal({
                         value={productPrice} 
                         onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
+                        disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
+                        className={`w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
-                      {editingProduct?.is_caas && editingProduct.original_master_price != null && parsePrice(productPrice) !== editingProduct.original_master_price && (
+                      {editingProduct?.is_caas && editingProduct.original_master_price != null && parsePrice(productPrice) !== editingProduct.original_master_price && editingProduct.allow_price_overrides !== false && (
                         <div className="mt-2 p-3 rounded-xl bg-blue-50/50 border border-blue-100 flex items-center justify-between gap-3">
                            <div className="flex items-center gap-2 text-[10px]">
                              <div className="p-1.5 rounded-full bg-blue-100 text-blue-500"><BellRing size={14} /></div>
@@ -907,7 +909,8 @@ export default function ProductModal({
                         value={productCompareAtPrice} 
                         onChange={(e) => setProductCompareAtPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-xl border-2 border-dashed pl-12 pr-6 py-3 text-sm font-bold line-through outline-none focus:border-zinc-400 transition-all"
+                        disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
+                        className={`w-full rounded-xl border-2 border-dashed pl-12 pr-6 py-3 text-sm font-bold line-through outline-none focus:border-zinc-400 transition-all ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}
                       />
                     </div>
@@ -956,7 +959,8 @@ export default function ProductModal({
                         value={wholesalePrice} 
                         onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
-                        className="w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner"
+                        disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
+                        className={`w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
@@ -968,7 +972,8 @@ export default function ProductModal({
                         value={wholesaleMinQuantity} 
                         onChange={(e) => setWholesaleMinQuantity(e.target.value)} 
                         placeholder="Ex: 10" 
-                        className="w-full rounded-xl border-2 pl-6 pr-16 py-3 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all"
+                        disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
+                        className={`w-full rounded-xl border-2 pl-6 pr-16 py-3 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       <span className="absolute right-4 top-[38px] text-[10px] font-black uppercase tracking-widest pointer-events-none" style={{ color: "var(--dash-text-muted)" }}>UNID.</span>

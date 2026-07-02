@@ -22,11 +22,13 @@ type CatalogInfo = {
 export default function CatalogManagerClient({ 
   catalogs, 
   orgId, 
-  profileId 
+  profileId,
+  isAllService
 }: { 
   catalogs: CatalogInfo[], 
   orgId: string, 
-  profileId: string 
+  profileId: string,
+  isAllService?: boolean
 }) {
   const [localCatalogs, setLocalCatalogs] = useState(catalogs);
   const [isActivating, setIsActivating] = useState<string | null>(null);
@@ -70,13 +72,15 @@ export default function CatalogManagerClient({
           >
             {/* Tag Herdado / Próprio */}
             <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-1.5">
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shadow-sm whitespace-nowrap ${
-                catalog.isInherited
-                  ? "bg-purple-600 text-white dark:bg-purple-500"
-                  : "bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900"
-              }`}>
-                {catalog.isInherited ? "Catálogo Franqueado" : "Catálogo Próprio"}
-              </span>
+              {(!isAllService || catalog.isInherited) && (
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shadow-sm whitespace-nowrap ${
+                  catalog.isInherited
+                    ? "bg-purple-600 text-white dark:bg-purple-500"
+                    : "bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900"
+                }`}>
+                  {catalog.isInherited ? "Catálogo Franqueado" : "Catálogo Próprio"}
+                </span>
+              )}
               
               {catalog.isActive && (
                 <span className="flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">

@@ -10,8 +10,9 @@ export async function completeOnboarding(payload: {
   bio: string;
   avatarUrl: string;
   businessModel: "B2B" | "B2C" | "CaaS";
+  masterCatalogId?: string;
 }) {
-  const { fullName, slug, whatsapp, bio, avatarUrl, businessModel } = payload;
+  const { fullName, slug, whatsapp, bio, avatarUrl, businessModel, masterCatalogId } = payload;
   
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -148,6 +149,22 @@ export async function completeOnboarding(payload: {
     if (orgCatError) {
       console.error("Erro ao vincular organização/catálogo:", orgCatError);
       return { error: "Erro ao configurar acessos do catálogo." };
+    }
+
+    // Se houver um masterCatalogId (Convite de Franquia ALL_SERVICE), vincula o catálogo mestre
+    if (masterCatalogId) {
+      const { error: franchiseCatError } = await adminClient
+        .from("organization_catalogs")
+        .insert({
+          organization_id: orgId,
+          catalog_id: masterCatalogId,
+          is_enabled: true
+        });
+
+      if (franchiseCatError) {
+        console.error("Erro ao vincular catálogo de franquia:", franchiseCatError);
+        // Não é bloqueante, mas devemos logar.
+      }
     }
 
     // Para profile_catalogs precisamos do organization_catalog_id

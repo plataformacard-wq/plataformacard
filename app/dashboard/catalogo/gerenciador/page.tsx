@@ -13,6 +13,14 @@ export default async function CatalogManagerPage() {
 
   const orgId = profile.organization_id;
 
+  const { data: orgData } = await supabase
+    .from("organizations")
+    .select("business_model")
+    .eq("id", orgId)
+    .single();
+
+  const isAllService = orgData?.business_model === "ALL_SERVICE";
+
   // Busca todos os catálogos disponíveis para a organização (Mapeamento)
   const { data: orgCatalogsData } = await supabase
     .from("organization_catalogs")
@@ -81,6 +89,8 @@ export default async function CatalogManagerPage() {
       }
 
       const masterCatalog = Array.isArray(oc.catalogs) ? oc.catalogs[0] : oc.catalogs;
+      const isOwner = masterCatalog?.organization_id === orgId;
+      const isPlatformType = ['CaaS', 'platform', 'franchise'].includes(masterCatalog?.catalog_type);
 
       return {
         id: oc.id, // ID of the organization_catalogs mapping row
@@ -89,7 +99,7 @@ export default async function CatalogManagerPage() {
         description: masterCatalog?.description || "",
         logoUrl: masterCatalog?.logo_url,
         type: masterCatalog?.catalog_type || "Padrão",
-        isInherited: (masterCatalog?.catalog_type === 'CaaS' || masterCatalog?.catalog_type === 'platform'),
+        isInherited: !isOwner && isPlatformType,
         isActive,
         productCount: count || 0,
         createdAt: oc.created_at,
@@ -115,6 +125,7 @@ export default async function CatalogManagerPage() {
         catalogs={catalogs} 
         orgId={orgId} 
         profileId={profile.id} 
+        isAllService={isAllService}
       />
     </div>
   );
