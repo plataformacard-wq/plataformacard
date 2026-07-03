@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Plus, Store, Users, Link as LinkIcon, Settings2, Trash2, Shield, Info, Edit3, ShieldOff, ShieldCheck } from "lucide-react";
-import { getFranchiseCatalogs, getFranchisees, createFranchiseCatalog, togglePriceOverrides } from "./actions";
+import { getFranchiseCatalogs, getFranchisees, togglePriceOverrides } from "./actions";
+import Link from "next/link";
 
 interface Catalog {
   id: string;
   name: string;
   description: string;
-  allow_price_overrides: boolean;
   created_at: string;
+  deleted_at: string | null;
 }
 
 interface Franchisee {
@@ -30,11 +31,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
   const [franchisees, setFranchisees] = useState<Record<string, Franchisee[]>>({});
   const [loading, setLoading] = useState(true);
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newCatName, setNewCatName] = useState("");
-  const [newCatDesc, setNewCatDesc] = useState("");
-  const [newCatAllowOverrides, setNewCatAllowOverrides] = useState(true);
-  const [creating, setCreating] = useState(false);
+
 
   const [activeCatalogId, setActiveCatalogId] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
@@ -66,32 +63,6 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
     }
   }
 
-  async function handleCreateCatalog(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newCatName) return;
-    setCreating(true);
-    try {
-      await createFranchiseCatalog(newCatName, newCatDesc, newCatAllowOverrides);
-      setIsCreateModalOpen(false);
-      setNewCatName("");
-      setNewCatDesc("");
-      setNewCatAllowOverrides(true);
-      await loadData();
-    } catch (error: any) {
-      alert(error.message);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function handleToggleOverrides(catalogId: string, currentValue: boolean) {
-    try {
-      await togglePriceOverrides(catalogId, !currentValue);
-      setCatalogs(catalogs.map(c => c.id === catalogId ? { ...c, allow_price_overrides: !currentValue } : c));
-    } catch (error: any) {
-      alert(error.message);
-    }
-  }
 
   function getInviteLink(catalogId: string) {
     if (typeof window !== 'undefined') {
@@ -116,30 +87,21 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
-        >
-          <Plus size={18} /> Novo Catálogo Franquia
-        </button>
-      </div>
-
       {catalogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[32px] border border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-12 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-12 text-center shadow-sm">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 mb-6">
             <Store size={32} />
           </div>
-          <h3 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Nenhum catálogo matriz encontrado</h3>
-          <p className="mt-2 max-w-md text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-            Crie seu primeiro catálogo matriz para gerar o link de convite e começar a adicionar franqueados à sua rede.
+          <h2 className="text-xl font-black mb-2" style={{ color: "var(--dash-text-primary)" }}>Nenhum catálogo matriz encontrado</h2>
+          <p className="text-sm max-w-md" style={{ color: "var(--dash-text-secondary)" }}>
+            Você ainda não possui um catálogo matriz liberado. Acesse o Gerenciador de Catálogos para criar um.
           </p>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
+          <Link 
+            href="/dashboard/catalogo/gerenciador"
+            className="mt-6 flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
           >
-            Criar Catálogo Matriz
-          </button>
+            Ir para Gerenciador de Catálogos
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -152,7 +114,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
               <button
                 key={catalog.id}
                 onClick={() => setActiveCatalogId(catalog.id)}
-                className={`w-full flex flex-col items-start rounded-2xl border p-4 text-left transition-all ${
+                className={`w-full flex flex-col items-start rounded-xl border p-4 text-left transition-all ${
                   activeCatalogId === catalog.id 
                     ? "border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/50" 
                     : "border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-emerald-500/30 hover:bg-emerald-500/5"
@@ -181,7 +143,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                 key={activeCatalogId}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] shadow-sm overflow-hidden"
+                className="rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] shadow-sm overflow-hidden"
               >
                 {(() => {
                   const activeCat = catalogs.find(c => c.id === activeCatalogId);
@@ -197,13 +159,13 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                             <p className="text-sm mt-2 max-w-xl" style={{ color: "var(--dash-text-secondary)" }}>{activeCat.description}</p>
                           </div>
                           
-                          <div className="shrink-0 flex items-center justify-center h-16 w-16 rounded-2xl bg-emerald-500/10 text-emerald-500">
+                          <div className="shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-emerald-500/10 text-emerald-500">
                             <Store size={28} />
                           </div>
                         </div>
 
                         {/* Invite Link Section */}
-                        <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+                        <div className="mt-8 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
                           <div className="flex items-center gap-2 mb-3">
                             <LinkIcon size={16} className="text-emerald-600" />
                             <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400">Link de Convite para Franqueados</h4>
@@ -212,41 +174,18 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                             Compartilhe este link com seus futuros franqueados. Ao se cadastrarem por ele, a loja deles será criada automaticamente vinculada a este catálogo.
                           </p>
                           <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="flex-1 truncate rounded-xl border border-emerald-500/30 bg-[var(--dash-surface)] px-4 py-3 text-sm font-mono text-[var(--dash-text-primary)]">
+                            <div className="flex-1 truncate rounded-lg border border-emerald-500/30 bg-[var(--dash-surface)] px-4 py-3 text-sm font-mono text-[var(--dash-text-primary)]">
                               {link}
                             </div>
                             <button
                               onClick={() => copyToClipboard(link, activeCat.id)}
-                              className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
+                              className="shrink-0 flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
                             >
                               {copiedLink === activeCat.id ? <><Check size={16}/> Copiado!</> : <><Copy size={16}/> Copiar Link</>}
                             </button>
                           </div>
                         </div>
 
-                        {/* Configurations */}
-                        <div className="mt-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between rounded-2xl border border-[var(--dash-border)] p-5">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              {activeCat.allow_price_overrides ? <ShieldOff size={16} className="text-amber-500" /> : <ShieldCheck size={16} className="text-emerald-500" />}
-                              <h4 className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Preços Editáveis pelos Franqueados</h4>
-                            </div>
-                            <p className="text-xs mt-1 max-w-md" style={{ color: "var(--dash-text-secondary)" }}>
-                              {activeCat.allow_price_overrides 
-                                ? "Franqueados podem editar o preço final de venda para aplicar margem própria." 
-                                : "Preços bloqueados. O franqueado venderá exatamente pelo preço que você definir na matriz."}
-                            </p>
-                          </div>
-                          <label className="relative inline-flex cursor-pointer items-center shrink-0">
-                            <input
-                              type="checkbox"
-                              className="peer sr-only"
-                              checked={activeCat.allow_price_overrides}
-                              onChange={() => handleToggleOverrides(activeCat.id, activeCat.allow_price_overrides)}
-                            />
-                            <div className="peer h-7 w-12 rounded-full bg-zinc-300 after:absolute after:left-[4px] after:top-[4px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:bg-zinc-700"></div>
-                          </label>
-                        </div>
                       </div>
 
                       {/* Franchisees List */}
@@ -260,7 +199,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                         </div>
 
                         {activeFranks.length === 0 ? (
-                          <div className="rounded-2xl border border-dashed border-[var(--dash-border)] p-8 text-center bg-[var(--dash-surface)]">
+                          <div className="rounded-xl border border-dashed border-[var(--dash-border)] p-8 text-center bg-[var(--dash-surface)]">
                             <Users size={32} className="mx-auto mb-3 text-[var(--dash-text-muted)]" />
                             <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Nenhum franqueado ainda</p>
                             <p className="text-xs mt-1" style={{ color: "var(--dash-text-secondary)" }}>
@@ -270,9 +209,9 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                         ) : (
                           <div className="space-y-3">
                             {activeFranks.map(frank => (
-                              <div key={frank.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 transition hover:border-emerald-500/30">
+                              <div key={frank.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 transition hover:border-emerald-500/30">
                                 <div className="flex items-center gap-4">
-                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-emerald-500/10 text-emerald-600 font-bold">
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-emerald-500/10 text-emerald-600 font-bold">
                                     {frank.avatar_url ? <img src={frank.avatar_url} className="h-full w-full object-cover" /> : frank.name?.charAt(0)}
                                   </div>
                                   <div>
@@ -289,7 +228,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                                     href={`/${frank.slug}`} 
                                     target="_blank" 
                                     rel="noreferrer"
-                                    className="rounded-lg bg-[var(--dash-surface-secondary)] p-2 text-[var(--dash-text-secondary)] transition hover:bg-emerald-500/10 hover:text-emerald-500"
+                                    className="rounded-md bg-[var(--dash-surface-secondary)] p-2 text-[var(--dash-text-secondary)] transition hover:bg-emerald-500/10 hover:text-emerald-500"
                                     title="Ver vitrine"
                                   >
                                     <ExternalLink size={16} />
@@ -309,92 +248,6 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
         </div>
       )}
 
-      {/* Create Modal */}
-      <AnimatePresence>
-        {isCreateModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl"
-              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-            >
-              <div className="p-6 border-b border-[var(--dash-border)] flex items-center justify-between">
-                <h3 className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>Novo Catálogo Matriz</h3>
-                <button onClick={() => setIsCreateModalOpen(false)} className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-              <form onSubmit={handleCreateCatalog} className="p-6 space-y-5">
-                <div>
-                  <label className="mb-1 block text-sm font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
-                    Nome do Catálogo
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newCatName}
-                    onChange={(e) => setNewCatName(e.target.value)}
-                    placeholder="Ex: Catálogo Matriz Nordeste"
-                    className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-500"
-                    style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
-                    Descrição (Opcional)
-                  </label>
-                  <textarea
-                    value={newCatDesc}
-                    onChange={(e) => setNewCatDesc(e.target.value)}
-                    placeholder="Descrição interna para identificar a finalidade deste catálogo."
-                    rows={3}
-                    className="w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-500"
-                    style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]">
-                  <div>
-                    <h4 className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Franqueado pode editar preços?</h4>
-                    <p className="text-[10px] mt-0.5" style={{ color: "var(--dash-text-secondary)" }}>
-                      Permite que eles alterem o valor final (margem).
-                    </p>
-                  </div>
-                  <label className="relative inline-flex cursor-pointer items-center shrink-0">
-                    <input
-                      type="checkbox"
-                      className="peer sr-only"
-                      checked={newCatAllowOverrides}
-                      onChange={(e) => setNewCatAllowOverrides(e.target.checked)}
-                    />
-                    <div className="peer h-6 w-11 rounded-full bg-zinc-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full peer-focus:outline-none dark:bg-zinc-700"></div>
-                  </label>
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateModalOpen(false)}
-                    className="flex-1 rounded-xl border border-[var(--dash-border)] py-3 text-sm font-bold transition hover:bg-[var(--dash-hover-bg)]"
-                    style={{ color: "var(--dash-text-primary)" }}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creating || !newCatName}
-                    className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    {creating ? "Criando..." : "Criar Catálogo"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

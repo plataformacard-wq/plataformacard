@@ -4,61 +4,26 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export async function createFranchiseCatalog(name: string, description: string, allowPriceOverrides: boolean) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Não autorizado");
-
-  // Validate if user is ALL_SERVICE
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, organization_id, organizations(business_model)")
-    .eq("user_id", user.id)
-    .single();
-
-  const org = Array.isArray(profile?.organizations) ? profile?.organizations[0] : profile?.organizations;
-  if (org?.business_model !== "ALL_SERVICE") {
-    throw new Error("Apenas contas ALL_SERVICE podem criar catálogos de franquia.");
-  }
-
-  const adminClient = createAdminClient();
-
-  if (!profile || !profile.organization_id) {
-    return { error: "Perfil ou organização não encontrada." };
-  }
-
-  const { data: inserted, error } = await adminClient
-    .from("catalogs")
-    .insert({
-      name,
-      description,
-      catalog_type: "platform",
-      owner_id: user.id,
-      owner_profile_id: user.id,
-      organization_id: profile.organization_id,
-      allow_price_overrides: allowPriceOverrides
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    console.error("createFranchiseCatalog error:", error);
-    throw new Error(`Erro ao criar catálogo matriz: ${error.message}`);
-  }
-
-  revalidatePath("/dashboard/franquias");
-  return { success: true, id: inserted.id };
-}
 
 export async function getFranchiseCatalogs() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data: catalogs, error } = await supabase
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile?.organization_id) return [];
+
+  const adminClient = createAdminClient();
+
+  const { data: catalogs, error } = await adminClient
     .from("catalogs")
-    .select("id, name, description, allow_price_overrides, created_at, deleted_at")
-    .eq("owner_id", user.id)
+    .select("id, name, description, created_at, deleted_at")
+    .eq("organization_id", profile.organization_id)
     .eq("catalog_type", "platform")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
@@ -76,17 +41,25 @@ export async function getFranchisees(catalogId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile?.organization_id) throw new Error("Não autorizado.");
+
+  const adminClient = createAdminClient();
+
   // Verify ownership of catalog
-  const { data: catalog } = await supabase
+  const { data: catalog } = await adminClient
     .from("catalogs")
     .select("id")
     .eq("id", catalogId)
-    .eq("owner_id", user.id)
+    .eq("organization_id", profile.organization_id)
     .single();
 
   if (!catalog) throw new Error("Catálogo não encontrado ou não autorizado.");
-
-  const adminClient = createAdminClient();
 
   // Find organizations linked to this catalog
   const { data: orgCatalogs, error } = await adminClient
@@ -138,13 +111,21 @@ export async function togglePriceOverrides(catalogId: string, allowPriceOverride
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile?.organization_id) throw new Error("Não autorizado");
+
   const adminClient = createAdminClient();
 
   const { error } = await adminClient
     .from("catalogs")
     .update({ allow_price_overrides: allowPriceOverrides })
     .eq("id", catalogId)
-    .eq("owner_id", user.id);
+    .eq("organization_id", profile.organization_id);
 
   if (error) {
     console.error("togglePriceOverrides error:", error);

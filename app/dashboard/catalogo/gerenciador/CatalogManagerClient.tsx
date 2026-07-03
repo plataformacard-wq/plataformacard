@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle2, Globe, Box, Copy, Settings, Check, RefreshCw } from "lucide-react";
-import { setActiveCatalog } from "./actions";
+import { useState, useEffect } from "react";
+import { CheckCircle2, Globe, Box, Copy, Settings, Check, RefreshCw, Plus } from "lucide-react";
+import { setActiveCatalog, createCatalog } from "./actions";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type CatalogInfo = {
   id: string;
@@ -14,6 +15,7 @@ type CatalogInfo = {
   logoUrl?: string;
   type: string;
   isInherited: boolean;
+  isOwnedMaster?: boolean;
   isActive: boolean;
   productCount: number;
   createdAt: string;
@@ -30,8 +32,18 @@ export default function CatalogManagerClient({
   profileId: string,
   isAllService?: boolean
 }) {
+  const router = useRouter();
   const [localCatalogs, setLocalCatalogs] = useState(catalogs);
   const [isActivating, setIsActivating] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatDesc, setNewCatDesc] = useState("");
+  const [isPlatform, setIsPlatform] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    setLocalCatalogs(catalogs);
+  }, [catalogs]);
 
   const handleActivate = async (orgCatalogId: string) => {
     setIsActivating(orgCatalogId);
@@ -55,8 +67,34 @@ export default function CatalogManagerClient({
     }
   };
 
+  const handleCreateCatalog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName) return;
+    setCreating(true);
+    try {
+      await createCatalog(newCatName, newCatDesc, isPlatform);
+      setIsCreateModalOpen(false);
+      setNewCatName("");
+      setNewCatDesc("");
+      setIsPlatform(false);
+      router.refresh();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 shadow-sm"
+        >
+          <Plus size={18} /> Criar Catálogo
+        </button>
+      </div>
       <AnimatePresence>
         {localCatalogs.map((catalog) => (
           <motion.div
@@ -76,9 +114,11 @@ export default function CatalogManagerClient({
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shadow-sm whitespace-nowrap ${
                   catalog.isInherited
                     ? "bg-purple-600 text-white dark:bg-purple-500"
+                    : catalog.isOwnedMaster
+                    ? "bg-blue-600 text-white dark:bg-blue-500"
                     : "bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900"
                 }`}>
-                  {catalog.isInherited ? "Catálogo Franqueado" : "Catálogo Próprio"}
+                  {catalog.isInherited ? "Catálogo Franqueado" : catalog.isOwnedMaster ? "Catálogo Matriz" : "Catálogo Próprio"}
                 </span>
               )}
               
@@ -100,7 +140,7 @@ export default function CatalogManagerClient({
                 )}
                 <div className="flex-1 min-w-0 pr-28 sm:pr-32">
                   <h3 className="font-bold text-lg text-[var(--dash-text)] line-clamp-2 leading-tight">
-                    {catalog.name}
+                    {catalog.name} {catalog.isOwnedMaster && <span className="font-normal text-sm opacity-80">(Matriz)</span>}
                   </h3>
                   <p className="text-sm text-[var(--dash-text-secondary)] mt-1 truncate">
                     {catalog.type === 'CaaS' ? 'Master Catalog' : catalog.type}
@@ -128,13 +168,23 @@ export default function CatalogManagerClient({
 
               <div className="flex items-center gap-3 mt-auto">
                 {catalog.isActive ? (
-                  <Link 
-                    href={catalog.isInherited ? "/dashboard/catalogo/bulk" : "/dashboard/catalogo"}
-                    className="flex-1 py-3 px-4 bg-[var(--dash-border)] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-[var(--dash-text)] rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
-                  >
-                    <Settings size={16} /> 
-                    {catalog.isInherited ? "Aceitar Produtos" : "Gerenciar"}
-                  </Link>
+                  <>
+                    <Link 
+                      href={catalog.isInherited ? "/dashboard/catalogo/bulk" : "/dashboard/catalogo"}
+                      className="flex-1 py-3 px-4 bg-[var(--dash-border)] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-[var(--dash-text)] rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                    >
+                      <Settings size={16} /> 
+                      {catalog.isInherited ? "Aceitar Produtos" : "Gerenciar"}
+                    </Link>
+                    {catalog.isOwnedMaster && (
+                      <Link 
+                        href="/dashboard/franquias"
+                        className="flex-1 py-3 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                      >
+                        Liberar p/ Franqueados
+                      </Link>
+                    )}
+                  </>
                 ) : (
                   <button
                     onClick={() => handleActivate(catalog.id)}
@@ -152,6 +202,90 @@ export default function CatalogManagerClient({
             </div>
           </motion.div>
         ))}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl bg-[var(--dash-surface)] border-[var(--dash-border)]"
+            >
+              <div className="p-6 border-b border-[var(--dash-border)] flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[var(--dash-text-primary)]">Novo Catálogo</h3>
+                <button onClick={() => setIsCreateModalOpen(false)} className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] transition">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              <form onSubmit={handleCreateCatalog} className="p-6 space-y-5">
+                <div>
+                  <label className="mb-1 block text-sm font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
+                    Nome do Catálogo
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="Ex: Catálogo Matriz Nordeste"
+                    className="w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] text-[var(--dash-text-primary)] px-4 py-3 text-sm outline-none transition focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
+                    Descrição (Opcional)
+                  </label>
+                  <textarea
+                    value={newCatDesc}
+                    onChange={(e) => setNewCatDesc(e.target.value)}
+                    placeholder="Descrição interna para identificar a finalidade deste catálogo."
+                    rows={3}
+                    className="w-full resize-none rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] text-[var(--dash-text-primary)] px-4 py-3 text-sm outline-none transition focus:border-primary"
+                  />
+                </div>
+
+                {isAllService && (
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]">
+                    <div>
+                      <h4 className="text-sm font-bold text-[var(--dash-text-primary)]">Liberar para Franqueados?</h4>
+                      <p className="text-[10px] mt-0.5 text-[var(--dash-text-secondary)]">
+                        Cria o catálogo como Matriz.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex cursor-pointer items-center shrink-0">
+                      <input
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={isPlatform}
+                        onChange={(e) => setIsPlatform(e.target.checked)}
+                      />
+                      <div className="peer h-6 w-11 rounded-full bg-zinc-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-focus:outline-none dark:bg-zinc-700"></div>
+                    </label>
+                  </div>
+                )}
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="flex-1 rounded-xl border border-[var(--dash-border)] text-[var(--dash-text-primary)] py-3 text-sm font-bold transition hover:bg-[var(--dash-hover-bg)]"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creating || !newCatName}
+                    className="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {creating ? "Criando..." : "Criar Catálogo"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );

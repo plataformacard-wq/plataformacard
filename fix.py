@@ -1,51 +1,30 @@
 import re
 
-file_path = 'app/dashboard/perfil/page.tsx'
-with open(file_path, 'r', encoding='utf-8') as f:
+with open('app/cadastro/page.tsx', 'r') as f:
     content = f.read()
 
-pattern = r'(\s*\{/\* Fim do Bloco de Identidade/Card \*/\})([\s\S]*)'
-match = re.search(pattern, content)
-if match:
-    replacement = '''\\1
-        </>
-      )}
+# Add Suspense import
+content = content.replace('import { FormEvent, useState, useEffect } from "react";', 'import { FormEvent, useState, useEffect, Suspense } from "react";')
 
-      {saveMessage && (
-        <div
-          className="fixed bottom-6 right-6 z-50 rounded-xl border px-4 py-3 text-sm shadow-lg transition-colors"
-          style={{
-            background: "var(--dash-surface)",
-            borderColor: "var(--dash-border)",
-            color: "var(--dash-text-primary)",
-          }}
-        >
-          {saveMessage}
-        </div>
-      )}
-      <ImageEditorModal
-        isOpen={showImageEditor}
-        onClose={() => setShowImageEditor(false)}
-        onConfirm={onImageEditorConfirm}
-        aspectRatio={1}
-        minWidth={400}
-        minHeight={400}
-      />
-    </div>
-  );
-}
+# Rename CadastroPage to CadastroContent
+content = content.replace('export default function CadastroPage() {', 'function CadastroContent() {')
 
-export default function PerfilPage() {
+# Add the new export default at the bottom
+new_export = """
+export default function CadastroPage() {
   return (
-    <Suspense fallback={null}>
-      <PerfilContent />
+    <Suspense fallback={
+      <main className="min-h-screen bg-zinc-950 px-4 py-10 text-white flex items-center justify-center">
+        <div className="text-zinc-400">Carregando...</div>
+      </main>
+    }>
+      <CadastroContent />
     </Suspense>
   );
 }
-'''
-    new_content = content[:match.start()] + replacement
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(new_content)
-    print('File fixed successfully')
-else:
-    print('Pattern not found')
+"""
+
+content = content + new_export
+
+with open('app/cadastro/page.tsx', 'w') as f:
+    f.write(content)

@@ -38,6 +38,7 @@ export default function DashboardPage() {
   const [showNoWhatsappWarning, setShowNoWhatsappWarning] = useState(false);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [hasActiveMasterState, setHasActiveMasterState] = useState(false);
+  const [hasOwnedMasterState, setHasOwnedMasterState] = useState(false);
   const [hasSellersWithoutPhoto, setHasSellersWithoutPhoto] = useState(false);
   
   // Feriados e Alertas
@@ -227,12 +228,19 @@ export default function DashboardPage() {
             // Verifica se o catálogo franquias foi desvinculado/vinculado antes dos banners
             const { data: orgCatalogs } = await supabase
               .from("organization_catalogs")
-              .select("is_enabled, catalogs(catalog_type, deleted_at)")
+              .select("is_enabled, catalogs(organization_id, catalog_type, deleted_at)")
               .eq("organization_id", activeOrgId);
 
             const hasActiveMaster = orgCatalogs?.some((c: any) => {
               const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
-              return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS') && !cat?.deleted_at;
+              const isOwner = cat?.organization_id === activeOrgId;
+              return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS') && !cat?.deleted_at && !isOwner;
+            }) || false;
+
+            const hasOwnedMaster = orgCatalogs?.some((c: any) => {
+              const cat = Array.isArray(c.catalogs) ? c.catalogs[0] : c.catalogs;
+              const isOwner = cat?.organization_id === activeOrgId;
+              return c.is_enabled && (cat?.catalog_type === 'platform' || cat?.catalog_type === 'CaaS') && !cat?.deleted_at && isOwner;
             }) || false;
 
             const hasAnyMaster = orgCatalogs?.some((c: any) => {
@@ -241,6 +249,7 @@ export default function DashboardPage() {
             }) || false;
             
             setHasActiveMasterState(hasActiveMaster);
+            setHasOwnedMasterState(hasOwnedMaster);
 
             const currentIsB2B = org?.business_model === 'B2B' || (org?.business_model !== 'CaaS' && profile.role === 'b2b_admin');
             
@@ -437,6 +446,8 @@ export default function DashboardPage() {
         className={`p-6 rounded-[32px] border backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
           hasActiveMasterState 
             ? "border-purple-500/20 bg-purple-500/5"
+            : hasOwnedMasterState
+            ? "border-blue-500/20 bg-blue-500/5"
             : "border-emerald-500/20 bg-emerald-500/5"
         }`}
       >
@@ -444,21 +455,25 @@ export default function DashboardPage() {
           <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${
             hasActiveMasterState 
               ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+              : hasOwnedMasterState
+              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
               : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
           }`}>
             <Package size={24} />
           </div>
           <div>
             <h3 className={`font-bold text-base ${
-              hasActiveMasterState ? "text-purple-800 dark:text-purple-400" : "text-emerald-800 dark:text-emerald-400"
+              hasActiveMasterState ? "text-purple-800 dark:text-purple-400" : hasOwnedMasterState ? "text-blue-800 dark:text-blue-400" : "text-emerald-800 dark:text-emerald-400"
             }`}>
-              {hasActiveMasterState ? "Operando com Catálogo Catálogo Franqueado" : "Operando com Catálogo Próprio"}
+              {hasActiveMasterState ? "Operando com Catálogo Franqueado" : hasOwnedMasterState ? "Operando com Catálogo Matriz" : "Operando com Catálogo Próprio"}
             </h3>
             <p className={`text-xs mt-1 leading-relaxed max-w-2xl ${
-              hasActiveMasterState ? "text-purple-700/80 dark:text-purple-400/80" : "text-emerald-700/80 dark:text-emerald-400/80"
+              hasActiveMasterState ? "text-purple-700/80 dark:text-purple-400/80" : hasOwnedMasterState ? "text-blue-700/80 dark:text-blue-400/80" : "text-emerald-700/80 dark:text-emerald-400/80"
             }`}>
               {hasActiveMasterState 
                 ? "Os produtos exibidos na sua vitrine e configurações principais são baseados no catálogo matriz da sua franqueadora."
+                : hasOwnedMasterState
+                ? "Você está operando o catálogo matriz. As alterações aqui refletirão nas lojas da sua rede."
                 : "Os produtos exibidos na sua vitrine são gerenciados exclusivamente por você."}
             </p>
           </div>
@@ -466,7 +481,7 @@ export default function DashboardPage() {
         <Link
           href="/dashboard/catalogo/gerenciador"
           className={`shrink-0 w-full sm:w-auto rounded-xl px-5 py-2.5 text-sm font-bold text-white transition flex items-center justify-center gap-2 mt-4 md:mt-0 ${
-            hasActiveMasterState ? "bg-purple-600 hover:bg-purple-700" : "bg-emerald-600 hover:bg-emerald-700"
+            hasActiveMasterState ? "bg-purple-600 hover:bg-purple-700" : hasOwnedMasterState ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700"
           }`}
         >
           Gerenciar

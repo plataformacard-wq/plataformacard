@@ -90,7 +90,7 @@ export default async function CatalogManagerPage() {
 
       const masterCatalog = Array.isArray(oc.catalogs) ? oc.catalogs[0] : oc.catalogs;
       const isOwner = masterCatalog?.organization_id === orgId;
-      const isPlatformType = ['CaaS', 'platform', 'franchise'].includes(masterCatalog?.catalog_type);
+      const isPlatformType = ['CaaS', 'platform'].includes(masterCatalog?.catalog_type);
 
       return {
         id: oc.id, // ID of the organization_catalogs mapping row
@@ -100,12 +100,18 @@ export default async function CatalogManagerPage() {
         logoUrl: masterCatalog?.logo_url,
         type: masterCatalog?.catalog_type || "Padrão",
         isInherited: !isOwner && isPlatformType,
+        isOwnedMaster: isOwner && isPlatformType,
         isActive,
         productCount: count || 0,
         createdAt: oc.created_at,
       };
     })
   );
+
+  const hasOwnedMaster = catalogs.some(c => c.isOwnedMaster);
+  const filteredCatalogs = hasOwnedMaster 
+    ? catalogs.filter(c => c.type !== 'custom') 
+    : catalogs;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
@@ -122,7 +128,7 @@ export default async function CatalogManagerPage() {
       </div>
 
       <CatalogManagerClient 
-        catalogs={catalogs} 
+        catalogs={filteredCatalogs} 
         orgId={orgId} 
         profileId={profile.id} 
         isAllService={isAllService}
