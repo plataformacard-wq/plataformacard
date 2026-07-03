@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { sanitizeText } from "../utils";
 
 import React, { memo } from "react";
@@ -148,12 +149,30 @@ const CatalogBannerCarouselBase = ({
           >
             {/* Responsividade para Banners Customizados */}
             {currentItem.is_product ? (
-              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${currentItem.image_url})` }} />
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src={currentItem.image_url || "/placeholder-banner.png"}
+                  alt={currentItem.title || "Banner"}
+                  fill
+                  priority
+                  className="object-cover opacity-20 blur-xl scale-110"
+                />
+              </div>
             ) : (
-              <picture>
-                <source media="(min-width: 640px)" srcSet={currentItem.image_desktop_url} />
-                <img src={currentItem.image_mobile_url || currentItem.image_desktop_url} alt={currentItem.title || "Banner"} className="w-full h-full object-cover" />
-              </picture>
+              <div className="absolute inset-0 z-0">
+                {currentItem.image_mobile_url && currentItem.image_desktop_url ? (
+                  <>
+                    <div className="sm:hidden relative w-full h-full">
+                      <Image src={currentItem.image_mobile_url} alt={currentItem.title || "Banner"} fill priority className="object-cover" />
+                    </div>
+                    <div className="hidden sm:block relative w-full h-full">
+                      <Image src={currentItem.image_desktop_url} alt={currentItem.title || "Banner"} fill priority className="object-cover" />
+                    </div>
+                  </>
+                ) : (
+                  <Image src={currentItem.image_desktop_url || currentItem.image_mobile_url || ""} alt={currentItem.title || "Banner"} fill priority className="object-cover" />
+                )}
+              </div>
             )}
           </div>
 
@@ -193,10 +212,12 @@ const CatalogBannerCarouselBase = ({
             {/* Right side floating image */}
             {currentItem.is_product && (
               <div className="relative h-[85%] aspect-square flex items-center justify-center z-20 hidden sm:flex rounded-2xl overflow-hidden shadow-md bg-white border border-black/5">
-                <img 
-                  src={currentItem.image_url} 
-                  alt={currentItem.title} 
-                  className="max-h-full max-w-full object-contain transition-transform duration-500 hover:scale-105"
+                <Image 
+                  src={currentItem.image_url || "/placeholder-product.png"} 
+                  alt={currentItem.title || "Produto"} 
+                  fill
+                  sizes="(max-width: 768px) 0vw, 33vw"
+                  className="object-contain p-3 transition-transform duration-500 hover:scale-105"
                 />
               </div>
             )}

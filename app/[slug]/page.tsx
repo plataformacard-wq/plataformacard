@@ -1,9 +1,7 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
-
-export const dynamic = "force-dynamic";
 import ProfileViewTracker from "@/components/analytics/ProfileViewTracker";
 import ProfileWhatsAppButton from "@/components/analytics/ProfileWhatsAppButton";
 import { getBusinessStatus, BusinessHours } from "@/lib/utils/time";
@@ -20,7 +18,7 @@ type PageProps = {
 // SEO Metadata Generation
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -89,8 +87,7 @@ type ProfileRow = {
   is_accepting_orders: boolean | null;
 };
 
-export const dynamicParams = true;
-export const revalidate = 0;
+export const revalidate = 60;
 
 function initialsFromName(name: string | null): string {
   if (!name?.trim()) {
@@ -104,7 +101,7 @@ function initialsFromName(name: string | null): string {
 }
 
 async function resolveCatalogIds(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   profile: ProfileRow
 ): Promise<string[]> {
   const catalogIds: string[] = [];
@@ -160,7 +157,7 @@ async function resolveCatalogIds(
 }
 
 async function getCatalogStats(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   profile: ProfileRow
 ): Promise<{ productCount: number; categoryCount: number; latestUpdate: string | null; catalogId: string | null }> {
   const catalogIds = await resolveCatalogIds(supabase, profile);
@@ -214,7 +211,7 @@ async function getCatalogStats(
 }
 
 export default async function Page(props: PageProps) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { slug } = await props.params;
 

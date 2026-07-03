@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Tag, Check, Layers, Info, MessageCircle, Clock, Share2 } from "lucide-react";
+import Image from "next/image";
 import { createPortal } from "react-dom";
 import { sanitizeText, formatPrice } from "../utils";
 
@@ -77,7 +78,7 @@ export const ProductModal = ({
               onMouseMove={isZoomed ? handleImageZoomMove : undefined}
             >
               {selectedImageUrl ? (
-                <motion.img 
+                <motion.div 
                   key={selectedImageUrl}
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: isZoomed ? 2.5 : 1 }}
@@ -85,12 +86,19 @@ export const ProductModal = ({
                     scale: { type: "spring", stiffness: 200, damping: 25 },
                     opacity: { duration: 0.2 }
                   }}
-                  src={selectedImageUrl} 
-                  alt={selectedProduct.name}
                   style={{ transformOrigin: isZoomed ? (zoomOrigin || "center center") : "center center" }}
-                  className={`w-full h-full object-contain ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                  className={`relative w-full h-full ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
                   onClick={() => setIsZoomed(!isZoomed)}
-                />
+                >
+                  <Image 
+                    src={selectedImageUrl} 
+                    alt={selectedProduct.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority
+                    className="object-contain"
+                  />
+                </motion.div>
               ) : (
                 <Package size={100} className="text-[var(--public-text-dim)]" />
               )}
@@ -129,11 +137,11 @@ export const ProductModal = ({
                   <button 
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`h-14 w-14 rounded-lg border-2 flex-shrink-0 transition-all overflow-hidden cursor-pointer ${
+                    className={`relative h-14 w-14 rounded-lg border-2 flex-shrink-0 transition-all overflow-hidden cursor-pointer ${
                       selectedImageIndex === idx ? "border-emerald-500 scale-105" : "border-[var(--public-card-border)] opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <Image src={url} alt="" fill sizes="56px" className="object-cover" />
                   </button>
                 ))}
               </div>

@@ -1,12 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
 import { getNationalHolidays } from "@/lib/utils/holidays";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -22,7 +21,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function EmbedPage(props: PageProps) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { slug } = await props.params;
 
   let profile: any = null;

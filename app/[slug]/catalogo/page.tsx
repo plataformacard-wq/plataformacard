@@ -1,13 +1,12 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
 import { getNationalHolidays } from "@/lib/utils/holidays";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -115,7 +114,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const searchParams = await props.searchParams;
   const isEmbed = searchParams.embed === "true";
   
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Se for embed, evitamos indexação pesada ou títulos genéricos
   if (isEmbed) {
@@ -170,7 +169,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 }
 
 export default async function Page(props: PageProps) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
   const { slug } = await props.params;
   const searchParams = await props.searchParams;

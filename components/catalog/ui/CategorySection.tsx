@@ -2,6 +2,7 @@
 
 import { motion, LayoutGroup } from "framer-motion";
 import { Package, Search, Maximize2, Tag, Check, Layers, ChevronRight, MessageCircle, Clock, Share2, ChevronLeft, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { sanitizeText, formatPrice } from "../utils";
 import React, { memo } from "react";
@@ -89,10 +90,12 @@ const ProductCard = memo(({
           </div>
         )}
         {product.image_url ? (
-          <img 
+          <Image 
             src={isExpanded ? (productGallery[selectedImageIndex] || product.image_url) : product.image_url} 
-            alt={product.name} 
-            className={`w-full h-full object-contain transition-transform duration-500 ${isExpanded ? '' : 'group-hover:scale-110'} ${!product.is_in_stock ? 'opacity-40 grayscale-[0.5]' : ''}`}
+            alt={product.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className={`object-contain transition-transform duration-500 ${isExpanded ? '' : 'group-hover:scale-110'} ${!product.is_in_stock ? 'opacity-40 grayscale-[0.5]' : ''}`}
           />
         ) : (
           <Package size={48} className={`text-[var(--public-text-dim)] ${!product.is_in_stock ? 'opacity-30' : ''}`} />
@@ -136,9 +139,9 @@ const ProductCard = memo(({
               <button 
                 key={idx} 
                 onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
-                className={`h-12 w-12 sm:h-16 sm:w-16 rounded-lg border-2 flex-shrink-0 overflow-hidden cursor-pointer ${selectedImageIndex === idx ? 'border-emerald-500 scale-105' : 'border-[var(--public-card-border)] opacity-60'}`}
+                className={`relative h-12 w-12 sm:h-16 sm:w-16 rounded-lg border-2 flex-shrink-0 overflow-hidden cursor-pointer ${selectedImageIndex === idx ? 'border-emerald-500 scale-105' : 'border-[var(--public-card-border)] opacity-60'}`}
               >
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <Image src={url} alt="" fill sizes="64px" className="object-cover" />
               </button>
             ))}
           </div>

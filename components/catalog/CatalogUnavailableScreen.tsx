@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Store, AlertCircle } from "lucide-react";
+import Image from "next/image";
 
 type ProfileRow = {
   full_name?: string | null;
@@ -51,11 +52,13 @@ export default function CatalogUnavailableScreen({ profile }: { profile?: Profil
             }}
           >
             {profile?.avatar_url ? (
-               <img
-               src={profile.avatar_url}
-               alt={name}
-               style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", opacity: 0.5, filter: "grayscale(100%)" }}
-             />
+               <Image
+                 src={profile.avatar_url}
+                 alt={name}
+                 fill
+                 sizes="80px"
+                 style={{ objectFit: "cover", borderRadius: "50%", opacity: 0.5, filter: "grayscale(100%)" }}
+               />
             ) : (
               <Store size={32} color="rgba(255,255,255,0.4)" />
             )}

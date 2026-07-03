@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, ShoppingBag } from "lucide-react";
+import Image from "next/image";
 
 interface Spec {
   chave: string;
@@ -46,10 +47,12 @@ export function ProductCard({ product, primaryColor, onClick }: ProductCardProps
     >
       {/* Product Image */}
       <div className="relative aspect-square mb-6 rounded-[2rem] overflow-hidden bg-slate-50 dark:bg-slate-900/50">
-        <img
+        <Image
           src={imageUrl}
           alt={product.name}
-          className={`w-full h-full object-contain p-4 transition-transform duration-700 group-hover:scale-110 ${isOutOfStock ? 'grayscale opacity-50' : ''}`}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className={`object-contain p-4 transition-transform duration-700 group-hover:scale-110 ${isOutOfStock ? 'grayscale opacity-50' : ''}`}
         />
         
         {/* Badges */}

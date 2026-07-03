@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Users, Phone, ArrowRight, ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -12,7 +12,7 @@ type PageProps = {
 
 export default async function VendedoresPublicPage(props: PageProps) {
   const { slug } = await props.params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // 1. Buscar a organização pelo slug
   const { data: org } = await supabase
