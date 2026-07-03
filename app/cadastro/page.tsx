@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
@@ -21,7 +21,7 @@ function slugify(value: string) {
     .replace(/-+/g, "-");
 }
 
-export default function CadastroPage() {
+function CadastroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -454,5 +454,16 @@ export default function CadastroPage() {
         </div>
       </div>
     </main>
+  );
+}
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-zinc-950 px-4 py-10 text-white flex items-center justify-center">
+        <div className="text-zinc-400">Carregando...</div>
+      </main>
+    }>
+      <CadastroContent />
+    </Suspense>
   );
 }
