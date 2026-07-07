@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle2, Globe, Box, Copy, Settings, Check, RefreshCw, Plus } from "lucide-react";
 import { setActiveCatalog, createCatalog } from "./actions";
+import { syncBlingStock } from "../actions/bling";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ export default function CatalogManagerClient({
   const [newCatDesc, setNewCatDesc] = useState("");
   const [isPlatform, setIsPlatform] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [isSyncingBling, setIsSyncingBling] = useState(false);
 
   useEffect(() => {
     setLocalCatalogs(catalogs);
@@ -85,9 +87,34 @@ export default function CatalogManagerClient({
     }
   };
 
+  const handleSyncBling = async () => {
+    setIsSyncingBling(true);
+    try {
+      const res = await syncBlingStock(orgId);
+      if (res.success) {
+        alert(`Sincronização concluída! Produtos atualizados: ${res.updatedCount}. Não encontrados/esgotados: ${res.notFoundCount}.`);
+        router.refresh();
+      } else {
+        alert("Erro: " + res.message);
+      }
+    } catch (err: any) {
+      alert("Erro ao conectar com a sincronização.");
+    } finally {
+      setIsSyncingBling(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={handleSyncBling}
+          disabled={isSyncingBling}
+          className="flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-600 shadow-sm disabled:opacity-50"
+        >
+          {isSyncingBling ? <RefreshCw size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+          {isSyncingBling ? "Sincronizando..." : "Sincronizar Bling"}
+        </button>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 shadow-sm"

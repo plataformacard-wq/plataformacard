@@ -17,6 +17,7 @@ export default function EmpresaPage() {
   const [newCustomDate, setNewCustomDate] = useState("");
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
   const [centralizeLeads, setCentralizeLeads] = useState(false);
+  const [hasBlingConnection, setHasBlingConnection] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -47,7 +48,7 @@ export default function EmpresaPage() {
           setOrgId(activeOrgId);
           const { data: org } = await supabase
             .from("organizations")
-            .select("business_hours, business_model, centralize_leads")
+            .select("business_hours, business_model, centralize_leads, bling_access_token")
             .eq("id", activeOrgId)
             .maybeSingle();
           
@@ -55,6 +56,7 @@ export default function EmpresaPage() {
             if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
             if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
             if (org.centralize_leads !== undefined) setCentralizeLeads(!!org.centralize_leads);
+            if (org.bling_access_token) setHasBlingConnection(true);
           }
         }
       }
@@ -257,6 +259,26 @@ export default function EmpresaPage() {
     setSaving(false);
   }
 
+  async function handleDisconnectBling() {
+    if (!orgId) return;
+    if (!confirm("Tem certeza que deseja desconectar a integração com o Bling? O estoque não será mais sincronizado automaticamente.")) return;
+    
+    setSaving(true);
+    const { error } = await supabase
+      .from("organizations")
+      .update({ 
+        bling_access_token: null,
+        bling_refresh_token: null,
+        bling_token_expires_at: null
+      })
+      .eq("id", orgId);
+      
+    if (!error) {
+      setHasBlingConnection(false);
+    }
+    setSaving(false);
+  }
+
   if (loading) {
     return <p style={{ color: "var(--dash-text-secondary)" }}>Carregando dados da empresa...</p>;
   }
@@ -404,6 +426,42 @@ export default function EmpresaPage() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div className="rounded-[32px] p-8 border shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+              Integração Bling (Estoque)
+              {hasBlingConnection && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 uppercase">
+                  Conectado
+                </span>
+              )}
+            </h2>
+            <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
+              Sincronize automaticamente seu estoque de produtos com base no SKU através da API Oficial do Bling (V3).
+            </p>
+          </div>
+          <div className="shrink-0">
+            {hasBlingConnection ? (
+              <button
+                type="button"
+                onClick={handleDisconnectBling}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors"
+              >
+                Desconectar Conta
+              </button>
+            ) : (
+              <a
+                href={`/api/auth/bling/login?orgId=${orgId}`}
+                className="inline-block rounded-lg px-6 py-2.5 text-sm font-bold bg-emerald-500 text-white transition-colors hover:bg-emerald-600"
+              >
+                Conectar ao Bling
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
