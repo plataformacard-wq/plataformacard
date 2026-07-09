@@ -888,7 +888,12 @@ export default function BulkGridEditor() {
                 const fileName = data.length > 0 ? "catalogo_exportado.xlsx" : "plataformashop_modelo.xlsx";
                 XLSX.writeFile(wb, fileName);
               } finally {
-                setIsExporting(false);
+                // Como o writeFile é muito rápido mas o navegador pode demorar para disparar
+                // o popup de download, mantemos o Loader ativo por mais alguns segundos
+                // para garantir feedback visual contínuo.
+                setTimeout(() => {
+                  setIsExporting(false);
+                }, 3500);
               }
             }}
             disabled={isExporting}
