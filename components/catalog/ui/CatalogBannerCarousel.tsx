@@ -155,7 +155,7 @@ const CatalogBannerCarouselBase = ({
                   alt={currentItem.title || "Banner"}
                   fill
                   priority
-                  className="object-cover opacity-25 blur-[2px] md:blur-sm scale-105"
+                  className="object-cover opacity-25 blur-[1px] scale-105"
                 />
               </div>
             ) : (
