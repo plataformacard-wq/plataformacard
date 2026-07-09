@@ -824,21 +824,51 @@ export default function BulkGridEditor() {
           <button
             onClick={() => {
               const templateHeaders = ["Nome do Produto", "Preço Venda", "Preço Atacado", "Qtd Mínima Atacado", "SKU", "Categoria", "Descrição", "Especificações Técnicas"];
-              const exampleData = [["Exemplo: Scooter X1", "2500.00", "2200.00", "5", "SC-001", categories[0]?.name || "Geral", "Descrição curta aqui...", "Cor:Preto | Material:Alumínio"]];
+              
+              let exportData: any[][] = [];
+
+              if (data.length === 0) {
+                exportData = [["Exemplo: Scooter X1", "2500.00", "2200.00", "5", "SC-001", categories[0]?.name || "Geral", "Descrição curta aqui...", "Cor:Preto | Material:Alumínio"]];
+              } else {
+                exportData = data.map((product) => {
+                  let specsStr = "";
+                  if (product.specs && typeof product.specs === 'object') {
+                    specsStr = Object.entries(product.specs)
+                      .map(([key, val]) => `${key}:${val}`)
+                      .join(" | ");
+                  }
+                  
+                  const categoryName = categories.find((c: any) => c.id === product.category_id)?.name || "";
+
+                  return [
+                    product.name || "",
+                    product.price !== null && product.price !== undefined ? product.price.toString() : "",
+                    product.wholesale_price !== null && product.wholesale_price !== undefined ? product.wholesale_price.toString() : "",
+                    product.wholesale_min_quantity !== null && product.wholesale_min_quantity !== undefined ? product.wholesale_min_quantity.toString() : "",
+                    product.sku || "",
+                    categoryName,
+                    product.description || "",
+                    specsStr
+                  ];
+                });
+              }
+
               const wb = XLSX.utils.book_new();
-              const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exampleData]);
+              const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exportData]);
               ws['!freeze'] = { xSplit: 0, ySplit: 1 };
               ws['!protect'] = { password: 'plataformashop' };
               const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
               XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
               XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
-              XLSX.writeFile(wb, "plataformashop_v1.0.xlsx");
+              
+              const fileName = data.length > 0 ? "catalogo_exportado.xlsx" : "plataformashop_modelo.xlsx";
+              XLSX.writeFile(wb, fileName);
             }}
             className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-secondary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
-            title="Baixar planilha modelo v1.0"
+            title="Exportar catálogo atual para Excel"
           >
             <Download size={18} />
-            Modelo
+            Exportar
           </button>
 
           <button
