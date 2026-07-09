@@ -120,6 +120,8 @@ export default function BulkImportModal({
     { key: "sku", label: "SKU", required: false },
     { key: "category_name", label: "Nome da Categoria", required: false },
     { key: "specs_string", label: "Especificações Técnicas", required: false },
+    { key: "image_url", label: "URL da Imagem Principal", required: false },
+    { key: "image_urls", label: "URLs da Galeria", required: false },
   ];
 
   if (!isOpen) return null;
@@ -276,7 +278,15 @@ export default function BulkImportModal({
           wholesale_price: parseFloat(String(row[mapping["wholesale_price"]]).replace(",", ".")) || null,
           wholesale_min_quantity: parseInt(row[mapping["wholesale_min_quantity"]]) || null,
           has_wholesale: !!row[mapping["wholesale_price"]],
+          image_url: row[mapping["image_url"]] || null,
         };
+
+        const galleryRaw = row[mapping["image_urls"]];
+        if (galleryRaw && typeof galleryRaw === "string") {
+          product.image_urls = galleryRaw.split(",").map(url => url.trim()).filter(Boolean);
+        } else {
+          product.image_urls = [];
+        }
 
         // Lógica de Especificações Técnicas (Conversor String -> JSON)
         const specsRaw = row[mapping["specs_string"]];

@@ -79,6 +79,7 @@ export default function BulkGridEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [storedSheetUrl, setStoredSheetUrl] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [catalogId, setCatalogId] = useState<string | null>(null);
@@ -823,56 +824,73 @@ export default function BulkGridEditor() {
           {/* Ferramentas de Massa */}
           <button
             onClick={() => {
-              const templateHeaders = ["Nome do Produto", "Preço Venda", "Preço Atacado", "Qtd Mínima Atacado", "SKU", "Categoria", "Descrição", "Especificações Técnicas"];
-              
-              let exportData: any[][] = [];
+              if (isExporting) return;
+              setIsExporting(true);
 
-              if (data.length === 0) {
-                exportData = [["Exemplo: Scooter X1", "2500.00", "2200.00", "5", "SC-001", categories[0]?.name || "Geral", "Descrição curta aqui...", "Cor:Preto | Material:Alumínio"]];
-              } else {
-                exportData = data.map((product) => {
-                  let specsStr = "";
-                  if (Array.isArray(product.specs)) {
-                    specsStr = product.specs
-                      .map((s: any) => `${s.chave || s.label || s.name || ''}:${s.valor || s.value || ''}`)
-                      .join(" | ");
-                  } else if (product.specs && typeof product.specs === 'object') {
-                    specsStr = Object.entries(product.specs)
-                      .map(([key, val]) => `${key}:${val}`)
-                      .join(" | ");
-                  }
+              // Timeout curto permite que o React renderize o loader ANTES do bloco síncrono do XLSX travar a thread
+              setTimeout(() => {
+                try {
+                  const templateHeaders = ["Nome do Produto", "Preço Venda", "Preço Atacado", "Qtd Mínima Atacado", "SKU", "Categoria", "Descrição", "Especificações Técnicas", "URL da Imagem Principal", "URLs da Galeria"];
                   
-                  const categoryName = categories.find((c: any) => c.id === product.category_id)?.name || "";
+                  let exportData: any[][] = [];
 
-                  return [
-                    product.name || "",
-                    product.price !== null && product.price !== undefined ? product.price.toString() : "",
-                    product.wholesale_price !== null && product.wholesale_price !== undefined ? product.wholesale_price.toString() : "",
-                    product.wholesale_min_quantity !== null && product.wholesale_min_quantity !== undefined ? product.wholesale_min_quantity.toString() : "",
-                    product.sku || "",
-                    categoryName,
-                    product.description || "",
-                    specsStr
-                  ];
-                });
-              }
+                  if (data.length === 0) {
+                    exportData = [["Exemplo: Scooter X1", "2500.00", "2200.00", "5", "SC-001", categories[0]?.name || "Geral", "Descrição curta aqui...", "Cor:Preto | Material:Alumínio", "https://i.imgur.com/exemplo1.png", "https://i.imgur.com/exemplo2.png, https://i.imgur.com/exemplo3.png"]];
+                  } else {
+                    exportData = data.map((product) => {
+                      let specsStr = "";
+                      if (Array.isArray(product.specs)) {
+                        specsStr = product.specs
+                          .map((s: any) => `${s.chave || s.label || s.name || ''}:${s.valor || s.value || ''}`)
+                          .join(" | ");
+                      } else if (product.specs && typeof product.specs === 'object') {
+                        specsStr = Object.entries(product.specs)
+                          .map(([key, val]) => `${key}:${val}`)
+                          .join(" | ");
+                      }
+                      
+                      const categoryName = categories.find((c: any) => c.id === product.category_id)?.name || "";
+                      
+                      // Processamento das imagens
+                      const mainImageUrl = product.image_url || "";
+                      const galleryUrls = Array.isArray(product.image_urls) ? product.image_urls.join(",") : "";
 
-              const wb = XLSX.utils.book_new();
-              const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exportData]);
-              ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-              ws['!protect'] = { password: 'plataformashop' };
-              const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
-              XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
-              XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
-              
-              const fileName = data.length > 0 ? "catalogo_exportado.xlsx" : "plataformashop_modelo.xlsx";
-              XLSX.writeFile(wb, fileName);
+                      return [
+                        product.name || "",
+                        product.price !== null && product.price !== undefined ? product.price.toString() : "",
+                        product.wholesale_price !== null && product.wholesale_price !== undefined ? product.wholesale_price.toString() : "",
+                        product.wholesale_min_quantity !== null && product.wholesale_min_quantity !== undefined ? product.wholesale_min_quantity.toString() : "",
+                        product.sku || "",
+                        categoryName,
+                        product.description || "",
+                        specsStr,
+                        mainImageUrl,
+                        galleryUrls
+                      ];
+                    });
+                  }
+
+                  const wb = XLSX.utils.book_new();
+                  const ws = XLSX.utils.aoa_to_sheet([templateHeaders, ...exportData]);
+                  ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+                  ws['!protect'] = { password: 'plataformashop' };
+                  const wsCats = XLSX.utils.json_to_sheet(categories.map(c => ({ "Categorias Disponíveis": c.name })));
+                  XLSX.utils.book_append_sheet(wb, ws, "Modelo Importação");
+                  XLSX.utils.book_append_sheet(wb, wsCats, "Categorias");
+                  
+                  const fileName = data.length > 0 ? "catalogo_exportado.xlsx" : "plataformashop_modelo.xlsx";
+                  XLSX.writeFile(wb, fileName);
+                } finally {
+                  setIsExporting(false);
+                }
+              }, 100);
             }}
-            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-secondary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all"
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--dash-border)] text-[var(--dash-text-secondary)] rounded-xl font-medium hover:bg-[var(--dash-hover-bg)] transition-all disabled:opacity-50"
             title="Exportar catálogo atual para Excel"
           >
-            <Download size={18} />
-            Exportar
+            {isExporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+            {isExporting ? "Exportando..." : "Exportar"}
           </button>
 
           <button
