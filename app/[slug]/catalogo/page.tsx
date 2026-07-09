@@ -332,6 +332,35 @@ export default async function Page(props: PageProps) {
     }
   }
 
+  // FORCE INCLUSION: Mesmo se a ORG usa um Master (via organization_catalogs), 
+  // precisamos carregar o catálogo próprio dela para mesclar as configurações (Banners, Esgotados, Ocultar Preços, etc)
+  if (targetOrgId) {
+    const { data: fallbackOwnerCat } = await supabase
+      .from("catalogs")
+      .select("id")
+      .eq("owner_id", targetOrgId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fallbackOwnerCat?.id && !catalogIds.includes(fallbackOwnerCat.id)) {
+      catalogIds.push(fallbackOwnerCat.id);
+    } else if (profile?.id) {
+      const { data: profileCat } = await supabase
+        .from("catalogs")
+        .select("id")
+        .eq("owner_id", profile.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (profileCat?.id && !catalogIds.includes(profileCat.id)) {
+        catalogIds.push(profileCat.id);
+      }
+    }
+  }
+
   if (catalogIds.length === 0) {
     return (
       <ConsultantsBridge
