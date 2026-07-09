@@ -143,7 +143,7 @@ const CatalogBannerCarouselBase = ({
           <div 
             className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
               currentItem.is_product 
-                ? 'opacity-100 scale-105' 
+                ? 'opacity-100' 
                 : 'blur-none opacity-100 scale-100'
             }`}
           >
@@ -155,7 +155,7 @@ const CatalogBannerCarouselBase = ({
                   alt={currentItem.title || "Banner"}
                   fill
                   priority
-                  className="object-cover opacity-50 blur-xl scale-110"
+                  className="object-cover opacity-25 blur-[2px] md:blur-sm scale-105"
                 />
               </div>
             ) : (
