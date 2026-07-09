@@ -489,6 +489,16 @@ export default async function Page(props: PageProps) {
     }, [] as Product[]);
   }
 
+  // Ordenar produtos esgotados para o final se a flag estiver ativa
+  if (finalOutOfStockAtEnd) {
+    products.sort((a, b) => {
+      const aInStock = a.is_in_stock !== false;
+      const bInStock = b.is_in_stock !== false;
+      if (aInStock === bInStock) return 0;
+      return aInStock ? -1 : 1;
+    });
+  }
+
   // Triple-check fallback para o WhatsApp
   // CRM KOMMO: Lógica de centralização de leads
   let finalWhatsapp = profile?.whatsapp || orgData?.whatsapp || null;

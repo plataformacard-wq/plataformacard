@@ -1,6 +1,6 @@
 ---
 name: Refatoração Proativa e Anti-Monolito
-description: Acionado automaticamente sempre que o agente for instruído a editar ou adicionar código em um arquivo grande (monolito) ou blindado (blacklist).
+description: ACIONAR SEMPRE que editar, modificar ou adicionar código em arquivos muito grandes (> 500 linhas), arquivos monolíticos, ou arquivos blindados na blacklist (como ProductModal.tsx e page.tsx).
 ---
 
 # Instruções de Refatoração Proativa
