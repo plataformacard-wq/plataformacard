@@ -283,9 +283,9 @@ export default function BulkImportModal({
         if (specsRaw && typeof specsRaw === "string") {
           const specParts = specsRaw.split("|");
           product.specs = specParts.map(part => {
-            const [label, value] = part.split(":").map(s => s.trim());
-            return { label: label || "", value: value || "" };
-          }).filter(s => s.label);
+            const [chave, valor] = part.split(":").map(s => s.trim());
+            return { chave: chave || "", valor: valor || "", custom: true, id: Math.random().toString(36).substring(7) };
+          }).filter(s => s.chave);
         }
 
         // Vincular à categoria (Nova ou Existente)

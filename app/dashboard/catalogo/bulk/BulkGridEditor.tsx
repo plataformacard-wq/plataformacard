@@ -834,7 +834,7 @@ export default function BulkGridEditor() {
                   let specsStr = "";
                   if (Array.isArray(product.specs)) {
                     specsStr = product.specs
-                      .map((s: any) => `${s.label || ''}:${s.value || ''}`)
+                      .map((s: any) => `${s.chave || s.label || s.name || ''}:${s.valor || s.value || ''}`)
                       .join(" | ");
                   } else if (product.specs && typeof product.specs === 'object') {
                     specsStr = Object.entries(product.specs)
