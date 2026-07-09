@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
 
   // A URL de redirecionamento para voltar pro painel
-  const redirectUrl = new URL("/dashboard/empresa", request.url);
+  const redirectUrl = new URL("/dashboard/catalogo/gerenciador", request.url);
 
   if (error) {
     redirectUrl.searchParams.set("bling_error", error);
@@ -64,8 +64,11 @@ export async function GET(request: NextRequest) {
     expiresAt.setSeconds(expiresAt.getSeconds() + expires_in);
 
     // Salva no Supabase na organização correta (que veio no state)
-    // O RLS garante que o usuário só pode atualizar a própria organização
-    const { error: dbError } = await supabase
+    // Usamos admin client pois a RLS pode bloquear UPDATE na organizations dependendo da role
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const adminSupabase = createAdminClient();
+
+    const { error: dbError } = await adminSupabase
       .from("organizations")
       .update({
         bling_access_token: access_token,
@@ -75,6 +78,7 @@ export async function GET(request: NextRequest) {
       .eq("id", state);
 
     if (dbError) {
+      console.error("Erro ao salvar token na DB:", dbError);
       throw dbError;
     }
 

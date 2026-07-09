@@ -1,0 +1,20 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo Verde Escuro -->
+  <rect width="256" height="256" fill="#133D25" />
+  
+  <!-- Letra P Centralizada -->
+  <text 
+    x="50%" 
+    y="55%" 
+    dominant-baseline="middle" 
+    text-anchor="middle" 
+    fill="#FFFFFF" 
+    font-size="140" 
+    font-family="Arial, sans-serif" 
+    font-weight="bold">
+    P
+  </text>
+  
+  <!-- Detalhe em Verde Claro -->
+  <circle cx="170" cy="170" r="15" fill="#32A852" />
+</svg>

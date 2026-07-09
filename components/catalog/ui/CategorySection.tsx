@@ -153,12 +153,24 @@ const ProductCard = memo(({
           <h3 className="inline-block text-sm sm:text-base font-black tracking-tight text-[var(--public-text-main)] bg-[var(--public-bg)] border border-[var(--public-card-border)] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg sm:rounded-xl shadow-sm break-words-strategy">
               {product.name}
           </h3>
-          {product.show_highlight && product.highlight_text && (
-            <div className="bg-emerald-500/10 text-emerald-500 text-[8px] sm:text-[9px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-emerald-500/20 flex items-center gap-1 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
-              <Tag size={10} className="sm:w-3 sm:h-3 animate-pulse" />
-              {sanitizeText(product.highlight_text)}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">
+            {product.is_in_stock === false ? (
+              <span className="bg-rose-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
+                Esgotado
+              </span>
+            ) : product.stock_quantity !== null && product.stock_quantity !== undefined && Math.floor(product.stock_quantity) <= 3 ? (
+              <span className="bg-amber-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm animate-pulse">
+                Apenas {Math.floor(product.stock_quantity)} un!
+              </span>
+            ) : null}
+
+            {product.show_highlight && product.highlight_text && (
+              <div className="bg-emerald-500/10 text-emerald-500 text-[8px] sm:text-[9px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-emerald-500/20 flex items-center gap-1 animate-in fade-in zoom-in duration-300 w-fit break-words-strategy">
+                <Tag size={10} className="sm:w-3 sm:h-3 animate-pulse" />
+                {sanitizeText(product.highlight_text)}
+              </div>
+            )}
+          </div>
         </div>
         
         {product.description && (

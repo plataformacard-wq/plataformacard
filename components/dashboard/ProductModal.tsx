@@ -63,6 +63,8 @@ interface ProductRow {
   image_urls: string[] | null;
   is_active: boolean;
   is_in_stock: boolean;
+  stock_quantity?: number | null;
+  manual_stock?: boolean | null;
   specs_title?: string | null;
   show_specs?: boolean | null;
   show_colors?: boolean | null;
@@ -135,6 +137,8 @@ export default function ProductModal({
   const [modalImages, setModalImages] = useState<{ id: string; url: string; file?: File; isExisting: boolean }[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [isInStock, setIsInStock] = useState(true);
+  const [stockQuantity, setStockQuantity] = useState<string>("");
+  const [manualStock, setManualStock] = useState(false);
   const [showSpecs, setShowSpecs] = useState<boolean | null>(null);
   const [showColors, setShowColors] = useState<boolean | null>(null);
   const [specsTitle, setSpecsTitle] = useState("");
@@ -212,6 +216,8 @@ export default function ProductModal({
         
         setIsActive(editingProduct.is_active ?? true);
         setIsInStock(editingProduct.is_in_stock ?? true);
+        setStockQuantity(editingProduct.stock_quantity !== null && editingProduct.stock_quantity !== undefined ? String(editingProduct.stock_quantity) : "");
+        setManualStock(editingProduct.manual_stock ?? false);
         setShowSpecs(editingProduct.show_specs ?? null);
         setShowColors(editingProduct.show_colors ?? null);
         setSpecsTitle(editingProduct.specs_title || "");
@@ -237,6 +243,8 @@ export default function ProductModal({
         setModalImages([]);
         setIsActive(true);
         setIsInStock(true);
+        setStockQuantity("");
+        setManualStock(false);
         setShowSpecs(null);
         setShowColors(null);
         setSpecsTitle("");
@@ -409,6 +417,8 @@ export default function ProductModal({
         wholesale_min_quantity: hasWholesale ? (parseInt(wholesaleMinQuantity) || null) : null,
         is_active: isActive,
         is_in_stock: isInStock,
+        stock_quantity: stockQuantity ? parseInt(stockQuantity) : null,
+        manual_stock: manualStock,
         price_display_mode: priceDisplayMode,
         show_specs: showSpecs,
         show_colors: showColors,
@@ -483,6 +493,8 @@ export default function ProductModal({
               has_wholesale: payload.has_wholesale,
               is_available: payload.is_active,
               is_in_stock: payload.is_in_stock,
+              stock_quantity: payload.stock_quantity,
+              manual_stock: payload.manual_stock,
               image_url: finalUrls[0] || null,
               image_urls: finalUrls,
               category_id: selectedCategoryId === editingProduct?.original_category_id ? null : selectedCategoryId
@@ -790,29 +802,74 @@ export default function ProductModal({
                     </div>
                   </div>
 
-                  <div 
-                    onClick={() => setIsInStock(!isInStock)} 
-                    className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${isInStock ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
-                    style={{ 
-                      borderColor: isInStock ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
-                      background: isInStock ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isInStock ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
-                        <Package size={20} />
+                  <div className="flex flex-col gap-4">
+                    <div 
+                      onClick={() => setIsInStock(!isInStock)} 
+                      className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${isInStock ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
+                      style={{ 
+                        borderColor: isInStock ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
+                        background: isInStock ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isInStock ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                          <Package size={20} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wider" style={{ color: isInStock ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{itemType === 'service' ? 'Disponível' : 'Estoque'}</p>
+                        </div>
                       </div>
+                      {/* Slider Switch */}
+                      <div className={`w-10 h-5 rounded-full relative transition-colors ${isInStock ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
+                        <motion.div 
+                          animate={{ x: isInStock ? 22 : 4 }}
+                          className="absolute top-1 w-3 h-3 bg-white rounded-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div 
+                      onClick={() => {
+                        if (isCaaS) return; // Nao deixa alterar se for CaaS puro?
+                        setManualStock(!manualStock);
+                      }} 
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer ${manualStock ? 'border-amber-500 bg-amber-500/[0.05]' : ''}`}
+                      style={{ 
+                        borderColor: manualStock ? "rgba(245, 158, 11, 0.3)" : "var(--dash-border)",
+                        background: manualStock ? "rgba(245, 158, 11, 0.05)" : "var(--dash-surface-secondary)"
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-amber-600">Controle Manual (Ignorar Bling)</p>
+                        </div>
+                      </div>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors ${manualStock ? 'bg-amber-500' : 'bg-zinc-700'}`}>
+                        <motion.div 
+                          animate={{ x: manualStock ? 18 : 2 }}
+                          className="absolute top-0.5 w-3 h-3 bg-white rounded-full"
+                        />
+                      </div>
+                    </div>
+
+                    {manualStock && (
                       <div>
-                        <p className="text-xs font-black uppercase tracking-wider" style={{ color: isInStock ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>{itemType === 'service' ? 'Disponível' : 'Estoque'}</p>
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-zinc-400">Quantidade em Estoque</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={stockQuantity}
+                          onChange={(e) => setStockQuantity(e.target.value)}
+                          placeholder="Ex: 97"
+                          className="w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:border-emerald-500 focus:outline-none"
+                          style={{
+                            backgroundColor: "var(--dash-input-bg)",
+                            borderColor: "var(--dash-border)",
+                            color: "var(--dash-text-primary)"
+                          }}
+                        />
                       </div>
-                    </div>
-                    {/* Slider Switch */}
-                    <div className={`w-10 h-5 rounded-full relative transition-colors ${isInStock ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
-                      <motion.div 
-                        animate={{ x: isInStock ? 22 : 4 }}
-                        className="absolute top-1 w-3 h-3 bg-white rounded-full"
-                      />
-                    </div>
+                    )}
                   </div>
                 </div>
 

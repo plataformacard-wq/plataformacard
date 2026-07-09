@@ -168,11 +168,17 @@ export const ProductModal = ({
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
-                      selectedProduct.is_in_stock !== false 
-                        ? 'bg-[var(--primary-color)]/10 text-[var(--primary-color)] border-[var(--primary-color)]/20' 
-                        : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                    }`} style={selectedProduct.is_in_stock !== false ? { backgroundColor: `${primaryColor}1a`, color: primaryColor, borderColor: `${primaryColor}33` } : {}}>
-                      {selectedProduct.is_in_stock !== false ? 'Disponível' : 'Esgotado'}
+                      selectedProduct.is_in_stock === false 
+                        ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                        : selectedProduct.stock_quantity !== null && selectedProduct.stock_quantity !== undefined && Math.floor(selectedProduct.stock_quantity) <= 3
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-lg'
+                          : 'bg-[var(--primary-color)]/10 text-[var(--primary-color)] border-[var(--primary-color)]/20' 
+                    }`} style={selectedProduct.is_in_stock !== false && !(selectedProduct.stock_quantity !== null && selectedProduct.stock_quantity !== undefined && Math.floor(selectedProduct.stock_quantity) <= 3) ? { backgroundColor: `${primaryColor}1a`, color: primaryColor, borderColor: `${primaryColor}33` } : {}}>
+                      {selectedProduct.is_in_stock === false 
+                        ? 'Esgotado' 
+                        : selectedProduct.stock_quantity !== null && selectedProduct.stock_quantity !== undefined && Math.floor(selectedProduct.stock_quantity) <= 3
+                          ? `Apenas ${Math.floor(selectedProduct.stock_quantity)} un!`
+                          : 'Disponível'}
                     </span>
                     {selectedProduct.sku && (
                       <span className="px-2 py-1 rounded-md bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[10px] font-black text-[var(--public-text-main)] uppercase tracking-widest">

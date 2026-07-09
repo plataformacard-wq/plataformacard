@@ -88,6 +88,8 @@ type ProductRow = {
   image_urls: string[] | null;
   is_active: boolean;
   is_in_stock: boolean;
+  stock_quantity?: number | null;
+  manual_stock?: boolean | null;
   specs_title?: string | null;
   show_specs?: boolean | null;
   show_colors?: boolean | null;
@@ -246,6 +248,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       image_urls,
       is_active,
       is_in_stock,
+      stock_quantity,
+      manual_stock,
       price_display_mode,
       highlight_text,
       show_highlight,
@@ -520,7 +524,6 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         `
       id,
       organization_id,
-      catalog_id,
       category_id,
       name,
       description,
@@ -536,6 +539,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       image_urls,
       is_active,
       is_in_stock,
+      stock_quantity,
+      manual_stock,
       price_display_mode,
       highlight_text,
       show_highlight,
@@ -557,12 +562,14 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
 
+    console.log("fetchProducts DB result:", { ownData, ownError });
+
     let prodList = (ownData ?? []) as unknown as ProductRow[];
 
     // 2. Fetch CaaS Products (if any)
     const { data: enabledCatalogs } = await supabase
       .from("organization_catalogs")
-      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, allow_price_overrides, organizations(name))")
+      .select("catalog_id, is_enabled, allow_caas_detachment, catalogs(name, organization_id, catalog_type, deleted_at, organizations(name))")
       .eq("organization_id", orgId);
 
     const activeCatalogIds = enabledCatalogs
@@ -571,15 +578,18 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
 
     // Filter out products belonging to deleted catalogs AND non-active catalogs
     prodList = prodList.filter(p => {
-      // Filtrar produtos que não pertencem ao catálogo ativo (para alternância de catálogos Próprio/Herdado)
-      if (p.catalog_id && !activeCatalogIds.includes(p.catalog_id)) {
-        return false;
-      }
       if (!p.category_id) return true;
       const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
       if (!category) return false;
+      
+      // Filtrar produtos que não pertencem ao catálogo ativo (para alternância de catálogos Próprio/Herdado)
+      if (category.catalog_id && !activeCatalogIds.includes(category.catalog_id)) {
+        return false;
+      }
+
       const catalog = Array.isArray(category.catalogs) ? category.catalogs[0] : category.catalogs;
       if (catalog && catalog.deleted_at) return false;
+      
       return true;
     });
 
@@ -618,48 +628,9 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       if (caasCatalogIds && caasCatalogIds.length > 0) {
         const caasCategoryIds = caasCategories ? caasCategories.map(c => c.id) : [];
         
-        let query1 = supabase
-          .from("products")
-          .select(
-            `
-          id,
-          organization_id,
-          category_id,
-          name,
-          description,
-          specs,
-          price,
-          compare_at_price,
-          sku,
-          has_retail,
-          has_wholesale,
-          wholesale_price,
-          wholesale_min_quantity,
-          image_url,
-          image_urls,
-          is_active,
-          is_in_stock,
-          price_display_mode,
-          highlight_text,
-          show_highlight,
-          type,
-          sort_order,
-          created_at,
-          categories (
-            id,
-            name,
-            catalog_id,
-            catalogs (
-              id,
-              name,
-              catalog_type
-            )
-          )
-        `
-          )
-          .in("catalog_id", caasCatalogIds)
-          .eq("is_active", true) // Only active master products
-          .is("deleted_at", null);
+        // query1 was attempting to filter by catalog_id on products table, which doesn't exist.
+        // We only need query2, which filters by category_id.
+        let query1 = null as any;
 
         let query2 = null;
         if (caasCategoryIds.length > 0) {
@@ -684,6 +655,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             image_urls,
             is_active,
             is_in_stock,
+            stock_quantity,
+            manual_stock,
             price_display_mode,
             highlight_text,
             show_highlight,
@@ -708,17 +681,14 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         }
 
         if (orgId) {
-          query1 = query1.or(`organization_id.is.null,organization_id.neq.${orgId}`);
           if (query2) {
             query2 = query2.or(`organization_id.is.null,organization_id.neq.${orgId}`);
           }
         }
 
-        const { data: prods1 } = await query1;
         const { data: prods2 } = query2 ? await query2 : { data: [] };
         
         const allCaasMap = new Map();
-        prods1?.forEach(p => allCaasMap.set(p.id, p));
         prods2?.forEach(p => allCaasMap.set(p.id, p));
         const caasProductsData = Array.from(allCaasMap.values());
 
@@ -775,6 +745,8 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
               has_wholesale: (override?.has_wholesale !== undefined && override?.has_wholesale !== null) ? override.has_wholesale : p.has_wholesale,
               sort_order: (override?.sort_order !== undefined && override?.sort_order !== null) ? override.sort_order : p.sort_order,
               is_in_stock: (override?.is_in_stock !== undefined && override?.is_in_stock !== null) ? override.is_in_stock : p.is_in_stock,
+              stock_quantity: (override?.stock_quantity !== undefined && override?.stock_quantity !== null) ? override.stock_quantity : p.stock_quantity,
+              manual_stock: (override?.manual_stock !== undefined && override?.manual_stock !== null) ? override.manual_stock : p.manual_stock,
               is_active: override ? (override.is_available ?? false) : false,
               is_new_from_master: !override,
               original_master_price: p.price,
@@ -1598,6 +1570,9 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                                       <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
                                         <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
                                       </div>
+                                      <span className="ml-2 flex items-center justify-center min-w-[3.5rem] text-[11px] font-black text-emerald-900 bg-emerald-400 px-2 py-1 rounded-md shadow-sm border border-emerald-500" title={product.manual_stock ? "Estoque Manual" : "Sincronizado via ERP"}>
+                                        {product.stock_quantity !== null && product.stock_quantity !== undefined ? Math.floor(product.stock_quantity) : '-'} un {product.manual_stock ? '✋' : ''}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -1787,6 +1762,9 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                                       <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
                                         <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
                                       </div>
+                                      <span className="ml-2 flex items-center justify-center min-w-[3.5rem] text-[11px] font-black text-emerald-900 bg-emerald-400 px-2 py-1 rounded-md shadow-sm border border-emerald-500" title={product.manual_stock ? "Estoque Manual" : "Sincronizado via ERP"}>
+                                        {product.stock_quantity !== null && product.stock_quantity !== undefined ? Math.floor(product.stock_quantity) : '-'} un {product.manual_stock ? '✋' : ''}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>

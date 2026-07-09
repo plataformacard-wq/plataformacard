@@ -243,7 +243,7 @@ export default function BulkGridEditor() {
           .from("products")
           .select(`
             id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
-            category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock,
+            category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock, stock_quantity, manual_stock,
             highlight_text, show_highlight,
             categories (id, name)
           `)
@@ -297,24 +297,14 @@ export default function BulkGridEditor() {
           const caasCats = activeCats.filter((c) => caasCatalogIds.includes(c.catalog_id));
 
           if (caasCatalogIds.length > 0) {
-            const { data: prods1 } = await supabase
-              .from("products")
-              .select(`
-                id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
-                has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, 
-                is_active, is_in_stock, highlight_text, show_highlight, sort_order, created_at,
-                categories (id, name)
-              `)
-              .in("catalog_id", caasCatalogIds)
-              .eq("is_active", true)
-              .is("deleted_at", null);
+            let prods1: any = null;
               
             const { data: prods2 } = caasCats.length > 0 ? await supabase
               .from("products")
               .select(`
                 id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
                 has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, 
-                is_active, is_in_stock, highlight_text, show_highlight, sort_order, created_at,
+                is_active, is_in_stock, stock_quantity, manual_stock, highlight_text, show_highlight, sort_order, created_at,
                 categories (id, name)
               `)
               .in("category_id", caasCats.map((c) => c.id))
@@ -322,7 +312,6 @@ export default function BulkGridEditor() {
               .is("deleted_at", null) : { data: [] };
               
             const allCaasMap = new Map();
-            prods1?.forEach(p => allCaasMap.set(p.id, p));
             prods2?.forEach(p => allCaasMap.set(p.id, p));
             const caasProductsData = Array.from(allCaasMap.values());
 
@@ -353,6 +342,8 @@ export default function BulkGridEditor() {
                   has_wholesale: (override?.has_wholesale !== undefined && override?.has_wholesale !== null) ? override.has_wholesale : p.has_wholesale,
                   sort_order: (override?.sort_order !== undefined && override?.sort_order !== null) ? override.sort_order : p.sort_order,
                   is_in_stock: (override?.is_in_stock !== undefined && override?.is_in_stock !== null) ? override.is_in_stock : p.is_in_stock,
+                  stock_quantity: (override?.stock_quantity !== undefined && override?.stock_quantity !== null) ? override.stock_quantity : p.stock_quantity,
+                  manual_stock: (override?.manual_stock !== undefined && override?.manual_stock !== null) ? override.manual_stock : p.manual_stock,
                   is_active: override ? (override.is_available ?? false) : false,
                   image_url: override?.image_url || p.image_url,
                   image_urls: override?.image_urls || p.image_urls
@@ -394,7 +385,7 @@ export default function BulkGridEditor() {
         .from("products")
         .select(`
           id, name, description, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, 
-          category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock,
+          category_id, updated_at, image_url, image_urls, specs, organization_id, is_in_stock, stock_quantity, manual_stock,
           highlight_text, show_highlight,
           categories (id, name)
         `)
@@ -452,7 +443,7 @@ export default function BulkGridEditor() {
             .select(`
               id, organization_id, category_id, name, description, specs, price, compare_at_price, sku, 
               has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, 
-              is_active, is_in_stock, highlight_text, show_highlight, sort_order, created_at,
+              is_active, is_in_stock, stock_quantity, manual_stock, highlight_text, show_highlight, sort_order, created_at,
               categories (id, name)
             `)
             .in("category_id", caasCats.map((c) => c.id))
@@ -794,6 +785,18 @@ export default function BulkGridEditor() {
         size: 100,
       },
       {
+        accessorKey: "manual_stock",
+        header: "Estoque Manual?",
+        cell: (props) => <EditableCell {...props} updateData={updateData} type="checkbox" />,
+        size: 110,
+      },
+      {
+        accessorKey: "stock_quantity",
+        header: "Qtd. Estoque",
+        cell: (props) => <EditableCell {...props} updateData={updateData} type="number" />,
+        size: 100,
+      },
+      {
         id: "actions",
         header: "",
         cell: ({ row }) => (
@@ -862,6 +865,8 @@ export default function BulkGridEditor() {
             has_wholesale: p.has_wholesale,
             is_available: p.is_active,
             is_in_stock: p.is_in_stock,
+            stock_quantity: p.stock_quantity,
+            manual_stock: p.manual_stock,
             sort_order: index,
             category_id: p.category_id === p.original_category_id ? null : p.category_id,
             image_url: p.image_url || null,

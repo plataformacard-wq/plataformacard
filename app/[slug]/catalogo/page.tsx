@@ -98,6 +98,7 @@ type Product = {
   is_extra: boolean | null;
   sort_order: number | null;
   is_in_stock: boolean | null;
+  stock_quantity?: number | null;
   specs_title?: string | null;
   show_specs?: boolean | null;
   show_colors?: boolean | null;
@@ -413,7 +414,7 @@ export default async function Page(props: PageProps) {
       const { data: p2 } = await supabase
         .from("products")
         .select(
-          "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
+          "id, category_id, name, description, specs, price, compare_at_price, sku, has_retail, has_wholesale, wholesale_price, wholesale_min_quantity, image_url, image_urls, is_extra, sort_order, created_at, updated_at, is_in_stock, stock_quantity, manual_stock, is_active, specs_title, show_specs, show_colors, colors, highlight_text, show_highlight"
         )
         .in("category_id", categories.map(c => c.id))
         .eq("is_active", true)

@@ -26,12 +26,14 @@ export default function CatalogManagerClient({
   catalogs, 
   orgId, 
   profileId,
-  isAllService
+  isAllService,
+  initialHasBlingConnection = false
 }: { 
   catalogs: CatalogInfo[], 
   orgId: string, 
   profileId: string,
-  isAllService?: boolean
+  isAllService?: boolean,
+  initialHasBlingConnection?: boolean
 }) {
   const router = useRouter();
   const [localCatalogs, setLocalCatalogs] = useState(catalogs);
@@ -42,6 +44,8 @@ export default function CatalogManagerClient({
   const [isPlatform, setIsPlatform] = useState(false);
   const [creating, setCreating] = useState(false);
   const [isSyncingBling, setIsSyncingBling] = useState(false);
+  const [hasBlingConnection, setHasBlingConnection] = useState(initialHasBlingConnection);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     setLocalCatalogs(catalogs);
@@ -104,17 +108,88 @@ export default function CatalogManagerClient({
     }
   };
 
+  const handleDisconnectBling = async () => {
+    if (!confirm("Tem certeza que deseja desconectar o Bling? O estoque não será mais sincronizado automaticamente.")) return;
+    
+    setIsDisconnecting(true);
+    try {
+      const res = await fetch("/api/auth/bling/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orgId }),
+      });
+      
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setHasBlingConnection(false);
+        alert("Bling desconectado com sucesso.");
+      } else {
+        alert("Erro ao desconectar: " + (data.error || "Desconhecido"));
+      }
+    } catch (err) {
+      alert("Erro de conexão ao tentar desconectar o Bling.");
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
+      {/* Box de Integração com o Bling */}
+      <div className="rounded-[24px] p-6 border shadow-sm mb-2" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+              Integração Bling (Estoque)
+              {hasBlingConnection ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600 border border-emerald-200">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  Conectado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-600 border border-red-200">
+                  <div className="h-1.5 w-1.5 rounded-full bg-red-500"></div>
+                  Não Conectado
+                </span>
+              )}
+            </h2>
+            <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
+              Sincronize automaticamente seu estoque de produtos com base no SKU através da API Oficial do Bling (V3).
+            </p>
+          </div>
+          <div className="shrink-0 flex gap-2">
+            {hasBlingConnection ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDisconnectBling}
+                  disabled={isDisconnecting || isSyncingBling}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+                >
+                  {isDisconnecting ? "Desconectando..." : "Desconectar Conta"}
+                </button>
+                <button
+                  onClick={handleSyncBling}
+                  disabled={isSyncingBling}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-600 shadow-sm disabled:opacity-50"
+                >
+                  {isSyncingBling ? <RefreshCw size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                  {isSyncingBling ? "Sincronizando..." : "Sincronizar Estoque"}
+                </button>
+              </>
+            ) : (
+              <a
+                href={`/api/auth/bling/login?orgId=${orgId}`}
+                className="inline-block rounded-lg px-6 py-2.5 text-sm font-bold bg-emerald-500 text-white transition-colors hover:bg-emerald-600"
+              >
+                Conectar ao Bling
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-end gap-3">
-        <button
-          onClick={handleSyncBling}
-          disabled={isSyncingBling}
-          className="flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-600 shadow-sm disabled:opacity-50"
-        >
-          {isSyncingBling ? <RefreshCw size={18} className="animate-spin" /> : <RefreshCw size={18} />}
-          {isSyncingBling ? "Sincronizando..." : "Sincronizar Bling"}
-        </button>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 shadow-sm"

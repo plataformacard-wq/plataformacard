@@ -78,7 +78,7 @@ export async function syncBlingStock(organizationId: string): Promise<SyncResult
     // 3. Busca produtos da plataforma que tenham SKU
     const { data: products, error: prodError } = await supabase
       .from("products")
-      .select("id, sku")
+      .select("id, sku, manual_stock")
       .eq("organization_id", organizationId)
       .not("sku", "is", null)
       .neq("sku", "");
@@ -92,6 +92,10 @@ export async function syncBlingStock(organizationId: string): Promise<SyncResult
 
     // 4. Sincroniza cada produto consultando a API do Bling
     for (const product of products) {
+      if (product.manual_stock) {
+        continue; // Pula a sincronização de estoque se o usuário configurou para manual
+      }
+
       const res = await fetch(`https://www.bling.com.br/Api/v3/produtos?codigo=${product.sku}`, {
         method: "GET",
         headers: {
@@ -118,7 +122,10 @@ export async function syncBlingStock(organizationId: string): Promise<SyncResult
 
               await supabase
                 .from("products")
-                .update({ is_in_stock: inStock })
+                .update({ 
+                  is_in_stock: inStock,
+                  stock_quantity: saldoFisico 
+                })
                 .eq("id", product.id);
               
               updatedCount++;
@@ -131,7 +138,10 @@ export async function syncBlingStock(organizationId: string): Promise<SyncResult
       // Se falhou ou não encontrou no Bling, marca como fora de estoque
       await supabase
         .from("products")
-        .update({ is_in_stock: false })
+        .update({ 
+          is_in_stock: false,
+          stock_quantity: 0
+        })
         .eq("id", product.id);
       
       notFoundCount++;

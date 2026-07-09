@@ -15,11 +15,12 @@ export default async function CatalogManagerPage() {
 
   const { data: orgData } = await supabase
     .from("organizations")
-    .select("business_model")
+    .select("business_model, bling_access_token")
     .eq("id", orgId)
     .single();
 
   const isAllService = orgData?.business_model === "ALL_SERVICE";
+  const hasBlingConnection = !!orgData?.bling_access_token;
 
   // Busca todos os catálogos disponíveis para a organização (Mapeamento)
   const { data: orgCatalogsData } = await supabase
@@ -132,6 +133,7 @@ export default async function CatalogManagerPage() {
         orgId={orgId} 
         profileId={profile.id} 
         isAllService={isAllService}
+        initialHasBlingConnection={hasBlingConnection}
       />
     </div>
   );

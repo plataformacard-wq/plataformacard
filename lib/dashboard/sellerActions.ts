@@ -492,6 +492,7 @@ export async function getOrCreateCatalog(orgId: string) {
   const { data: linkedCatalogs, error: orgCatalogError } = await adminClient
     .from("organization_catalogs")
     .select(`
+      id,
       catalog_id,
       catalogs(id, catalog_type, owner_id)
     `)
@@ -501,11 +502,35 @@ export async function getOrCreateCatalog(orgId: string) {
     console.error("getOrCreateCatalog fetch linked error:", orgCatalogError);
   }
  
-  // Filtra em JavaScript para encontrar o catálogo próprio (não-CaaS / não-plataforma)
-  const ownCatalogLink = linkedCatalogs?.find(link => {
-    const cat = link.catalogs ? (Array.isArray(link.catalogs) ? link.catalogs[0] : link.catalogs) : null;
-    return cat && cat.catalog_type !== 'CaaS' && cat.catalog_type !== 'platform';
-  });
+  // Busca qual catálogo o usuário selecionou ativamente (em profile_catalogs)
+  const { data: profileCat } = await adminClient
+    .from("profile_catalogs")
+    .select("organization_catalog_id")
+    .eq("profile_id", userId)
+    .eq("is_selected", true)
+    .maybeSingle();
+
+  let ownCatalogLink;
+
+  if (profileCat) {
+    ownCatalogLink = linkedCatalogs?.find(link => link.id === profileCat.organization_catalog_id);
+  }
+
+  // Se não tem um catálogo ativo ou não encontrou, procura um que o usuário seja o dono.
+  if (!ownCatalogLink) {
+    ownCatalogLink = linkedCatalogs?.find(link => {
+      const cat = link.catalogs ? (Array.isArray(link.catalogs) ? link.catalogs[0] : link.catalogs) : null;
+      return cat && cat.owner_id === userId;
+    });
+  }
+
+  // Fallback: se ainda assim não encontrou (ex: franqueado), busca o não-CaaS
+  if (!ownCatalogLink) {
+    ownCatalogLink = linkedCatalogs?.find(link => {
+      const cat = link.catalogs ? (Array.isArray(link.catalogs) ? link.catalogs[0] : link.catalogs) : null;
+      return cat && cat.catalog_type !== 'CaaS' && cat.catalog_type !== 'platform';
+    });
+  }
  
   let catId = ownCatalogLink?.catalog_id;
  

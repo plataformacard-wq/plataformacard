@@ -1,4 +1,4 @@
-# Regras de Customização da PlataformaCard
+# Regras de Customização da PlataformaShop
 
 ## Regra de Padding para Menus Dropdown (Selects)
 Ao criar ou modificar elementos HTML `<select>` estilizados com Tailwind CSS, **SEMPRE** garanta um padding maior à direita para evitar que o ícone de seta nativo do navegador fique colado ou sobreponha o texto.

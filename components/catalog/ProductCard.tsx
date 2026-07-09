@@ -18,6 +18,7 @@ interface Product {
   image_url: string | null;
   image_urls: string[] | null;
   is_in_stock: boolean | null;
+  stock_quantity?: number | null;
   has_retail: boolean | null;
   has_wholesale: boolean | null;
   wholesale_price: number | null;
@@ -57,9 +58,17 @@ export function ProductCard({ product, primaryColor, onClick }: ProductCardProps
         
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {isOutOfStock && (
+          {isOutOfStock ? (
             <span className="bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
               Esgotado
+            </span>
+          ) : product.stock_quantity !== null && product.stock_quantity !== undefined && Math.floor(product.stock_quantity) <= 3 ? (
+            <span className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
+              Apenas {Math.floor(product.stock_quantity)} un!
+            </span>
+          ) : (
+            <span className="bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
+              Disponível
             </span>
           )}
         </div>
