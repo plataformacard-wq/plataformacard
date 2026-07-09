@@ -477,6 +477,7 @@ export default async function Page(props: PageProps) {
           compare_at_price: (override.compare_at_price !== null && override.compare_at_price !== undefined) ? override.compare_at_price : null,
           has_retail: override.has_retail !== null ? override.has_retail : product.has_retail,
           has_wholesale: override.has_wholesale !== null ? override.has_wholesale : product.has_wholesale,
+          is_in_stock: override.is_in_stock !== null && override.is_in_stock !== undefined ? override.is_in_stock : product.is_in_stock,
           sort_order: override.sort_order !== null ? override.sort_order : product.sort_order,
           image_url: override.image_url !== null && override.image_url !== undefined ? override.image_url : product.image_url,
           image_urls: override.image_urls !== null && override.image_urls !== undefined && override.image_urls.length > 0 ? override.image_urls : product.image_urls,
