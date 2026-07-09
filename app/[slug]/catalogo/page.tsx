@@ -488,6 +488,9 @@ export default async function Page(props: PageProps) {
       }
       return acc;
     }, [] as Product[]);
+
+    // Reordenar todos os produtos garantindo a aplicação do sort_order vindo do CaaS override
+    products.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   }
 
   // Ordenar produtos esgotados para o final se a flag estiver ativa
@@ -495,7 +498,7 @@ export default async function Page(props: PageProps) {
     products.sort((a, b) => {
       const aInStock = a.is_in_stock !== false;
       const bInStock = b.is_in_stock !== false;
-      if (aInStock === bInStock) return 0;
+      if (aInStock === bInStock) return (a.sort_order || 0) - (b.sort_order || 0);
       return aInStock ? -1 : 1;
     });
   }

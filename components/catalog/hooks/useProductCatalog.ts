@@ -354,6 +354,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
         filteredAndMapped.sort((a, b) => {
           const aInStock = a.is_in_stock !== false ? 1 : 0;
           const bInStock = b.is_in_stock !== false ? 1 : 0;
+          if (aInStock === bInStock) return (a.sort_order || 0) - (b.sort_order || 0);
           return bInStock - aInStock;
         });
       }
@@ -374,6 +375,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       uncategorized.sort((a, b) => {
         const aInStock = a.is_in_stock !== false ? 1 : 0;
         const bInStock = b.is_in_stock !== false ? 1 : 0;
+        if (aInStock === bInStock) return (a.sort_order || 0) - (b.sort_order || 0);
         return bInStock - aInStock;
       });
     }
