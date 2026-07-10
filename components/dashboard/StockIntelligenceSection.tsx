@@ -59,6 +59,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
 
   // Computations
   const total = allProducts.length;
+  const totalStockQuantity = allProducts.reduce((sum, p) => sum + (p.stock_quantity || 0), 0);
   const inStock = allProducts.filter(p => p.is_in_stock).length;
   const outOfStock = allProducts.filter(p => p.is_in_stock === false || (p.is_in_stock === null && p.stock_quantity === 0)).length;
   
@@ -97,7 +98,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
         {/* Card 1: Estoque Global */}
         <div 
           onClick={() => setIsGlobalModalOpen(true)}
-          className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 flex flex-col justify-between cursor-pointer hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all group"
+          className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 flex flex-col justify-between cursor-pointer hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all group relative z-50"
         >
            <div className="flex items-center justify-between mb-4">
              <div className="flex items-center gap-2">
@@ -111,8 +112,8 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
            
            <div className="flex items-end justify-between mt-4">
              <div>
-               <p className="text-3xl font-bold text-[var(--dash-text-primary)]">{total}</p>
-               <p className="text-sm text-[var(--dash-text-secondary)]">Total de Produtos</p>
+               <p className="text-3xl font-bold text-[var(--dash-text-primary)]">{totalStockQuantity}</p>
+               <p className="text-sm text-[var(--dash-text-secondary)] mt-1">Quantidade ({totalStockQuantity}) no estoque global dividido entre ({total}) produtos</p>
              </div>
              <div className="text-right">
                <div className="flex items-center justify-end gap-1.5 mb-1">

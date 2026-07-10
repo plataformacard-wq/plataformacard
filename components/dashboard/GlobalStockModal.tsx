@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Search, Package } from "lucide-react";
 
 interface GlobalStockModalProps {
@@ -13,14 +13,20 @@ interface GlobalStockModalProps {
 export default function GlobalStockModal({ isOpen, onClose, products }: GlobalStockModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())));
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div key="global-modal" className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const filtered = products.filter(p => p?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (p?.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())));
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
@@ -75,9 +81,8 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
                  </div>
                )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
+    </div>,
+    document.body
   );
 }
