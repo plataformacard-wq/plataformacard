@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Package, 
   Eye, 
@@ -14,9 +14,12 @@ import {
   ChevronRight,
   MessageCircle,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Settings,
+  BarChart2
 } from "lucide-react";
 import { getNationalHolidaysFull } from "@/lib/utils/holidays";
+import StockThresholdModal from "@/components/dashboard/StockThresholdModal";
 
 export default function DashboardPage() {
   const supabase = createClient();
@@ -46,6 +49,15 @@ export default function DashboardPage() {
   const [upcomingHoliday, setUpcomingHoliday] = useState<{ date: string, name: string } | null>(null);
   const [processingHolidayDecision, setProcessingHolidayDecision] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+
+  // Estoque Inteligente
+  const [hasBlingConnection, setHasBlingConnection] = useState(false);
+  const [stockStats, setStockStats] = useState<{ total: number; inStock: number; outOfStock: number }>({ total: 0, inStock: 0, outOfStock: 0 });
+  const [topCategories, setTopCategories] = useState<{ name: string; total: number; outOfStock: number }[]>([]);
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [lowStockThreshold, setLowStockThreshold] = useState<number>(5);
+  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
+  const allProductsForFilterRef = useRef<any[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -145,7 +157,7 @@ export default function DashboardPage() {
             // Buscar modelo de negócio e whatsapp
             const { data: org } = await supabase
               .from("organizations")
-              .select("name, business_model, whatsapp, business_hours")
+              .select("name, business_model, whatsapp, business_hours, bling_access_token, low_stock_threshold")
               .eq("id", activeOrgId)
               .maybeSingle();
             
@@ -154,6 +166,47 @@ export default function DashboardPage() {
             }
             if (org?.name) {
               setOrgName(org.name);
+            }
+            if (org?.bling_access_token) setHasBlingConnection(true);
+            if (org?.low_stock_threshold !== undefined && org?.low_stock_threshold !== null) {
+              setLowStockThreshold(org.low_stock_threshold);
+            }
+
+            // Busca Inteligência de Estoque
+            const { data: allProducts } = await supabase
+              .from("products")
+              .select("id, name, sku, category, is_in_stock, stock_quantity")
+              .eq("organization_id", activeOrgId)
+              .is("deleted_at", null);
+
+            if (allProducts && allProducts.length > 0) {
+              allProductsForFilterRef.current = allProducts;
+              const inStock = allProducts.filter(p => p.is_in_stock).length;
+              const outOfStock = allProducts.filter(p => p.is_in_stock === false || (p.is_in_stock === null && p.stock_quantity === 0)).length;
+              setStockStats({ total: allProducts.length, inStock, outOfStock });
+
+              // Agrupamento por categoria
+              const catMap: Record<string, { total: number; outOfStock: number }> = {};
+              allProducts.forEach(p => {
+                const c = p.category || "Sem Categoria";
+                if (!catMap[c]) catMap[c] = { total: 0, outOfStock: 0 };
+                catMap[c].total++;
+                if (p.is_in_stock === false || (p.is_in_stock === null && p.stock_quantity === 0)) {
+                  catMap[c].outOfStock++;
+                }
+              });
+
+              const catArray = Object.keys(catMap).map(k => ({ name: k, total: catMap[k].total, outOfStock: catMap[k].outOfStock }));
+              // Ordena pelas categorias com MAIS PRODUTOS NO TOTAL
+              catArray.sort((a, b) => b.total - a.total);
+              setTopCategories(catArray.slice(0, 5));
+
+              // Alertas de estoque baixo
+              const currentThreshold = org?.low_stock_threshold ?? 5;
+              const low = allProducts.filter(p => p.stock_quantity !== null && p.stock_quantity <= currentThreshold);
+              // Sort by quantity ascending
+              low.sort((a, b) => (a.stock_quantity || 0) - (b.stock_quantity || 0));
+              setLowStockProducts(low.slice(0, 10)); // max 10 to not overflow
             }
 
             // Avisos e Feriados
@@ -695,6 +748,128 @@ export default function DashboardPage() {
         ))}
       </motion.div>
 
+      {/* Inteligência de Estoque */}
+      <div className="mt-10 mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Inteligência de Estoque</h2>
+      </div>
+      
+      {hasBlingConnection ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-10">
+          {/* Card 1: Estoque Global */}
+          <div className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 flex flex-col justify-between">
+             <div className="flex items-center justify-between mb-4">
+               <div className="flex items-center gap-2">
+                 <div className="rounded-lg bg-blue-500/10 p-2 text-blue-500">
+                   <Package size={20} />
+                 </div>
+                 <h3 className="font-bold text-[var(--dash-text-primary)]">Estoque Global</h3>
+               </div>
+               <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">Sincronizado</span>
+             </div>
+             
+             <div className="flex items-end justify-between mt-4">
+               <div>
+                 <p className="text-3xl font-bold text-[var(--dash-text-primary)]">{stockStats.total}</p>
+                 <p className="text-sm text-[var(--dash-text-secondary)]">Total de Produtos</p>
+               </div>
+               <div className="text-right">
+                 <div className="flex items-center justify-end gap-1.5 mb-1">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                   <span className="text-xs text-[var(--dash-text-secondary)]">{stockStats.inStock} em estoque</span>
+                 </div>
+                 <div className="flex items-center justify-end gap-1.5">
+                   <div className="w-2 h-2 rounded-full bg-red-500" />
+                   <span className="text-xs text-[var(--dash-text-secondary)]">{stockStats.outOfStock} esgotados</span>
+                 </div>
+               </div>
+             </div>
+             <div className="mt-4 flex h-2 w-full overflow-hidden rounded-full bg-red-500/20">
+               <div className="bg-emerald-500 transition-all" style={{ width: `${stockStats.total > 0 ? (stockStats.inStock / stockStats.total) * 100 : 0}%` }} />
+               <div className="bg-red-500 transition-all" style={{ width: `${stockStats.total > 0 ? (stockStats.outOfStock / stockStats.total) * 100 : 0}%` }} />
+             </div>
+          </div>
+
+          {/* Card 2: Top Categorias */}
+          <div className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6">
+            <div className="flex items-center gap-2 mb-4">
+               <div className="rounded-lg bg-purple-500/10 p-2 text-purple-500">
+                 <BarChart2 size={20} />
+               </div>
+               <h3 className="font-bold text-[var(--dash-text-primary)]">Top Categorias (Volumetria)</h3>
+            </div>
+            {topCategories.length > 0 ? (
+              <div className="space-y-3 mt-2">
+                {topCategories.map((cat, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-[var(--dash-text-secondary)] truncate max-w-[120px]">{cat.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-[var(--dash-text-primary)]">{cat.total} itens</span>
+                      {cat.outOfStock > 0 && (
+                        <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded-md">
+                          {cat.outOfStock} esg.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex h-24 items-center justify-center text-sm text-[var(--dash-text-muted)]">Nenhum dado de categoria</div>
+            )}
+          </div>
+
+          {/* Card 3: Alerta Crítico */}
+          <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 relative overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+               <div className="flex items-center gap-2">
+                 <div className="rounded-lg bg-red-500/10 p-2 text-red-500">
+                   <AlertTriangle size={20} />
+                 </div>
+                 <h3 className="font-bold text-red-800 dark:text-red-400">Alerta de Estoque</h3>
+               </div>
+               <button onClick={() => setIsStockModalOpen(true)} className="text-red-500 hover:text-red-700 transition">
+                 <Settings size={18} />
+               </button>
+            </div>
+            
+            <p className="text-xs text-red-700/80 dark:text-red-400/80 mb-3">
+              Produtos com {lowStockThreshold} ou menos unidades em estoque:
+            </p>
+
+            {lowStockProducts.length > 0 ? (
+              <div className="space-y-2 overflow-y-auto flex-1 max-h-[110px] pr-2 custom-scrollbar">
+                {lowStockProducts.map(p => (
+                  <div key={p.id} className="flex items-center justify-between bg-white/50 dark:bg-black/20 p-2 rounded-lg border border-red-500/10">
+                    <span className="text-xs font-medium text-red-900 dark:text-red-300 truncate max-w-[140px]" title={p.name}>{p.name}</span>
+                    <span className="text-xs font-bold text-red-600 dark:text-red-400 shrink-0">{p.stock_quantity} un</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/5 rounded-xl border border-emerald-500/10 p-4 text-center">
+                <span className="text-2xl mb-1">🎉</span>
+                <span className="text-sm">Tudo seguro por aqui!</span>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="mb-10 rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-[var(--dash-border)] flex items-center justify-center text-[var(--dash-text-muted)] shrink-0">
+              <Package size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-[var(--dash-text-primary)]">Integração com Bling Desativada</h3>
+              <p className="text-sm text-[var(--dash-text-secondary)] mt-1">Conecte-se com o Bling para acompanhar os parâmetros de estoque em tempo real.</p>
+            </div>
+          </div>
+          <Link href="/dashboard/catalogo/gerenciador" className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 shadow-sm flex items-center gap-2">
+            <Settings size={16} /> Conectar Bling
+          </Link>
+        </div>
+      )}
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Quick Actions */}
@@ -801,6 +976,23 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      
+      <AnimatePresence>
+        {profileData && (
+          <StockThresholdModal
+            isOpen={isStockModalOpen}
+            onClose={() => setIsStockModalOpen(false)}
+            orgId={profileData.organization_id}
+            currentThreshold={lowStockThreshold}
+            onSaved={(val) => {
+              setLowStockThreshold(val);
+              const low = allProductsForFilterRef.current.filter((p: any) => p.stock_quantity !== null && p.stock_quantity <= val);
+              low.sort((a: any, b: any) => (a.stock_quantity || 0) - (b.stock_quantity || 0));
+              setLowStockProducts(low.slice(0, 10));
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
