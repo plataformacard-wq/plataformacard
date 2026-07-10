@@ -9,7 +9,7 @@ interface SyncResult {
   notFoundCount?: number;
 }
 
-export async function syncBlingStock(organizationId: string): Promise<SyncResult> {
+export async function syncBlingStock(organizationId: string, targetSku?: string): Promise<SyncResult> {
   try {
     const supabase = await createClient();
 
@@ -76,12 +76,18 @@ export async function syncBlingStock(organizationId: string): Promise<SyncResult
     }
 
     // 3. Busca produtos da plataforma que tenham SKU
-    const { data: products, error: prodError } = await supabase
+    let query = supabase
       .from("products")
       .select("id, sku, manual_stock")
       .eq("organization_id", organizationId)
       .not("sku", "is", null)
       .neq("sku", "");
+
+    if (targetSku) {
+      query = query.eq("sku", targetSku);
+    }
+
+    const { data: products, error: prodError } = await query;
 
     if (prodError || !products || products.length === 0) {
       return { success: false, message: "Nenhum produto com SKU configurado." };

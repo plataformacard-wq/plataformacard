@@ -187,6 +187,33 @@ export default function CatalogManagerClient({
             )}
           </div>
         </div>
+        {hasBlingConnection && (
+          <div className="mt-6 pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+            <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 dark:bg-blue-900/10 dark:border-blue-800/30">
+              <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Webhooks (Tempo Real)</h3>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+                Para que o estoque seja atualizado automaticamente assim que houver uma movimentação no Bling, copie a URL abaixo e cadastre-a na aba "Webhooks" do seu aplicativo no painel do Bling, selecionando o evento "Estoque" (stock).
+              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/bling?orgId=${orgId}`}
+                  className="flex-1 text-xs px-3 py-2 rounded-lg border border-blue-200 bg-white dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 outline-none select-all font-mono"
+                />
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/bling?orgId=${orgId}`);
+                    alert('URL do Webhook copiada com sucesso!');
+                  }}
+                  className="shrink-0 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition shadow-sm"
+                >
+                  Copiar URL
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3">
