@@ -44,7 +44,7 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+        <motion.div key="alert-modal" className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl border border-red-500/20">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 p-6 bg-red-500/5">
@@ -103,7 +103,7 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
                )}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

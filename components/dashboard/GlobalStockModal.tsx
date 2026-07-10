@@ -18,7 +18,7 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+        <motion.div key="global-modal" className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6">
@@ -76,7 +76,7 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
                )}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
