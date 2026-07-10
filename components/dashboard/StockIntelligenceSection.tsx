@@ -111,9 +111,12 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
            </div>
            
            <div className="flex items-end justify-between mt-4">
-             <div>
-               <p className="text-3xl font-bold text-[var(--dash-text-primary)]">{totalStockQuantity}</p>
-               <p className="text-sm text-[var(--dash-text-secondary)] mt-1">Quantidade ({totalStockQuantity}) no estoque global dividido entre ({total}) produtos</p>
+             <div className="flex flex-col">
+               <div className="flex items-center gap-2">
+                 <span className="text-3xl font-bold text-[var(--dash-text-primary)]">{totalStockQuantity}</span>
+                 <span className="text-xs font-semibold text-[var(--dash-text-primary)] bg-[var(--dash-bg)] border border-[var(--dash-border)] px-2.5 py-1 rounded-md shadow-sm">produtos em estoque</span>
+               </div>
+               <h3 className="text-sm font-medium text-[var(--dash-text-secondary)] mt-2">dividido entre <strong className="text-[var(--dash-text-primary)]">{total}</strong> produtos</h3>
              </div>
              <div className="text-right">
                <div className="flex items-center justify-end gap-1.5 mb-1">
