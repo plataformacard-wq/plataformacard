@@ -239,9 +239,9 @@ ${iframeResizerCode}
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20">
+    <div className="space-y-8 pb-20">
       {/* Header Premium */}
-      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm group/header">
+      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity group-hover/header:opacity-100" />
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -249,17 +249,17 @@ ${iframeResizerCode}
             <p className="text-[var(--dash-text-muted)] font-medium max-w-xl">Gerencie a identidade e a implementação da sua vitrine digital em um só lugar.</p>
           </div>
           
-          <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-2xl border border-[var(--dash-border)]">
+          <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-2xl border border-[var(--dash-border)] overflow-x-auto">
             <button
               onClick={() => setActiveTab("geral")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
             >
               <Layout size={16} />
               Geral
             </button>
             <button
               onClick={() => setActiveTab("status")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
             >
               <Activity size={16} />
               Status
@@ -267,7 +267,7 @@ ${iframeResizerCode}
             {initialCatalog.business_model === "ALL_SERVICE" && (
               <button
                 onClick={() => setActiveTab("implementar")}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <Code size={16} />
                 Implementar
@@ -275,7 +275,7 @@ ${iframeResizerCode}
             )}
             <button
               onClick={() => setActiveTab("banners")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
             >
               <ImageIcon size={16} />
               Banners
@@ -294,7 +294,7 @@ ${iframeResizerCode}
             className="grid gap-8"
           >
             {/* Informações Básicas */}
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
               <div className="flex items-center gap-4 border-b border-[var(--dash-border)] pb-8">
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <BookOpen size={28} />
@@ -482,7 +482,7 @@ ${iframeResizerCode}
             exit={{ opacity: 0, y: -10 }}
             className="grid gap-8"
           >
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
               <div className="flex items-center gap-4 border-b border-[var(--dash-border)] pb-8">
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <Activity size={28} />
@@ -707,7 +707,7 @@ ${iframeResizerCode}
             exit={{ opacity: 0, y: -10 }}
             className="grid gap-8"
           >
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-10 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
               <div className="flex items-center justify-between border-b border-[var(--dash-border)] pb-8">
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
