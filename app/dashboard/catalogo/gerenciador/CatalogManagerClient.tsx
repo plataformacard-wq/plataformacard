@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2, Globe, Box, Copy, Settings, Check, RefreshCw, Plus } from "lucide-react";
+import { CheckCircle2, Globe, Box, Copy, Settings, Check, RefreshCw, Plus, ChevronDown } from "lucide-react";
 import { setActiveCatalog, createCatalog } from "./actions";
 import { syncBlingStock } from "../actions/bling";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,6 +46,7 @@ export default function CatalogManagerClient({
   const [isSyncingBling, setIsSyncingBling] = useState(false);
   const [hasBlingConnection, setHasBlingConnection] = useState(initialHasBlingConnection);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   useEffect(() => {
     setLocalCatalogs(catalogs);
@@ -154,29 +155,19 @@ export default function CatalogManagerClient({
               )}
             </h2>
             <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
-              Sincronize automaticamente seu estoque de produtos com base no SKU através da API Oficial do Bling (V3).
+              {hasBlingConnection ? "Seu estoque é atualizado automaticamente em tempo real através da API do Bling." : "Sincronize automaticamente seu estoque de produtos com base no SKU através da API Oficial do Bling (V3)."}
             </p>
           </div>
           <div className="shrink-0 flex gap-2">
             {hasBlingConnection ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleDisconnectBling}
-                  disabled={isDisconnecting || isSyncingBling}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
-                >
-                  {isDisconnecting ? "Desconectando..." : "Desconectar Conta"}
-                </button>
-                <button
-                  onClick={handleSyncBling}
-                  disabled={isSyncingBling}
-                  className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-600 shadow-sm disabled:opacity-50"
-                >
-                  {isSyncingBling ? <RefreshCw size={18} className="animate-spin" /> : <RefreshCw size={18} />}
-                  {isSyncingBling ? "Sincronizando..." : "Sincronizar Estoque"}
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={handleDisconnectBling}
+                disabled={isDisconnecting || isSyncingBling}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+              >
+                {isDisconnecting ? "Desconectando..." : "Desconectar Conta"}
+              </button>
             ) : (
               <a
                 href={`/api/auth/bling/login?orgId=${orgId}`}
@@ -188,30 +179,69 @@ export default function CatalogManagerClient({
           </div>
         </div>
         {hasBlingConnection && (
-          <div className="mt-6 pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
-            <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 dark:bg-blue-900/10 dark:border-blue-800/30">
-              <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Webhooks (Tempo Real)</h3>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
-                Para que o estoque seja atualizado automaticamente assim que houver uma movimentação no Bling, copie a URL abaixo e cadastre-a na aba "Webhooks" do seu aplicativo no painel do Bling, selecionando o evento "Estoque" (stock).
-              </p>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <input 
-                  type="text" 
-                  readOnly 
-                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/bling?orgId=${orgId}`}
-                  className="flex-1 text-xs px-3 py-2 rounded-lg border border-blue-200 bg-white dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 outline-none select-all font-mono"
-                />
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/bling?orgId=${orgId}`);
-                    alert('URL do Webhook copiada com sucesso!');
-                  }}
-                  className="shrink-0 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition shadow-sm"
+          <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--dash-border)" }}>
+            <button 
+              onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+              className="flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+            >
+              <Settings size={16} />
+              Configurações Avançadas e Webhooks
+              <ChevronDown size={16} className={`transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            <AnimatePresence>
+              {isAdvancedOpen && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
                 >
-                  Copiar URL
-                </button>
-              </div>
-            </div>
+                  <div className="pt-4 flex flex-col gap-4">
+                    <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 dark:bg-blue-900/10 dark:border-blue-800/30">
+                      <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Webhooks (Tempo Real)</h3>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+                        Para que o estoque seja atualizado automaticamente assim que houver uma movimentação no Bling, cadastre a URL abaixo na aba "Webhooks" selecionando o evento "Estoque" (stock).
+                      </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/bling?orgId=${orgId}`}
+                          className="flex-1 text-xs px-3 py-2 rounded-lg border border-blue-200 bg-white dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 outline-none select-all font-mono"
+                        />
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/bling?orgId=${orgId}`);
+                            alert('URL do Webhook copiada com sucesso!');
+                          }}
+                          className="shrink-0 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition shadow-sm"
+                        >
+                          Copiar URL
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 dark:border-zinc-700">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div>
+                          <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Sincronização Manual (Forçada)</h3>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Utilize apenas se os webhooks falharem e você precisar forçar a leitura de todo o estoque do Bling.</p>
+                        </div>
+                        <button
+                          onClick={handleSyncBling}
+                          disabled={isSyncingBling}
+                          className="shrink-0 flex items-center justify-center gap-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm disabled:opacity-50"
+                        >
+                          {isSyncingBling ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                          {isSyncingBling ? "Sincronizando..." : "Forçar Sincronização"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>
