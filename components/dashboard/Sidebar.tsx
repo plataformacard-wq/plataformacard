@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useGlobalBranding } from "@/components/providers/GlobalBrandingProvider";
 import { motion, AnimatePresence } from "framer-motion";
+import packageJson from "../../package.json";
 import { 
   LayoutDashboard, 
   Building2, 
@@ -262,7 +263,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                       {isAdminPath ? "CENTRO DE INTELIGÊNCIA (QG)" : (isShadowMode ? "Modo Simulação" : (isActuallySuperAdmin ? "Painel Super Admin" : (businessModel === "B2B" ? "Painel empresarial" : "Painel Gestor")))}
                     </span>
                   <span className="text-[9px] text-gray-500 font-medium ml-1 mt-0.5">
-                    Build v{process.env.NEXT_PUBLIC_APP_VERSION || "0.9.0"} ({process.env.NEXT_PUBLIC_GIT_COMMIT || "local"})
+                    Build v{packageJson.version} ({process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || "local"})
                   </span>
                 </div>
               )}
