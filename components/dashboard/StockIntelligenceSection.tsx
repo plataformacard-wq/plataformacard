@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, BarChart2, AlertTriangle, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { Package, BarChart2, AlertTriangle, Settings, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlobalStockModal from "./GlobalStockModal";
 import TopCategoriesModal from "./TopCategoriesModal";
@@ -23,6 +25,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const [isThresholdModalOpen, setIsThresholdModalOpen] = useState(false);
+  const [isFallbackExpanded, setIsFallbackExpanded] = useState(false);
 
   useEffect(() => {
     if (!activeOrgId) return;
@@ -55,7 +58,51 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
     setAllProducts(prev => prev.map(p => p.id === productId ? { ...p, stock_quantity: newStock, is_in_stock: newStock > 0 } : p));
   };
 
-  if (!hasBlingConnection) return null;
+  if (!hasBlingConnection) {
+    return (
+      <div className="mb-10 mt-10 rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] overflow-hidden shadow-sm">
+        <div 
+          className="p-6 flex items-center justify-between cursor-pointer group hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          onClick={() => setIsFallbackExpanded(!isFallbackExpanded)}
+        >
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-[var(--dash-text-primary)] group-hover:text-blue-500 transition-colors">Analítico de Estoque</h2>
+            <div className="px-2.5 py-1 text-[10px] font-bold text-red-500 bg-red-500/10 border border-red-500/20 rounded-md">
+              Bling Desconectado
+            </div>
+          </div>
+          <button className="p-2 rounded-full bg-[var(--dash-bg)] hover:bg-zinc-200 dark:hover:bg-zinc-800 text-[var(--dash-text-muted)] transition-colors">
+            <ChevronDown size={18} className={`transition-transform duration-300 ${isFallbackExpanded ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {isFallbackExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-8 border-t border-[var(--dash-border)] flex flex-col items-center justify-center text-center bg-[var(--dash-bg)]/50">
+                 <div className="rounded-2xl bg-blue-500/10 p-4 mb-4 text-blue-500">
+                   <Package size={32} />
+                 </div>
+                 <h3 className="text-lg font-bold text-[var(--dash-text-primary)] mb-2">Estoque Global Inativo</h3>
+                 <p className="text-sm text-[var(--dash-text-secondary)] max-w-md mb-6 leading-relaxed">
+                   Para visualizar as métricas globais, alertas de baixo estoque e a volumetria de categorias, é necessário conectar a sua conta do Bling.
+                 </p>
+                 <Link href="/dashboard/integracoes" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-sm">
+                   Conectar Bling Agora
+                 </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   // Computations
   const total = allProducts.length;
@@ -91,7 +138,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
   return (
     <>
       <div className="mt-10 mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Inteligência de Estoque</h2>
+        <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Analítico de Estoque</h2>
       </div>
       
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-10">
