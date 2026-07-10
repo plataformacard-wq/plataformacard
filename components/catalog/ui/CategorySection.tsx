@@ -82,7 +82,7 @@ const ProductCard = memo(({
             <X size={20} />
           </button>
         )}
-        {!product.is_in_stock && (
+        {product.is_in_stock === false && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
             <span className="bg-rose-600 !text-white text-[10px] font-black px-4 py-2 rounded-full shadow-2xl border border-rose-500">
               ESGOTADO
@@ -95,10 +95,10 @@ const ProductCard = memo(({
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className={`object-contain transition-transform duration-500 ${isExpanded ? '' : 'group-hover:scale-110'} ${!product.is_in_stock ? 'opacity-40 grayscale-[0.5]' : ''}`}
+            className={`object-contain transition-transform duration-500 ${isExpanded ? '' : 'group-hover:scale-110'} ${product.is_in_stock === false ? 'opacity-40 grayscale-[0.5]' : ''}`}
           />
         ) : (
-          <Package size={48} className={`text-[var(--public-text-dim)] ${!product.is_in_stock ? 'opacity-30' : ''}`} />
+          <Package size={48} className={`text-[var(--public-text-dim)] ${product.is_in_stock === false ? 'opacity-30' : ''}`} />
         )}
 
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
