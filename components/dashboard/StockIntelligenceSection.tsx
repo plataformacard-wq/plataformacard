@@ -149,12 +149,12 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
           {topCategories.length > 0 ? (
             <div className="space-y-3 mt-2">
               {topCategories.map((cat, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-[var(--dash-text-secondary)] truncate max-w-[120px]">{cat.name}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-[var(--dash-text-primary)]">{cat.total} itens</span>
+                <div key={idx} className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-[var(--dash-text-secondary)] flex-1 truncate" title={cat.name}>{cat.name}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-semibold text-[var(--dash-text-primary)] bg-[var(--dash-bg)] border border-[var(--dash-border)] px-2.5 py-1 rounded-md shadow-sm">{cat.total} itens</span>
                     {cat.outOfStock > 0 && (
-                      <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-red-500 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded-md shadow-sm">
                         {cat.outOfStock} esg.
                       </span>
                     )}
