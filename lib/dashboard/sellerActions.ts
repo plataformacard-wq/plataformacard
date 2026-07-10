@@ -65,6 +65,18 @@ export async function updateCatalogConfig(catalogId: string, payload: any, orgId
     if (orgError) {
       return { error: orgError.message };
     }
+    
+    // Se o admin for CaaS, replicar as configurações de visualização para o catálogo platform!
+    const { data: org } = await adminClient.from("organizations").select("business_model").eq("id", orgId).single();
+    if (org?.business_model === "CaaS") {
+      await adminClient.from("catalogs").update({
+        out_of_stock_at_end: payload.out_of_stock_at_end,
+        hide_prices: payload.hide_prices,
+        banner_speed_seconds: payload.banner_speed_seconds,
+        banner_initial_index: payload.banner_initial_index,
+        show_banners: payload.show_banners
+      }).eq("organization_id", orgId).eq("catalog_type", "platform");
+    }
   }
 
   return { success: true };
