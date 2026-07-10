@@ -173,11 +173,15 @@ export default function DashboardPage() {
             }
 
             // Busca Inteligência de Estoque
-            const { data: allProducts } = await supabase
+            const { data: allProducts, error: apError } = await supabase
               .from("products")
-              .select("id, name, sku, category, is_in_stock, stock_quantity")
+              .select("id, name, sku, is_in_stock, stock_quantity, categories(name)")
               .eq("organization_id", activeOrgId)
               .is("deleted_at", null);
+              
+            if (apError) {
+              console.error("Erro ao buscar produtos para estoque:", apError);
+            }
 
             if (allProducts && allProducts.length > 0) {
               allProductsForFilterRef.current = allProducts;
@@ -187,12 +191,13 @@ export default function DashboardPage() {
 
               // Agrupamento por categoria
               const catMap: Record<string, { total: number; outOfStock: number }> = {};
-              allProducts.forEach(p => {
-                const c = p.category || "Sem Categoria";
-                if (!catMap[c]) catMap[c] = { total: 0, outOfStock: 0 };
-                catMap[c].total++;
+              allProducts.forEach((p: any) => {
+                const c = p.categories ? (Array.isArray(p.categories) ? p.categories[0]?.name : p.categories.name) : "Sem Categoria";
+                const catName = c || "Sem Categoria";
+                if (!catMap[catName]) catMap[catName] = { total: 0, outOfStock: 0 };
+                catMap[catName].total++;
                 if (p.is_in_stock === false || (p.is_in_stock === null && p.stock_quantity === 0)) {
-                  catMap[c].outOfStock++;
+                  catMap[catName].outOfStock++;
                 }
               });
 
