@@ -14,3 +14,9 @@ Sempre que o usuário requisitar a execução do "Protocolo VPGP" para salvar as
 2. **Corrigir:** Se a compilação acusar algum erro de tipagem (`Type error`), corrija o código imediatamente e rode o build novamente até passar sem falhas.
 3. **Commit:** Após o sucesso, faça o staging (`git add .`) e o commit (`git commit -m "..."`).
 4. **Push:** Envie as alterações para o repositório remoto (`git push`).
+
+## Idioma de Comunicação (Planos de Implementação)
+Sempre escreva os Planos de Implementação (implementation_plan.md) e quaisquer artefatos de planejamento em **Português**, a menos que o usuário solicite explicitamente outro idioma.
+
+## Regra de Exibição de Código SQL
+Toda vez que uma migração SQL (`.sql`) for implementada ou necessária, o código SQL OBRIGATORIAMENTE deve ser exibido em um bloco Markdown diretamente no chat para fácil visualização pelo usuário.

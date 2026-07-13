@@ -49,6 +49,7 @@ type Seller = {
   dash_access_company: boolean | null;
   status: string | null;
   redirect_leads: boolean | null;
+  hide_prices: boolean | null;
   recess_ends_at: string | null;
   whatsapp_template: string | null;
 };
@@ -159,6 +160,7 @@ export default function VendedoresClient({
   const [formHours, setFormHours] = useState<BusinessHours>(defaultBusinessHours);
   const [formWhatsappTemplate, setFormWhatsappTemplate] = useState("");
   const [formRedirectLeads, setFormRedirectLeads] = useState(false);
+  const [formHidePrices, setFormHidePrices] = useState(false);
   const [formAvailable, setFormAvailable] = useState(true);
   const [formRecessActive, setFormRecessActive] = useState(false);
   const [formRecessDays, setFormRecessDays] = useState(0);
@@ -303,6 +305,7 @@ export default function VendedoresClient({
       setFormHours(seller.custom_business_hours || defaultBusinessHours);
       setFormWhatsappTemplate(seller.whatsapp_template || "");
       setFormRedirectLeads(seller.redirect_leads || false);
+      setFormHidePrices(seller.hide_prices || false);
       setFormAvailable(seller.is_available ?? true);
       if (seller.recess_ends_at) {
         const remainingMs = new Date(seller.recess_ends_at).getTime() - Date.now();
@@ -339,6 +342,7 @@ export default function VendedoresClient({
       setFormHours(defaultBusinessHours);
       setFormWhatsappTemplate("");
       setFormRedirectLeads(false);
+      setFormHidePrices(false);
       setFormAvailable(true);
       setFormRecessActive(false);
       setFormRecessDays(0);
@@ -371,6 +375,7 @@ export default function VendedoresClient({
       formData.append("dashAccessCompany", String(formAccessCompany));
       formData.append("whatsappTemplate", formWhatsappTemplate);
       formData.append("redirectLeads", String(formRedirectLeads));
+      formData.append("hidePrices", String(formHidePrices));
 
       const result = await createSeller(formData);
       
@@ -428,6 +433,7 @@ export default function VendedoresClient({
         dash_access_company: formAccessCompany,
         whatsapp_template: formWhatsappTemplate,
         redirect_leads: formRedirectLeads,
+        hide_prices: formHidePrices,
         recess_ends_at: recessEndsAt,
         ...(formRecessActive 
           ? { is_available: false, status: "paused" } 
@@ -867,6 +873,28 @@ export default function VendedoresClient({
                       </div>
                       <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)]">
                         Se ativado, quando este vendedor for marcado como Inativo (pausado), os clientes que acessarem o link dele serão redirecionados para a lista de consultores ativos da loja, evitando a perda do lead.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Exibir Preços (Atacado vs Varejo) */}
+                <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+                  <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${!formHidePrices ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+                    <div className="mt-0.5">
+                      <input 
+                        type="checkbox" 
+                        checked={!formHidePrices} 
+                        onChange={e => setFormHidePrices(!e.target.checked)} 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Exibir Preços no Catálogo</span>
+                      </div>
+                      <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)]">
+                        Se ativado, o catálogo deste vendedor exibirá os preços normalmente. Se desativado, o catálogo não exibirá nenhum preço, independentemente da configuração geral. Ideal para vendedores de atacado.
                       </p>
                     </div>
                   </label>

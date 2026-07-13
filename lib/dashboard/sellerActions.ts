@@ -93,6 +93,7 @@ export async function createSeller(formData: FormData) {
   const dashAccessCompany = formData.get("dashAccessCompany") === "true";
   const whatsappTemplate = formData.get("whatsappTemplate") as string;
   const redirectLeads = formData.get("redirectLeads") === "true";
+  const hidePrices = formData.get("hidePrices") === "true";
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -185,7 +186,8 @@ export async function createSeller(formData: FormData) {
       dash_access_analytics: dashAccessAnalytics,
       dash_access_company: dashAccessCompany,
       whatsapp_template: whatsappTemplate,
-      redirect_leads: redirectLeads
+      redirect_leads: redirectLeads,
+      hide_prices: hidePrices
     };
 
     const { error: insertError } = await adminAuthClient

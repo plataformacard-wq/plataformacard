@@ -29,6 +29,7 @@ type Profile = {
   redirect_leads: boolean | null;
   recess_ends_at: string | null;
   is_accepting_orders: boolean | null;
+  hide_prices: boolean | null;
   subscription_status: string;
 };
 
@@ -407,8 +408,9 @@ export default async function Page(props: PageProps) {
   catalogIds = catalogs.map(c => c.id);
 
   const catalog = primaryCatalog;
-  // Se QUALQUER catálogo assinado estiver com hide_prices = true, consideramos verdadeiro.
-  const anyHidePrices = catalogs.some(c => c.hide_prices);
+  // Se o perfil do vendedor exigir esconder preços, forçamos. Senão, se QUALQUER catálogo assinado exigir, consideramos verdadeiro.
+  const profileHidePrices = profile?.hide_prices || false;
+  const anyHidePrices = catalogs.some(c => c.hide_prices) || profileHidePrices;
   if (anyHidePrices) {
     catalog.hide_prices = true;
   }

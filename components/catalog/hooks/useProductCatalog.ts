@@ -323,14 +323,21 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
     });
   }, [sellerStatus, isAcceptingOrders, isEmbed, isMobile, profileId, catalogId, organizationId, slug]);
 
+  const isSharingRef = useRef(false);
+
   const handleShare = useCallback(async (title: string, text: string, url: string) => {
+    if (isSharingRef.current) return;
+    
     if (typeof navigator !== "undefined" && navigator.share) {
+      isSharingRef.current = true;
       try {
         await navigator.share({ title, text, url });
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
+        if ((err as Error).name !== "AbortError" && (err as Error).name !== "InvalidStateError") {
           console.error("Erro ao compartilhar:", err);
         }
+      } finally {
+        isSharingRef.current = false;
       }
     } else {
       try {

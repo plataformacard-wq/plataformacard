@@ -564,6 +564,32 @@ export default function BulkGridEditor() {
         size: 250,
       },
       {
+        accessorKey: "compare_at_price",
+        header: "Preço De (R$)",
+        cell: (props) => {
+          const hasRetail = props.row.original.has_retail;
+          return (
+            <div className={!hasRetail ? "opacity-50" : ""}>
+              <EditableCell {...props} updateData={updateData} type="number" />
+            </div>
+          );
+        },
+        size: 160,
+      },
+      {
+        accessorKey: "price",
+        header: "Preço Por (R$)",
+        cell: (props) => {
+          const hasRetail = props.row.original.has_retail;
+          return (
+            <div className={!hasRetail ? "opacity-50" : ""}>
+              <EditableCell {...props} updateData={updateData} type="number" />
+            </div>
+          );
+        },
+        size: 160,
+      },
+      {
         accessorKey: "category_id",
         header: "Categoria",
         cell: (props) => (
@@ -607,32 +633,6 @@ export default function BulkGridEditor() {
         size: 150,
       },
       {
-        accessorKey: "compare_at_price",
-        header: "Preço De (R$)",
-        cell: (props) => {
-          const hasRetail = props.row.original.has_retail;
-          return (
-            <div className={!hasRetail ? "opacity-30 pointer-events-none" : ""}>
-              <EditableCell {...props} updateData={updateData} type="number" />
-            </div>
-          );
-        },
-        size: 160,
-      },
-      {
-        accessorKey: "price",
-        header: "Preço Por (R$)",
-        cell: (props) => {
-          const hasRetail = props.row.original.has_retail;
-          return (
-            <div className={!hasRetail ? "opacity-30 pointer-events-none" : ""}>
-              <EditableCell {...props} updateData={updateData} type="number" />
-            </div>
-          );
-        },
-        size: 160,
-      },
-      {
         accessorKey: "has_wholesale",
         header: "Atacado?",
         cell: (props) => <EditableCell {...props} updateData={updateData} type="checkbox" />,
@@ -644,7 +644,7 @@ export default function BulkGridEditor() {
         cell: (props) => {
           const hasWholesale = props.row.original.has_wholesale;
           return (
-            <div className={!hasWholesale ? "opacity-30 pointer-events-none" : ""}>
+            <div className={!hasWholesale ? "opacity-50" : ""}>
               <EditableCell {...props} updateData={updateData} type="number" />
             </div>
           );
@@ -657,7 +657,7 @@ export default function BulkGridEditor() {
         cell: (props) => {
           const hasWholesale = props.row.original.has_wholesale;
           return (
-            <div className={!hasWholesale ? "opacity-30 pointer-events-none" : ""}>
+            <div className={!hasWholesale ? "opacity-50" : ""}>
               <EditableCell {...props} updateData={updateData} type="number" />
             </div>
           );
