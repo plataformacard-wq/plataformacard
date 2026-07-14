@@ -86,6 +86,7 @@ export async function createSeller(formData: FormData) {
   const fullName = formData.get("fullName") as string;
   const slug = formData.get("slug") as string;
   const bio = formData.get("bio") as string;
+  const jobTitle = formData.get("jobTitle") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const avatarUrl = formData.get("avatarUrl") as string;
   const dashAccessCatalog = formData.get("dashAccessCatalog") === "true";
@@ -178,6 +179,7 @@ export async function createSeller(formData: FormData) {
       full_name: fullName,
       slug: slug,
       bio: bio,
+      job_title: jobTitle,
       whatsapp: whatsapp,
       avatar_url: avatarUrl,
       organization_id: activeOrgId,

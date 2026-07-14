@@ -40,6 +40,7 @@ type Seller = {
   avatar_url: string | null;
   bio: string | null;
   slug: string | null;
+  job_title: string | null;
   can_customize_hours: boolean | null;
   is_available: boolean | null;
   custom_business_hours: any;
@@ -148,6 +149,7 @@ export default function VendedoresClient({
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formName, setFormName] = useState("");
+  const [formJobTitle, setFormJobTitle] = useState("");
   const [formBio, setFormBio] = useState("");
   const [formWhatsapp, setFormWhatsapp] = useState("");
   const [formSlug, setFormSlug] = useState("");
@@ -294,6 +296,7 @@ export default function VendedoresClient({
       setFormEmail(seller.email || "");
       setFormPassword("");
       setFormName(seller.full_name || "");
+      setFormJobTitle(seller.job_title || "");
       setFormBio(seller.bio || "");
       setFormWhatsapp(seller.whatsapp ? formatWhatsApp(seller.whatsapp) : "");
       setFormSlug(seller.slug || "");
@@ -331,6 +334,7 @@ export default function VendedoresClient({
       setFormEmail("");
       setFormPassword("");
       setFormName("");
+      setFormJobTitle("");
       setFormBio("");
       setFormWhatsapp("");
       setFormSlug("");
@@ -367,6 +371,7 @@ export default function VendedoresClient({
       const formData = new FormData();
       formData.append("fullName", formName);
       formData.append("slug", formSlug);
+      formData.append("jobTitle", formJobTitle);
       formData.append("bio", formBio);
       formData.append("whatsapp", formWhatsapp.replace(/\D/g, ""));
       formData.append("avatarUrl", formAvatar || ""); // Envia a foto se houver (mesmo blob)
@@ -415,6 +420,7 @@ export default function VendedoresClient({
 
       const profileData = {
         full_name: formName,
+        job_title: formJobTitle,
         bio: formBio,
         whatsapp: formWhatsapp.replace(/\D/g, ""),
         slug: formSlug,
@@ -763,6 +769,15 @@ export default function VendedoresClient({
                         <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor <span className="text-red-500">*</span></label>
                         <input 
                           type="text" value={formName} onChange={e => setFormName(e.target.value)}
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                          style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Função na Empresa</label>
+                        <input 
+                          type="text" value={formJobTitle} onChange={e => setFormJobTitle(e.target.value)}
+                          placeholder="Ex: Consultor de Vendas"
                           className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
                           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                         />

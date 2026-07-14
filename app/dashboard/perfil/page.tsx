@@ -15,6 +15,7 @@ type ProfileData = {
   full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  job_title: string | null;
   whatsapp: string | null;
   slug: string | null;
   is_available: boolean | null;
@@ -50,7 +51,8 @@ function PerfilContent() {
 
   const [loading, setLoading] = useState(true);
   const [nome, setNome] = useState("Cliente");
-  const [nomeInput, setNomeInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
+  const [jobTitleInput, setJobTitleInput] = useState("");
   const [bioInput, setBioInput] = useState("");
   const [whatsappInput, setWhatsappInput] = useState("");
   const [slugInput, setSlugInput] = useState("");
@@ -126,15 +128,15 @@ function PerfilContent() {
       setAccountName(user.user_metadata?.full_name || "");
 
       let profileResult: ProfileData | null = null;
-      const { data: initialProfile } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url")
+        .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
-      profileResult = initialProfile;
+      profileResult = profile;
 
       if (profileResult) {
-        let profile: ProfileData = profileResult;
+        let profileData: ProfileData = profileResult;
         let targetProfileUserId = user.id;
 
         const shadowOrgId = document.cookie
@@ -142,13 +144,13 @@ function PerfilContent() {
           .find((row) => row.startsWith("shadow_org_id="))
           ?.split("=")[1];
 
-        const isSuperAdmin = profile.role === "main_admin";
-        const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile.organization_id;
+        const isSuperAdmin = profileData.role === "main_admin";
+        const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profileData.organization_id;
 
         if (isSuperAdmin && shadowOrgId) {
           const { data: simulatedProfile } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders")
+            .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders")
             .eq("organization_id", shadowOrgId)
             .in("role", ["b2b_admin", "b2c_admin", "admin"])
             .limit(1)
@@ -156,12 +158,13 @@ function PerfilContent() {
 
           if (simulatedProfile) {
             targetProfileUserId = simulatedProfile.user_id || user.id;
-            profile = {
-              ...profile,
+            profileData = {
+              ...profileData,
               user_id: simulatedProfile.user_id,
               full_name: simulatedProfile.full_name,
               avatar_url: simulatedProfile.avatar_url,
               bio: simulatedProfile.bio,
+              job_title: simulatedProfile.job_title,
               whatsapp: simulatedProfile.whatsapp,
               whatsapp_template: simulatedProfile.whatsapp_template,
               slug: simulatedProfile.slug,
@@ -191,19 +194,20 @@ function PerfilContent() {
           }
         }
 
-        setNome(profile.full_name || "Cliente");
-        setNomeInput(profile.full_name || "");
-        setBioInput(profile.bio || "");
-        setWhatsappInput(profile.whatsapp || "");
-        setSlugInput(profile.slug || "");
-        setSlugOriginal(profile.slug || "");
-        setWhatsappTemplateInput(profile.whatsapp_template || "");
-        setAvatar(profile.avatar_url || null);
-        setPublicBanner(profile.public_banner_url || null);
-        setIsAvailable(profile.is_available ?? true);
-        setIsAcceptingOrders(profile.is_accepting_orders ?? true);
+        setNome(profileData.full_name || "Cliente");
+        setNameInput(profileData.full_name || "");
+        setJobTitleInput(profileData.job_title || "");
+        setBioInput(profileData.bio || "");
+        setWhatsappInput(profileData.whatsapp || "");
+        setSlugInput(profileData.slug || "");
+        setSlugOriginal(profileData.slug || "");
+        setWhatsappTemplateInput(profileData.whatsapp_template || "");
+        setAvatar(profileData.avatar_url || null);
+        setPublicBanner(profileData.public_banner_url || null);
+        setIsAvailable(profileData.is_available ?? true);
+        setIsAcceptingOrders(profileData.is_accepting_orders ?? true);
 
-        const recessEndsAt = profile.recess_ends_at ?? null;
+        const recessEndsAt = profileData.recess_ends_at ?? null;
         if (recessEndsAt) {
           const remainingMs = new Date(recessEndsAt).getTime() - Date.now();
           if (remainingMs > 0) {
@@ -213,7 +217,7 @@ function PerfilContent() {
             setRecessActive(true);
             setRecessDays(days);
             setRecessHours(hours);
-          setRedirectLeads(profile.redirect_leads || false);
+          setRedirectLeads(profileData.redirect_leads || false);
           } else {
             setRecessActive(false);
             setRecessDays(0);
@@ -225,11 +229,11 @@ function PerfilContent() {
           setRecessHours(0);
         }
 
-        const hasPermission = profile.can_customize_hours ?? false;
+        const hasPermission = profileData.can_customize_hours ?? false;
         setCanCustomize(hasPermission);
 
-        if (profile.custom_business_hours) {
-          setCustomBusinessHours(profile.custom_business_hours as BusinessHours);
+        if (profileData.custom_business_hours) {
+          setCustomBusinessHours(profileData.custom_business_hours as BusinessHours);
         }
 
         // Buscar modelo de negócio separadamente para garantir sincronia com PanelLayout
@@ -377,7 +381,7 @@ function PerfilContent() {
       return;
     }
 
-    const trimmedName = nomeInput.trim();
+    const trimmedName = nameInput.trim();
     if (!trimmedName) {
       setSaveMessage("O nome é obrigatório.");
       setSaving(false);
@@ -455,7 +459,8 @@ function PerfilContent() {
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: trimmedName,
+        full_name: nameInput.trim() || null,
+        job_title: jobTitleInput.trim() || null,
         avatar_url: newAvatarUrl,
         bio: bioInput.trim() || null,
         whatsapp: whatsappInput.trim() || null,
@@ -708,7 +713,7 @@ function PerfilContent() {
                       <div>
                         <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
                         <input 
-                          type="text" value={nomeInput} onChange={e => setNomeInput(e.target.value)}
+                          type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
                           className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
                           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                         />
@@ -972,6 +977,22 @@ function PerfilContent() {
                             <Info size={14} /> Você está utilizando o horário padrão da sua empresa.
                           </div>
                         )}
+                        
+                        {/* Função na Empresa */}
+                        <div className="pt-4">
+                          <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">
+                            Função na Empresa
+                          </label>
+                          <input
+                            type="text"
+                            value={jobTitleInput}
+                            onChange={(e) => setJobTitleInput(e.target.value)}
+                            placeholder="Ex: Consultor de Vendas"
+                            className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] transition-all focus:border-primary focus:ring-1 focus:ring-primary"
+                            style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                          />
+                        </div>
+
                         <div className={`pt-4 space-y-4 ${!canCustomize ? "opacity-60 pointer-events-none" : ""}`}>
                           <p className="text-xs font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Quadro de Horários:</p>
                           {(Object.keys(DAY_NAMES_PT) as Array<keyof typeof DAY_NAMES_PT>).map((day) => {
@@ -1021,9 +1042,9 @@ function PerfilContent() {
               <div className="flex items-center justify-end border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
                 <button 
                   onClick={handleSave} 
-                  disabled={saving || !nomeInput.trim()}
+                  disabled={saving || !nameInput.trim()}
                   className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
-                    saving || !nomeInput.trim() 
+                    saving || !nameInput.trim() 
                     ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
                     : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-emerald-500/20"
                   }`}

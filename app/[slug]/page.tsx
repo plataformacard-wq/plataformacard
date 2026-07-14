@@ -530,58 +530,56 @@ export default async function Page(props: PageProps) {
           marginTop: 46, // Espaço para a foto vazar
         }}
       >
-        {/* Barra verde de destaque no topo */}
+        {/* Banner do Cartão */}
+        <div 
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: 120,
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+            overflow: 'hidden',
+            backgroundColor: 'var(--public-glass-bg)',
+            zIndex: 0
+          }}
+        >
+          {bannerUrl ? (
+            <img src={bannerUrl} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : orgLogo ? (
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
+              <img src={orgLogo} alt={orgName || ""} style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+            </div>
+          ) : (
+             <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${accentColor}20, ${secondaryColor}20)` }} />
+          )}
+          {/* Subtle gradient overlay to blend */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.05) 100%)' }}></div>
+        </div>
+
+        {/* Barra verde grossa de destaque */}
         <div
           style={{
             height: 4,
-            borderTopLeftRadius: 32,
-            borderTopRightRadius: 32,
-            background:
-              `linear-gradient(90deg, transparent 0%, ${accentColor} 40%, ${secondaryColor} 60%, transparent 100%)`,
+            width: '100%',
+            backgroundColor: accentColor,
           }}
         />
 
-        
-        {/* Banner do Cartão */}
-        {bannerUrl && (
-          <div 
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: 120,
-              borderTopLeftRadius: 32,
-              borderTopRightRadius: 32,
-              overflow: 'hidden',
-              zIndex: 0
-            }}
-          >
-            <img src={bannerUrl} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,1) 100%)' }}></div>
-          </div>
-        )}
-
-        <div style={{ padding: "24px 28px 32px", position: "relative", zIndex: 1, marginTop: bannerUrl ? 40 : 0 }}>
-          {/* Logo do Topo (Branding) */}
-          {orgLogo && (
-            <div className="mb-6 flex justify-center opacity-80 dark:opacity-60 transition-all duration-700">
-               <img src={orgLogo} alt={orgName || ""} className="h-10 w-auto object-contain" />
-            </div>
-          )}
-
-          {/* Avatar com anel brilhante (Vazando para fora) */}
+        <div style={{ padding: "0 28px 32px", position: "relative", zIndex: 1 }}>
+          
+          {/* Container Absoluto para Avatar e Badge alinhados à esquerda */}
           <div
             style={{
               position: "absolute",
               top: -46, // Metade de 92px
-              left: "50%",
-              transform: "translateX(-50%)",
+              left: 28,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              gap: 12,
             }}
           >
+            {/* Avatar Container */}
             <div style={{ position: "relative", width: 92, height: 92 }}>
               {/* Anel externo brilhante */}
               <div
@@ -589,8 +587,7 @@ export default async function Page(props: PageProps) {
                   position: "absolute",
                   inset: -3,
                   borderRadius: "50%",
-                  background:
-                    `conic-gradient(from 0deg, ${accentColor} 0%, ${secondaryColor} 40%, rgba(255,255,255,0.1) 60%, ${accentColor} 100%)`,
+                  background: `conic-gradient(from 0deg, ${accentColor} 0%, ${secondaryColor} 40%, rgba(255,255,255,0.1) 60%, ${accentColor} 100%)`,
                   opacity: 0.75,
                 }}
               />
@@ -631,12 +628,10 @@ export default async function Page(props: PageProps) {
               </div>
             </div>
 
-            {/* Badge DISPONÍVEL / PAUSADO / ABERTO AGORA */}
+            {/* Badge ABERTO AGORA */}
             <div
               className="public-status-pill"
               style={{
-                marginTop: -10,
-                zIndex: 1,
                 display: "flex",
                 alignItems: "center",
                 gap: 5,
@@ -644,6 +639,7 @@ export default async function Page(props: PageProps) {
                 border: `1px solid ${isAvailableNow ? "rgba(37,211,102,0.25)" : "rgba(156,163,175,0.25)"}`,
                 borderRadius: 999,
                 padding: "3px 10px",
+                whiteSpace: "nowrap"
               }}
             >
               <span
@@ -671,12 +667,12 @@ export default async function Page(props: PageProps) {
             </div>
           </div>
 
-          {/* Nome e bio */}
-          <div className="animate-stagger-2" style={{ textAlign: "center", marginTop: 40 }}>
+          {/* Nome e Função (Alinhados à direita do avatar) */}
+          <div className="animate-stagger-2" style={{ paddingLeft: 112, paddingTop: 16, minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h1
               className="public-text-name"
               style={{
-                fontSize: 30,
+                fontSize: 24,
                 fontWeight: 700,
                 color: "var(--public-text-main)",
                 letterSpacing: "-0.025em",
@@ -686,12 +682,25 @@ export default async function Page(props: PageProps) {
             >
               {safeProfile.full_name}
             </h1>
+            <h2
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--public-text-main)",
+                marginTop: 6,
+                letterSpacing: "0.01em",
+              }}
+            >
+              {(safeProfile as any).job_title || "Consultor"}
+            </h2>
+          </div>
 
+          {/* Bio (Centralizada abaixo de tudo) */}
+          <div className="animate-stagger-2" style={{ textAlign: "center", marginTop: 24 }}>
             {bioLine ? (
               <p
                 className="public-text-bio"
                 style={{
-                  marginTop: 10,
                   fontSize: 14,
                   color: "var(--public-text-dim)",
                   fontWeight: 400,
