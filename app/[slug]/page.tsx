@@ -670,7 +670,7 @@ export default async function Page(props: PageProps) {
           </div>
 
           {/* Nome e Função (Alinhados à direita do avatar) */}
-          <div className="animate-stagger-2" style={{ paddingLeft: 108, paddingTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+          <div className="animate-stagger-2" style={{ paddingLeft: 128, paddingTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
             <h1
               className="public-text-name"
               style={{
