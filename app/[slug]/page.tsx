@@ -703,6 +703,17 @@ export default async function Page(props: PageProps) {
             ) : null}
           </div>
 
+          {/* Botão do WhatsApp (Movido para cá) */}
+          {safeProfile.whatsapp && (
+            <div className="animate-stagger-2" style={{ marginTop: 24, padding: "0 4px", width: "100%" }}>
+              <ProfileWhatsAppButton
+                profileId={safeProfile.id}
+                slug={slug}
+                whatsapp={safeProfile.whatsapp}
+                isAvailable={isAvailableNow}
+              />
+            </div>
+          )}
           
           {/* Categorias em destaque */}
           {catalogStats.categories && catalogStats.categories.length > 0 && (
@@ -758,15 +769,6 @@ export default async function Page(props: PageProps) {
               gap: 10,
             }}
           >
-            {safeProfile.whatsapp ? (
-              <ProfileWhatsAppButton
-                profileId={safeProfile.id}
-                slug={slug}
-                whatsapp={safeProfile.whatsapp}
-                isAvailable={isAvailableNow}
-              />
-            ) : <p style={{color: 'red'}}>WhatsApp is NULL</p>}
-
             <CatalogBadge 
               catalogId={catalogStats.catalogId || ""} 
               latestProductTimestamp={catalogStats.latestUpdate}
