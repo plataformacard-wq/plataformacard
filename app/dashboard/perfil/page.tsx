@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BusinessHours, TimeShift, DaySchedule, DEFAULT_BUSINESS_HOURS, DAY_NAMES_PT } from "@/lib/utils/time";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
-import { Upload, X, Camera, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe, Copy } from "lucide-react";
+import { Upload, X, Camera, Image as ImageIcon, Calendar, Info, Clock, Users, Phone, ExternalLink, ShieldCheck, ChevronDown, Package, Globe, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getOrganizationById } from "@/lib/admin-actions";
 import { getPublicUrl } from "@/lib/utils/url";
@@ -27,6 +27,7 @@ type ProfileData = {
   status?: string | null;
   redirect_leads?: boolean | null;
   is_accepting_orders?: boolean | null;
+  public_banner_url?: string | null;
   organizations?: {
     business_model: string;
   };
@@ -70,6 +71,9 @@ function PerfilContent() {
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [publicBanner, setPublicBanner] = useState<string | null>(null);
+  const [publicBannerFile, setPublicBannerFile] = useState<File | null>(null);
+  const [activeUploadType, setActiveUploadType] = useState<"avatar" | "public_banner">("avatar");
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -124,7 +128,7 @@ function PerfilContent() {
       let profileResult: ProfileData | null = null;
       const { data: initialProfile } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders")
+        .select("user_id, full_name, avatar_url, bio, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
       profileResult = initialProfile;
@@ -169,6 +173,7 @@ function PerfilContent() {
               status: simulatedProfile.status,
               redirect_leads: simulatedProfile.redirect_leads,
               is_accepting_orders: simulatedProfile.is_accepting_orders,
+              public_banner_url: simulatedProfile.public_banner_url,
             };
           }
         }
@@ -194,6 +199,7 @@ function PerfilContent() {
         setSlugOriginal(profile.slug || "");
         setWhatsappTemplateInput(profile.whatsapp_template || "");
         setAvatar(profile.avatar_url || null);
+        setPublicBanner(profile.public_banner_url || null);
         setIsAvailable(profile.is_available ?? true);
         setIsAcceptingOrders(profile.is_accepting_orders ?? true);
 
@@ -395,6 +401,29 @@ function PerfilContent() {
     }
 
     let newAvatarUrl = avatar;
+    let newPublicBannerUrl = publicBanner;
+
+    if (publicBannerFile) {
+      const fileExt = publicBannerFile.name.split(".").pop();
+      const filePath = `${user.id}/public-banner.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, publicBannerFile, { upsert: true });
+
+      if (uploadError) {
+        setSaveMessage("Erro ao fazer upload do banner. Tente novamente.");
+        setSaving(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      newPublicBannerUrl = urlData.publicUrl;
+    }
+
 
     if (avatarFile) {
       const fileExt = avatarFile.name.split(".").pop();
@@ -437,6 +466,7 @@ function PerfilContent() {
         recess_ends_at: recessEndsAt,
         custom_business_hours: customBusinessHours,
         is_accepting_orders: isAcceptingOrders,
+        public_banner_url: newPublicBannerUrl,
         redirect_leads: redirectLeads,
       })
       .eq("user_id", targetUserId);
@@ -450,6 +480,8 @@ function PerfilContent() {
     setNome(trimmedName);
     setAvatar(newAvatarUrl);
     setAvatarFile(null);
+    setPublicBanner(newPublicBannerUrl);
+    setPublicBannerFile(null);
     setSlugOriginal(trimmedSlug);
     setSaveSuccess(true);
     setSaveMessage("Perfil atualizado com sucesso!");
@@ -544,7 +576,12 @@ function PerfilContent() {
   }
 
   function onImageEditorConfirm(file: File, previewUrl: string) {
-    setAvatarFile(file);
+    if (activeUploadType === "avatar") {
+      setAvatarFile(file);
+    } else {
+      setPublicBannerFile(file);
+      setPublicBanner(URL.createObjectURL(file));
+    }
     // Note: avatarPreview uses avatarFile if present, so it will update automatically
   }
 
@@ -627,7 +664,7 @@ function PerfilContent() {
                     <div 
                       className="group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
                       style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
-                      onClick={() => setShowImageEditor(true)}
+                      onClick={() => { setActiveUploadType("avatar"); setShowImageEditor(true); }}
                     >
                       {avatarPreview ? (
                         <>
@@ -694,6 +731,48 @@ function PerfilContent() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              
+              {/* Card 1.5: Banner Público */}
+              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+                <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                  <ImageIcon size={18} className="text-primary" /> Banner do Perfil Público
+                </h3>
+                <div className="flex flex-col items-center gap-4">
+                  <div 
+                    className="w-full h-32 md:h-48 rounded-2xl border-2 border-dashed overflow-hidden relative group cursor-pointer transition-all hover:border-primary/50"
+                    style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
+                    onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
+                  >
+                    {publicBannerFile ? (
+                      <img src={URL.createObjectURL(publicBannerFile)} alt="Banner Preview" className="w-full h-full object-cover" />
+                    ) : publicBanner ? (
+                      <img src={publicBanner} alt="Banner" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-[var(--dash-text-muted)] gap-2">
+                        <ImageIcon size={32} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Adicionar Banner (Opcional)</span>
+                        <span className="text-[10px] text-center max-w-[200px]">Recomendado: 1200x400 px</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Upload className="text-white" size={32} />
+                    </div>
+                  </div>
+                  {publicBanner && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setPublicBanner(null);
+                        setPublicBannerFile(null);
+                      }}
+                      className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                    >
+                      <X size={12} /> Remover Banner
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1177,12 +1256,14 @@ function PerfilContent() {
         </div>
       )}
       <ImageEditorModal
+        title={activeUploadType === "avatar" ? "Editar Foto de Perfil" : "Editar Banner"}
+        description={activeUploadType === "avatar" ? "Sua foto de perfil principal." : "Banner que aparece no topo do seu cartão."}
         isOpen={showImageEditor}
         onClose={() => setShowImageEditor(false)}
         onConfirm={onImageEditorConfirm}
-        aspectRatio={1}
-        minWidth={400}
-        minHeight={400}
+        aspectRatio={activeUploadType === "avatar" ? 1 : 3}
+        minWidth={activeUploadType === "avatar" ? 400 : 600}
+        minHeight={activeUploadType === "avatar" ? 400 : 200}
       />
     </div>
   );

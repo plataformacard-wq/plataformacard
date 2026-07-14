@@ -9,6 +9,7 @@ import { getNationalHolidays } from "@/lib/utils/holidays";
 import CatalogBadge from "@/components/catalog/CatalogBadge";
 import PublicThemeToggle from "@/components/PublicThemeToggle";
 import PublicShareButton from "@/components/PublicShareButton";
+import ForceLightTheme from "@/components/public/ForceLightTheme";
 import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 
 type PageProps = {
@@ -159,10 +160,10 @@ async function resolveCatalogIds(
 async function getCatalogStats(
   supabase: ReturnType<typeof createAdminClient>,
   profile: ProfileRow
-): Promise<{ productCount: number; categoryCount: number; latestUpdate: string | null; catalogId: string | null }> {
+): Promise<{ productCount: number; categoryCount: number; latestUpdate: string | null; catalogId: string | null; categories: any[] }> {
   const catalogIds = await resolveCatalogIds(supabase, profile);
   if (catalogIds.length === 0) {
-    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId: null };
+    return { productCount: 0, categoryCount: 0, latestUpdate: null, catalogId: null, categories: [] };
   }
 
   const { data: categoriesData } = await supabase
@@ -170,7 +171,17 @@ async function getCatalogStats(
     .select("id")
     .in("catalog_id", catalogIds);
 
-  const categoryIds = (categoriesData ?? []).map((c) => c.id);
+  
+  const { data: categoriesResult } = await supabase
+    .from("categories")
+    .select("id, name, icon_url")
+    .in("catalog_id", catalogIds)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  
+  const categories = categoriesResult || [];
+
+  const categoryIds = categories.map((c) => c.id);
   const categoryCount = categoryIds.length;
 
   let productCount = 0;
@@ -207,6 +218,7 @@ async function getCatalogStats(
     categoryCount,
     latestUpdate,
     catalogId: catalogIds[0],
+    categories,
   };
 }
 
@@ -255,7 +267,7 @@ export default async function Page(props: PageProps) {
   const [orgRes, catalogStats, analyticsRes] = await Promise.all([
     supabase
       .from("organizations")
-      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url, business_model, whatsapp")
+      .select("slug, name, business_hours, accent_color, secondary_color, logo_url, favicon_url, business_model, whatsapp, public_banner_url")
       .eq("id", safeProfile.organization_id)
       .maybeSingle(),
     getCatalogStats(supabase, safeProfile),
@@ -305,6 +317,11 @@ export default async function Page(props: PageProps) {
   const orgFavicon = orgRes.data?.favicon_url ?? null;
   const accentColor = orgRes.data?.accent_color || "#25D366";
   const secondaryColor = orgRes.data?.secondary_color || "#128C7E";
+  
+  const orgBanner = orgRes.data?.public_banner_url ?? null;
+  const profileBanner = (safeProfile as any).public_banner_url ?? null;
+  const bannerUrl = profileBanner || orgBanner || null;
+
   const customBusinessHours = (safeProfile.custom_business_hours as unknown as BusinessHours) ?? null;
 
   let isHolidayRecessActive = false;
@@ -377,7 +394,8 @@ export default async function Page(props: PageProps) {
 
   return (
     <>
-      <PublicThemeToggle />
+      
+      <ForceLightTheme />
       <main
         className="public-theme-container"
         style={{
@@ -390,17 +408,27 @@ export default async function Page(props: PageProps) {
         overflow: "hidden"
       }}
     >
-      {/* Mesh Background for Premium Feel */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div 
-          className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] blur-[120px] rounded-full opacity-20 dark:opacity-30"
-          style={{ background: accentColor }}
-        />
-        <div 
-          className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] blur-[100px] rounded-full opacity-10 dark:opacity-20"
-          style={{ background: secondaryColor }}
-        />
+      
+      {/* Background Watermark */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-white">
+        {orgFavicon ? (
+          <div 
+            className="absolute inset-0 opacity-[0.03]" 
+            style={{ 
+              backgroundImage: `url(${orgFavicon})`, 
+              backgroundSize: '120px', 
+              backgroundRepeat: 'repeat',
+              backgroundPosition: 'center' 
+            }} 
+          />
+        ) : (
+          <>
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] blur-[120px] rounded-full opacity-20" style={{ background: accentColor }} />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] blur-[100px] rounded-full opacity-10" style={{ background: secondaryColor }} />
+          </>
+        )}
       </div>
+
       <style>{`
         @keyframes slideUpFade {
           from { opacity: 0; transform: translateY(24px); }
@@ -485,7 +513,28 @@ export default async function Page(props: PageProps) {
           }}
         />
 
-        <div style={{ padding: "24px 28px 32px" }}>
+        
+        {/* Banner do Cartão */}
+        {bannerUrl && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: 120,
+              borderTopLeftRadius: 32,
+              borderTopRightRadius: 32,
+              overflow: 'hidden',
+              zIndex: 0
+            }}
+          >
+            <img src={bannerUrl} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,1) 100%)' }}></div>
+          </div>
+        )}
+
+        <div style={{ padding: "24px 28px 32px", position: "relative", zIndex: 1, marginTop: bannerUrl ? 40 : 0 }}>
           {/* Logo do Topo (Branding) */}
           {orgLogo && (
             <div className="mb-6 flex justify-center opacity-80 dark:opacity-60 transition-all duration-700">
@@ -626,6 +675,51 @@ export default async function Page(props: PageProps) {
             ) : null}
           </div>
 
+          
+          {/* Categorias em destaque */}
+          {catalogStats.categories && catalogStats.categories.length > 0 && (
+            <div className="animate-stagger-3 mt-8">
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--public-text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12, textAlign: 'center' }}>
+                Categorias
+              </h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
+                {catalogStats.categories.map((cat: any) => (
+                  <Link 
+                    key={cat.id} 
+                    href={`/${slug}/catalogo?categoria=${cat.id}`}
+                    style={{ 
+                      width: 'calc(50% - 6px)',
+                      minWidth: 130,
+                      maxWidth: 160,
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      background: 'var(--public-glass-bg)',
+                      border: '1px solid var(--public-card-border)',
+                      borderRadius: 16,
+                      padding: '16px 12px',
+                      textDecoration: 'none',
+                      color: 'var(--public-text-main)',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+                    }}
+                    className="hover:-translate-y-1 hover:shadow-md"
+                  >
+                    {cat.icon_url ? (
+                      <img src={cat.icon_url} alt={cat.name} style={{ width: 32, height: 32, objectFit: 'contain', marginBottom: 8 }} />
+                    ) : (
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: accentColor + '20', color: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                      </div>
+                    )}
+                    <span style={{ fontSize: 12, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{cat.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Botões CTA */}
           <div
             className="animate-stagger-3"
@@ -696,8 +790,7 @@ export default async function Page(props: PageProps) {
               text={safeProfile.bio || "Confira meu perfil e catálogo digital."}
               url={""} // O componente pegará a URL atual se estiver vazio
               className="btn-catalog"
-              style={{
-                display: "inline-flex",
+              style={{ display: "inline-flex",
                 width: "100%",
                 alignItems: "center",
                 justifyContent: "center",

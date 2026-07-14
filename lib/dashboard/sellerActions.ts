@@ -648,6 +648,7 @@ export async function updateOrganizationSEO(orgId: string, payload: {
   og_image_url: string;
   centralize_leads?: boolean;
   whatsapp?: string;
+  public_banner_url?: string | null;
 }) {
   try {
     const supabaseServer = await createClient();
@@ -710,5 +711,33 @@ export async function uploadAvatarAction(sellerId: string, formData: FormData) {
     return { url: urlData.publicUrl };
   } catch (e: any) {
     return { error: e.message };
+  }
+}
+
+export async function uploadImageAction(bucket: string, folderPath: string, formData: FormData) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+
+    const file = formData.get("file") as File;
+    if (!file) return { error: "Arquivo não enviado" };
+
+    const adminAuthClient = createAdminClient();
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${folderPath}/${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await adminAuthClient.storage
+      .from(bucket)
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      return { error: uploadError.message };
+    }
+
+    const { data: urlData } = adminAuthClient.storage.from(bucket).getPublicUrl(filePath);
+    return { url: urlData.publicUrl };
+  } catch (err: any) {
+    return { error: err.message };
   }
 }

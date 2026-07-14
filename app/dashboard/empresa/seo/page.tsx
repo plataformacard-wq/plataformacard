@@ -42,13 +42,15 @@ export default function SEOPage() {
     favicon_url: "",
     logo_url: "",
     og_image_url: "",
+    public_banner_url: "",
     centralize_leads: false,
     whatsapp: "",
   });
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [activeUploadType, setActiveUploadType] = useState<"favicon" | "logo" | "banner">("favicon");
+  const [publicBannerFile, setPublicBannerFile] = useState<File | null>(null);
+  const [activeUploadType, setActiveUploadType] = useState<"favicon" | "logo" | "banner" | "public_banner">("favicon");
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [usedAIAssistant, setUsedAIAssistant] = useState(false);
   const [showAIWarning, setShowAIWarning] = useState(false);
@@ -93,6 +95,7 @@ export default function SEOPage() {
               favicon_url: org.favicon_url || "",
               logo_url: org.logo_url || "",
               og_image_url: org.og_image_url || "",
+              public_banner_url: org.public_banner_url || "",
               centralize_leads: !!org.centralize_leads,
               whatsapp: org.whatsapp || "",
             });
@@ -197,6 +200,26 @@ export default function SEOPage() {
       newLogoUrl = result.publicUrl;
     }
 
+    
+    let newPublicBannerUrl = formData.public_banner_url;
+    if (publicBannerFile) {
+      const fileExt = publicBannerFile.name.split(".").pop();
+      const filePath = `${user.id}/public-banner-${orgId}.${fileExt}`;
+      
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", publicBannerFile);
+      uploadFormData.append("bucket", "avatars");
+      uploadFormData.append("path", filePath);
+
+      const result = await uploadStorageFile(uploadFormData);
+      if (result.error || !result.publicUrl) {
+        setMessage({ text: `Erro no banner público: ${result.error || "Falha no upload"}`, type: "error" });
+        setSaving(false);
+        return;
+      }
+      newPublicBannerUrl = result.publicUrl;
+    }
+
     let newOgImageUrl = formData.og_image_url;
     if (bannerFile) {
       const fileExt = bannerFile.name.split(".").pop();
@@ -223,6 +246,7 @@ export default function SEOPage() {
       favicon_url: newFaviconUrl,
       logo_url: newLogoUrl,
       og_image_url: newOgImageUrl,
+      public_banner_url: newPublicBannerUrl,
       centralize_leads: formData.centralize_leads,
       whatsapp: formData.whatsapp,
     });
@@ -241,11 +265,13 @@ export default function SEOPage() {
         ...formData, 
         favicon_url: getFinalUrl(newFaviconUrl) || "", 
         logo_url: getFinalUrl(newLogoUrl) || "", 
-        og_image_url: getFinalUrl(newOgImageUrl) || "" 
+        og_image_url: getFinalUrl(newOgImageUrl) || "",
+        public_banner_url: getFinalUrl(newPublicBannerUrl) || "" 
       });
       setFaviconFile(null);
       setLogoFile(null);
       setBannerFile(null);
+      setPublicBannerFile(null);
       setUsedAIAssistant(false);
       setMessage({ text: "Configurações salvas com sucesso!", type: "success" });
       setTimeout(() => setMessage(null), 3000);
@@ -261,6 +287,9 @@ export default function SEOPage() {
     } else if (activeUploadType === "logo") {
       setLogoFile(file);
       setFormData({ ...formData, logo_url: URL.createObjectURL(file) });
+    } else if (activeUploadType === "public_banner") {
+      setPublicBannerFile(file);
+      setFormData({ ...formData, public_banner_url: URL.createObjectURL(file) });
     } else if (activeUploadType === "banner") {
       setBannerFile(file);
       setFormData({ ...formData, og_image_url: URL.createObjectURL(file) });
@@ -516,6 +545,40 @@ export default function SEOPage() {
               </div>
             </div>
           </div>
+        
+          {/* Banner Publico */}
+          <div className="space-y-3 relative mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner do Cartão Público</label>
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Aparece no topo do perfil público. Recomendado: 1200x400 px</span>
+            </div>
+            <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
+                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
+                 onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}>
+              {formData.public_banner_url ? (
+                <>
+                  <img src={formData.public_banner_url} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFormData({ ...formData, public_banner_url: "" });
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors z-10"
+                    title="Remover Banner Público"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              ) : (
+                <ImageIcon size={32} style={{ color: "var(--dash-text-muted)" }} />
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Upload size={24} className="text-white" />
+              </div>
+            </div>
+          </div>
+
         </section>
       </div>
 
@@ -621,18 +684,20 @@ export default function SEOPage() {
         }
         title={
           activeUploadType === "favicon" ? "Editar Favicon" : 
-          activeUploadType === "logo" ? (businessModel === "B2C" ? "Editar Foto/Logo" : "Editar Logotipo") : 
+          activeUploadType === "logo" ? (businessModel === "B2C" ? "Editar Foto/Logo" : "Editar Logotipo") :
+          activeUploadType === "public_banner" ? "Editar Banner do Cartão" : 
           "Editar Banner de SEO"
         }
         description={
           activeUploadType === "favicon" ? "Ícone que aparece na aba do navegador." : 
-          activeUploadType === "logo" ? (businessModel === "B2C" ? "Foto ou logotipo exibido no seu cartão público." : "Logotipo exibido no topo do catálogo.") : 
+          activeUploadType === "logo" ? (businessModel === "B2C" ? "Foto ou logotipo exibido no seu cartão público." : "Logotipo exibido no topo do catálogo.") :
+          activeUploadType === "public_banner" ? "Banner que aparece no topo do cartão público." : 
           "Banner para redes sociais."
         }
-        targetWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 400 : 1200}
-        targetHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : 630}
-        minWidth={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 400 : 600}
-        minHeight={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 200 : 315}
+        targetWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 400 : activeUploadType === "public_banner" ? 1200 : 1200}
+        targetHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : activeUploadType === "public_banner" ? 400 : 630}
+        minWidth={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 400 : activeUploadType === "public_banner" ? 600 : 600}
+        minHeight={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 200 : activeUploadType === "public_banner" ? 200 : 315}
       />
 
       <AiReviewModal

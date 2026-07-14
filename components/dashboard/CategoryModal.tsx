@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import { X, Layers, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImageAction } from "@/lib/dashboard/sellerActions";
 
 interface Category {
+  icon_url?: string | null;
   id: string;
   name: string;
   description?: string | null;
@@ -29,6 +31,8 @@ export default function CategoryModal({
 }: CategoryModalProps) {
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
+  const [categoryIconUrl, setCategoryIconUrl] = useState("");
+  const [uploadingIcon, setUploadingIcon] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
   const [categoryManageError, setCategoryManageError] = useState("");
 
@@ -37,9 +41,11 @@ export default function CategoryModal({
       if (editingCategory) {
         setCategoryName(editingCategory.name);
         setCategoryDescription(editingCategory.description || "");
+        setCategoryIconUrl(editingCategory.icon_url || "");
       } else {
         setCategoryName("");
         setCategoryDescription("");
+        setCategoryIconUrl("");
       }
       setCategoryManageError("");
     }
@@ -70,6 +76,7 @@ export default function CategoryModal({
           .update({
             name: trimmedName,
             description: categoryDescription.trim(),
+            icon_url: categoryIconUrl,
           })
           .eq("id", editingCategory.id);
 
@@ -182,6 +189,51 @@ export default function CategoryModal({
                       color: "var(--dash-text-primary)" 
                     }}
                   />
+                </div>
+
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: "var(--dash-text-muted)" }}>
+                    Ícone da Categoria (Para o Cartão Público)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {categoryIconUrl ? (
+                      <img src={categoryIconUrl} alt="Ícone" className="w-16 h-16 rounded-lg object-cover bg-zinc-100" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 border border-dashed border-zinc-300 dark:border-zinc-700">
+                        <Layers size={24} className="text-zinc-400" />
+                      </div>
+                    )}
+                    <label className="flex-1 cursor-pointer">
+                      <div className="px-4 py-3 text-sm font-bold text-center rounded-xl border border-dashed hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer"
+                           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}>
+                        {uploadingIcon ? "Enviando..." : (categoryIconUrl ? "Trocar Ícone" : "Fazer Upload de Ícone")}
+                      </div>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (!catalogId) return;
+                          setUploadingIcon(true);
+                          setCategoryManageError("");
+                          try {
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            const data = await uploadImageAction("products", catalogId, formData);
+                            if (data.error) throw new Error(data.error);
+                            setCategoryIconUrl(data.url || "");
+                          } catch (err: any) {
+                            setCategoryManageError("Erro no upload do ícone: " + err.message);
+                          } finally {
+                            setUploadingIcon(false);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 pt-4">
