@@ -640,7 +640,7 @@ export default async function Page(props: PageProps) {
                 background: "var(--public-status-bg)",
                 border: `1px solid ${isAvailableNow ? "rgba(37,211,102,0.25)" : "rgba(156,163,175,0.25)"}`,
                 borderRadius: 999,
-                padding: "3px 10px",
+                padding: "1px 6px", // Reduced padding
                 whiteSpace: "nowrap"
               }}
             >
