@@ -568,15 +568,17 @@ export default async function Page(props: PageProps) {
         <div style={{ padding: "0 28px 32px", position: "relative", zIndex: 1 }}>
           
           {/* Container Absoluto para Avatar e Badge alinhados à esquerda */}
+          {/* Container Absoluto para Avatar e Badge alinhados à esquerda */}
           <div
             style={{
               position: "absolute",
               top: -46, // Metade de 92px
               left: 28,
+              width: 92,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 12,
+              gap: 8,
             }}
           >
             {/* Avatar Container */}
@@ -668,7 +670,7 @@ export default async function Page(props: PageProps) {
           </div>
 
           {/* Nome e Função (Alinhados à direita do avatar) */}
-          <div className="animate-stagger-2" style={{ paddingLeft: 112, paddingTop: 16, minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="animate-stagger-2" style={{ paddingLeft: 108, paddingTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
             <h1
               className="public-text-name"
               style={{
@@ -687,7 +689,7 @@ export default async function Page(props: PageProps) {
                 fontSize: 13,
                 fontWeight: 600,
                 color: "var(--public-text-main)",
-                marginTop: 6,
+                marginTop: 4,
                 letterSpacing: "0.01em",
               }}
             >
@@ -704,7 +706,7 @@ export default async function Page(props: PageProps) {
                   fontSize: 14,
                   color: "var(--public-text-dim)",
                   fontWeight: 400,
-                  lineHeight: 1.55,
+                  lineHeight: 1.45,
                 }}
               >
                 {bioLine}
@@ -714,7 +716,7 @@ export default async function Page(props: PageProps) {
 
           {/* Botão do WhatsApp (Movido para cá) */}
           {safeProfile.whatsapp && (
-            <div className="animate-stagger-2" style={{ marginTop: 24, padding: "0 4px", width: "100%" }}>
+            <div className="animate-stagger-2" style={{ marginTop: 16, padding: "0 4px", width: "100%" }}>
               <ProfileWhatsAppButton
                 profileId={safeProfile.id}
                 slug={slug}
@@ -726,7 +728,7 @@ export default async function Page(props: PageProps) {
           
           {/* Categorias em destaque */}
           {catalogStats.categories && catalogStats.categories.length > 0 && (
-            <div className="animate-stagger-3 mt-8">
+            <div className="animate-stagger-3 mt-6">
               <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--public-text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12, textAlign: 'center' }}>
                 Categorias
               </h3>
