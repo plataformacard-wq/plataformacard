@@ -172,7 +172,7 @@ async function getCatalogStats(
     .in("catalog_id", catalogIds);
 
   
-  const { data: categoriesResult } = await supabase
+  const { data: categoriesResult, error: catError } = await supabase
     .from("categories")
     .select("id, name, icon_url")
     .in("catalog_id", catalogIds)
@@ -180,6 +180,7 @@ async function getCatalogStats(
     .order("name", { ascending: true });
   
   const categories = categoriesResult || [];
+  if (catError) console.error("CAT ERROR:", catError);
 
   const categoryIds = categories.map((c) => c.id);
   const categoryCount = categoryIds.length;
@@ -189,10 +190,12 @@ async function getCatalogStats(
 
   const { data: prods1 } = await supabase
     .from("products")
-    .select("id, created_at, updated_at")
+    .select("id, created_at, updated_at, image_url, category_id")
     .in("catalog_id", catalogIds)
     .eq("is_active", true)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
 
   const allProdsMap = new Map();
   prods1?.forEach(p => allProdsMap.set(p.id, p));
@@ -200,13 +203,27 @@ async function getCatalogStats(
   if (categoryIds.length > 0) {
     const { data: prods2 } = await supabase
       .from("products")
-      .select("id, created_at, updated_at")
+      .select("id, created_at, updated_at, image_url, category_id")
       .in("category_id", categoryIds)
       .eq("is_active", true)
-      .is("deleted_at", null);
+      .is("deleted_at", null)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
 
     prods2?.forEach(p => allProdsMap.set(p.id, p));
   }
+
+  // Preenche imagens de categorias vazias com o primeiro produto da categoria
+  categories.forEach(c => {
+    if (!c.icon_url) {
+      for (const p of allProdsMap.values()) {
+        if (p.category_id === c.id && p.image_url) {
+          c.icon_url = p.image_url;
+          break;
+        }
+      }
+    }
+  });
 
   productCount = allProdsMap.size;
   
@@ -286,6 +303,7 @@ export default async function Page(props: PageProps) {
   // Trava de Segurança (Under Construction) se não atingir configuração mínima (100% da barra)
   const hasContact = !!safeProfile.whatsapp || !!orgRes.data?.whatsapp;
   const isReady = catalogStats.productCount > 0 && hasContact;
+  console.log("isReady stats 2:", { productCount: catalogStats.productCount, categoryCount: catalogStats.categoryCount, catalogId: catalogStats.catalogId, hasContact, slug });
 
   if (!isReady) {
     return (
