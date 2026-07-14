@@ -282,25 +282,28 @@ export default async function Page(props: PageProps) {
 
   if (!isReady) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center dark:bg-slate-950">
-        <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+      <>
+        <ForceLightTheme />
+        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center">
+        <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl border border-slate-200 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-500"></div>
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
             <span className="text-4xl">🚧</span>
           </div>
-          <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="mb-2 text-2xl font-bold text-slate-900">
             Em Construção
           </h1>
-          <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mb-6 text-sm text-slate-600">
             {orgRes.data?.name || safeProfile.full_name || "Esta empresa"} está preparando novidades incríveis para você. O catálogo estará disponível muito em breve!
           </p>
           <div className="flex items-center justify-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse"></div>
-            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse delay-75"></div>
-            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse delay-150"></div>
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 animate-pulse"></div>
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 animate-pulse delay-75"></div>
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-300 animate-pulse delay-150"></div>
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 

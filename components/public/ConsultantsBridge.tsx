@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Users, Store, ArrowRight, Phone } from "lucide-react";
-import PublicThemeToggle from "@/components/PublicThemeToggle";
+import ForceLightTheme from "@/components/public/ForceLightTheme";
 import { createClient } from "@/lib/supabase/server";
 import PublicRecessTimer from "@/components/public/PublicRecessTimer";
 
@@ -52,7 +52,7 @@ export default async function ConsultantsBridge({
 
   return (
     <>
-      <PublicThemeToggle />
+      <ForceLightTheme />
       <main
         className="public-theme-container flex flex-col items-center justify-center min-h-[100dvh] px-4 py-10 overflow-hidden relative"
       >
@@ -84,7 +84,7 @@ export default async function ConsultantsBridge({
             )}
 
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 mb-4 ring-4 ring-zinc-50 dark:ring-zinc-900">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 text-zinc-400 mb-4 ring-4 ring-zinc-50">
                 <Users size={28} />
               </div>
               <h1 className="text-xl font-bold text-[var(--public-text-main)] mb-2">
@@ -123,7 +123,7 @@ export default async function ConsultantsBridge({
                     href={`/${seller.slug}`}
                     className="flex items-center gap-4 p-3 rounded-2xl bg-[var(--public-glass-bg)] border border-[var(--public-card-border)] hover:bg-[rgba(255,255,255,0.05)] transition-all group"
                   >
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-800 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-200 flex-shrink-0">
                       {seller.avatar_url ? (
                         <img src={seller.avatar_url} alt={seller.full_name || ""} className="w-full h-full object-cover" />
                       ) : (
