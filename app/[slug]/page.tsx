@@ -735,9 +735,9 @@ export default async function Page(props: PageProps) {
                     className="hover:-translate-y-1 hover:shadow-md"
                   >
                     {cat.icon_url ? (
-                      <img src={cat.icon_url} alt={cat.name} style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />
+                      <img src={cat.icon_url} alt={cat.name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 8, marginBottom: 12 }} />
                     ) : (
-                      <div style={{ width: 96, height: 96, borderRadius: 8, background: accentColor + '20', color: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                      <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: 8, background: accentColor + '20', color: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                         <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                       </div>
                     )}
