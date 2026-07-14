@@ -186,6 +186,17 @@ async function getCatalogStats(
 
   let productCount = 0;
   let latestUpdate: string | null = null;
+
+  const { data: prods1 } = await supabase
+    .from("products")
+    .select("id, created_at, updated_at")
+    .in("catalog_id", catalogIds)
+    .eq("is_active", true)
+    .is("deleted_at", null);
+
+  const allProdsMap = new Map();
+  prods1?.forEach(p => allProdsMap.set(p.id, p));
+
   if (categoryIds.length > 0) {
     const { data: prods2 } = await supabase
       .from("products")
@@ -194,24 +205,20 @@ async function getCatalogStats(
       .eq("is_active", true)
       .is("deleted_at", null);
 
-    const allProdsMap = new Map();
     prods2?.forEach(p => allProdsMap.set(p.id, p));
-    
-    productCount = allProdsMap.size;
-    
-    // Find latest update
-    let latest: Date | null = null;
-    allProdsMap.forEach(p => {
-      const dt = new Date(p.updated_at || p.created_at || 0);
-      if (!latest || dt > latest) {
-        latest = dt;
-        latestUpdate = p.updated_at || p.created_at;
-      }
-    });
-  } else {
-    productCount = 0;
-    latestUpdate = null;
   }
+
+  productCount = allProdsMap.size;
+  
+  // Find latest update
+  let latest: Date | null = null;
+  allProdsMap.forEach(p => {
+    const dt = new Date(p.updated_at || p.created_at || 0);
+    if (!latest || dt > latest) {
+      latest = dt;
+      latestUpdate = p.updated_at || p.created_at;
+    }
+  });
 
   return {
     productCount,
