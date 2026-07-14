@@ -67,10 +67,10 @@ export default async function RootLayout({
               (function() {
                 try {
                   var saved = localStorage.getItem('dash-theme');
-                  if (saved === 'light') {
-                    document.documentElement.removeAttribute('data-theme');
-                  } else {
+                  if (saved === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
+                  } else {
+                    document.documentElement.removeAttribute('data-theme');
                   }
                 } catch (e) {}
               })();

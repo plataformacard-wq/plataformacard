@@ -532,9 +532,8 @@ export default async function Page(props: PageProps) {
                   justifyContent: "center",
                   fontSize: 30,
                   fontWeight: 700,
-                   color: "var(--public-text-main)",
-                   opacity: 0.65,
-                   letterSpacing: "-0.02em",
+                  color: "var(--public-text-main)",
+                  letterSpacing: "-0.02em",
                 }}
               >
                 {safeProfile.avatar_url ? (
@@ -810,7 +809,7 @@ export default async function Page(props: PageProps) {
             letterSpacing: "0.05em",
           }}
         >
-          anotameucontato.com.br
+          copyright plataformashop.com.br - 2026
         </span>
       </footer>
       </main>

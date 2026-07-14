@@ -939,14 +939,14 @@ function PerfilContent() {
               </div>
 
               {/* Action */}
-              <div className="flex items-center justify-start border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+              <div className="flex items-center justify-end border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
                 <button 
                   onClick={handleSave} 
                   disabled={saving || !nomeInput.trim()}
                   className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
                     saving || !nomeInput.trim() 
                     ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
-                    : "bg-zinc-900 text-white hover:scale-105 shadow-primary/20"
+                    : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-emerald-500/20"
                   }`}
                 >
                   {saving ? "Salvando..." : "Salvar Cartão Público"}
@@ -979,14 +979,16 @@ function PerfilContent() {
                     className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
-                  <button
-                    type="button"
-                    onClick={handleSaveAccountName}
-                    disabled={saving}
-                    className="mt-4 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {saving ? "Salvando..." : "Salvar Nome"}
-                  </button>
+                  <div className="flex justify-end w-full">
+                    <button
+                      type="button"
+                      onClick={handleSaveAccountName}
+                      disabled={saving}
+                      className="mt-4 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? "Salvando..." : "Salvar Nome"}
+                    </button>
+                  </div>
                 </div>
               </div>
 

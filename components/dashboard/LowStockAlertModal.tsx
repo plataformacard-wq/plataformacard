@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, AlertTriangle, Check } from "lucide-react";
+import { Product } from "@/types";
 import { createClient } from "@/lib/supabase/client";
 
 interface LowStockAlertModalProps {
   isOpen: boolean;
   onClose: () => void;
-  products: any[];
+  products: Product[];
   onStockUpdated: (productId: string, newStock: number) => void;
 }
 
@@ -18,12 +19,12 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
   const [isSaving, setIsSaving] = useState(false);
   const supabase = createClient();
 
-  const handleEdit = (p: any) => {
+  const handleEdit = (p: Product) => {
     setEditingId(p.id);
     setEditValue(p.stock_quantity?.toString() || "0");
   };
 
-  const handleSave = async (p: any) => {
+  const handleSave = async (p: Product) => {
     const val = parseInt(editValue, 10);
     if (isNaN(val) || val < 0) return;
 

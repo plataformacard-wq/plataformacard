@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { fixSingleFieldOrthography, regenerateDescriptionFallback } from '@/lib/ai-actions';
+import { Spec } from "@/types";
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 import 'react-quill-new/dist/quill.snow.css';
@@ -18,7 +19,7 @@ interface AiReviewModalProps {
   original?: string;
   proposed?: string;
   changes?: { id: string; field: string; from: string; to: string }[];
-  contextData?: { name: string; specs: any[] };
+  contextData?: { name: string; specs: Spec[] };
 }
 
 export default function AiReviewModal({ 

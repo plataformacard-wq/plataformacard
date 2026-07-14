@@ -581,20 +581,20 @@ export default function EmpresaPage() {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-xl px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-60"
-          style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
-        >
-          {saving ? "Salvando..." : "Salvar Horários da Empresa"}
-        </button>
+      <div className="flex items-center justify-end gap-4 mt-6">
         {saveMessage && (
-          <span className={`text-sm font-medium ${saveMessage.includes("Erro") ? "text-red-500" : "text-green-500"}`}>
+          <span className={`text-sm font-medium ${saveMessage.includes("Erro") ? "text-red-500" : "text-emerald-500"}`}>
             {saveMessage}
           </span>
         )}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-2xl px-8 py-3 text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
+        >
+          {saving ? "Salvando..." : "Salvar Horários da Empresa"}
+        </button>
+
       </div>
     </div>
   );

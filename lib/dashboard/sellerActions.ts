@@ -684,3 +684,31 @@ export async function updateOrganizationSEO(orgId: string, payload: {
   }
 }
 
+
+export async function uploadAvatarAction(sellerId: string, formData: FormData) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+
+    const file = formData.get("file") as File;
+    if (!file) return { error: "Arquivo não enviado" };
+
+    const adminAuthClient = createAdminClient();
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${sellerId}/avatar-${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await adminAuthClient.storage
+      .from("avatars")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      return { error: uploadError.message };
+    }
+
+    const { data: urlData } = adminAuthClient.storage.from("avatars").getPublicUrl(filePath);
+    return { url: urlData.publicUrl };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}

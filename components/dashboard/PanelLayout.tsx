@@ -34,7 +34,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | "ALL_SERVICE" | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [permissions, setPermissions] = useState({
@@ -55,12 +55,12 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   useEffect(() => {
     // Tema
     const saved = localStorage.getItem("dash-theme");
-    if (saved === "light") {
-      setIsDark(false);
-      document.documentElement.removeAttribute("data-theme");
-    } else {
+    if (saved === "dark") {
       setIsDark(true);
       document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      setIsDark(false);
+      document.documentElement.removeAttribute("data-theme");
     }
 
     // Sidebar Collapsed

@@ -78,7 +78,7 @@ const dayNamesMap = {
   sunday: "Domingo",
 };
 
-import { createSeller, updateSeller, getSellers, toggleSellerStatus, terminateSeller } from "@/lib/dashboard/sellerActions";
+import { createSeller, updateSeller, getSellers, toggleSellerStatus, terminateSeller, uploadAvatarAction } from "@/lib/dashboard/sellerActions";
 
 function RecessCountdown({ endsAt }: { endsAt: string }) {
   const [timeLeft, setTimeLeft] = useState("");
@@ -387,16 +387,12 @@ export default function VendedoresClient({
 
       // Agora que temos o ID, fazemos o upload da foto se houver um NOVO arquivo
       if (formAvatarFile && result.id) {
-        const fileExt = formAvatarFile.name.split(".").pop();
-        const filePath = `${result.id}/avatar.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(filePath, formAvatarFile, { upsert: true });
+        const formData = new FormData();
+        formData.append("file", formAvatarFile);
+        const uploadResult = await uploadAvatarAction(result.id, formData);
 
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-          finalAvatarUrl = urlData.publicUrl;
-          
+        if (!uploadResult.error && uploadResult.url) {
+          finalAvatarUrl = uploadResult.url;
           // Atualiza o perfil com a URL real via SERVER ACTION (para ignorar RLS)
           await updateSeller(result.id, { avatar_url: finalAvatarUrl });
         }
@@ -404,15 +400,12 @@ export default function VendedoresClient({
     } else {
       // EDIÇÃO
       if (formAvatarFile) {
-        const fileExt = formAvatarFile.name.split(".").pop();
-        const filePath = `${selectedSeller.id}/avatar.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(filePath, formAvatarFile, { upsert: true });
+        const formData = new FormData();
+        formData.append("file", formAvatarFile);
+        const uploadResult = await uploadAvatarAction(selectedSeller.id, formData);
 
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-          finalAvatarUrl = urlData.publicUrl;
+        if (!uploadResult.error && uploadResult.url) {
+          finalAvatarUrl = uploadResult.url;
         }
       }
 
@@ -1091,18 +1084,38 @@ export default function VendedoresClient({
               </div>
 
               <div className="flex items-center justify-between border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-                <div className="flex items-center gap-4">
-                  <button 
-                    onClick={handleSave} 
-                    disabled={saving || !isFormValid}
-                    className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
-                      saving || !isFormValid 
-                      ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
-                      : "bg-zinc-900 text-white hover:scale-105 shadow-primary/20"
-                    }`}
-                  >
-                    {saving ? "Salvando..." : "Salvar Ficha do Vendedor"}
-                  </button>
+                <div className="flex items-center gap-4 relative">
+                  {selectedSeller && selectedSeller.status !== 'terminated' && (
+                    <>
+                      {!showTerminateConfirm ? (
+                        <button 
+                          onClick={() => setShowTerminateConfirm(true)}
+                          className="px-4 py-2 text-sm rounded-xl font-bold transition-all text-red-500 hover:bg-red-500/10 flex items-center gap-1.5 opacity-60 hover:opacity-100"
+                        >
+                          <Trash2 size={16} /> Desligar Vendedor
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-3 bg-red-50 dark:bg-red-950/30 p-2 rounded-2xl border border-red-200 dark:border-red-900 absolute left-0 bottom-full mb-4 whitespace-nowrap z-20 shadow-2xl origin-bottom-left animate-in fade-in zoom-in duration-200">
+                          <span className="text-xs font-bold text-red-600 dark:text-red-400 px-2">
+                            Desligar permanentemente? Os dados pessoais serão removidos.
+                          </span>
+                          <button 
+                            onClick={handleTerminate}
+                            disabled={terminating}
+                            className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {terminating ? "Desligando..." : "Confirmar"}
+                          </button>
+                          <button 
+                            onClick={() => setShowTerminateConfirm(false)}
+                            className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                   {message && (
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
                       message.toLowerCase().includes("erro") || 
@@ -1122,37 +1135,19 @@ export default function VendedoresClient({
                   )}
                 </div>
 
-                {selectedSeller && selectedSeller.status !== 'terminated' && (
-                  <div className="relative">
-                    {!showTerminateConfirm ? (
-                      <button 
-                        onClick={() => setShowTerminateConfirm(true)}
-                        className="px-6 py-3 rounded-2xl font-bold transition-all border border-red-500/30 text-red-500 hover:bg-red-500/10 flex items-center gap-2"
-                      >
-                        <Trash2 size={18} /> Desligar Vendedor
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-3 bg-red-50 dark:bg-red-950/30 p-2 rounded-2xl border border-red-200 dark:border-red-900 absolute right-0 bottom-0 whitespace-nowrap z-10 shadow-2xl">
-                        <span className="text-xs font-bold text-red-600 dark:text-red-400 px-2">
-                          Desligar permanentemente? Os dados pessoais serão removidos.
-                        </span>
-                        <button 
-                          onClick={handleTerminate}
-                          disabled={terminating}
-                          className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl hover:bg-red-700 disabled:opacity-50"
-                        >
-                          {terminating ? "Desligando..." : "Confirmar"}
-                        </button>
-                        <button 
-                          onClick={() => setShowTerminateConfirm(false)}
-                          className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-300 dark:hover:bg-zinc-700"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-4 relative">
+                  <button 
+                    onClick={handleSave} 
+                    disabled={saving || !isFormValid}
+                    className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+                      saving || !isFormValid 
+                      ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
+                      : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-emerald-500/20"
+                    }`}
+                  >
+                    {saving ? "Salvando..." : "Salvar Ficha do Vendedor"}
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

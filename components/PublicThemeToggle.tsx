@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 export default function PublicThemeToggle({ className }: { className?: string }) {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("dash-theme");
-    if (saved === "light") {
-      setIsDark(false);
-    } else {
+    if (saved === "dark") {
       setIsDark(true);
+    } else {
+      setIsDark(false);
     }
   }, []);
 

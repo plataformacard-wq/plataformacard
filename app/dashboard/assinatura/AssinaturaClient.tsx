@@ -116,10 +116,9 @@ export default function AssinaturaClient() {
     );
   }
 
-  const getCheckoutUrl = (baseLink: string | null) => {
-    if (!baseLink) return "#";
-    const separator = baseLink.includes("?") ? "&" : "?";
-    return `${baseLink}${separator}client_reference_id=${orgId}&org_id=${orgId}`;
+  const getCheckoutUrl = (planId: string) => {
+    // Redireciona para o Mock de Pagamentos (Ambiente de Sandbox)
+    return `/sandbox-checkout/${planId}?org_id=${orgId}`;
   };
 
   const formatPrice = (priceCents: number) => {
@@ -317,9 +316,7 @@ export default function AssinaturaClient() {
                     </button>
                   ) : (
                     <a
-                      href={getCheckoutUrl(plan.checkout_url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={getCheckoutUrl(plan.id)}
                       className="flex items-center justify-center gap-2 w-full bg-primary text-white rounded-xl py-4 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-98 transition-all shadow-lg shadow-primary/20 group"
                     >
                       Assinar Plano

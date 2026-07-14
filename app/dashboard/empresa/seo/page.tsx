@@ -600,12 +600,11 @@ export default function SEOPage() {
       </div>
 
       {/* Save Button Row */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-end gap-4 mt-6">
         <button 
           onClick={handleSaveClick}
           disabled={saving}
-          className="px-8 py-3 rounded-xl text-sm font-black transition-all shadow-md hover:scale-105 active:scale-95 disabled:opacity-50"
-          style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
+          className="px-8 py-3 rounded-2xl text-sm font-black transition-all shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
         >
           {saving ? <Loader2 size={18} className="animate-spin" /> : (businessModel === "B2C" ? "Salvar Cartão Público" : "Salvar Configurações")}
         </button>

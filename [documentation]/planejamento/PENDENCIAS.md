@@ -34,14 +34,14 @@ graph TD
 
 ### 🔹 Fase 3: Refinamentos Críticos do Dashboard e Experiência do Usuário (Showstoppers UX)
 *Lógica: O painel precisa estar 100% polido e funcional para os usuários logados.*
-- [/] **Validação do Favicon (Simulação Super Admin):** (Feito, precisa validar) Testar se a invalidação de cache com timestamp (`?t=...`) carrega o ícone correto no navegador ao alternar entre organizações simuladas.
+- [x] **Validação do Favicon (Simulação Super Admin):** Testado e validado o carregamento dinâmico no navegador ao alternar entre organizações simuladas.
 - [x] **Sticker de Status da Assinatura:** Integar o sticker de "Status do Sistema" no TopHeader para exibir informações em tempo real sobre a assinatura do cliente (ex: "Assinatura Ativa", "Próxima ao Vencimento") com alertas sutis.
 - [x] **Alerta Super Admin:** Ajustar o alerta de "Simulação de Dashboard" que aparece incorretamente ou precisa de refinamento na UX.
 - [x] **Sino de Notificações:** Implementar funcionalidade real para o ícone de sino no dashboard (alertas de leads, sistema ou atualizações). Atualmente é apenas estético.
 
 ### 🔹 Fase 4: Limpeza e Polimento Geral (Pente Fino)
 *Lógica: Remover qualquer vestígio de desenvolvimento antes do lançamento oficial.*
-- [ ] **Limpeza de Dados Fictícios:** Varredura total para remover placeholders, textos "Lorem Ipsum" and dados de teste de todo o código e vitrines.
+- [x] **Limpeza de Dados Fictícios:** Varredura total concluída (placeholders, textos de teste e vitrines limpas).
 
 ### 🔹 Fase 5: Conversão e Expansão Comercial (Pronto para o Mercado)
 *Lógica: Atrair clientes para o SaaS e viabilizar a cobrança de planos.*
@@ -54,10 +54,10 @@ graph TD
 
 ### 🔹 Fase 6: Débito Técnico e Monitoramento Secundário
 *Lógica: Manutenção de longo prazo e qualidade estrutural de código.*
-- [ ] **Watchdog Telegram:** Deploy da Edge Function e configuração de Secrets.
+
 - [ ] **Auditoria de Tipagem:** Remoção de `any` e unificação de interfaces (`ProductRow`, etc.).
 - [ ] **Auditoria de Tema:** Varredura de cores hardcoded e classes Tailwind residuais.
-- [ ] **Integração Bling (Sincronização de Estoque):** Implementar sincronização manual pelo SKU. Requer adição de `bling_api_key` na tabela `organizations` e tela de configuração na aba Empresa. O saldo retornado será convertido em `is_in_stock` (Disponível/Esgotado) via Server Action.
+- [x] **Integração Bling (Sincronização de Estoque):** Sincronização manual pelo SKU implementada e validada.
 
 ---
 

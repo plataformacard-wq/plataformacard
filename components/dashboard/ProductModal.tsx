@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { Spec, Product } from "@/types";
 import { 
   X as XIcon, 
   Edit2 as EditIcon, 
@@ -42,7 +43,6 @@ const RichTextEditor = nextDynamic(() => import("./RichTextEditor"), {
   loading: () => <div className="h-[120px] w-full rounded-xl border border-zinc-200 bg-zinc-50 animate-pulse" />
 });
 
-type Spec = { id?: string; chave: string; valor: string };
 
 interface ProductRow {
   id: string;
@@ -119,7 +119,7 @@ export default function ProductModal({
   const [saving, setSaving] = useState(false);
   const [productFormError, setProductFormError] = useState("");
   const [lastDescription, setLastDescription] = useState<string | null>(null);
-  const [lastSpecs, setLastSpecs] = useState<any[] | null>(null);
+  const [lastSpecs, setLastSpecs] = useState<Spec[] | null>(null);
   
   // Form State
   const [productName, setProductName] = useState("");
@@ -145,7 +145,7 @@ export default function ProductModal({
   const [productColors, setProductColors] = useState<string[]>([]);
   const [productHighlightText, setProductHighlightText] = useState("");
   const [showHighlight, setShowHighlight] = useState(false);
-  const [lastSavedData, setLastSavedData] = useState<{ description: string; specs: any[] } | null>(null);
+  const [lastSavedData, setLastSavedData] = useState<{ description: string; specs: Spec[] } | null>(null);
   
   // Drafts
   const [specChaveDraft, setSpecChaveDraft] = useState("");
@@ -325,7 +325,7 @@ export default function ProductModal({
   };
 
   // AI Handlers
-  const canActivateAiAssist = (data: any) => (data.name?.length || 0) >= 3;
+  const canActivateAiAssist = (data: Partial<Product>) => (data.name?.length || 0) >= 3;
 
   const handleApplyAiSuggestions = (suggestions: any) => {
     if (suggestions.description) {
@@ -340,7 +340,7 @@ export default function ProductModal({
     }
     if (suggestions.specs && Array.isArray(suggestions.specs)) {
       setLastSpecs(specs);
-      setSpecs(suggestions.specs.map((s: any, i: number) => ({
+      setSpecs(suggestions.specs.map((s: Spec, i: number) => ({
         id: `ai-spec-${Date.now()}-${i}`,
         chave: s.chave,
         valor: s.valor
@@ -1476,7 +1476,7 @@ export default function ProductModal({
             if (acceptedFields['specs'] && reviewData.payload.specs) {
               // Precisamos garantir que todos os campos (id, custom) existam ao atualizar.
               // A IA retorna só { chave, valor }. Então geramos IDs.
-              const newSpecs = reviewData.payload.specs.map((s: any) => ({
+              const newSpecs = reviewData.payload.specs.map((s: Spec) => ({
                 id: Math.random().toString(36).substring(7),
                 chave: s.chave,
                 valor: s.valor,
