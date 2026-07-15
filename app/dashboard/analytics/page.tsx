@@ -214,9 +214,9 @@ export default async function AnalyticsPage(props: {
           { label: "Cliques em produto", value: summary.productClicks, icon: MousePointerClick, text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20 hover:border-amber-500/40" },
           { label: "Conversas iniciadas", value: summary.conversationsStarted, icon: MessageCircle, text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20 hover:border-emerald-500/40" },
         ].map((kpi) => (
-          <div key={kpi.label} className={`rounded-3xl border ${kpi.border} ${kpi.bg} p-6 relative overflow-hidden flex flex-col hover:shadow-lg transition-all group`}>
+          <div key={kpi.label} className={`rounded-3xl border ${kpi.border} bg-[var(--dash-surface)] p-6 relative overflow-hidden flex flex-col hover:shadow-lg transition-all group`}>
             <div className="flex items-center gap-3 mb-4">
-              <div className={`rounded-lg ${kpi.bg} ${kpi.text} p-2 group-hover:scale-110 transition-transform bg-white/50 dark:bg-black/20`}>
+              <div className={`rounded-lg ${kpi.bg} ${kpi.text} p-2 group-hover:scale-110 transition-transform`}>
                 <kpi.icon size={20} />
               </div>
             </div>
@@ -252,7 +252,7 @@ export default async function AnalyticsPage(props: {
             { label: "Catálogo", target: "Produto", rate: rateCatalogToProduct, sub: `${summary.productClicks} de ${summary.catalogViews}` },
             { label: "Produto", target: "Conversa", rate: rateProductToConversation, sub: `${summary.conversationsStarted} de ${summary.productClicks}` },
           ].map((f) => (
-            <div key={f.label} className="rounded-2xl border border-[var(--dash-border)] p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors bg-zinc-50/50 dark:bg-zinc-900/50 group">
+            <div key={f.label} className="rounded-2xl border border-[var(--dash-border)] p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors bg-[var(--dash-bg)] group">
               <div className="flex items-center gap-2 mb-3 text-sm font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
                 <span>{f.label}</span>
                 <ArrowRight size={14} className="opacity-50 group-hover:translate-x-1 transition-transform" />
@@ -293,7 +293,7 @@ export default async function AnalyticsPage(props: {
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-[var(--dash-border)]">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-50 dark:bg-zinc-900/50">
+              <thead className="bg-[var(--dash-bg)]">
                 <tr className="border-b" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}>
                   <th className="py-3 px-4 text-left font-semibold">Produto</th>
                   <th className="py-3 px-4 text-left font-semibold">Cliques</th>
@@ -307,7 +307,7 @@ export default async function AnalyticsPage(props: {
                   return (
                     <tr
                       key={item.product_id}
-                      className="border-b last:border-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                      className="border-b last:border-none hover:bg-[var(--dash-bg)] transition-colors"
                       style={{ borderColor: "var(--dash-border)" }}
                     >
                       <td className="py-3 px-4 font-bold" style={{ color: "var(--dash-text-primary)" }}>
