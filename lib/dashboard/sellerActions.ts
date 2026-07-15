@@ -95,6 +95,8 @@ export async function createSeller(formData: FormData) {
   const whatsappTemplate = formData.get("whatsappTemplate") as string;
   const redirectLeads = formData.get("redirectLeads") === "true";
   const hidePrices = formData.get("hidePrices") === "true";
+  const acceptsMessagesWhenClosed = formData.get("acceptsMessagesWhenClosed") === "true";
+  const publicBannerUrl = formData.get("publicBannerUrl") as string;
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -189,7 +191,9 @@ export async function createSeller(formData: FormData) {
       dash_access_company: dashAccessCompany,
       whatsapp_template: whatsappTemplate,
       redirect_leads: redirectLeads,
-      hide_prices: hidePrices
+      hide_prices: hidePrices,
+      accepts_messages_when_closed: acceptsMessagesWhenClosed,
+      public_banner_url: publicBannerUrl
     };
 
     const { error: insertError } = await adminAuthClient
@@ -741,5 +745,33 @@ export async function uploadImageAction(bucket: string, folderPath: string, form
     return { url: urlData.publicUrl };
   } catch (err: any) {
     return { error: err.message };
+  }
+}
+
+export async function uploadPublicBannerAction(sellerId: string, formData: FormData) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+
+    const file = formData.get("file") as File;
+    if (!file) return { error: "Arquivo não enviado" };
+
+    const adminAuthClient = createAdminClient();
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${sellerId}/public-banner-${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await adminAuthClient.storage
+      .from("avatars")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      return { error: uploadError.message };
+    }
+
+    const { data: urlData } = adminAuthClient.storage.from("avatars").getPublicUrl(filePath);
+    return { url: urlData.publicUrl };
+  } catch (e: any) {
+    return { error: e.message };
   }
 }

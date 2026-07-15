@@ -86,6 +86,7 @@ type ProfileRow = {
   redirect_leads: boolean | null;
   recess_ends_at: string | null;
   is_accepting_orders: boolean | null;
+  accepts_messages_when_closed: boolean | null;
 };
 
 export const revalidate = 60;
@@ -565,7 +566,7 @@ export default async function Page(props: PageProps) {
           }}
         />
 
-        <div style={{ padding: "0 28px 32px", position: "relative", zIndex: 1 }}>
+        <div style={{ padding: "0 28px 24px", position: "relative", zIndex: 1 }}>
           
           {/* Container Absoluto para Avatar e Badge alinhados à esquerda */}
           {/* Container Absoluto para Avatar e Badge alinhados à esquerda */}
@@ -722,6 +723,7 @@ export default async function Page(props: PageProps) {
                 slug={slug}
                 whatsapp={safeProfile.whatsapp}
                 isAvailable={isAvailableNow}
+                acceptsMessagesWhenClosed={safeProfile.accepts_messages_when_closed ?? true}
               />
             </div>
           )}
@@ -907,45 +909,38 @@ export default async function Page(props: PageProps) {
             ))}
           </div>
 
-          {orgLogo && (
-            <div className="mt-8 flex justify-center opacity-60 hover:opacity-100 transition-opacity">
-              <img src={orgLogo} alt={orgName || ""} className="h-6 w-auto object-contain" />
+          {/* Rodapé Integrado */}
+          <div className="mt-6 flex flex-col items-center gap-3">
+            {orgLogo && (
+              <div className="flex justify-center opacity-60 hover:opacity-100 transition-opacity">
+                <img src={orgLogo} alt={orgName || ""} className="h-6 w-auto object-contain" />
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#25D366",
+                  opacity: 0.45,
+                  display: "block",
+                }}
+              />
+              <span
+                className="public-text-footer"
+                style={{
+                  fontSize: 10,
+                  color: "var(--public-text-muted)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                copyright plataformashop.com.br - 2026
+              </span>
             </div>
-          )}
+          </div>
         </div>
       </div>
-
-      {/* Rodapé */}
-      <footer
-        className="animate-stagger-5"
-        style={{
-          marginTop: 36,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: "#25D366",
-            opacity: 0.45,
-            display: "block",
-          }}
-        />
-        <span
-          className="public-text-footer"
-          style={{
-            fontSize: 12,
-            color: "var(--public-text-muted)",
-            letterSpacing: "0.05em",
-          }}
-        >
-          copyright plataformashop.com.br - 2026
-        </span>
-      </footer>
       </main>
     </>
   );

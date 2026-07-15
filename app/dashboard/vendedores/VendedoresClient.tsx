@@ -25,7 +25,8 @@ import {
   Package,
   Shuffle,
   Calendar,
-  Info
+  Info,
+  Image as ImageIcon
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -53,6 +54,8 @@ type Seller = {
   hide_prices: boolean | null;
   recess_ends_at: string | null;
   whatsapp_template: string | null;
+  accepts_messages_when_closed: boolean | null;
+  public_banner_url: string | null;
 };
 
 const defaultBusinessHours: BusinessHours = {
@@ -79,7 +82,7 @@ const dayNamesMap = {
   sunday: "Domingo",
 };
 
-import { createSeller, updateSeller, getSellers, toggleSellerStatus, terminateSeller, uploadAvatarAction } from "@/lib/dashboard/sellerActions";
+import { createSeller, updateSeller, getSellers, toggleSellerStatus, terminateSeller, uploadAvatarAction, uploadPublicBannerAction } from "@/lib/dashboard/sellerActions";
 
 function RecessCountdown({ endsAt }: { endsAt: string }) {
   const [timeLeft, setTimeLeft] = useState("");
@@ -155,6 +158,8 @@ export default function VendedoresClient({
   const [formSlug, setFormSlug] = useState("");
   const [formAvatar, setFormAvatar] = useState<string | null>(null);
   const [formAvatarFile, setFormAvatarFile] = useState<File | null>(null);
+  const [formPublicBanner, setFormPublicBanner] = useState<string | null>(null);
+  const [formPublicBannerFile, setFormPublicBannerFile] = useState<File | null>(null);
   const [formCanCustomize, setFormCanCustomize] = useState(false);
   const [formAccessCatalog, setFormAccessCatalog] = useState(false);
   const [formAccessAnalytics, setFormAccessAnalytics] = useState(false);
@@ -164,10 +169,12 @@ export default function VendedoresClient({
   const [formRedirectLeads, setFormRedirectLeads] = useState(false);
   const [formHidePrices, setFormHidePrices] = useState(false);
   const [formAvailable, setFormAvailable] = useState(true);
+  const [formAcceptsMessagesWhenClosed, setFormAcceptsMessagesWhenClosed] = useState(true);
   const [formRecessActive, setFormRecessActive] = useState(false);
   const [formRecessDays, setFormRecessDays] = useState(0);
   const [formRecessHours, setFormRecessHours] = useState(0);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [activeUploadType, setActiveUploadType] = useState<"avatar" | "public_banner">("avatar");
   
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -301,7 +308,8 @@ export default function VendedoresClient({
       setFormWhatsapp(seller.whatsapp ? formatWhatsApp(seller.whatsapp) : "");
       setFormSlug(seller.slug || "");
       setFormAvatar(seller.avatar_url || null);
-      setFormCanCustomize(seller.can_customize_hours || false);
+      setFormPublicBanner(seller.public_banner_url || null);
+      setFormCanCustomize(seller.can_customize_hours ?? false);
       setFormAccessCatalog(seller.dash_access_catalog || false);
       setFormAccessAnalytics(seller.dash_access_analytics || false);
       setFormAccessCompany(seller.dash_access_company || false);
@@ -310,6 +318,7 @@ export default function VendedoresClient({
       setFormRedirectLeads(seller.redirect_leads || false);
       setFormHidePrices(seller.hide_prices || false);
       setFormAvailable(seller.is_available ?? true);
+      setFormAcceptsMessagesWhenClosed(seller.accepts_messages_when_closed ?? true);
       if (seller.recess_ends_at) {
         const remainingMs = new Date(seller.recess_ends_at).getTime() - Date.now();
         if (remainingMs > 0) {
@@ -339,6 +348,9 @@ export default function VendedoresClient({
       setFormWhatsapp("");
       setFormSlug("");
       setFormAvatar(null);
+      setFormAvatarFile(null);
+      setFormPublicBanner(null);
+      setFormPublicBannerFile(null);
       setFormCanCustomize(false);
       setFormAccessCatalog(false);
       setFormAccessAnalytics(false);
@@ -348,6 +360,7 @@ export default function VendedoresClient({
       setFormRedirectLeads(false);
       setFormHidePrices(false);
       setFormAvailable(true);
+      setFormAcceptsMessagesWhenClosed(true);
       setFormRecessActive(false);
       setFormRecessDays(0);
       setFormRecessHours(0);
@@ -365,6 +378,7 @@ export default function VendedoresClient({
     setSaving(true);
     
     let finalAvatarUrl = formAvatar;
+    let finalPublicBannerUrl = formPublicBanner;
     
     // Se for NOVO, primeiro criamos o usuário para pegar o ID
     if (!selectedSeller) {
@@ -381,6 +395,8 @@ export default function VendedoresClient({
       formData.append("whatsappTemplate", formWhatsappTemplate);
       formData.append("redirectLeads", String(formRedirectLeads));
       formData.append("hidePrices", String(formHidePrices));
+      formData.append("acceptsMessagesWhenClosed", String(formAcceptsMessagesWhenClosed));
+      formData.append("publicBannerUrl", formPublicBanner || "");
 
       const result = await createSeller(formData);
       
@@ -402,6 +418,18 @@ export default function VendedoresClient({
           await updateSeller(result.id, { avatar_url: finalAvatarUrl });
         }
       }
+      
+      if (formPublicBannerFile && result.id) {
+        const bannerFormData = new FormData();
+        bannerFormData.append("file", formPublicBannerFile);
+        const uploadResult = await uploadPublicBannerAction(result.id, bannerFormData);
+        if (uploadResult.url) {
+          finalPublicBannerUrl = uploadResult.url;
+          await updateSeller(result.id, { public_banner_url: finalPublicBannerUrl });
+        }
+      }
+
+      await fetchData();
     } else {
       // EDIÇÃO
       if (formAvatarFile) {
@@ -411,6 +439,15 @@ export default function VendedoresClient({
 
         if (!uploadResult.error && uploadResult.url) {
           finalAvatarUrl = uploadResult.url;
+        }
+      }
+
+      if (formPublicBannerFile) {
+        const bannerFormData = new FormData();
+        bannerFormData.append("file", formPublicBannerFile);
+        const uploadResult = await uploadPublicBannerAction(selectedSeller.id, bannerFormData);
+        if (uploadResult.url) {
+          finalPublicBannerUrl = uploadResult.url;
         }
       }
 
@@ -433,6 +470,8 @@ export default function VendedoresClient({
         whatsapp_template: formWhatsappTemplate,
         redirect_leads: formRedirectLeads,
         hide_prices: formHidePrices,
+        accepts_messages_when_closed: formAcceptsMessagesWhenClosed,
+        public_banner_url: finalPublicBannerUrl,
         recess_ends_at: recessEndsAt,
         ...(formRecessActive 
           ? { is_available: false, status: "paused" } 
@@ -726,7 +765,7 @@ export default function VendedoresClient({
                     <div 
                       className="group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
                       style={{ borderColor: "var(--dash-border)" }}
-                      onClick={() => setShowImageEditor(true)}
+                      onClick={() => { setActiveUploadType("avatar"); setShowImageEditor(true); }}
                     >
                       {formAvatar ? (
                         <>
@@ -744,7 +783,7 @@ export default function VendedoresClient({
                     
                     <div className="flex items-center gap-4">
                       <button 
-                        onClick={() => setShowImageEditor(true)}
+                        onClick={() => { setActiveUploadType("avatar"); setShowImageEditor(true); }}
                         className="text-xs font-bold text-primary hover:underline"
                       >
                         {formAvatar ? "Alterar Foto" : "Enviar Foto"}
@@ -763,6 +802,57 @@ export default function VendedoresClient({
                       )}
                     </div>
                   </div>
+
+                  {/* Banner Upload Section */}
+                  <div className="flex flex-col md:flex-row items-center gap-6 p-4 rounded-2xl border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-bg)" }}>
+                    <div 
+                      className="w-full md:w-48 h-24 rounded-2xl border-2 border-dashed overflow-hidden relative group cursor-pointer transition-all hover:border-primary/50 shrink-0 flex flex-col items-center justify-center gap-1"
+                      style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
+                      onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
+                    >
+                      {formPublicBanner ? (
+                        <>
+                          <img src={formPublicBanner} className="h-full w-full object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Upload className="text-white" size={24} />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-[var(--dash-text-muted)] gap-1">
+                          <ImageIcon size={24} />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-center px-2">Banner (Opcional)</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 flex-1 w-full text-center md:text-left">
+                      <div>
+                        <p className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Banner do Cartão</p>
+                        <p className="text-[10px] text-[var(--dash-text-muted)]">Recomendado: 1200x400 px</p>
+                      </div>
+                      <div className="flex items-center justify-center md:justify-start gap-4 mt-1">
+                        <button 
+                          onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
+                          className="text-xs font-bold text-primary hover:underline"
+                        >
+                          {formPublicBanner ? "Alterar Banner" : "Enviar Banner"}
+                        </button>
+                        
+                        {formPublicBanner && (
+                          <button 
+                            onClick={() => {
+                              setFormPublicBanner(null);
+                              setFormPublicBannerFile(null);
+                            }}
+                            className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                          >
+                            <X size={12} /> Remover
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -834,6 +924,20 @@ export default function VendedoresClient({
                       </p>
                     )}
                   </div>
+                </div>
+                
+                <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between bg-[var(--dash-bg)] p-3 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
+                  <div>
+                    <p className="text-[13px] font-bold" style={{ color: "var(--dash-text-primary)" }}>Receber mensagens fora do horário?</p>
+                    <p className="text-[11px] text-[var(--dash-text-muted)] mt-0.5">Se desligado, bloqueia o botão quando fechado.</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setFormAcceptsMessagesWhenClosed(!formAcceptsMessagesWhenClosed)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none mt-2 md:mt-0 ${formAcceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formAcceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
                 </div>
 
                 <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
@@ -1169,12 +1273,22 @@ export default function VendedoresClient({
         )}
       </AnimatePresence>
 
-      <ImageEditorModal
-        isOpen={showImageEditor}
-        onClose={() => setShowImageEditor(false)}
-        onConfirm={(file) => { setFormAvatarFile(file); setFormAvatar(URL.createObjectURL(file)); }}
-        aspectRatio={1}
-      />
+      {showImageEditor && (
+        <ImageEditorModal
+          isOpen={showImageEditor}
+          onClose={() => setShowImageEditor(false)}
+          aspectRatio={activeUploadType === "avatar" ? 1 : 3}
+          onConfirm={(file: File) => {
+            if (activeUploadType === "avatar") {
+              setFormAvatarFile(file);
+              setFormAvatar(URL.createObjectURL(file));
+            } else {
+              setFormPublicBannerFile(file);
+              setFormPublicBanner(URL.createObjectURL(file));
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

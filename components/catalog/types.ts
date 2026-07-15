@@ -71,6 +71,7 @@ export type ProductCatalogClientProps = {
   sellerStatus?: string | null;
   recessEndsAt?: string | null;
   isAcceptingOrders?: boolean | null;
+  acceptsMessagesWhenClosed?: boolean | null;
   hideCta?: boolean;
   isB2B?: boolean;
   hidePrices?: boolean;

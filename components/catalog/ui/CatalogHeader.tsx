@@ -27,7 +27,8 @@ const CatalogHeaderBase = ({
   catalogDescription,
   profileId,
   catalogId,
-  organizationId
+  organizationId,
+  acceptsMessagesWhenClosed = true
 }: any) => {
   if (isEmbed) return null;
 
@@ -85,36 +86,50 @@ const CatalogHeaderBase = ({
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {!hideCta && whatsappUrl && (
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                if (!businessStatus.isAvailableNow) {
-                  setShowWarning(true);
-                  void trackAnalyticsEvent({
-                    profileId,
-                    catalogId,
-                    eventType: "whatsapp_click_closed",
-                    pageType: "catalog_header",
-                    metadata: { slug }
-                  });
-                } else {
-                  void trackLead();
-                  void trackAnalyticsEvent({
-                    profileId,
-                    catalogId,
-                    organizationId: organizationId,
-                    eventType: "whatsapp_click",
-                    pageType: "catalog_header",
-                    metadata: { slug }
-                  });
-                  window.open(whatsappUrl, "_blank");
-                }
-              }}
-              className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg cursor-pointer"
-            >
-              <MessageCircle size={14} />
-              WhatsApp
-            </button>
+            !businessStatus.isAvailableNow && !acceptsMessagesWhenClosed ? (
+              <button
+                disabled
+                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg opacity-70 cursor-not-allowed"
+                style={{
+                  backgroundColor: 'var(--public-card-border)',
+                  color: 'var(--public-text-muted)',
+                }}
+              >
+                <MessageCircle size={14} className="opacity-40" />
+                Atendimento Fechado
+              </button>
+            ) : (
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!businessStatus.isAvailableNow) {
+                    setShowWarning(true);
+                    void trackAnalyticsEvent({
+                      profileId,
+                      catalogId,
+                      eventType: "whatsapp_click_closed",
+                      pageType: "catalog_header",
+                      metadata: { slug }
+                    });
+                  } else {
+                    void trackLead();
+                    void trackAnalyticsEvent({
+                      profileId,
+                      catalogId,
+                      organizationId: organizationId,
+                      eventType: "whatsapp_click",
+                      pageType: "catalog_header",
+                      metadata: { slug }
+                    });
+                    window.open(whatsappUrl, "_blank");
+                  }
+                }}
+                className="hidden sm:flex items-center gap-2 bg-[#25D366] hover:opacity-90 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg cursor-pointer"
+              >
+                <MessageCircle size={14} />
+                WhatsApp
+              </button>
+            )
           )}
           <PublicThemeToggle className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center bg-[var(--public-bg)] border border-[var(--public-card-border)] hover:bg-[var(--public-card-bg)] transition-colors text-[var(--public-text-main)] shadow-sm" />
           <button 

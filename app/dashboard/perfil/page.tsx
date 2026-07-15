@@ -29,6 +29,7 @@ type ProfileData = {
   redirect_leads?: boolean | null;
   is_accepting_orders?: boolean | null;
   public_banner_url?: string | null;
+  accepts_messages_when_closed?: boolean | null;
   organizations?: {
     business_model: string;
   };
@@ -66,6 +67,7 @@ function PerfilContent() {
   const [recessHours, setRecessHours] = useState(0);
   const [useCompanyHours, setUseCompanyHours] = useState(true);
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
+  const [acceptsMessagesWhenClosed, setAcceptsMessagesWhenClosed] = useState(true);
   const [redirectLeads, setRedirectLeads] = useState(false);
   const [showHoursConfig, setShowHoursConfig] = useState(false);
   const [canCustomize, setCanCustomize] = useState(false);
@@ -130,7 +132,7 @@ function PerfilContent() {
       let profileResult: ProfileData | null = null;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url")
+        .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url, accepts_messages_when_closed")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
       profileResult = profile;
@@ -150,7 +152,7 @@ function PerfilContent() {
         if (isSuperAdmin && shadowOrgId) {
           const { data: simulatedProfile } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders")
+            .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, accepts_messages_when_closed")
             .eq("organization_id", shadowOrgId)
             .in("role", ["b2b_admin", "b2c_admin", "admin"])
             .limit(1)
@@ -177,6 +179,7 @@ function PerfilContent() {
               redirect_leads: simulatedProfile.redirect_leads,
               is_accepting_orders: simulatedProfile.is_accepting_orders,
               public_banner_url: simulatedProfile.public_banner_url,
+              accepts_messages_when_closed: simulatedProfile.accepts_messages_when_closed,
             };
           }
         }
@@ -206,6 +209,7 @@ function PerfilContent() {
         setPublicBanner(profileData.public_banner_url || null);
         setIsAvailable(profileData.is_available ?? true);
         setIsAcceptingOrders(profileData.is_accepting_orders ?? true);
+        setAcceptsMessagesWhenClosed(profileData.accepts_messages_when_closed ?? true);
 
         const recessEndsAt = profileData.recess_ends_at ?? null;
         if (recessEndsAt) {
@@ -473,6 +477,7 @@ function PerfilContent() {
         is_accepting_orders: isAcceptingOrders,
         public_banner_url: newPublicBannerUrl,
         redirect_leads: redirectLeads,
+        accepts_messages_when_closed: acceptsMessagesWhenClosed,
       })
       .eq("user_id", targetUserId);
 
@@ -797,6 +802,20 @@ function PerfilContent() {
                       className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
                       style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
+                    
+                    <div className="mt-4 flex items-center justify-between bg-[var(--dash-bg)] p-3 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
+                      <div>
+                        <p className="text-[13px] font-bold" style={{ color: "var(--dash-text-primary)" }}>Receber mensagens fora do horário?</p>
+                        <p className="text-[11px] text-[var(--dash-text-muted)] mt-0.5">Se desligado, bloqueia o botão quando fechado.</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setAcceptsMessagesWhenClosed(!acceptsMessagesWhenClosed)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${acceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${acceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between">

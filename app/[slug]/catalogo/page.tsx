@@ -598,6 +598,7 @@ export default async function Page(props: PageProps) {
         canCustomizeHours={profile?.can_customize_hours}
         organizationId={targetOrgId}
         whatsappTemplate={profile?.whatsapp_template || catalog?.whatsapp_template}
+        acceptsMessagesWhenClosed={(profile as any)?.accepts_messages_when_closed ?? true}
         sellerStatus={profile?.status}
         recessEndsAt={profile?.recess_ends_at}
         isAcceptingOrders={profile?.is_accepting_orders}

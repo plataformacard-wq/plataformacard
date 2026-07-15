@@ -34,6 +34,7 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
     products,
     whatsapp,
     whatsappTemplate,
+    acceptsMessagesWhenClosed,
     isB2B,
     hidePrices
   } = props;
@@ -77,6 +78,7 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         profileId={profileId}
         catalogId={catalogId}
         organizationId={organizationId}
+        acceptsMessagesWhenClosed={acceptsMessagesWhenClosed}
       />
       
       <main className={`${isEmbed ? 'w-full px-8 sm:px-6 relative' : 'max-w-6xl mx-auto px-8 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'} z-10`}>
