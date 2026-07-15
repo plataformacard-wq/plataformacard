@@ -1302,8 +1302,8 @@ function PerfilContent() {
         onClose={() => setShowImageEditor(false)}
         onConfirm={onImageEditorConfirm}
         aspectRatio={activeUploadType === "avatar" ? 1 : 3}
-        minWidth={activeUploadType === "avatar" ? 400 : 600}
-        minHeight={activeUploadType === "avatar" ? 400 : 200}
+        minWidth={activeUploadType === "avatar" ? 400 : 1200}
+        minHeight={activeUploadType === "avatar" ? 400 : 400}
       />
     </div>
   );

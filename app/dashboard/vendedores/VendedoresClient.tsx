@@ -702,7 +702,7 @@ export default function VendedoresClient({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="max-w-4xl mx-auto space-y-6"
+            className="w-full space-y-6"
           >
             <button 
               onClick={() => setView('list')}
@@ -1278,6 +1278,8 @@ export default function VendedoresClient({
           isOpen={showImageEditor}
           onClose={() => setShowImageEditor(false)}
           aspectRatio={activeUploadType === "avatar" ? 1 : 3}
+          minWidth={activeUploadType === "avatar" ? 400 : 1200}
+          minHeight={activeUploadType === "avatar" ? 400 : 400}
           onConfirm={(file: File) => {
             if (activeUploadType === "avatar") {
               setFormAvatarFile(file);

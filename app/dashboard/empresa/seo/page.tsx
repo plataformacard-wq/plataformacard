@@ -43,6 +43,10 @@ export default function SEOPage() {
     logo_url: "",
     og_image_url: "",
     public_banner_url: "",
+    social_instagram: "",
+    social_facebook: "",
+    social_tiktok: "",
+    social_youtube: "",
     centralize_leads: false,
     whatsapp: "",
   });
@@ -96,6 +100,10 @@ export default function SEOPage() {
               logo_url: org.logo_url || "",
               og_image_url: org.og_image_url || "",
               public_banner_url: org.public_banner_url || "",
+              social_instagram: org.social_instagram || "",
+              social_facebook: org.social_facebook || "",
+              social_tiktok: org.social_tiktok || "",
+              social_youtube: org.social_youtube || "",
               centralize_leads: !!org.centralize_leads,
               whatsapp: org.whatsapp || "",
             });
@@ -247,6 +255,10 @@ export default function SEOPage() {
       logo_url: newLogoUrl,
       og_image_url: newOgImageUrl,
       public_banner_url: newPublicBannerUrl,
+      social_instagram: formData.social_instagram,
+      social_facebook: formData.social_facebook,
+      social_tiktok: formData.social_tiktok,
+      social_youtube: formData.social_youtube,
       centralize_leads: formData.centralize_leads,
       whatsapp: formData.whatsapp,
     });
@@ -582,10 +594,65 @@ export default function SEOPage() {
         </section>
       </div>
 
-      {/* 03 - CRM/Leads */}
+      {/* Redes Sociais */}
+      <div className="rounded-2xl border p-6 shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <h2 className="text-base font-semibold mb-1" style={{ color: "var(--dash-text-primary)" }}>03. Redes Sociais da Empresa</h2>
+        <p className="text-sm mb-6" style={{ color: "var(--dash-text-secondary)" }}>
+          Os links das redes sociais aparecerão publicamente nos cartões de todos os vendedores e no catálogo da empresa. Deixe em branco se não quiser exibir.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Instagram (URL completa)</label>
+            <input 
+              type="url" 
+              placeholder="Ex: https://instagram.com/suaempresa"
+              value={formData.social_instagram}
+              onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
+              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Facebook (URL completa)</label>
+            <input 
+              type="url" 
+              placeholder="Ex: https://facebook.com/suaempresa"
+              value={formData.social_facebook}
+              onChange={(e) => setFormData({ ...formData, social_facebook: e.target.value })}
+              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>TikTok (URL completa)</label>
+            <input 
+              type="url" 
+              placeholder="Ex: https://tiktok.com/@suaempresa"
+              value={formData.social_tiktok}
+              onChange={(e) => setFormData({ ...formData, social_tiktok: e.target.value })}
+              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>YouTube (URL completa)</label>
+            <input 
+              type="url" 
+              placeholder="Ex: https://youtube.com/@suaempresa"
+              value={formData.social_youtube}
+              onChange={(e) => setFormData({ ...formData, social_youtube: e.target.value })}
+              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 04 - CRM/Leads */}
       {businessModel === "B2B" && (
-        <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-          <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>03. Configurações de Leads (CRM)</h2>
+        <div className="rounded-2xl border p-6 shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+          <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>04. Configurações de Leads (CRM)</h2>
           <div className="p-5 rounded-2xl border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
             <div className="flex items-center justify-between">
               <div className="flex gap-3">
@@ -696,8 +763,8 @@ export default function SEOPage() {
         }
         targetWidth={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 400 : activeUploadType === "public_banner" ? 1200 : 1200}
         targetHeight={activeUploadType === "favicon" ? 64 : activeUploadType === "logo" ? 200 : activeUploadType === "public_banner" ? 400 : 630}
-        minWidth={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 400 : activeUploadType === "public_banner" ? 600 : 600}
-        minHeight={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 200 : activeUploadType === "public_banner" ? 200 : 315}
+        minWidth={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 400 : activeUploadType === "public_banner" ? 1200 : 1200}
+        minHeight={activeUploadType === "favicon" ? 128 : activeUploadType === "logo" ? 200 : activeUploadType === "public_banner" ? 400 : 630}
       />
 
       <AiReviewModal
