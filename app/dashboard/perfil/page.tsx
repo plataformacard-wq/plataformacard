@@ -35,6 +35,8 @@ type ProfileData = {
   organizations?: {
     business_model: string;
   };
+  dash_access_profile?: boolean | null;
+  granular_permissions?: any;
 };
 
 function sanitizeSlug(value: string): string {
@@ -87,6 +89,8 @@ function PerfilContent() {
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C">("B2B");
   const [activeProfileUserId, setActiveProfileUserId] = useState<string | null>(null);
   const [customDomain, setCustomDomain] = useState<string | null>(null);
+  const [profileAccess, setProfileAccess] = useState<boolean>(true);
+  const [granularPermissions, setGranularPermissions] = useState<any>(null);
   
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -134,7 +138,7 @@ function PerfilContent() {
       let profileResult: ProfileData | null = null;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url, accepts_messages_when_closed")
+        .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, public_banner_url, accepts_messages_when_closed, dash_access_profile, granular_permissions")
         .eq("user_id", user.id)
         .maybeSingle<ProfileData>();
       profileResult = profile;
@@ -154,7 +158,7 @@ function PerfilContent() {
         if (isSuperAdmin && shadowOrgId) {
           const { data: simulatedProfile } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, accepts_messages_when_closed")
+            .select("user_id, full_name, avatar_url, bio, job_title, whatsapp, whatsapp_template, slug, is_available, custom_business_hours, can_customize_hours, role, organization_id, recess_ends_at, status, redirect_leads, is_accepting_orders, accepts_messages_when_closed, dash_access_profile, granular_permissions")
             .eq("organization_id", shadowOrgId)
             .in("role", ["b2b_admin", "b2c_admin", "admin"])
             .limit(1)
@@ -182,6 +186,8 @@ function PerfilContent() {
               is_accepting_orders: simulatedProfile.is_accepting_orders,
               public_banner_url: simulatedProfile.public_banner_url,
               accepts_messages_when_closed: simulatedProfile.accepts_messages_when_closed,
+              dash_access_profile: simulatedProfile.dash_access_profile,
+              granular_permissions: simulatedProfile.granular_permissions,
             };
           }
         }
@@ -212,6 +218,9 @@ function PerfilContent() {
         setIsAvailable(profileData.is_available ?? true);
         setIsAcceptingOrders(profileData.is_accepting_orders ?? true);
         setAcceptsMessagesWhenClosed(profileData.accepts_messages_when_closed ?? true);
+        
+        setProfileAccess(profileData.dash_access_profile ?? true);
+        setGranularPermissions(profileData.granular_permissions || {});
 
         const recessEndsAt = profileData.recess_ends_at ?? null;
         if (recessEndsAt) {
@@ -614,6 +623,16 @@ function PerfilContent() {
         <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
           Carregando dados...
         </p>
+      ) : !profileAccess ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
+            <ShieldCheck size={32} />
+          </div>
+          <h2 className="text-xl font-bold mb-2" style={{ color: "var(--dash-text-primary)" }}>Acesso Restrito</h2>
+          <p className="max-w-md" style={{ color: "var(--dash-text-secondary)" }}>
+            O seu gestor desabilitou o acesso às configurações do seu próprio cadastro. Entre em contato caso precise de alterações.
+          </p>
+        </div>
       ) : (
         <>
           
@@ -673,6 +692,7 @@ function PerfilContent() {
               publicBannerFile={publicBannerFile}
               acceptsMessagesWhenClosed={acceptsMessagesWhenClosed}
               setAcceptsMessagesWhenClosed={setAcceptsMessagesWhenClosed}
+              granularPermissions={granularPermissions}
             />
           )}
 
@@ -697,6 +717,7 @@ function PerfilContent() {
               otpCode={otpCode}
               setOtpCode={setOtpCode}
               handleVerifyOtp={handleVerifyOtp}
+              granularPermissions={granularPermissions}
             />
           )}
         </>

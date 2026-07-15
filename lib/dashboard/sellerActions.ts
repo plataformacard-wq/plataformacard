@@ -98,6 +98,7 @@ export async function createSeller(formData: FormData) {
   const acceptsMessagesWhenClosed = formData.get("acceptsMessagesWhenClosed") === "true";
   const publicBannerUrl = formData.get("publicBannerUrl") as string;
   const password = crypto.randomUUID();
+  const dashAccessProfile = true;
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -190,6 +191,7 @@ export async function createSeller(formData: FormData) {
       dash_access_catalog: dashAccessCatalog,
       dash_access_analytics: dashAccessAnalytics,
       dash_access_company: dashAccessCompany,
+      dash_access_profile: dashAccessProfile,
       whatsapp_template: whatsappTemplate,
       redirect_leads: redirectLeads,
       hide_prices: hidePrices,
@@ -288,6 +290,11 @@ export type GranularPermissions = {
   analytics?: {
     general?: boolean;
     financial?: boolean;
+  };
+  profile?: {
+    basic_info?: boolean;
+    avatar?: boolean;
+    password?: boolean;
   };
 };
 

@@ -43,8 +43,13 @@ export default function ProfileSecuritySection({
   setOtpSent,
   otpCode,
   setOtpCode,
-  handleVerifyOtp
-}: ProfileSecuritySectionProps) {
+  handleVerifyOtp,
+  granularPermissions
+}: ProfileSecuritySectionProps & { granularPermissions?: any }) {
+  
+  const canEditPassword = granularPermissions?.profile?.password ?? true;
+  const canEditBasicInfo = granularPermissions?.profile?.basic_info ?? true;
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Nome Administrativo */}
@@ -62,20 +67,23 @@ export default function ProfileSecuritySection({
           <input
             type="text"
             value={accountName}
+            disabled={!canEditBasicInfo}
             onChange={(e) => setAccountName(e.target.value)}
-            className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+            className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
             style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           />
-          <div className="flex justify-end w-full">
-            <button
-              type="button"
-              onClick={handleSaveAccountName}
-              disabled={saving}
-              className="mt-4 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? "Salvando..." : "Salvar Nome"}
-            </button>
-          </div>
+          {canEditBasicInfo && (
+            <div className="flex justify-end w-full">
+              <button
+                type="button"
+                onClick={handleSaveAccountName}
+                disabled={saving}
+                className="mt-4 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Salvando..." : "Salvar Nome"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -149,102 +157,104 @@ export default function ProfileSecuritySection({
       </div>
 
       {/* Segurança (Troca de Senha com OTP) */}
-      <div
-        className="rounded-2xl border p-6 shadow-sm transition-colors"
-        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-      >
-        <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
-          <ShieldCheck size={18} className="text-primary" /> Troca de Senha
-        </h2>
-        <p className="mt-1 text-sm text-[var(--dash-text-muted)] leading-relaxed">
-          Sua senha será alterada de forma segura usando um código de verificação enviado ao seu e-mail.
-        </p>
+      {canEditPassword && (
+        <div
+          className="rounded-2xl border p-6 shadow-sm transition-colors"
+          style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
+        >
+          <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+            <ShieldCheck size={18} className="text-primary" /> Troca de Senha
+          </h2>
+          <p className="mt-1 text-sm text-[var(--dash-text-muted)] leading-relaxed">
+            Sua senha será alterada de forma segura usando um código de verificação enviado ao seu e-mail.
+          </p>
 
-        <div className="mt-6 max-w-md">
-          <AnimatePresence mode="wait">
-            {!otpSent ? (
-              <motion.div
-                key="password-inputs"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nova Senha</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                    className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Confirmar Nova Senha</label>
-                  <input
-                    type="password"
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    placeholder="Repita a senha"
-                    className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleChangePassword}
-                  disabled={changingPassword || !newPassword || newPassword !== confirmNewPassword}
-                  className="w-full px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          <div className="mt-6 max-w-md">
+            <AnimatePresence mode="wait">
+              {!otpSent ? (
+                <motion.div
+                  key="password-inputs"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-4"
                 >
-                  {changingPassword ? "Enviando Código..." : "Alterar Senha"}
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="otp-input"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="space-y-4 p-6 rounded-2xl border border-primary/20 bg-primary/5"
-              >
-                <div className="text-center">
-                  <ShieldCheck size={40} className="text-primary mx-auto mb-3" />
-                  <h3 className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Código de Verificação Enviado</h3>
-                  <p className="text-xs text-[var(--dash-text-muted)] mt-1">Verifique o seu e-mail e insira o código de 6 dígitos abaixo.</p>
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    maxLength={8}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Ex: 123456"
-                    className="w-full rounded-xl border px-4 py-4 text-center text-2xl tracking-widest font-bold outline-none transition-colors"
-                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleVerifyOtp}
-                  disabled={changingPassword || otpCode.length < 6}
-                  className="w-full px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nova Senha</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Mínimo 6 caracteres"
+                      className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Confirmar Nova Senha</label>
+                    <input
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      placeholder="Repita a senha"
+                      className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={changingPassword || !newPassword || newPassword !== confirmNewPassword}
+                    className="w-full px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                  >
+                    {changingPassword ? "Enviando Código..." : "Alterar Senha"}
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="otp-input"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4 p-6 rounded-2xl border border-primary/20 bg-primary/5"
                 >
-                  {changingPassword ? "Verificando..." : "Validar e Atualizar Senha"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOtpSent(false)}
-                  className="w-full text-xs text-[var(--dash-text-muted)] hover:text-primary transition-colors mt-2 font-semibold"
-                >
-                  Cancelar e voltar
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <div className="text-center">
+                    <ShieldCheck size={40} className="text-primary mx-auto mb-3" />
+                    <h3 className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Código de Verificação Enviado</h3>
+                    <p className="text-xs text-[var(--dash-text-muted)] mt-1">Verifique o seu e-mail e insira o código de 6 dígitos abaixo.</p>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      maxLength={8}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Ex: 123456"
+                      className="w-full rounded-xl border px-4 py-4 text-center text-2xl tracking-widest font-bold outline-none transition-colors"
+                      style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtp}
+                    disabled={changingPassword || otpCode.length < 6}
+                    className="w-full px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {changingPassword ? "Verificando..." : "Validar e Atualizar Senha"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOtpSent(false)}
+                    className="w-full text-xs text-[var(--dash-text-muted)] hover:text-primary transition-colors mt-2 font-semibold"
+                  >
+                    Cancelar e voltar
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

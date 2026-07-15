@@ -61,8 +61,12 @@ export default function ProfileIdentitySection(props: any) {
     businessModel,
     saving,
     handleSave,
-    slugOriginal
+    slugOriginal,
+    granularPermissions
   } = props;
+
+  const canEditBasicInfo = granularPermissions?.profile?.basic_info ?? true;
+  const canEditAvatar = granularPermissions?.profile?.avatar ?? true;
 
 
   function handleDayToggle(day: keyof BusinessHours["schedule"]) {
@@ -173,16 +177,18 @@ export default function ProfileIdentitySection(props: any) {
                 <div className="flex flex-col md:flex-row gap-8">
                   <div className="flex flex-col items-center gap-3">
                     <div 
-                      className="group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
+                      className={`group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all ${canEditAvatar ? 'hover:border-primary/50 cursor-pointer' : 'opacity-80'}`} 
                       style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
-                      onClick={() => { setActiveUploadType("avatar"); setShowImageEditor(true); }}
+                      onClick={() => { if (canEditAvatar) { setActiveUploadType("avatar"); setShowImageEditor(true); } }}
                     >
                       {avatarPreview ? (
                         <>
                           <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Upload className="text-white" size={24} />
-                          </div>
+                          {canEditAvatar && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Upload className="text-white" size={24} />
+                            </div>
+                          )}
                         </>
                       ) : (
                         <div className="h-full w-full flex flex-col items-center justify-center text-zinc-300 gap-1">
@@ -191,52 +197,58 @@ export default function ProfileIdentitySection(props: any) {
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-4">
-                      <button 
-                        type="button"
-                        onClick={() => setShowImageEditor(true)}
-                        className="text-xs font-bold text-primary hover:underline"
-                      >
-                        {avatarPreview ? "Alterar Foto" : "Enviar Foto"}
-                      </button>
-                      
-                      {avatarPreview && (
+                    {canEditAvatar && (
+                      <div className="flex items-center gap-4">
                         <button 
                           type="button"
-                          onClick={() => {
-                            setAvatar(null);
-                            setAvatarFile(null);
-                          }}
-                          className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                          onClick={() => setShowImageEditor(true)}
+                          className="text-xs font-bold text-primary hover:underline"
                         >
-                          <X size={12} /> Remover
+                          {avatarPreview ? "Alterar Foto" : "Enviar Foto"}
                         </button>
-                      )}
-                    </div>
+                        
+                        {avatarPreview && (
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              setAvatar(null);
+                              setAvatarFile(null);
+                            }}
+                            className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                          >
+                            <X size={12} /> Remover
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block flex items-center gap-2">
+                          Nome do Vendedor {!canEditBasicInfo && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}
+                        </label>
                         <input 
                           type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
-                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                          disabled={!canEditBasicInfo}
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
                           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                         />
                       </div>
                       <div>
                         <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between items-center">
-                          <span>Bio / Cargo</span>
+                          <span className="flex items-center gap-2">Bio / Cargo {!canEditBasicInfo && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}</span>
                           <span className={`text-[10px] ${bioInput.length >= 70 ? 'text-amber-500 font-bold' : 'text-[var(--dash-text-muted)]'}`}>
                             {bioInput.length}/80
                           </span>
                         </label>
                         <textarea 
                           value={bioInput} onChange={e => setBioInput(e.target.value.slice(0, 80))}
+                          disabled={!canEditBasicInfo}
                           placeholder="um pequeno texto sobre o vendedor"
                           maxLength={80}
                           rows={2}
-                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] resize-none"
+                          className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] resize-none disabled:opacity-70 disabled:cursor-not-allowed"
                           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                         />
                       </div>
@@ -294,13 +306,16 @@ export default function ProfileIdentitySection(props: any) {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">WhatsApp</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block flex items-center gap-2">
+                      WhatsApp {!canEditBasicInfo && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}
+                    </label>
                     <input 
                       type="tel" 
                       value={whatsappInput} 
                       onChange={e => setWhatsappInput(e.target.value.replace(/\D/g, ""))}
+                      disabled={!canEditBasicInfo}
                       placeholder="(00) 00000-0000"
-                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
                       style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                     
@@ -320,13 +335,14 @@ export default function ProfileIdentitySection(props: any) {
                   </div>
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 flex justify-between">
-                      <span>Link do Cartão (Slug)</span>
+                      <span className="flex items-center gap-2">Link do Cartão (Slug) {!canEditBasicInfo && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}</span>
                       {slugChecking && <span className="text-[10px] lowercase">verificando...</span>}
                     </label>
                     <input 
                       type="text" value={slugInput} onChange={e => handleSlugChange(e.target.value)}
+                      disabled={!canEditBasicInfo}
                       placeholder="ex: nome_do_vendedor"
-                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                      className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
                       style={{ borderColor: slugError ? "#ef4444" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                     {slugError ? (
@@ -340,15 +356,16 @@ export default function ProfileIdentitySection(props: any) {
                 </div>
 
                 <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-2 block">
-                    Modelo de Mensagem (WhatsApp)
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-2 block flex items-center gap-2">
+                    Modelo de Mensagem (WhatsApp) {!canEditBasicInfo && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}
                   </label>
                   <textarea 
                     value={whatsappTemplateInput} 
                     onChange={e => setWhatsappTemplateInput(e.target.value)}
+                    disabled={!canEditBasicInfo}
                     placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e tenho interesse."
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl border outline-none bg-[var(--dash-bg)] text-sm"
+                    className="w-full px-4 py-3 rounded-xl border outline-none bg-[var(--dash-bg)] text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                     style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -356,8 +373,9 @@ export default function ProfileIdentitySection(props: any) {
                       <button
                         key={tag}
                         type="button"
+                        disabled={!canEditBasicInfo}
                         onClick={() => setWhatsappTemplateInput((prev: string) => prev + tag)}
-                        className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
+                        className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {tag}
                       </button>

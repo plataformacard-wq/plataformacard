@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { GranularPermissions } from "@/lib/dashboard/sellerActions";
 import { useState, useEffect } from "react";
 
-type ModuleType = "catalog" | "analytics" | "company";
+type ModuleType = "catalog" | "analytics" | "company" | "profile";
 
 interface Props {
   sellerName: string;
@@ -17,7 +17,8 @@ interface Props {
 const MODULE_TITLES = {
   catalog: "Permissões de Catálogo",
   analytics: "Permissões de Analytics",
-  company: "Permissões de Empresa"
+  company: "Permissões de Empresa",
+  profile: "Permissões do Próprio Cadastro"
 };
 
 const MODULE_OPTIONS = {
@@ -36,6 +37,11 @@ const MODULE_OPTIONS = {
     { key: "hours", label: "Editar Horários de Funcionamento" },
     { key: "seo", label: "Editar SEO" },
     { key: "domain", label: "Configurar Domínio" },
+  ],
+  profile: [
+    { key: "basic_info", label: "Edição de Dados Básicos (Nome, Contato)" },
+    { key: "avatar", label: "Edição de Foto de Perfil (Avatar)" },
+    { key: "password", label: "Alteração de Senha" },
   ]
 };
 

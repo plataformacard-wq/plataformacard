@@ -11,9 +11,10 @@ type SellerAccess = {
   full_name: string | null;
   slug: string | null;
   avatar_url: string | null;
-  dash_access_catalog: boolean | null;
-  dash_access_analytics: boolean | null;
-  dash_access_company: boolean | null;
+  dash_access_catalog?: boolean;
+  dash_access_analytics?: boolean;
+  dash_access_company?: boolean;
+  dash_access_profile?: boolean;
   granular_permissions?: GranularPermissions | null;
   role: string;
 };
@@ -27,7 +28,7 @@ export default function GerenciarAcessosPage() {
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [passwordUpdating, setPasswordUpdating] = useState(false);
-  const [granularModal, setGranularModal] = useState<{ seller: SellerAccess, module: "catalog" | "analytics" | "company" } | null>(null);
+  const [granularModal, setGranularModal] = useState<{ seller: SellerAccess, module: "catalog" | "analytics" | "company" | "profile" } | null>(null);
   const [granularSaving, setGranularSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
@@ -44,7 +45,7 @@ export default function GerenciarAcessosPage() {
     setLoading(false);
   }
 
-  async function handleToggle(sellerId: string, field: 'dash_access_catalog' | 'dash_access_analytics' | 'dash_access_company', currentValue: boolean) {
+  async function handleToggle(sellerId: string, field: 'dash_access_catalog' | 'dash_access_analytics' | 'dash_access_company' | 'dash_access_profile', currentValue: boolean) {
     setUpdatingId(sellerId);
     setMessage({ type: "", text: "" });
     
@@ -88,28 +89,31 @@ export default function GerenciarAcessosPage() {
     setMessage({ type: "", text: "" });
 
     let newPermissions: GranularPermissions = {};
-    let updates = { dash_access_catalog: false, dash_access_analytics: false, dash_access_company: false };
+    let updates = { dash_access_catalog: false, dash_access_analytics: false, dash_access_company: false, dash_access_profile: false };
 
     if (presetName === 'total') {
-      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true };
+      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true, dash_access_profile: true };
       newPermissions = {
         catalog: { create: true, edit: true, delete: true, bulk: true, settings: true },
         company: { hours: true, seo: true, domain: true },
-        analytics: { general: true, financial: true }
+        analytics: { general: true, financial: true },
+        profile: { basic_info: true, avatar: true, password: true }
       };
     } else if (presetName === 'intermediario') {
-      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true };
+      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true, dash_access_profile: true };
       newPermissions = {
         catalog: { create: true, edit: true, delete: false, bulk: true, settings: false },
         company: { hours: true, seo: false, domain: false },
-        analytics: { general: true, financial: false }
+        analytics: { general: true, financial: false },
+        profile: { basic_info: true, avatar: true, password: false }
       };
     } else if (presetName === 'minimo') {
-      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: false };
+      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: false, dash_access_profile: true };
       newPermissions = {
         catalog: { create: false, edit: false, delete: false, bulk: false, settings: false },
         company: { hours: false, seo: false, domain: false },
-        analytics: { general: true, financial: false }
+        analytics: { general: true, financial: false },
+        profile: { basic_info: false, avatar: false, password: false }
       };
     }
 
@@ -190,6 +194,7 @@ export default function GerenciarAcessosPage() {
               <tr>
                 <th className="px-6 py-4 font-semibold" style={{ color: "var(--dash-text-secondary)" }}>Vendedor</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Perfil de Acesso</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Cadastro</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Catálogo</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Analytics</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Empresa</th>
@@ -208,7 +213,7 @@ export default function GerenciarAcessosPage() {
                 </tr>
               ) : filteredSellers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>
                     Nenhum vendedor encontrado.
                   </td>
                 </tr>
@@ -244,6 +249,23 @@ export default function GerenciarAcessosPage() {
                         <option value="intermediario">🟡 Intermediário</option>
                         <option value="minimo">🔴 Acesso Mínimo</option>
                       </select>
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleToggle(seller.id, 'dash_access_profile', seller.dash_access_profile ?? true)}
+                          disabled={updatingId === seller.id}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${(seller.dash_access_profile ?? true) ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(seller.dash_access_profile ?? true) ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                        {(seller.dash_access_profile ?? true) && (
+                          <button onClick={() => setGranularModal({ seller, module: 'profile' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
+                            <Settings size={16} />
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     <td className="px-6 py-4 text-center">
