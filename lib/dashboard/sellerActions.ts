@@ -280,7 +280,10 @@ export type GranularPermissions = {
     edit?: boolean;
     delete?: boolean;
     bulk?: boolean;
-    settings?: boolean;
+    settings_general?: boolean;
+    settings_behavior?: boolean;
+    settings_banners?: boolean;
+    settings_status?: boolean;
   };
   company?: {
     hours?: boolean;

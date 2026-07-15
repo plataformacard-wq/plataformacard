@@ -15,7 +15,8 @@ export default async function ConfigLayout({ children }: { children: React.React
 
   if (profile?.role === "seller") {
     const perms = profile.granular_permissions as any;
-    if (!perms?.catalog?.settings) {
+    const cat = perms?.catalog;
+    if (!cat?.settings_general && !cat?.settings_behavior && !cat?.settings_banners && !cat?.settings_status) {
       redirect("/dashboard/catalogo");
     }
   }

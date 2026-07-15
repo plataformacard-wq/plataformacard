@@ -94,7 +94,7 @@ export default function GerenciarAcessosPage() {
     if (presetName === 'total') {
       updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true, dash_access_profile: true };
       newPermissions = {
-        catalog: { create: true, edit: true, delete: true, bulk: true, settings: true },
+        catalog: { create: true, edit: true, delete: true, bulk: true, settings_general: true, settings_behavior: true, settings_banners: true, settings_status: true },
         company: { hours: true, seo: true, domain: true },
         analytics: { general: true, financial: true },
         profile: { basic_info: true, avatar: true, password: true, messages_when_closed: true, redirect_leads: true, recess: true }
@@ -102,7 +102,7 @@ export default function GerenciarAcessosPage() {
     } else if (presetName === 'intermediario') {
       updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true, dash_access_profile: true };
       newPermissions = {
-        catalog: { create: true, edit: true, delete: false, bulk: true, settings: false },
+        catalog: { create: true, edit: true, delete: false, bulk: true, settings_general: true, settings_behavior: false, settings_banners: true, settings_status: false },
         company: { hours: true, seo: false, domain: false },
         analytics: { general: true, financial: false },
         profile: { basic_info: true, avatar: true, password: false, messages_when_closed: true, redirect_leads: false, recess: false }
@@ -110,7 +110,7 @@ export default function GerenciarAcessosPage() {
     } else if (presetName === 'minimo') {
       updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: false, dash_access_profile: true };
       newPermissions = {
-        catalog: { create: false, edit: false, delete: false, bulk: false, settings: false },
+        catalog: { create: false, edit: false, delete: false, bulk: false, settings_general: false, settings_behavior: false, settings_banners: false, settings_status: false },
         company: { hours: false, seo: false, domain: false },
         analytics: { general: true, financial: false },
         profile: { basic_info: false, avatar: false, password: false, messages_when_closed: false, redirect_leads: false, recess: false }

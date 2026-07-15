@@ -14,7 +14,7 @@ export default async function ConfiguracoesPage() {
   // Busca a organização e o catálogo vinculado
   const { data: profile } = await supabase
     .from("profiles")
-    .select("organization_id, slug, role")
+    .select("organization_id, slug, role, granular_permissions")
     .eq("id", user.id)
     .single();
 
@@ -98,5 +98,5 @@ export default async function ConfiguracoesPage() {
     products = fetchedProducts || [];
   }
 
-  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} categoryCount={categoryIds.length} customDomain={orgData?.custom_domain || null} isInheritingMaster={!!hasMasterCatalog} />;
+  return <ConfiguracoesClient catalog={catalog} slug={finalSlug} products={products || []} categoryCount={categoryIds.length} customDomain={orgData?.custom_domain || null} isInheritingMaster={!!hasMasterCatalog} granularPermissions={profile?.granular_permissions} role={profile?.role} />;
 }

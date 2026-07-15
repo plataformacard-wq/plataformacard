@@ -57,11 +57,28 @@ interface ConfiguracoesClientProps {
   categoryCount?: number;
   customDomain?: string | null;
   isInheritingMaster?: boolean;
+  granularPermissions?: any;
+  role?: string;
 }
 
-export default function ConfiguracoesClient({ catalog: initialCatalog, slug, products = [], categoryCount = 0, customDomain = null, isInheritingMaster = false }: ConfiguracoesClientProps) {
+export default function ConfiguracoesClient({ catalog: initialCatalog, slug, products = [], categoryCount = 0, customDomain = null, isInheritingMaster = false, granularPermissions, role }: ConfiguracoesClientProps) {
+  
+  const isSeller = role === "seller";
+  const catPerms = granularPermissions?.catalog;
+  
+  const canViewGeneral = isSeller ? (catPerms?.settings_general ?? true) : true;
+  const canViewBehavior = isSeller ? (catPerms?.settings_behavior ?? true) : true;
+  const canViewBanners = isSeller ? (catPerms?.settings_banners ?? true) : true;
+  const canViewStatus = isSeller ? (catPerms?.settings_status ?? true) : true;
+
+  // Determinar a primeira aba disponível
+  const initialTab = canViewGeneral ? "geral" 
+                   : canViewStatus ? "status" 
+                   : canViewBanners ? "banners" 
+                   : "geral";
+
   const [catalog, setCatalog] = useState(initialCatalog);
-  const [activeTab, setActiveTab] = useState<"geral" | "status" | "implementar" | "banners">("geral");
+  const [activeTab, setActiveTab] = useState<"geral" | "status" | "implementar" | "banners">(initialTab as any);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -198,36 +215,46 @@ ${iframeResizerCode}
           </div>
           
           <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-2xl border border-[var(--dash-border)] overflow-x-auto">
-            <button
-              onClick={() => setActiveTab("geral")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
-            >
-              <Layout size={16} />
-              Geral
-            </button>
-            <button
-              onClick={() => setActiveTab("status")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
-            >
-              <Activity size={16} />
-              Status
-            </button>
-            {initialCatalog.business_model === "ALL_SERVICE" && (
+            {canViewGeneral && (
               <button
-                onClick={() => setActiveTab("implementar")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                onClick={() => setActiveTab("geral")}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
-                <Code size={16} />
-                Implementar
+                <Layout size={16} />
+                Geral
               </button>
             )}
-            <button
-              onClick={() => setActiveTab("banners")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
-            >
-              <ImageIcon size={16} />
-              Banners
-            </button>
+            
+            {canViewStatus && (
+              <>
+                <button
+                  onClick={() => setActiveTab("status")}
+                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                >
+                  <Activity size={16} />
+                  Status
+                </button>
+                {initialCatalog.business_model === "ALL_SERVICE" && (
+                  <button
+                    onClick={() => setActiveTab("implementar")}
+                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  >
+                    <Code size={16} />
+                    Implementar
+                  </button>
+                )}
+              </>
+            )}
+
+            {canViewBanners && (
+              <button
+                onClick={() => setActiveTab("banners")}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+              >
+                <ImageIcon size={16} />
+                Banners
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -359,9 +386,9 @@ ${iframeResizerCode}
                 </div>
 
                 {/* Comportamento da Vitrine */}
-                <div className="pt-8 border-t border-[var(--dash-border)] space-y-6">
+                <div className={`pt-8 border-t border-[var(--dash-border)] space-y-6 ${!canViewBehavior ? 'opacity-70 pointer-events-none' : ''}`}>
                   <h4 className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
-                    <Layout size={14} className="text-primary" /> Comportamento da Vitrine
+                    <Layout size={14} className="text-primary" /> Comportamento da Vitrine {!canViewBehavior && "(Somente Leitura)"}
                   </h4>
                   <div className="space-y-4">
                     {/* Ocultação de Preços */}
