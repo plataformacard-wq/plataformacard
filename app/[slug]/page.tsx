@@ -739,7 +739,7 @@ export default async function Page(props: PageProps) {
                 {catalogStats.categories.map((cat: any) => (
                   <Link 
                     key={cat.id} 
-                    href={`/${slug}/catalogo?categoria=${cat.id}`}
+                    href={`/${slug}/catalogo#categoria-${cat.id}`}
                     style={{ 
                       width: 'calc(50% - 6px)',
                       minWidth: 130,

@@ -486,6 +486,8 @@ const CategorySectionBase = ({
         {filteredCategories.map((category: any, idx: number) => (
           <motion.section 
             key={category.id}
+            id={`categoria-${category.id}`}
+            className="scroll-mt-32"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
