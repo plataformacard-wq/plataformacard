@@ -149,6 +149,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
           { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
           { href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
+          { href: "/dashboard/empresa/acessos", label: "Gerenciar Acessos", icon: ShieldCheck },
         ]
       });
       navLinks.push({ 

@@ -20,7 +20,6 @@ const dayNamesMap = {
 import { VendedorHeaderControls } from "./form-sections/VendedorHeaderControls";
 import { VendedorIdentityCard } from "./form-sections/VendedorIdentityCard";
 import { VendedorContactCard } from "./form-sections/VendedorContactCard";
-import { VendedorAccessCard } from "./form-sections/VendedorAccessCard";
 import { VendedorFooterActions } from "./form-sections/VendedorFooterActions";
 
 export default function VendedoresForm(props: any) {
@@ -41,8 +40,6 @@ export default function VendedoresForm(props: any) {
           <VendedorIdentityCard {...props} />
           
           <VendedorContactCard {...props} />
-
-          <VendedorAccessCard {...props} />
 
           <VendedorFooterActions {...props} />
         </div>

@@ -89,15 +89,15 @@ export async function createSeller(formData: FormData) {
   const jobTitle = formData.get("jobTitle") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const avatarUrl = formData.get("avatarUrl") as string;
-  const dashAccessCatalog = formData.get("dashAccessCatalog") === "true";
-  const dashAccessAnalytics = formData.get("dashAccessAnalytics") === "true";
-  const dashAccessCompany = formData.get("dashAccessCompany") === "true";
+  const dashAccessCatalog = false;
+  const dashAccessAnalytics = false;
+  const dashAccessCompany = false;
   const whatsappTemplate = formData.get("whatsappTemplate") as string;
   const redirectLeads = formData.get("redirectLeads") === "true";
   const hidePrices = formData.get("hidePrices") === "true";
   const acceptsMessagesWhenClosed = formData.get("acceptsMessagesWhenClosed") === "true";
   const publicBannerUrl = formData.get("publicBannerUrl") as string;
-  const password = formData.get("password") as string;
+  const password = crypto.randomUUID();
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };

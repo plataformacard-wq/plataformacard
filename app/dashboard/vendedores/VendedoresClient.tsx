@@ -151,7 +151,6 @@ export default function VendedoresClient({
   
   // Form State
   const [formEmail, setFormEmail] = useState("");
-  const [formPassword, setFormPassword] = useState("");
   const [formName, setFormName] = useState("");
   const [formJobTitle, setFormJobTitle] = useState("");
   const [formBio, setFormBio] = useState("");
@@ -162,9 +161,6 @@ export default function VendedoresClient({
   const [formPublicBanner, setFormPublicBanner] = useState<string | null>(null);
   const [formPublicBannerFile, setFormPublicBannerFile] = useState<File | null>(null);
   const [formCanCustomize, setFormCanCustomize] = useState(false);
-  const [formAccessCatalog, setFormAccessCatalog] = useState(false);
-  const [formAccessAnalytics, setFormAccessAnalytics] = useState(false);
-  const [formAccessCompany, setFormAccessCompany] = useState(false);
   const [formHours, setFormHours] = useState<BusinessHours>(defaultBusinessHours);
   const [formWhatsappTemplate, setFormWhatsappTemplate] = useState("");
   const [formRedirectLeads, setFormRedirectLeads] = useState(false);
@@ -302,7 +298,6 @@ export default function VendedoresClient({
     if (seller) {
       setSelectedSeller(seller);
       setFormEmail(seller.email || "");
-      setFormPassword("");
       setFormName(seller.full_name || "");
       setFormJobTitle(seller.job_title || "");
       setFormBio(seller.bio || "");
@@ -311,9 +306,6 @@ export default function VendedoresClient({
       setFormAvatar(seller.avatar_url || null);
       setFormPublicBanner(seller.public_banner_url || null);
       setFormCanCustomize(seller.can_customize_hours ?? false);
-      setFormAccessCatalog(seller.dash_access_catalog || false);
-      setFormAccessAnalytics(seller.dash_access_analytics || false);
-      setFormAccessCompany(seller.dash_access_company || false);
       setFormHours(seller.custom_business_hours || defaultBusinessHours);
       setFormWhatsappTemplate(seller.whatsapp_template || "");
       setFormRedirectLeads(seller.redirect_leads || false);
@@ -342,7 +334,6 @@ export default function VendedoresClient({
     } else {
       setSelectedSeller(null);
       setFormEmail("");
-      setFormPassword("");
       setFormName("");
       setFormJobTitle("");
       setFormBio("");
@@ -353,9 +344,6 @@ export default function VendedoresClient({
       setFormPublicBanner(null);
       setFormPublicBannerFile(null);
       setFormCanCustomize(false);
-      setFormAccessCatalog(false);
-      setFormAccessAnalytics(false);
-      setFormAccessCompany(false);
       setFormHours(defaultBusinessHours);
       setFormWhatsappTemplate("");
       setFormRedirectLeads(false);
@@ -389,16 +377,11 @@ export default function VendedoresClient({
       formData.append("jobTitle", formJobTitle);
       formData.append("bio", formBio);
       formData.append("whatsapp", formWhatsapp.replace(/\D/g, ""));
-      formData.append("avatarUrl", formAvatar || ""); // Envia a foto se houver (mesmo blob)
-      formData.append("dashAccessCatalog", String(formAccessCatalog));
-      formData.append("dashAccessAnalytics", String(formAccessAnalytics));
-      formData.append("dashAccessCompany", String(formAccessCompany));
       formData.append("whatsappTemplate", formWhatsappTemplate);
       formData.append("redirectLeads", String(formRedirectLeads));
       formData.append("hidePrices", String(formHidePrices));
       formData.append("acceptsMessagesWhenClosed", String(formAcceptsMessagesWhenClosed));
       formData.append("publicBannerUrl", formPublicBanner || "");
-      formData.append("password", formPassword || "");
 
       const result = await createSeller(formData);
       
@@ -466,9 +449,6 @@ export default function VendedoresClient({
         avatar_url: finalAvatarUrl,
         can_customize_hours: formCanCustomize,
         custom_business_hours: formHours,
-        dash_access_catalog: formAccessCatalog,
-        dash_access_analytics: formAccessAnalytics,
-        dash_access_company: formAccessCompany,
         whatsapp_template: formWhatsappTemplate,
         redirect_leads: formRedirectLeads,
         hide_prices: formHidePrices,
@@ -487,15 +467,6 @@ export default function VendedoresClient({
         setMessage(`Erro no servidor: ${result.error}`);
         setSaving(false);
         return;
-      }
-
-      if (formPassword && formPassword.length >= 6) {
-        const passResult = await updateSellerPassword(selectedSeller.id, formPassword);
-        if (passResult.error) {
-          setMessage(`Erro ao atualizar senha: ${passResult.error}`);
-          setSaving(false);
-          return;
-        }
       }
     }
 
@@ -750,16 +721,8 @@ export default function VendedoresClient({
             setFormRedirectLeads={setFormRedirectLeads}
             formHidePrices={formHidePrices}
             setFormHidePrices={setFormHidePrices}
-            formAccessCatalog={formAccessCatalog}
-            setFormAccessCatalog={setFormAccessCatalog}
-            formAccessAnalytics={formAccessAnalytics}
-            setFormAccessAnalytics={setFormAccessAnalytics}
-            formAccessCompany={formAccessCompany}
-            setFormAccessCompany={setFormAccessCompany}
             formSlug={formSlug}
             setFormSlug={setFormSlug}
-            formPassword={formPassword}
-            setFormPassword={setFormPassword}
             saving={saving}
             handleSaveSeller={handleSave}
             customDomain={customDomain}
