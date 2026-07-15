@@ -1,6 +1,6 @@
 ---
 name: Refatoração Proativa e Anti-Monolito
-description: ACIONAR SEMPRE que editar, modificar ou adicionar código em arquivos muito grandes (> 500 linhas), arquivos monolíticos, ou arquivos blindados na blacklist (como ProductModal.tsx e page.tsx).
+description: ACIONAR SEMPRE que editar, modificar ou adicionar código em arquivos muito grandes (> 350 linhas), arquivos monolíticos, ou arquivos blindados na blacklist (como ProductModal.tsx e page.tsx).
 ---
 
 # Instruções de Refatoração Proativa
@@ -8,7 +8,7 @@ description: ACIONAR SEMPRE que editar, modificar ou adicionar código em arquiv
 Você deve atuar ativamente no monitoramento e combate à formação de monolitos de código, garantindo que a arquitetura se mantenha saudável.
 
 ## 1. Gatilho de Ação (PAUSA OBRIGATÓRIA)
-- Se a sua tarefa principal exigir que você altere, leia ou adicione código a um arquivo com **mais de 500 linhas**, você DEVE **PAUSAR** a execução da tarefa atual imediatamente.
+- Se a sua tarefa principal exigir que você altere, leia ou adicione código a um arquivo com **mais de 350 linhas**, você DEVE **PAUSAR** a execução da tarefa atual imediatamente.
 - Alerte o usuário de que um Monolito foi detectado e que a refatoração/quebra desse arquivo é recomendada antes de prosseguir com novas funcionalidades.
 - Proponha um plano de resolução (ex: extração de quais sub-componentes) e pergunte se o usuário deseja prosseguir com a refatoração agora ou se prefere ignorar o aviso por enquanto.
 
