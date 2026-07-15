@@ -241,9 +241,9 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
           {lowStockProducts.length > 0 ? (
             <div className="space-y-2 overflow-y-auto flex-1 max-h-[110px] pr-2 custom-scrollbar">
               {lowStockProducts.map(p => (
-                <div key={p.id} className="flex items-center justify-between bg-white/50 dark:bg-black/20 p-2 rounded-lg border border-red-500/10">
-                  <span className="text-xs font-medium text-red-900 dark:text-red-300 truncate max-w-[140px]" title={p.name}>{p.name}</span>
-                  <span className="text-xs font-bold text-red-600 dark:text-red-400 shrink-0">{p.stock_quantity} un</span>
+                <div key={p.id} className="flex items-center justify-between bg-white dark:bg-black/40 p-2 rounded-lg border border-red-500/10 shadow-sm">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[140px]" title={p.name}>{p.name}</span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 shrink-0">{p.stock_quantity} un</span>
                 </div>
               ))}
             </div>

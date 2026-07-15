@@ -7,6 +7,7 @@ import { getProductConversion } from "@/lib/dashboard/getProductConversion";
 import AnalyticsControls from "@/components/dashboard/analytics/AnalyticsControls";
 import PrintReportButton from "@/components/dashboard/analytics/PrintReportButton";
 import { AlertCircle } from "lucide-react";
+import StockIntelligenceSection from "@/components/dashboard/StockIntelligenceSection";
 
 export const dynamic = "force-dynamic";
 
@@ -90,14 +91,16 @@ export default async function AnalyticsPage(props: {
   // Busca dados da organização para o relatório
   let organizationName = "PlataformaShop";
   const orgId = activeOrgId;
+  let hasBlingConnection = false;
   
   if (orgId) {
     const { data: org } = await supabase
       .from("organizations")
-      .select("name")
+      .select("name, bling_access_token")
       .eq("id", orgId)
       .maybeSingle();
     if (org?.name) organizationName = org.name;
+    if (org?.bling_access_token) hasBlingConnection = true;
   }
 
   // Lógica de cálculo de datas baseada no período
@@ -200,6 +203,13 @@ export default async function AnalyticsPage(props: {
           profileId={pId} 
         />
       </Suspense>
+
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-4" style={{ color: "var(--dash-text-primary)" }}>
+          Analítico de Estoque
+        </h2>
+        <StockIntelligenceSection activeOrgId={activeOrgId} hasBlingConnection={hasBlingConnection} />
+      </div>
 
       {/* KPIs */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

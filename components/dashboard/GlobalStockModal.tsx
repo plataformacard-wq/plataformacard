@@ -12,6 +12,7 @@ interface GlobalStockModalProps {
 
 export default function GlobalStockModal({ isOpen, onClose, products }: GlobalStockModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterOption, setFilterOption] = useState("default");
 
   const [mounted, setMounted] = useState(false);
 
@@ -19,7 +20,17 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
     setMounted(true);
   }, []);
 
-  const filtered = products.filter(p => p?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (p?.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())));
+  let filtered = products.filter(p => p?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (p?.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())));
+
+  if (filterOption === "low_stock") {
+    filtered = filtered.filter(p => (p.stock_quantity ?? 0) < 5 && p.stock_quantity !== null && p.stock_quantity > 0);
+  }
+
+  if (filterOption === "highest") {
+    filtered = filtered.sort((a, b) => (b.stock_quantity ?? 0) - (a.stock_quantity ?? 0));
+  } else if (filterOption === "lowest") {
+    filtered = filtered.sort((a, b) => (a.stock_quantity ?? 0) - (b.stock_quantity ?? 0));
+  }
 
   if (!isOpen || !mounted) return null;
 
@@ -43,9 +54,24 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
             </div>
             
             <div className="p-6 border-b border-[var(--dash-border)]">
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
-                 <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-10 pr-4 py-2.5 text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary transition" />
+               <div className="flex items-center gap-3">
+                 <div className="relative flex-1">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
+                   <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-10 pr-4 py-2.5 text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary transition" />
+                 </div>
+                 <div className="w-48 shrink-0 relative">
+                   <select 
+                     value={filterOption} 
+                     onChange={(e) => setFilterOption(e.target.value)}
+                     onBlur={() => setFilterOption("default")}
+                     className="dash-select w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-3 py-2.5 text-sm text-[var(--dash-text-primary)] font-medium outline-none focus:border-primary transition"
+                   >
+                     <option value="default">Filtros</option>
+                     <option value="highest">Maior Estoque</option>
+                     <option value="lowest">Menor Estoque</option>
+                     <option value="low_stock">Estoque Baixo {"(< 5)"}</option>
+                   </select>
+                 </div>
                </div>
             </div>
 

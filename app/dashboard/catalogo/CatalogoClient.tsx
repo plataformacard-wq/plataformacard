@@ -41,6 +41,8 @@ import {
 import { HexColorPicker } from "react-colorful";
 import ProductModal from "@/components/dashboard/ProductModal";
 import CategoryModal from "@/components/dashboard/CategoryModal";
+import NoCategoryModal from "@/components/dashboard/NoCategoryModal";
+import VisibilityAlertModal from "@/components/dashboard/VisibilityAlertModal";
 
 type Category = {
   id: string;
@@ -1861,112 +1863,22 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         catalogId={catalogId}
       />
       {/* Modal: Nenhuma Categoria Encontrada */}
-      <AnimatePresence>
-        {showNoCategoryModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl"
-              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-            >
-              <div className="p-8 text-center">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-                  <AlertCircle size={32} />
-                </div>
-                <h3 className="mb-2 text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                  Categoria Necessária
-                </h3>
-                <p className="mb-8 text-sm leading-relaxed" style={{ color: "var(--dash-text-secondary)" }}>
-                  Para cadastrar um produto, você precisa ter pelo menos uma categoria criada. As categorias ajudam a organizar seu catálogo para seus clientes.
-                </p>
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={() => {
-                      setShowNoCategoryModal(false);
-                      setShowCategoryModal(true);
-                    }}
-                    className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
-                  >
-                    Criar Minha Primeira Categoria
-                  </button>
-                  <button
-                    onClick={() => setShowNoCategoryModal(false)}
-                    className="w-full py-2 text-sm font-medium hover:underline"
-                    style={{ color: "var(--dash-text-muted)" }}
-                  >
-                    Talvez mais tarde
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <NoCategoryModal 
+        isOpen={showNoCategoryModal}
+        onClose={() => setShowNoCategoryModal(false)}
+        onCreateCategory={() => {
+          setShowNoCategoryModal(false);
+          setShowCategoryModal(true);
+        }}
+      />
 
-
-      {/* Alerta de Visibilidade */}
-      <AnimatePresence>
-        {showVisibilityAlert && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => { setShowVisibilityAlert(false); setPendingStatusUpdate(null); }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md rounded-[32px] p-8 shadow-2xl border"
-              style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-            >
-              <div className="h-16 w-16 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center text-amber-500 mb-6 mx-auto border border-amber-100 dark:border-amber-900/20">
-                <Info size={32} />
-              </div>
-              
-              <h3 className="text-xl font-black text-center mb-4 uppercase tracking-tight" style={{ color: "var(--dash-text-primary)" }}>Aviso de Visibilidade</h3>
-              
-              <p className="text-center text-sm leading-relaxed mb-8" style={{ color: "var(--dash-text-secondary)" }}>
-                Ao tornar o produto <span className="font-bold text-red-500">indisponível</span> ele não aparecerá no catálogo para seus clientes.
-              </p>
-
-              <div className="flex flex-col gap-4">
-                <label 
-                  className="flex items-center gap-3 cursor-pointer p-4 rounded-2xl border group transition-all"
-                  style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
-                >
-                  <input 
-                    type="checkbox" 
-                    checked={dontShowAgain}
-                    onChange={(e) => setDontShowAgain(e.target.checked)}
-                    className="h-5 w-5 rounded-lg border-zinc-300 text-emerald-600 focus:ring-emerald-500 bg-transparent"
-                  />
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>Não mostrar novamente</span>
-                </label>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setShowVisibilityAlert(false); setPendingStatusUpdate(null); }}
-                    className="flex-1 px-6 py-4 rounded-2xl bg-zinc-100 text-zinc-500 text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={confirmVisibilityUpdate}
-                    className="flex-1 px-6 py-4 rounded-2xl bg-zinc-900 text-white text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-black/10"
-                  >
-                    Confirmar
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <VisibilityAlertModal 
+        isOpen={showVisibilityAlert}
+        dontShowAgain={dontShowAgain}
+        setDontShowAgain={setDontShowAgain}
+        onClose={() => { setShowVisibilityAlert(false); setPendingStatusUpdate(null); }}
+        onConfirm={confirmVisibilityUpdate}
+      />
 
     </div>
   );
