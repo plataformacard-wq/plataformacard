@@ -20,6 +20,8 @@ import { generateSEOWithAI } from "@/lib/ai-actions";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 import { uploadStorageFile, updateOrganizationSEO } from "@/lib/dashboard/sellerActions";
 import AiReviewModal from "@/components/dashboard/AiReviewModal";
+import SeoBrandAssets from "@/components/dashboard/empresa/seo/SeoBrandAssets";
+import SeoAiGenerator from "@/components/dashboard/empresa/seo/SeoAiGenerator";
 
 export default function SEOPage() {
   const supabase = createClient();
@@ -330,76 +332,15 @@ export default function SEOPage() {
         </p>
       </div>
 
-      {/* 01 - IA Generator */}
-      <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--dash-text-secondary)" }}>Assistente Inteligente</h2>
-        <div className="border rounded-2xl p-5 space-y-4" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
-          {/* Header */}
-          <div className="flex items-center gap-3 pb-3 border-b" style={{ borderColor: "var(--dash-border)" }}>
-            <div className="p-2 rounded-lg bg-emerald-500/10">
-              <Sparkles size={20} className="text-emerald-500" />
-            </div>
-            <div>
-              <span className="text-sm font-bold block" style={{ color: "var(--dash-text-primary)" }}>Gerador SEO Automático</span>
-              <span className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>Sugerir títulos e descrições com IA</span>
-            </div>
-          </div>
-          
-          {/* Inputs & Action */}
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>
-                  {businessModel === "B2C" ? "Nome profissional / Seu nome" : "Nome da empresa"}
-                </label>
-                <input
-                  type="text"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  placeholder={businessModel === "B2C" ? "Ex: Dr. João Silva" : "Ex: Maj Mobilidade"}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-xs transition-all focus:border-emerald-500/50"
-                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--dash-text-secondary)" }}>
-                  Ramo de Atuação
-                </label>
-                <input
-                  type="text"
-                  value={businessNiche}
-                  onChange={(e) => setBusinessNiche(e.target.value)}
-                  placeholder="Ex: Vestuário, Pizzaria, Advocacia"
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-xs transition-all focus:border-emerald-500/50"
-                  style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                />
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-              <div className="flex-1">
-                {(!orgName.trim() || !businessNiche.trim()) ? (
-                  <p className="text-[10px] font-bold text-amber-500/80 flex items-center gap-1 uppercase tracking-wider">
-                    ⚠️ Preencha o nome e o ramo de atuação para liberar o assistente de IA
-                  </p>
-                ) : (
-                  <p className="text-[10px] font-bold text-emerald-500 flex items-center gap-1 uppercase tracking-wider animate-pulse">
-                    ✨ Assistente liberado! Clique em Gerar Sugestões.
-                  </p>
-                )}
-              </div>
-              <button 
-                onClick={handleGenerateAI}
-                disabled={!orgName.trim() || !businessNiche.trim() || generating}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100 shrink-0 shadow-md hover:shadow-lg active:scale-95"
-                style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
-              >
-                {generating ? <Loader2 size={16} className="animate-spin" /> : <><Sparkles size={14} /> Gerar Sugestões</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SeoAiGenerator 
+        businessModel={businessModel}
+        orgName={orgName}
+        setOrgName={setOrgName}
+        businessNiche={businessNiche}
+        setBusinessNiche={setBusinessNiche}
+        generating={generating}
+        handleGenerateAI={handleGenerateAI}
+      />
 
       {/* 02 - Conteúdo SEO & Ativos de Marca */}
       <div className="rounded-2xl border p-6 shadow-sm space-y-8" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
@@ -449,149 +390,13 @@ export default function SEOPage() {
           </div>
         </section>
 
-        {/* Ativos de Marca */}
-        <section className="space-y-6 pt-6 border-t" style={{ borderColor: "var(--dash-border)" }}>
-          <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-            {businessModel === "B2C" ? "02. Identidade e Imagens" : "02. Identidade e Logos"}
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Favicon */}
-            <div className="space-y-3 relative">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Favicon (Ícone da Aba)</label>
-                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1:1 Quadrado (ex: 256x256 px)</span>
-              </div>
-              <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
-                   style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
-                   onClick={() => { setActiveUploadType("favicon"); setShowImageEditor(true); }}>
-                {formData.favicon_url ? (
-                  <>
-                    <img src={formData.favicon_url} className="w-12 h-12 object-contain" />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData({ ...formData, favicon_url: "" });
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors z-10"
-                      title="Remover Favicon"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </>
-                ) : (
-                  <Globe size={24} style={{ color: "var(--dash-text-muted)" }} />
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Upload size={20} className="text-white" />
-                </div>
-              </div>
-            </div>
-
-            {/* Logo */}
-            <div className="space-y-3 relative">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>
-                  {businessModel === "B2C" ? "Foto de Perfil / Logotipo" : "Logotipo Principal"}
-                </label>
-                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 2:1 Retangular (ex: 800x400 px)</span>
-              </div>
-              <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
-                   style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
-                   onClick={() => { setActiveUploadType("logo"); setShowImageEditor(true); }}>
-                {formData.logo_url ? (
-                  <>
-                    <img src={formData.logo_url} className="max-w-[80%] max-h-[60%] object-contain" />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData({ ...formData, logo_url: "" });
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors z-10"
-                      title="Remover Logo"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </>
-                ) : (
-                  <Upload size={24} style={{ color: "var(--dash-text-muted)" }} />
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Upload size={20} className="text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Banner SEO */}
-          <div className="space-y-3 relative">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner de Compartilhamento (Redes Sociais)</label>
-              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1200x630 px</span>
-            </div>
-            <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
-                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
-                 onClick={() => { setActiveUploadType("banner"); setShowImageEditor(true); }}>
-              {formData.og_image_url ? (
-                <>
-                  <img src={formData.og_image_url} className="w-full h-full object-contain p-2" />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFormData({ ...formData, og_image_url: "" });
-                    }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors z-10"
-                    title="Remover Banner"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </>
-              ) : (
-                <ImageIcon size={32} style={{ color: "var(--dash-text-muted)" }} />
-              )}
-              <div className="pointer-events-none absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <Upload size={24} className="text-white" />
-              </div>
-            </div>
-          </div>
-        
-          {/* Banner Publico */}
-          <div className="space-y-3 relative mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner do Cartão Público</label>
-              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Aparece no topo do perfil público. Recomendado: 1200x400 px</span>
-            </div>
-            <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
-                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
-                 onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}>
-              {formData.public_banner_url ? (
-                <>
-                  <img src={formData.public_banner_url} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFormData({ ...formData, public_banner_url: "" });
-                    }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors z-10"
-                    title="Remover Banner Público"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </>
-              ) : (
-                <ImageIcon size={32} style={{ color: "var(--dash-text-muted)" }} />
-              )}
-              <div className="pointer-events-none absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <Upload size={24} className="text-white" />
-              </div>
-            </div>
-          </div>
-
-        </section>
+        <SeoBrandAssets 
+          formData={formData}
+          setFormData={setFormData}
+          businessModel={businessModel}
+          setActiveUploadType={setActiveUploadType}
+          setShowImageEditor={setShowImageEditor}
+        />
       </div>
 
       {/* Redes Sociais */}
