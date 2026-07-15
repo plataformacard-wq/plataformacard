@@ -204,12 +204,7 @@ export default async function AnalyticsPage(props: {
         />
       </Suspense>
 
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4" style={{ color: "var(--dash-text-primary)" }}>
-          Analítico de Estoque
-        </h2>
-        <StockIntelligenceSection activeOrgId={activeOrgId} hasBlingConnection={hasBlingConnection} />
-      </div>
+
 
       {/* KPIs */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -309,6 +304,19 @@ export default async function AnalyticsPage(props: {
           </div>
         )}
       </section>
+
+      {/* Analítico de Estoque (Não incluso na exportação em PDF) */}
+      <div className="mt-12 pt-10 border-t-2 border-dashed no-print" style={{ borderColor: "var(--dash-border)" }}>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+            Analítico de Estoque
+          </h2>
+          <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+            Painel independente de gerenciamento de inventário e volumetria.
+          </p>
+        </div>
+        <StockIntelligenceSection activeOrgId={activeOrgId} hasBlingConnection={hasBlingConnection} />
+      </div>
     </div>
   );
 }
