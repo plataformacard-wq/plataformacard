@@ -161,19 +161,25 @@ export default async function AnalyticsPage(props: {
   );
 
   return (
-    <div>
+    <div style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" } as React.CSSProperties}>
       {/* Cabeçalho do Relatório (Apenas Impressão) */}
-      <div className="print-only mb-10 border-b-2 border-emerald-500 pb-6">
+      <div className="print-only mb-10 pb-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-black text-black">Relatório de Desempenho</h1>
-            <p className="text-sm font-bold text-zinc-500 mt-1">{organizationName}</p>
+          <div className="flex items-center gap-4">
+            <img src="/icon.png" alt="Logo" className="w-16 h-16 object-contain rounded-xl" />
+            <div>
+              <p className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{organizationName}</p>
+              <p className="text-xs font-medium text-zinc-400 mt-1">ID: {orgId?.substring(0, 8) || "N/A"}</p>
+            </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Documento Oficial</p>
-            <p className="text-xs font-bold text-zinc-400 mt-1">{new Date().toLocaleDateString("pt-BR")}</p>
+            <h1 className="text-3xl font-black text-black">Relatório de Desempenho</h1>
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary mt-2">
+              Documento Oficial • {new Date().toLocaleDateString("pt-BR")}
+            </p>
           </div>
         </div>
+        <div className="h-2 w-full bg-gradient-to-r from-primary to-emerald-400 rounded-full mt-6" />
       </div>
 
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -207,7 +213,7 @@ export default async function AnalyticsPage(props: {
 
 
       {/* KPIs */}
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 print:grid-cols-2">
         {[
           { label: "Visitas no cartão", value: summary.profileViews, icon: Eye, text: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20 hover:border-blue-500/40" },
           { label: "Visitas no catálogo", value: summary.catalogViews, icon: LayoutGrid, text: "text-purple-600 dark:text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20 hover:border-purple-500/40" },
