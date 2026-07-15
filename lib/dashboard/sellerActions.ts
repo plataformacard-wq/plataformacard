@@ -272,6 +272,60 @@ export async function updateSeller(sellerId: string, profileData: any) {
   }
 }
  
+export type GranularPermissions = {
+  catalog?: {
+    create?: boolean;
+    edit?: boolean;
+    delete?: boolean;
+    bulk?: boolean;
+    settings?: boolean;
+  };
+  company?: {
+    hours?: boolean;
+    seo?: boolean;
+    domain?: boolean;
+  };
+  analytics?: {
+    general?: boolean;
+    financial?: boolean;
+  };
+};
+
+export async function updateSellerGranularPermissions(sellerId: string, permissions: GranularPermissions) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    if (!adminUser) return { error: "Não autenticado" };
+
+    const adminAuthClient = createAdminClient();
+
+    // 1. Busca perfil do vendedor
+    const { data: sellerProfile, error: profileErr } = await adminAuthClient
+      .from("profiles")
+      .select("organization_id, role")
+      .eq("id", sellerId)
+      .maybeSingle();
+
+    if (profileErr || !sellerProfile) {
+      return { error: "Vendedor não encontrado." };
+    }
+
+    // 2. Valida privilégios
+    await verifyOrgAdmin(sellerProfile.organization_id);
+
+    // 3. Atualiza apenas a coluna granular_permissions
+    const { error } = await adminAuthClient
+      .from("profiles")
+      .update({ granular_permissions: permissions })
+      .eq("id", sellerId);
+
+    if (error) return { error: error.message };
+    return { success: true };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+ 
 export async function toggleSellerStatus(sellerId: string, isAvailable: boolean) {
   try {
     const supabaseServer = await createClient();

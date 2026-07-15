@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSellers, updateSeller, updateSellerPassword } from "@/lib/dashboard/sellerActions";
-import { ShieldCheck, KeyRound, AlertCircle, Loader2, Search } from "lucide-react";
+import { getSellers, updateSeller, updateSellerPassword, updateSellerGranularPermissions, GranularPermissions } from "@/lib/dashboard/sellerActions";
+import { ShieldCheck, KeyRound, AlertCircle, Loader2, Search, Eye, EyeOff, Settings } from "lucide-react";
 import { motion } from "framer-motion";
+import GranularPermissionsModal from "@/components/dashboard/empresa/GranularPermissionsModal";
 
 type SellerAccess = {
   id: string;
@@ -13,6 +14,7 @@ type SellerAccess = {
   dash_access_catalog: boolean | null;
   dash_access_analytics: boolean | null;
   dash_access_company: boolean | null;
+  granular_permissions?: GranularPermissions | null;
   role: string;
 };
 
@@ -23,7 +25,10 @@ export default function GerenciarAcessosPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [passwordModalSeller, setPasswordModalSeller] = useState<SellerAccess | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [passwordUpdating, setPasswordUpdating] = useState(false);
+  const [granularModal, setGranularModal] = useState<{ seller: SellerAccess, module: "catalog" | "analytics" | "company" } | null>(null);
+  const [granularSaving, setGranularSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
@@ -77,6 +82,70 @@ export default function GerenciarAcessosPage() {
     setTimeout(() => setMessage({ type: "", text: "" }), 3000);
   }
 
+  async function handleApplyPreset(sellerId: string, presetName: string) {
+    if (!presetName) return;
+    setUpdatingId(sellerId);
+    setMessage({ type: "", text: "" });
+
+    let newPermissions: GranularPermissions = {};
+    let updates = { dash_access_catalog: false, dash_access_analytics: false, dash_access_company: false };
+
+    if (presetName === 'total') {
+      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true };
+      newPermissions = {
+        catalog: { create: true, edit: true, delete: true, bulk: true, settings: true },
+        company: { hours: true, seo: true, domain: true },
+        analytics: { general: true, financial: true }
+      };
+    } else if (presetName === 'intermediario') {
+      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true };
+      newPermissions = {
+        catalog: { create: true, edit: true, delete: false, bulk: true, settings: false },
+        company: { hours: true, seo: false, domain: false },
+        analytics: { general: true, financial: false }
+      };
+    } else if (presetName === 'minimo') {
+      updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: false };
+      newPermissions = {
+        catalog: { create: false, edit: false, delete: false, bulk: false, settings: false },
+        company: { hours: false, seo: false, domain: false },
+        analytics: { general: true, financial: false }
+      };
+    }
+
+    // 1. Atualizar Toggles Gerais
+    const resToggle = await updateSeller(sellerId, updates);
+    // 2. Atualizar Granulares
+    const resGranular = await updateSellerGranularPermissions(sellerId, newPermissions);
+
+    if (resToggle.error || resGranular.error) {
+      setMessage({ type: "error", text: `Erro ao aplicar preset: ${resToggle.error || resGranular.error}` });
+    } else {
+      setSellers(prev => prev.map(s => s.id === sellerId ? { ...s, ...updates, granular_permissions: newPermissions } : s));
+      setMessage({ type: "success", text: "Preset aplicado com sucesso!" });
+    }
+    
+    setUpdatingId(null);
+    setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+  }
+
+  async function handleSaveGranular(newPermissions: GranularPermissions) {
+    if (!granularModal) return;
+    setGranularSaving(true);
+    
+    const result = await updateSellerGranularPermissions(granularModal.seller.id, newPermissions);
+    if (result.error) {
+      setMessage({ type: "error", text: `Erro: ${result.error}` });
+    } else {
+      setSellers(prev => prev.map(s => s.id === granularModal.seller.id ? { ...s, granular_permissions: newPermissions } : s));
+      setMessage({ type: "success", text: "Permissões granulares salvas!" });
+      setGranularModal(null);
+    }
+    
+    setGranularSaving(false);
+    setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+  }
+
   const filteredSellers = sellers.filter(s => {
     const query = searchQuery.toLowerCase();
     return s.full_name?.toLowerCase().includes(query) || s.slug?.toLowerCase().includes(query);
@@ -120,10 +189,11 @@ export default function GerenciarAcessosPage() {
             <thead className="bg-[var(--dash-bg)] border-b" style={{ borderColor: "var(--dash-border)" }}>
               <tr>
                 <th className="px-6 py-4 font-semibold" style={{ color: "var(--dash-text-secondary)" }}>Vendedor</th>
-                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Acesso ao Catálogo</th>
-                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Acesso ao Analytics</th>
-                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Acesso à Empresa</th>
-                <th className="px-6 py-4 font-semibold text-right" style={{ color: "var(--dash-text-secondary)" }}>Autenticação</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Perfil de Acesso</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Catálogo</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Analytics</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Empresa</th>
+                <th className="px-6 py-4 font-semibold text-right" style={{ color: "var(--dash-text-secondary)" }}>Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: "var(--dash-border)" }}>
@@ -138,7 +208,7 @@ export default function GerenciarAcessosPage() {
                 </tr>
               ) : filteredSellers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>
                     Nenhum vendedor encontrado.
                   </td>
                 </tr>
@@ -162,33 +232,69 @@ export default function GerenciarAcessosPage() {
                     </td>
                     
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => handleToggle(seller.id, 'dash_access_catalog', seller.dash_access_catalog || false)}
+                      <select
+                        onChange={(e) => handleApplyPreset(seller.id, e.target.value)}
+                        value=""
                         disabled={updatingId === seller.id}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_catalog ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        className="dash-select rounded-lg border pl-3 py-1.5 text-xs bg-[var(--dash-surface)]"
+                        style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_catalog ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
+                        <option value="" disabled>Aplicar Preset...</option>
+                        <option value="total">🟢 Acesso Total (Gestor)</option>
+                        <option value="intermediario">🟡 Intermediário</option>
+                        <option value="minimo">🔴 Acesso Mínimo</option>
+                      </select>
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => handleToggle(seller.id, 'dash_access_analytics', seller.dash_access_analytics || false)}
-                        disabled={updatingId === seller.id}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_analytics ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_analytics ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleToggle(seller.id, 'dash_access_catalog', seller.dash_access_catalog || false)}
+                          disabled={updatingId === seller.id}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_catalog ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_catalog ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                        {seller.dash_access_catalog && (
+                          <button onClick={() => setGranularModal({ seller, module: 'catalog' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
+                            <Settings size={16} />
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => handleToggle(seller.id, 'dash_access_company', seller.dash_access_company || false)}
-                        disabled={updatingId === seller.id}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_company ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_company ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleToggle(seller.id, 'dash_access_analytics', seller.dash_access_analytics || false)}
+                          disabled={updatingId === seller.id}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_analytics ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_analytics ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                        {seller.dash_access_analytics && (
+                          <button onClick={() => setGranularModal({ seller, module: 'analytics' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
+                            <Settings size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleToggle(seller.id, 'dash_access_company', seller.dash_access_company || false)}
+                          disabled={updatingId === seller.id}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_company ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_company ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                        {seller.dash_access_company && (
+                          <button onClick={() => setGranularModal({ seller, module: 'company' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
+                            <Settings size={16} />
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     <td className="px-6 py-4 text-right">
@@ -231,19 +337,28 @@ export default function GerenciarAcessosPage() {
                 <label className="mb-2 block text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                   Nova Senha (Mínimo 6 caracteres)
                 </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-primary transition-colors"
-                  style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full rounded-xl border pl-4 pr-12 py-3 text-sm outline-none focus:border-primary transition-colors"
+                    style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-3 mt-8">
                 <button
-                  onClick={() => { setPasswordModalSeller(null); setNewPassword(""); }}
+                  onClick={() => { setPasswordModalSeller(null); setNewPassword(""); setShowPassword(false); }}
                   className="flex-1 rounded-xl px-4 py-3 text-sm font-bold border transition-colors hover:bg-[var(--dash-hover-bg)]"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 >
@@ -260,6 +375,18 @@ export default function GerenciarAcessosPage() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* Modal Granular Permissions */}
+      {granularModal && (
+        <GranularPermissionsModal
+          sellerName={granularModal.seller.full_name || ""}
+          module={granularModal.module}
+          initialPermissions={granularModal.seller.granular_permissions}
+          onClose={() => setGranularModal(null)}
+          onSave={handleSaveGranular}
+          isSaving={granularSaving}
+        />
       )}
     </div>
   );

@@ -151,6 +151,8 @@ function revokePreviewIfBlob(url: string | null) {
 }
 
 export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId?: string | null }) {
+  const [userRole, setUserRole] = useState<string>("seller");
+  const [granularPermissions, setGranularPermissions] = useState<any>(null);
   const [canCreateProduct, setCanCreateProduct] = useState<boolean | null>(null);
   const [productLimit, setProductLimit] = useState<number>(0);
   const [productUsageCount, setProductUsageCount] = useState<number>(0);
@@ -350,17 +352,22 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     // 1. Tenta buscar o perfil pelo ID principal (que deve ser igual ao do usuário)
     let { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id, id, role")
+      .select("organization_id, id, role, granular_permissions")
       .eq("id", user.id)
       .maybeSingle();
 
     if (!profile) {
       const { data: profileByUid } = await supabase
         .from("profiles")
-        .select("organization_id, id, role")
+        .select("organization_id, id, role, granular_permissions")
         .eq("user_id", user.id)
         .maybeSingle();
       profile = profileByUid;
+    }
+
+    if (profile) {
+      setUserRole(profile.role);
+      setGranularPermissions(profile.granular_permissions);
     }
 
     const shadowOrgId = document.cookie
@@ -1287,12 +1294,14 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
-                <button
-                  onClick={handleOpenCreateProduct}
-                  className="hidden md:flex items-center gap-2 rounded-xl px-6 py-3 bg-primary text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
-                >
-                  <Plus size={20} /> Novo {catalogType === 'service' ? 'Serviço' : 'Produto'}
-                </button>
+                {(userRole !== 'seller' || granularPermissions?.catalog?.create !== false) && (
+                  <button
+                    onClick={handleOpenCreateProduct}
+                    className="hidden md:flex items-center gap-2 rounded-xl px-6 py-3 bg-primary text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
+                  >
+                    <Plus size={20} /> Novo {catalogType === 'service' ? 'Serviço' : 'Produto'}
+                  </button>
+                )}
               </div>
             </div>
 
