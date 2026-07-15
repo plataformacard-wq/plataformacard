@@ -5,19 +5,20 @@ description: ACIONAR SEMPRE que editar, modificar ou adicionar código em arquiv
 
 # Instruções de Refatoração Proativa
 
-Você deve atuar proativamente contra a formação de monolitos de código, seguindo rigorosamente os protocolos de segurança da PlataformaCard para evitar quebras de layout (Trava Absoluta).
+Você deve atuar ativamente no monitoramento e combate à formação de monolitos de código, garantindo que a arquitetura se mantenha saudável.
 
-## 1. Gatilho de Ação
-- Se a sua tarefa principal exigir que você altere ou adicione código a um arquivo com **mais de 500 linhas**, você DEVE realizar uma refatoração pontual (extração de sub-componente) *antes* ou *junto* com a inserção da nova lógica, aproveitando o contexto aberto.
-- Não inicie refatorações aleatórias em arquivos fora do escopo da sua tarefa atual.
+## 1. Gatilho de Ação (PAUSA OBRIGATÓRIA)
+- Se a sua tarefa principal exigir que você altere, leia ou adicione código a um arquivo com **mais de 500 linhas**, você DEVE **PAUSAR** a execução da tarefa atual imediatamente.
+- Alerte o usuário de que um Monolito foi detectado e que a refatoração/quebra desse arquivo é recomendada antes de prosseguir com novas funcionalidades.
+- Proponha um plano de resolução (ex: extração de quais sub-componentes) e pergunte se o usuário deseja prosseguir com a refatoração agora ou se prefere ignorar o aviso por enquanto.
 
 ## 2. Lidando com a Blacklist (Arquivos Blindados)
-De acordo com o `PROTOCOLO_DE_REFATORACAO_DE_MONOLITOS.md`, arquivos críticos como `ProductModal.tsx` e interfaces de Catálogo (ex: `app/p/[slug]/...`) são intocáveis para refatorações estruturais de código legado.
-- **Regra de Adição na Blacklist:** Se você precisar adicionar uma NOVA funcionalidade a um arquivo da Blacklist, construa toda a nova lógica/UI em um **arquivo novo** (componente extraído). Em seguida, apenas importe e injete esse componente dentro do arquivo blindado. **É estritamente proibido extrair ou reestruturar o código legado que já existe lá dentro.**
+Arquivos críticos como `ProductModal.tsx` e interfaces de Catálogo (ex: `app/[slug]/page.tsx`) são intocáveis para refatorações estruturais de código legado profundo.
+- **Regra de Adição na Blacklist:** Ao propor um plano de refatoração para um arquivo blindado, deixe claro que você só irá extrair as NOVAS lógicas ou componentes em arquivos separados e chamá-los, mantendo o legado existente intacto. É estritamente proibido extrair ou reestruturar o código legado que já existe lá dentro.
 
-## 3. Validação, Checkpoint (VPGP) e Autonomia
-Para garantir máxima segurança sem gargalos manuais, siga o pipeline automatizado ao refatorar:
-1. **Checkpoint Automático:** Antes de iniciar o recorte, crie um commit de backup executando `git add .` e `git commit -m "chore(vpgp): ponto de restauracao pre-refatoracao"`.
-2. **Trava Absoluta:** Aplique o recorte (cut) cirúrgico. O código JSX e as marcações Tailwind originais devem ser movidos EXATAMENTE como estão, apenas ajustando as importações (props). Não recrie as estruturas HTML.
-3. **Autovalidação:** Execute um comando rápido de verificação (ex: build/lint) se for viável. 
-4. **Sem Interrupções:** Se a sintaxe estiver correta e livre de erros, você está autorizado a seguir em frente com a tarefa principal autonomamente, sem parar para pedir aprovação visual no browser para o usuário. Só o alerte em caso de erros no terminal.
+## 3. Padrão de Refatoração (Após Aprovação)
+Se o usuário autorizar a resolução do monolito:
+1. **Checkpoint Automático:** Crie um commit de backup executando `git add .` e `git commit -m "chore: ponto de restauracao pre-refatoracao"`.
+2. **Trava Absoluta:** Aplique o recorte (cut) cirúrgico. O código JSX e as marcações Tailwind originais devem ser movidos EXATAMENTE como estão.
+3. **Autovalidação:** Execute `npm run build` para validar a quebra.
+4. Após o sucesso, retome a tarefa original que havia sido pausada.
