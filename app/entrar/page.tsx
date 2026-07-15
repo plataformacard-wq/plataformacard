@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleLogin } from "@react-oauth/google";
 
-
+import { resolveSlugToEmail } from "./actions";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [email, setEmail] = useState("");
+  const [loginInput, setLoginInput] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
@@ -33,8 +33,21 @@ export default function LoginPage() {
     setErrorMessage("");
     setLoadingEmail(true);
 
+    let finalEmail = loginInput.trim();
+
+    // Se não tiver '@', tentamos resolver como Slug de Vendedor
+    if (!finalEmail.includes("@")) {
+      const result = await resolveSlugToEmail(finalEmail);
+      if (result.error || !result.email) {
+        setLoadingEmail(false);
+        setErrorMessage(result.error || "Slug inválido.");
+        return;
+      }
+      finalEmail = result.email;
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: finalEmail,
       password,
     });
 
@@ -123,17 +136,17 @@ export default function LoginPage() {
 
         <form onSubmit={handleEmailLogin} className="space-y-5">
           <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-medium">
-              Email
+            <label htmlFor="loginInput" className="mb-2 block text-sm font-medium">
+              Email do Lojista ou Slug do Vendedor
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@exemplo.com"
+              id="loginInput"
+              type="text"
+              value={loginInput}
+              onChange={(e) => setLoginInput(e.target.value)}
+              placeholder="voce@exemplo.com ou seu_slug"
               className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm outline-none transition focus:border-white/30"
-              autoComplete="email"
+              autoComplete="username"
               required
             />
           </div>

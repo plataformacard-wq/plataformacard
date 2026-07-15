@@ -82,7 +82,7 @@ const dayNamesMap = {
   sunday: "Domingo",
 };
 
-import { createSeller, updateSeller, getSellers, toggleSellerStatus, terminateSeller, uploadAvatarAction, uploadPublicBannerAction } from "@/lib/dashboard/sellerActions";
+import { createSeller, updateSeller, getSellers, toggleSellerStatus, terminateSeller, uploadAvatarAction, uploadPublicBannerAction, updateSellerPassword } from "@/lib/dashboard/sellerActions";
 import VendedoresForm from "@/components/dashboard/vendedores/VendedoresForm";
 
 function RecessCountdown({ endsAt }: { endsAt: string }) {
@@ -398,6 +398,7 @@ export default function VendedoresClient({
       formData.append("hidePrices", String(formHidePrices));
       formData.append("acceptsMessagesWhenClosed", String(formAcceptsMessagesWhenClosed));
       formData.append("publicBannerUrl", formPublicBanner || "");
+      formData.append("password", formPassword || "");
 
       const result = await createSeller(formData);
       
@@ -486,6 +487,15 @@ export default function VendedoresClient({
         setMessage(`Erro no servidor: ${result.error}`);
         setSaving(false);
         return;
+      }
+
+      if (formPassword && formPassword.length >= 6) {
+        const passResult = await updateSellerPassword(selectedSeller.id, formPassword);
+        if (passResult.error) {
+          setMessage(`Erro ao atualizar senha: ${passResult.error}`);
+          setSaving(false);
+          return;
+        }
       }
     }
 

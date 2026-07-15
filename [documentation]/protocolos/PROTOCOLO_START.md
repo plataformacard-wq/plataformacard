@@ -8,9 +8,9 @@ Este documento define as diretrizes obrigatórias que o agente de IA deve execut
 
 Quando este protocolo for acionado, o agente deve seguir rigorosamente a seguinte ordem de passos:
 
-### 01. Iniciar o Servidor Local de Desenvolvimento
-Antes de qualquer outra verificação ou análise, o agente deve garantir que o servidor de desenvolvimento local está rodando.
-* **Ação**: Executar o comando `npm run dev` em segundo plano (especificando a porta `-p 3000` se necessário para isolamento).
+### 01. Iniciar o Servidor Local de Desenvolvimento e o Monitoramento Anti-Monolito
+Antes de qualquer outra verificação ou análise, o agente deve garantir que o servidor de desenvolvimento local e o watcher de monolitos estão rodando.
+* **Ação**: Executar o comando `npm run dev:monitored` em segundo plano (especificando a porta `-p 3000` se necessário para isolamento).
 * **Verificação**: Confirmar que o processo foi iniciado com sucesso.
 * **Link de Acesso Local (Isolado)**: [http://127.0.0.1:3000](http://127.0.0.1:3000)
 

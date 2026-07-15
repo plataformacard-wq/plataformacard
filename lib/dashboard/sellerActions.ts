@@ -97,6 +97,7 @@ export async function createSeller(formData: FormData) {
   const hidePrices = formData.get("hidePrices") === "true";
   const acceptsMessagesWhenClosed = formData.get("acceptsMessagesWhenClosed") === "true";
   const publicBannerUrl = formData.get("publicBannerUrl") as string;
+  const password = formData.get("password") as string;
 
   if (!fullName || !slug) {
     return { error: "Nome e slug são obrigatórios." };
@@ -150,11 +151,11 @@ export async function createSeller(formData: FormData) {
   try {
     // ESTRATÉGIA: Criar uma conta técnica invisível para satisfazer o banco de dados
     const virtualEmail = `vendedor_${slug}_${activeOrgId.split("-")[0]}@interno.plataforma.card`;
-    const randomPassword = crypto.randomUUID();
+    const finalPassword = password && password.length >= 6 ? password : crypto.randomUUID();
 
     const { data: authData, error: authError } = await adminAuthClient.auth.admin.createUser({
       email: virtualEmail,
-      password: randomPassword,
+      password: finalPassword,
       email_confirm: true,
     });
 

@@ -23,6 +23,6 @@ Toda vez que uma migração SQL (`.sql`) for implementada ou necessária, o cód
 
 ## Auditoria Anti-Monolito Contínua
 Você está expressamente proibido de permitir que componentes React cresçam de forma descontrolada.
-Sempre que estiver modificando um arquivo que ultrapasse a marca de **350 linhas**, você deve OBRIGATORIAMENTE acionar a Skill de `Refatoração Proativa` e sugerir uma pausa para aplicar o **Protocolo de Refatoração de Monolitos (PRM)**.
+Sempre que estiver modificando um arquivo que ultrapasse a marca de **500 linhas**, você deve OBRIGATORIAMENTE acionar a Skill de `Refatoração Proativa` e sugerir uma pausa para aplicar o **Protocolo de Refatoração de Monolitos (PRM)**.
 - Componentes pesados de UI e modais devem ser divididos em sub-componentes (padrão UI-as-a-Service).
 - Se você ignorar essa regra e permitir que um componente chegue a 800+ linhas, estará quebrando uma regra central da arquitetura.

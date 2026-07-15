@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:monitored": "concurrently \"npm run dev\" \"node scripts/monolith-watcher.js\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -37,9 +38,12 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chokidar": "^5.0.0",
+    "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "node-notifier": "^10.0.1",
     "pg": "^8.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
