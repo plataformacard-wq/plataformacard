@@ -30,7 +30,6 @@ const MODULE_OPTIONS = {
     { key: "settings_general", label: "Configurações Gerais e Textos" },
     { key: "settings_behavior", label: "Comportamento da Vitrine (Ocultar Preços, etc)" },
     { key: "settings_banners", label: "Gerenciamento de Banners" },
-    { key: "settings_status", label: "Status e Integração (Ligar/Desligar)" },
   ],
   analytics: [
     { key: "general", label: "Ver Métricas Gerais (Acessos, Cliques)" },

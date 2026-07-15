@@ -69,7 +69,7 @@ export default function ConfiguracoesClient({ catalog: initialCatalog, slug, pro
   const canViewGeneral = isSeller ? (catPerms?.settings_general ?? true) : true;
   const canViewBehavior = isSeller ? (catPerms?.settings_behavior ?? true) : true;
   const canViewBanners = isSeller ? (catPerms?.settings_banners ?? true) : true;
-  const canViewStatus = isSeller ? (catPerms?.settings_status ?? true) : true;
+  const canViewStatus = !isSeller; // Vendedores não têm acesso a essa aba
 
   // Determinar a primeira aba disponível
   const initialTab = canViewGeneral ? "geral" 
