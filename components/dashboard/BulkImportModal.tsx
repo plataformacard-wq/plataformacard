@@ -22,6 +22,10 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { createClient } from "@/lib/supabase/client";
 
+import BulkImportUploadStep from "./catalogo/bulk/BulkImportUploadStep";
+import BulkImportMappingStep from "./catalogo/bulk/BulkImportMappingStep";
+import BulkImportPreviewStep from "./catalogo/bulk/BulkImportPreviewStep";
+import BulkImportProcessingStep from "./catalogo/bulk/BulkImportProcessingStep";
 interface BulkImportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -367,293 +371,42 @@ export default function BulkImportModal({
         <div className="flex-1 overflow-y-auto p-8">
           <AnimatePresence mode="wait">
             {step === "upload" && (
-              <motion.div 
-                key="upload"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
-                {/* Novo Fluxo Guiado 1-2-3 */}
-                <div className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                    {/* Linha Conectora (Desktop) */}
-                    <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-[var(--dash-border)] -z-0" />
-
-                    {/* Passo 1 */}
-                    <div className="relative flex flex-col items-center text-center gap-4 group">
-                      <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                        1
-                      </div>
-                      <div className="flex-1 p-6 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
-                        <div className="p-3 bg-green-100 text-green-600 rounded-xl">
-                          <FileSpreadsheet size={24} />
-                        </div>
-                        <h4 className="font-bold text-sm">Baixar Modelo</h4>
-                        <p className="text-[10px] text-[var(--dash-text-muted)]">Template configurado com suas categorias.</p>
-                        <button 
-                          onClick={generateTemplate}
-                          className="mt-2 w-full py-2 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all"
-                        >
-                          Download Excel
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Passo 2 */}
-                    <div className="relative flex flex-col items-center text-center gap-4 group">
-                      <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                        2
-                      </div>
-                      <div className="flex-1 p-6 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
-                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                          <Upload size={24} />
-                        </div>
-                        <h4 className="font-bold text-sm">Subir no Sheets</h4>
-                        <p className="text-[10px] text-[var(--dash-text-muted)]">Arraste para o seu Google Drive e abra como Planilha.</p>
-                        <div className="mt-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-[9px] font-medium border border-blue-100">
-                          Compartilhe como "Qualquer pessoa com o link"
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Passo 3 */}
-                    <div className="relative flex flex-col items-center text-center gap-4 group">
-                      <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                        3
-                      </div>
-                      <div className="flex-1 p-6 rounded-xl border border-primary bg-primary/5 transition-all w-full flex flex-col items-center gap-3 shadow-xl shadow-primary/5">
-                        <div className="p-3 bg-primary text-white rounded-xl">
-                          <RefreshCw size={24} />
-                        </div>
-                        <h4 className="font-bold text-sm text-primary">Conectar & Sync</h4>
-                        <p className="text-[10px] text-[var(--dash-text-muted)]">Cole o link da planilha abaixo para sincronizar.</p>
-                        
-                        <div className="mt-2 w-full flex gap-2">
-                          <input 
-                            value={sheetUrl}
-                            onChange={(e) => setSheetUrl(e.target.value)}
-                            placeholder="Link do Google Sheets..."
-                            className="flex-1 bg-white border border-primary/20 rounded-lg px-2 py-2 text-[9px] outline-none focus:ring-2 focus:ring-primary/20"
-                          />
-                          <button 
-                            onClick={handleFetchSheet}
-                            disabled={isFetchingUrl || !sheetUrl}
-                            className="px-3 bg-primary text-white rounded-lg font-bold text-[9px] hover:opacity-90 disabled:opacity-50 transition-all"
-                          >
-                            {isFetchingUrl ? <Loader2 size={12} className="animate-spin" /> : 'Sincronizar'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Opção Secundária (Upload Local) */}
-                  <div className="pt-8 border-t border-[var(--dash-border)]">
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full border-2 border-dashed rounded-xl p-6 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
-                      style={{ borderColor: "var(--dash-border)" }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-[var(--dash-hover-bg)] flex items-center justify-center text-[var(--dash-text-muted)] group-hover:text-primary transition-colors">
-                          <Upload size={24} />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Prefere upload manual?</p>
-                          <p className="text-[10px]" style={{ color: "var(--dash-text-muted)" }}>Arraste ou clique para selecionar um arquivo .CSV ou .XLSX local</p>
-                        </div>
-                      </div>
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileUpload} 
-                        className="hidden" 
-                        accept=".csv,.xlsx,.xls"
-                      />
-                      <div className="px-4 py-2 bg-[var(--dash-hover-bg)] rounded-xl text-[10px] font-bold" style={{ color: "var(--dash-text-secondary)" }}>
-                        Selecionar Arquivo
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                  {[
-                    { icon: <Check size={16} />, title: "Rápido", desc: "Importe milhares de itens em segundos" },
-                    { icon: <TableIcon size={16} />, title: "Flexível", desc: "Mapeie colunas do seu jeito" },
-                    { icon: <AlertCircle size={16} />, title: "Seguro", desc: "Validação automática de dados" }
-                  ].map((feat, i) => (
-                    <div key={i} className="flex flex-col items-center text-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-[var(--dash-hover-bg)] flex items-center justify-center text-primary">
-                        {feat.icon}
-                      </div>
-                      <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>{feat.title}</p>
-                      <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>{feat.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
+              <BulkImportUploadStep
+                generateTemplate={generateTemplate}
+                sheetUrl={sheetUrl}
+                setSheetUrl={setSheetUrl}
+                handleFetchSheet={handleFetchSheet}
+                isFetchingUrl={isFetchingUrl}
+                fileInputRef={fileInputRef}
+                handleFileUpload={handleFileUpload}
+              />
             )}
 
             {step === "mapping" && (
-              <motion.div 
-                key="mapping"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
-                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl flex gap-3 items-start border border-amber-200 dark:border-amber-800">
-                  <AlertCircle className="text-amber-600 shrink-0" size={20} />
-                  <p className="text-xs text-amber-800 dark:text-amber-300">
-                    Mapeie as colunas do seu arquivo para os campos correspondentes do sistema. Campos marcados com * são obrigatórios.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  {productFields.map((field) => (
-                    <div 
-                      key={field.key} 
-                      className="flex items-center gap-4 p-4 rounded-xl border"
-                      style={{ background: "var(--dash-bg)", borderColor: "var(--dash-border)" }}
-                    >
-                      <div className="flex-1">
-                        <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
-                          {field.label} {field.required && <span className="text-red-500">*</span>}
-                        </p>
-                      </div>
-                      <ChevronRight size={16} className="text-[var(--dash-text-muted)]" />
-                      <select 
-                        value={mapping[field.key] || ""}
-                        onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
-                        className="dash-select w-64 bg-[var(--dash-surface)] border rounded-xl pl-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                        style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
-                      >
-                        <option value="">Não importar</option>
-                        {headers.map(h => (
-                          <option key={h} value={h}>{h}</option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-end ga pl-3 pr-10 py-3  pt-6 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[position:calc(100%-20px)_center] bg-no-repeat">
-                  <button 
-                    onClick={() => setStep("upload")}
-                    className="px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[var(--dash-hover-bg)] transition-colors"
-                    style={{ color: "var(--dash-text-secondary)" }}
-                  >
-                    Voltar
-                  </button>
-                  <button 
-                    onClick={() => setStep("preview")}
-                    disabled={!mapping["name"]}
-                    className="flex items-center gap-2 px-8 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
-                  >
-                    Continuar para Preview
-                    <ArrowRight size={18} />
-                  </button>
-                </div>
-              </motion.div>
+              <BulkImportMappingStep
+                productFields={productFields}
+                mapping={mapping}
+                setMapping={setMapping}
+                headers={headers}
+                setStep={setStep}
+              />
             )}
 
             {step === "preview" && (
-              <motion.div 
-                key="preview"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
-                <div className="border rounded-xl overflow-hidden" style={{ borderColor: "var(--dash-border)" }}>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-[var(--dash-hover-bg)]/50">
-                        <tr>
-                          {productFields.filter(f => mapping[f.key]).map(f => (
-                            <th key={f.key} className="px-4 py-3 font-bold" style={{ color: "var(--dash-text-secondary)" }}>{f.label}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fileData.slice(0, 5).map((row, i) => (
-                          <tr key={i} className="border-t" style={{ borderColor: "var(--dash-border)" }}>
-                            {productFields.filter(f => mapping[f.key]).map(f => (
-                              <td key={f.key} className="px-4 py-3" style={{ color: "var(--dash-text-primary)" }}>
-                                {row[mapping[f.key]] || <span className="text-xs italic text-[var(--dash-text-muted)]">vazio</span>}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {fileData.length > 5 && (
-                    <div className="p-3 text-center border-t bg-[var(--dash-surface)]" style={{ borderColor: "var(--dash-border)" }}>
-                      <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Exibindo 5 de {fileData.length} registros...</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-3 pt-6">
-                  <button 
-                    onClick={() => setStep("mapping")}
-                    className="px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[var(--dash-hover-bg)] transition-colors"
-                    style={{ color: "var(--dash-text-secondary)" }}
-                  >
-                    Ajustar Mapeamento
-                  </button>
-                  <button 
-                    onClick={startImport}
-                    disabled={isProcessing}
-                    className="flex items-center gap-2 px-8 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        Confirmar e Importar {fileData.length} itens
-                        <Check size={18} />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </motion.div>
+              <BulkImportPreviewStep
+                productFields={productFields}
+                mapping={mapping}
+                fileData={fileData}
+                setStep={setStep}
+                startImport={startImport}
+                isProcessing={isProcessing}
+              />
             )}
 
             {step === "processing" && (
-              <motion.div 
-                key="processing"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center py-12 text-center"
-              >
-                <div className="h-24 w-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 mb-6">
-                  <Check size={48} className="animate-bounce" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: "var(--dash-text-primary)" }}>Importação Concluída!</h3>
-                <p className="text-[var(--dash-text-secondary)] mb-8 max-w-md">
-                  Seus produtos foram processados com sucesso e já estão disponíveis no seu catálogo.
-                </p>
-                
-                <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-12">
-                  <div className="bg-[var(--dash-bg)] p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
-                    <p className="text-2xl font-bold text-primary">{stats.created}</p>
-                    <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Produtos Criados</p>
-                  </div>
-                  <div className="bg-[var(--dash-bg)] p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
-                    <p className="text-2xl font-bold text-red-500">{stats.failed}</p>
-                    <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Falhas</p>
-                  </div>
-                </div>
-
-                <p className="text-xs animate-pulse" style={{ color: "var(--dash-text-muted)" }}>Fechando em instantes...</p>
-              </motion.div>
+              <BulkImportProcessingStep
+                stats={stats}
+              />
             )}
           </AnimatePresence>
         </div>
