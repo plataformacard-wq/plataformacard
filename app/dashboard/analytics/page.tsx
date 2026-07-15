@@ -6,7 +6,7 @@ import { getTopProducts } from "@/lib/dashboard/getTopProducts";
 import { getProductConversion } from "@/lib/dashboard/getProductConversion";
 import AnalyticsControls from "@/components/dashboard/analytics/AnalyticsControls";
 import PrintReportButton from "@/components/dashboard/analytics/PrintReportButton";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Eye, LayoutGrid, MousePointerClick, MessageCircle, Filter, ArrowRight, TrendingUp } from "lucide-react";
 import StockIntelligenceSection from "@/components/dashboard/StockIntelligenceSection";
 
 export const dynamic = "force-dynamic";
@@ -209,16 +209,21 @@ export default async function AnalyticsPage(props: {
       {/* KPIs */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Visitas no cartão", value: summary.profileViews },
-          { label: "Visitas no catálogo", value: summary.catalogViews },
-          { label: "Cliques em produto", value: summary.productClicks },
-          { label: "Conversas iniciadas", value: summary.conversationsStarted },
+          { label: "Visitas no cartão", value: summary.profileViews, icon: Eye, text: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20 hover:border-blue-500/40" },
+          { label: "Visitas no catálogo", value: summary.catalogViews, icon: LayoutGrid, text: "text-purple-600 dark:text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20 hover:border-purple-500/40" },
+          { label: "Cliques em produto", value: summary.productClicks, icon: MousePointerClick, text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20 hover:border-amber-500/40" },
+          { label: "Conversas iniciadas", value: summary.conversationsStarted, icon: MessageCircle, text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20 hover:border-emerald-500/40" },
         ].map((kpi) => (
-          <div key={kpi.label} style={card}>
-            <p className="text-sm font-medium" style={{ color: "var(--dash-text-secondary)" }}>
+          <div key={kpi.label} className={`rounded-3xl border ${kpi.border} ${kpi.bg} p-6 relative overflow-hidden flex flex-col hover:shadow-lg transition-all group`}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`rounded-lg ${kpi.bg} ${kpi.text} p-2 group-hover:scale-110 transition-transform bg-white/50 dark:bg-black/20`}>
+                <kpi.icon size={20} />
+              </div>
+            </div>
+            <p className={`text-sm font-bold ${kpi.text} mb-1 opacity-80`}>
               {kpi.label}
             </p>
-            <p className="mt-3 text-3xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+            <p className={`text-4xl font-black ${kpi.text}`}>
               {kpi.value}
             </p>
           </div>
@@ -226,79 +231,98 @@ export default async function AnalyticsPage(props: {
       </section>
 
       {/* Funil */}
-      <section className="mt-8 rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-            Funil de conversão
-          </h2>
-          <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-            Entenda como as visitas se transformam em conversas.
-          </p>
+      <section className="mt-8 rounded-3xl border border-[var(--dash-border)] p-6 md:p-8 shadow-sm bg-[var(--dash-surface)]">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="rounded-lg bg-zinc-500/10 p-2 text-zinc-500">
+            <Filter size={20} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+              Funil de conversão
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+              Entenda como as visitas se transformam em conversas.
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            { label: "Cartão → Catálogo", rate: rateProfileToCatalog, sub: `${summary.catalogViews} de ${summary.profileViews}` },
-            { label: "Catálogo → Produto", rate: rateCatalogToProduct, sub: `${summary.productClicks} de ${summary.catalogViews}` },
-            { label: "Produto → Conversa", rate: rateProductToConversation, sub: `${summary.conversationsStarted} de ${summary.productClicks}` },
+            { label: "Cartão", target: "Catálogo", rate: rateProfileToCatalog, sub: `${summary.catalogViews} de ${summary.profileViews}` },
+            { label: "Catálogo", target: "Produto", rate: rateCatalogToProduct, sub: `${summary.productClicks} de ${summary.catalogViews}` },
+            { label: "Produto", target: "Conversa", rate: rateProductToConversation, sub: `${summary.conversationsStarted} de ${summary.productClicks}` },
           ].map((f) => (
-            <div key={f.label} className="rounded-xl border p-4" style={{ borderColor: "var(--dash-border)" }}>
-              <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>{f.label}</p>
-              <p className="mt-2 text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>{f.rate}</p>
-              <p className="mt-1 text-xs" style={{ color: "var(--dash-text-muted)" }}>{f.sub}</p>
+            <div key={f.label} className="rounded-2xl border border-[var(--dash-border)] p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors bg-zinc-50/50 dark:bg-zinc-900/50 group">
+              <div className="flex items-center gap-2 mb-3 text-sm font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
+                <span>{f.label}</span>
+                <ArrowRight size={14} className="opacity-50 group-hover:translate-x-1 transition-transform" />
+                <span>{f.target}</span>
+              </div>
+              <div className="flex items-end gap-3">
+                <p className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>{f.rate}</p>
+                <p className="text-xs pb-1 font-medium" style={{ color: "var(--dash-text-muted)" }}>{f.sub}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       {/* Conversão por produto */}
-      <section className="mt-8 rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-            Conversão por produto
-          </h2>
-          <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-            Taxa de conversão de interesse (WhatsApp) por produto.
-          </p>
+      <section className="mt-8 rounded-3xl border border-[var(--dash-border)] p-6 md:p-8 shadow-sm bg-[var(--dash-surface)]">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="rounded-lg bg-indigo-500/10 p-2 text-indigo-500">
+            <TrendingUp size={20} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
+              Conversão por produto
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+              Taxa de interesse real (cliques no WhatsApp) por produto.
+            </p>
+          </div>
         </div>
 
         {productConversion.length === 0 ? (
           <div
-            className="rounded-xl border border-dashed p-6 text-sm"
+            className="rounded-2xl border-2 border-dashed p-8 text-center text-sm font-medium"
             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}
           >
             Ainda não há dados suficientes para análise de conversão.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-2xl border border-[var(--dash-border)]">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-zinc-50 dark:bg-zinc-900/50">
                 <tr className="border-b" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}>
-                  <th className="py-2 text-left">Produto</th>
-                  <th className="py-2 text-left">Cliques</th>
-                  <th className="py-2 text-left">WhatsApp</th>
-                  <th className="py-2 text-left">Conversão</th>
+                  <th className="py-3 px-4 text-left font-semibold">Produto</th>
+                  <th className="py-3 px-4 text-left font-semibold">Cliques</th>
+                  <th className="py-3 px-4 text-left font-semibold">WhatsApp</th>
+                  <th className="py-3 px-4 text-left font-semibold">Conversão</th>
                 </tr>
               </thead>
               <tbody>
-                {productConversion.map((item: any) => (
-                  <tr
-                    key={item.product_id}
-                    className="border-b last:border-none"
-                    style={{ borderColor: "var(--dash-border)" }}
-                  >
-                    <td className="py-2 font-medium" style={{ color: "var(--dash-text-primary)" }}>
-                      {item.product_name ?? item.product_id}
-                    </td>
-                    <td className="py-2" style={{ color: "var(--dash-text-secondary)" }}>{item.clicks}</td>
-                    <td className="py-2" style={{ color: "var(--dash-text-secondary)" }}>{item.whatsapp_clicks}</td>
-                    <td className="py-2 font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                      {item.conversion_rate
-                        ? `${Math.round(item.conversion_rate * 100)}%`
-                        : "0%"}
-                    </td>
-                  </tr>
-                ))}
+                {productConversion.map((item: any) => {
+                  const rateNum = item.conversion_rate ? Math.round(item.conversion_rate * 100) : 0;
+                  return (
+                    <tr
+                      key={item.product_id}
+                      className="border-b last:border-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                      style={{ borderColor: "var(--dash-border)" }}
+                    >
+                      <td className="py-3 px-4 font-bold" style={{ color: "var(--dash-text-primary)" }}>
+                        {item.product_name ?? item.product_id}
+                      </td>
+                      <td className="py-3 px-4 font-medium" style={{ color: "var(--dash-text-secondary)" }}>{item.clicks}</td>
+                      <td className="py-3 px-4 font-medium" style={{ color: "var(--dash-text-secondary)" }}>{item.whatsapp_clicks}</td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${rateNum > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400'}`}>
+                          {rateNum}%
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
