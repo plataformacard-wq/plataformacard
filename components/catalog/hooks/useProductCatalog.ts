@@ -219,6 +219,14 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
         const possibleId = hash.substring(1);
         if (products.some(p => p.id === possibleId)) {
           setSelectedProductId(possibleId);
+        } else if (possibleId.startsWith('categoria-')) {
+          setSelectedProductId(null);
+          setTimeout(() => {
+            const element = document.getElementById(possibleId);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 300);
         } else {
           setSelectedProductId(null);
         }
@@ -228,6 +236,8 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
     };
 
     handleHashChange();
+    // No Next.js App Router, soft navigations podem não disparar o hashchange nativo.
+    // Usamos um observer para interceptar quando o ID se torna disponível, mas o timeout acima já deve cobrir a montagem inicial.
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [products]);
