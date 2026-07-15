@@ -67,6 +67,9 @@ export default function ProfileIdentitySection(props: any) {
 
   const canEditBasicInfo = granularPermissions?.profile?.basic_info ?? true;
   const canEditAvatar = granularPermissions?.profile?.avatar ?? true;
+  const canEditMessagesWhenClosed = granularPermissions?.profile?.messages_when_closed ?? true;
+  const canEditRedirectLeads = granularPermissions?.profile?.redirect_leads ?? true;
+  const canEditRecess = granularPermissions?.profile?.recess ?? true;
 
 
   function handleDayToggle(day: keyof BusinessHours["schedule"]) {
@@ -321,13 +324,16 @@ export default function ProfileIdentitySection(props: any) {
                     
                     <div className="mt-4 flex items-center justify-between bg-[var(--dash-bg)] p-3 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
                       <div>
-                        <p className="text-[13px] font-bold" style={{ color: "var(--dash-text-primary)" }}>Receber mensagens fora do horário?</p>
+                        <p className="text-[13px] font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                          Receber mensagens fora do horário? {!canEditMessagesWhenClosed && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}
+                        </p>
                         <p className="text-[11px] text-[var(--dash-text-muted)] mt-0.5">Se desligado, bloqueia o botão quando fechado.</p>
                       </div>
                       <button 
                         type="button"
+                        disabled={!canEditMessagesWhenClosed}
                         onClick={() => setAcceptsMessagesWhenClosed(!acceptsMessagesWhenClosed)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${acceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed ${acceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${acceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
@@ -387,18 +393,21 @@ export default function ProfileIdentitySection(props: any) {
                 </div>
 
                 <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-                  <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${redirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+                  <label className={`flex items-start gap-3 p-4 rounded-2xl border transition-all ${redirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'} ${canEditRedirectLeads ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'}`}>
                     <div className="mt-0.5">
                       <input 
                         type="checkbox" 
                         checked={redirectLeads} 
+                        disabled={!canEditRedirectLeads}
                         onChange={e => setRedirectLeads(e.target.checked)} 
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-70 disabled:cursor-not-allowed" 
                       />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Redirecionar Cliente (Em caso de Pausa)</span>
+                        <span className="text-xs font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                          Redirecionar Cliente (Em caso de Pausa) {!canEditRedirectLeads && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}
+                        </span>
                       </div>
                       <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)]">
                         Se ativado, quando este vendedor for marcado como Inativo (pausado), os clientes que acessarem o link dele serão redirecionados para a lista de consultores ativos da loja, evitando a perda do lead.
@@ -411,24 +420,28 @@ export default function ProfileIdentitySection(props: any) {
                 <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
                   <div className="flex items-center gap-2 mb-3">
                     <Calendar size={16} className="text-purple-500" />
-                    <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Programar Recesso Temporário</span>
+                    <span className="text-xs font-bold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
+                      Programar Recesso Temporário {!canEditRecess && <ShieldCheck size={12} className="text-[var(--dash-text-muted)]" />}
+                    </span>
                   </div>
                   
-                  <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${recessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+                  <label className={`flex items-start gap-3 p-4 rounded-2xl border transition-all ${recessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'} ${canEditRecess ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'}`}>
                     <div className="mt-0.5">
                       <input 
                         type="checkbox" 
                         checked={recessActive} 
+                        disabled={!canEditRecess}
                         onChange={e => {
                           const val = e.target.checked;
                           setRecessActive(val);
                           if (val) {
-                            setIsAvailable(false);
-                            setRedirectLeads(true);
+                            if (canEditRedirectLeads) {
+                              setRedirectLeads(true);
+                            }
                             if (recessDays === 0 && recessHours === 0) setRecessDays(7);
                           }
                         }} 
-                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500" 
+                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 disabled:opacity-70 disabled:cursor-not-allowed" 
                       />
                     </div>
                     <div className="flex-1">
@@ -448,21 +461,23 @@ export default function ProfileIdentitySection(props: any) {
                             type="number" 
                             min="0"
                             max="365"
+                            disabled={!canEditRecess}
                             value={recessDays} 
                             onChange={e => setRecessDays(Math.max(0, parseInt(e.target.value) || 0))}
-                            className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
+                            className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
                             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Horas Adicionais</label>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Horas de Recesso</label>
                           <input 
                             type="number" 
                             min="0"
                             max="23"
+                            disabled={!canEditRecess}
                             value={recessHours} 
                             onChange={e => setRecessHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
-                            className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
+                            className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
                             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                           />
                         </div>

@@ -295,6 +295,9 @@ export type GranularPermissions = {
     basic_info?: boolean;
     avatar?: boolean;
     password?: boolean;
+    messages_when_closed?: boolean;
+    redirect_leads?: boolean;
+    recess?: boolean;
   };
 };
 

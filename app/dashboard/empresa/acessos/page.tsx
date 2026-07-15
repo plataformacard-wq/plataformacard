@@ -97,7 +97,7 @@ export default function GerenciarAcessosPage() {
         catalog: { create: true, edit: true, delete: true, bulk: true, settings: true },
         company: { hours: true, seo: true, domain: true },
         analytics: { general: true, financial: true },
-        profile: { basic_info: true, avatar: true, password: true }
+        profile: { basic_info: true, avatar: true, password: true, messages_when_closed: true, redirect_leads: true, recess: true }
       };
     } else if (presetName === 'intermediario') {
       updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: true, dash_access_profile: true };
@@ -105,7 +105,7 @@ export default function GerenciarAcessosPage() {
         catalog: { create: true, edit: true, delete: false, bulk: true, settings: false },
         company: { hours: true, seo: false, domain: false },
         analytics: { general: true, financial: false },
-        profile: { basic_info: true, avatar: true, password: false }
+        profile: { basic_info: true, avatar: true, password: false, messages_when_closed: true, redirect_leads: false, recess: false }
       };
     } else if (presetName === 'minimo') {
       updates = { dash_access_catalog: true, dash_access_analytics: true, dash_access_company: false, dash_access_profile: true };
@@ -113,7 +113,7 @@ export default function GerenciarAcessosPage() {
         catalog: { create: false, edit: false, delete: false, bulk: false, settings: false },
         company: { hours: false, seo: false, domain: false },
         analytics: { general: true, financial: false },
-        profile: { basic_info: false, avatar: false, password: false }
+        profile: { basic_info: false, avatar: false, password: false, messages_when_closed: false, redirect_leads: false, recess: false }
       };
     }
 

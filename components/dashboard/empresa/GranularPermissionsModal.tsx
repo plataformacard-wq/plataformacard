@@ -42,6 +42,9 @@ const MODULE_OPTIONS = {
     { key: "basic_info", label: "Edição de Dados Básicos (Nome, Contato)" },
     { key: "avatar", label: "Edição de Foto de Perfil (Avatar)" },
     { key: "password", label: "Alteração de Senha" },
+    { key: "messages_when_closed", label: "Configurar Recebimento de Mensagens Fechado" },
+    { key: "redirect_leads", label: "Configurar Redirecionamento de Clientes (Leads)" },
+    { key: "recess", label: "Programar Recesso Temporário" },
   ]
 };
 
