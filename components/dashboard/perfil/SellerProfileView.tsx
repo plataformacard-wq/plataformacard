@@ -104,7 +104,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
           )}
 
           {view === "security" && (
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
               {/* Ocultamos intencionalmente a parte de Nome de Conta, Email e Domínio para o vendedor,
                   mantendo apenas a troca de senha e logout de sessões. 
                   Isso pode ser feito passando propriedades vazias ou criando uma nova interface,
