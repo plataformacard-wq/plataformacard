@@ -156,6 +156,7 @@ export default function VendedoresClient({
   const [formBio, setFormBio] = useState("");
   const [formWhatsapp, setFormWhatsapp] = useState("");
   const [formSlug, setFormSlug] = useState("");
+  const [formRole, setFormRole] = useState("seller");
   const [formAvatar, setFormAvatar] = useState<string | null>(null);
   const [formAvatarFile, setFormAvatarFile] = useState<File | null>(null);
   const [formPublicBanner, setFormPublicBanner] = useState<string | null>(null);
@@ -284,7 +285,7 @@ export default function VendedoresClient({
     setTimeout(() => setView('list'), 2000);
   }
 
-  function handleOpenForm(seller?: Seller) {
+  function handleOpenForm(seller?: Seller, initialRole: string = "seller") {
     setMessage("");
 
     // Guard de limite de vendedores (somente para novos cadastros)
@@ -303,6 +304,7 @@ export default function VendedoresClient({
       setFormBio(seller.bio || "");
       setFormWhatsapp(seller.whatsapp ? formatWhatsApp(seller.whatsapp) : "");
       setFormSlug(seller.slug || "");
+      setFormRole(seller.role || "seller");
       setFormAvatar(seller.avatar_url || null);
       setFormPublicBanner(seller.public_banner_url || null);
       setFormCanCustomize(seller.can_customize_hours ?? false);
@@ -339,6 +341,7 @@ export default function VendedoresClient({
       setFormBio("");
       setFormWhatsapp("");
       setFormSlug("");
+      setFormRole(initialRole);
       setFormAvatar(null);
       setFormAvatarFile(null);
       setFormPublicBanner(null);
@@ -377,6 +380,7 @@ export default function VendedoresClient({
       formData.append("jobTitle", formJobTitle);
       formData.append("bio", formBio);
       formData.append("whatsapp", formWhatsapp.replace(/\D/g, ""));
+      formData.append("role", formRole);
       formData.append("whatsappTemplate", formWhatsappTemplate);
       formData.append("redirectLeads", String(formRedirectLeads));
       formData.append("hidePrices", String(formHidePrices));
@@ -446,6 +450,7 @@ export default function VendedoresClient({
         bio: formBio,
         whatsapp: formWhatsapp.replace(/\D/g, ""),
         slug: formSlug,
+        role: formRole,
         avatar_url: finalAvatarUrl,
         can_customize_hours: formCanCustomize,
         custom_business_hours: formHours,
@@ -545,6 +550,14 @@ export default function VendedoresClient({
                   <UserPlus size={18} />
                   Novo Colaborador
                 </button>
+                <button 
+                  onClick={() => handleOpenForm(undefined, "manager")}
+                  className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  style={{ background: "var(--dash-primary-light)", color: "var(--dash-primary)" }}
+                >
+                  <ShieldCheck size={18} />
+                  Novo Gerente
+                </button>
               </div>
             </div>
 
@@ -562,7 +575,7 @@ export default function VendedoresClient({
 
             <div className="space-y-4">
               {vendedores
-                .filter(v => v.role === 'seller')
+                .filter(v => v.role === 'seller' || v.role === 'manager')
                 .filter(v => {
                   const query = searchQuery.toLowerCase();
                   return (
@@ -590,7 +603,14 @@ export default function VendedoresClient({
                       <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-white shadow-sm ${v.is_available ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-lg truncate" style={{ color: "var(--dash-text-primary)" }}>{v.full_name || "Sem nome"}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-lg truncate" style={{ color: "var(--dash-text-primary)" }}>{v.full_name || "Sem nome"}</h4>
+                        {v.role === 'manager' && (
+                          <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            Gerente
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-[var(--dash-text-muted)] truncate mb-1 pr-2" title={v.bio || ""}>
                         {v.bio || "Consultor de Vendas"}
                       </p>
@@ -723,6 +743,8 @@ export default function VendedoresClient({
             setFormHidePrices={setFormHidePrices}
             formSlug={formSlug}
             setFormSlug={setFormSlug}
+            formRole={formRole}
+            setFormRole={setFormRole}
             saving={saving}
             handleSaveSeller={handleSave}
             customDomain={customDomain}

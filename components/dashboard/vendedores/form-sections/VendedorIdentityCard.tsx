@@ -120,7 +120,7 @@ export function VendedorIdentityCard(props: any) {
         <div className="flex-1 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Vendedor <span className="text-red-500">*</span></label>
+              <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Membro <span className="text-red-500">*</span></label>
               <input 
                 type="text" value={formName} onChange={e => setFormName(e.target.value)}
                 className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
@@ -128,7 +128,20 @@ export function VendedorIdentityCard(props: any) {
               />
             </div>
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Função na Empresa</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nível de Acesso (Cargo)</label>
+              <div className="relative">
+                <select 
+                  value={props.formRole} onChange={e => props.setFormRole(e.target.value)}
+                  className="dash-select w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                  style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
+                >
+                  <option value="seller">Colaborador</option>
+                  <option value="manager">Gerente</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Função Exibida (Pública)</label>
               <input 
                 type="text" value={formJobTitle} onChange={e => setFormJobTitle(e.target.value)}
                 placeholder="Ex: Consultor de Vendas"

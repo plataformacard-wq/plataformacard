@@ -97,6 +97,7 @@ export async function createSeller(formData: FormData) {
   const hidePrices = formData.get("hidePrices") === "true";
   const acceptsMessagesWhenClosed = formData.get("acceptsMessagesWhenClosed") === "true";
   const publicBannerUrl = formData.get("publicBannerUrl") as string;
+  const role = (formData.get("role") as string) || "seller";
   const password = crypto.randomUUID();
   const dashAccessProfile = true;
 
@@ -187,7 +188,7 @@ export async function createSeller(formData: FormData) {
       whatsapp: whatsapp,
       avatar_url: avatarUrl,
       organization_id: activeOrgId,
-      role: "seller",
+      role: role,
       dash_access_catalog: dashAccessCatalog,
       dash_access_analytics: dashAccessAnalytics,
       dash_access_company: dashAccessCompany,
