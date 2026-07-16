@@ -5,8 +5,8 @@ import { PLAN_LIMITS } from "@/lib/plans";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Vendedores | PlataformaShop",
-  description: "Gerencie sua equipe de vendedores e permissões.",
+  title: "Colaboradores | PlataformaShop",
+  description: "Gerencie sua equipe de colaboradores e permissões.",
 };
 
 export default async function VendedoresPage() {

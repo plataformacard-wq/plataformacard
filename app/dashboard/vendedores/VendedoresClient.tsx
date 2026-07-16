@@ -290,7 +290,7 @@ export default function VendedoresClient({
     // Guard de limite de vendedores (somente para novos cadastros)
     if (!seller && sellerLimit > 0 && sellerCount >= sellerLimit) {
       setMessage(
-        `Limite atingido: seu plano permite ${sellerLimit} vendedor${sellerLimit !== 1 ? 'es' : ''}. Faça upgrade para continuar.`
+        `Limite atingido: seu plano permite ${sellerLimit} colaborador${sellerLimit !== 1 ? 'es' : ''}. Faça upgrade para continuar.`
       );
       return;
     }
@@ -515,7 +515,7 @@ export default function VendedoresClient({
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Vendedores</h1>
+                <h1 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Colaboradores</h1>
                 <p className="text-sm mt-1" style={{ color: "var(--dash-text-secondary)" }}>
                   Gerencie a ficha completa e as permissões da sua equipe.
                 </p>
@@ -525,7 +525,7 @@ export default function VendedoresClient({
                 {sellerLimit > 0 && (
                   <div className="text-right">
                     <span className={`text-xs font-black ${sellerCount >= sellerLimit ? 'text-red-500' : 'text-emerald-500'}`}>
-                      {sellerCount} / {sellerLimit} vendedores
+                      {sellerCount} / {sellerLimit} colaboradores
                     </span>
                     <div className="mt-1 h-1.5 w-40 rounded-full bg-[var(--dash-border)] overflow-hidden">
                       <motion.div
@@ -543,7 +543,7 @@ export default function VendedoresClient({
                   style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
                 >
                   <UserPlus size={18} />
-                  Novo Vendedor
+                  Novo Colaborador
                 </button>
               </div>
             </div>

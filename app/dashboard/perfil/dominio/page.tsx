@@ -155,7 +155,7 @@ export default function PerfilDominioPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[var(--dash-text-primary)]">Domínio Próprio</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--dash-text-primary)]">Configurar Domínio</h1>
         <p className="text-sm text-[var(--dash-text-secondary)]">
           Use seu próprio domínio (ex: meucatalogo.com.br) para dar mais credibilidade ao seu negócio.
         </p>

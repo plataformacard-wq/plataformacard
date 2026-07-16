@@ -151,7 +151,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
       if (canHours) companySubItems.push({ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock });
       if (canSeo) companySubItems.push({ href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings });
-      if (canDomain) companySubItems.push({ href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe });
+      if (canDomain) companySubItems.push({ href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Configurar Domínio", icon: Globe });
       if (canAccess) companySubItems.push({ href: "/dashboard/empresa/acessos", label: "Gerenciar Acessos", icon: ShieldCheck });
 
       navLinks.push({ 
@@ -172,7 +172,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       });
 
       if (!isB2C && !isCaaS) {
-        navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
+        navLinks.push({ href: "/dashboard/vendedores", label: "Colaboradores", icon: Users });
       }
 
       if (isAllService) {
@@ -195,7 +195,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
         if (canHours) companySubItems.push({ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock });
         if (canSeo) companySubItems.push({ href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings });
-        if (canDomain) companySubItems.push({ href: "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe });
+        if (canDomain) companySubItems.push({ href: "/dashboard/empresa/dominio", label: "Configurar Domínio", icon: Globe });
 
         if (companySubItems.length > 0) {
           navLinks.push({ 

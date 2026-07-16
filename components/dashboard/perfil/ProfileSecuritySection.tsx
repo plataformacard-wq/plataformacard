@@ -109,7 +109,7 @@ export default function ProfileSecuritySection({
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
-          <Globe size={18} className="text-primary" /> Domínio Próprio
+          <Globe size={18} className="text-primary" /> Configurar Domínio
         </h2>
         <p className="mt-1 text-sm text-[var(--dash-text-muted)] leading-relaxed">
           Configure um domínio personalizado (ex: meu-nome.com.br) para o seu cartão virtual, transmitindo ainda mais profissionalismo.
