@@ -25,7 +25,7 @@ type CategoryCardProps = {
 export default function CategoryCard({ cat, productCount, onEdit, onDelete }: CategoryCardProps) {
   return (
     <div
-      className="group flex flex-col justify-between p-5 rounded-[32px] border transition-all hover:shadow-lg hover:border-primary/30"
+      className="group flex flex-col justify-between p-5 rounded-2xl border transition-all hover:shadow-lg hover:border-primary/30"
       style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
     >
       <div className="flex items-start justify-between mb-2">

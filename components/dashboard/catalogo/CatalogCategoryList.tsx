@@ -86,14 +86,14 @@ export default function CatalogCategoryList({
             <div key={i} className="h-24 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800" />
           ))
         ) : categories.filter(c => c.catalog_id === catalogId).length === 0 ? (
-          <div className="col-span-full p-12 text-center rounded-[32px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+          <div className="col-span-full p-12 text-center rounded-2xl border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
             <p className="text-sm italic" style={{ color: "var(--dash-text-secondary)" }}>Nenhuma categoria cadastrada.</p>
           </div>
         ) : (
           categories.filter(c => c.catalog_id === catalogId).map((cat, idx) => (
             <div
               key={cat.id}
-              className="group flex flex-col justify-between p-5 rounded-[32px] border transition-all hover:shadow-lg hover:border-primary/30"
+              className="group flex flex-col justify-between p-5 rounded-2xl border transition-all hover:shadow-lg hover:border-primary/30"
               style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
             >
               <div className="flex items-start justify-between mb-2">
