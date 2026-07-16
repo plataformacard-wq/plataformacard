@@ -1,10 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import dynamic from "next/dynamic";
-
-const CatalogoClient = dynamic(() => import("./CatalogoClient"), {
-  ssr: false,
-});
+import CatalogoClientWrapper from "./CatalogoClientWrapper";
 
 export default async function Page() {
   const supabase = await createClient();
@@ -28,5 +24,5 @@ export default async function Page() {
     }
   }
 
-  return <CatalogoClient />;
+  return <CatalogoClientWrapper />;
 }

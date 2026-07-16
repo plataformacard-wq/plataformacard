@@ -1,12 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import nextDynamic from "next/dynamic";
+import BulkGridEditorWrapper from "./BulkGridEditorWrapper";
 
 export const dynamic = "force-dynamic";
-
-const BulkGridEditor = nextDynamic(() => import("./BulkGridEditor"), {
-  ssr: false,
-});
 
 export default async function BulkPage() {
   const supabase = await createClient();
@@ -41,7 +37,7 @@ export default async function BulkPage() {
         </p>
       </div>
       
-      <BulkGridEditor />
+      <BulkGridEditorWrapper />
     </div>
   );
 }
