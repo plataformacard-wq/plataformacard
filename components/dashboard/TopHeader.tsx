@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useGlobalBranding } from "@/components/providers/GlobalBrandingProvider";
+import { getAccessStatusName, getAccessStatusColor } from "@/lib/utils/permissions";
 
 interface TopHeaderProps {
   nome: string;
@@ -271,8 +272,8 @@ export function TopHeader({
                  role === "seller" ? (jobTitle || "Vendedor") : role}
               </span>
               {role === 'seller' && (
-                <span className="mt-1.5 inline-flex items-center rounded px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                  Acesso Colaborador
+                <span className={`mt-1.5 inline-flex items-center rounded px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest border ${getAccessStatusColor(getAccessStatusName(granularPermissions))}`}>
+                  {getAccessStatusName(granularPermissions)}
                 </span>
               )}
             </div>
