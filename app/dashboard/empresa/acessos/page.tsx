@@ -118,9 +118,21 @@ export default function GerenciarAcessosPage() {
       };
     }
 
-    // 1. Atualizar Toggles Gerais
+    // 1. Sincronizar Toggles Gerais: Se nenhum acesso granular estiver marcado no preset, desliga a chave principal
+    if (newPermissions.catalog !== undefined) {
+      updates.dash_access_catalog = Object.values(newPermissions.catalog).some(v => v === true);
+    }
+    if (newPermissions.analytics !== undefined) {
+      updates.dash_access_analytics = Object.values(newPermissions.analytics).some(v => v === true);
+    }
+    if (newPermissions.company !== undefined) {
+      updates.dash_access_company = Object.values(newPermissions.company).some(v => v === true);
+    }
+    if (newPermissions.profile !== undefined) {
+      updates.dash_access_profile = Object.values(newPermissions.profile).some(v => v === true);
+    }
+
     const resToggle = await updateSeller(sellerId, updates);
-    // 2. Atualizar Granulares
     const resGranular = await updateSellerGranularPermissions(sellerId, newPermissions);
 
     if (resToggle.error || resGranular.error) {
@@ -138,11 +150,19 @@ export default function GerenciarAcessosPage() {
     if (!granularModal) return;
     setGranularSaving(true);
     
+    const moduleKey = granularModal.module;
+    const toggleField = `dash_access_${moduleKey === 'company' ? 'company' : moduleKey === 'profile' ? 'profile' : moduleKey === 'analytics' ? 'analytics' : 'catalog'}` as const;
+    const isAnyPermissionEnabled = Object.values(newPermissions[moduleKey] || {}).some(v => v === true);
+    
+    if (!isAnyPermissionEnabled) {
+      await updateSeller(granularModal.seller.id, { [toggleField]: false });
+    }
+    
     const result = await updateSellerGranularPermissions(granularModal.seller.id, newPermissions);
     if (result.error) {
       setMessage({ type: "error", text: `Erro: ${result.error}` });
     } else {
-      setSellers(prev => prev.map(s => s.id === granularModal.seller.id ? { ...s, granular_permissions: newPermissions } : s));
+      setSellers(prev => prev.map(s => s.id === granularModal.seller.id ? { ...s, granular_permissions: newPermissions, ...( !isAnyPermissionEnabled ? { [toggleField]: false } : {} ) } : s));
       setMessage({ type: "success", text: "Permissões granulares salvas!" });
       setGranularModal(null);
     }
