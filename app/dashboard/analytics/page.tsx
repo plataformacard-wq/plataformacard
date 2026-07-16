@@ -43,7 +43,7 @@ export default async function AnalyticsPage(props: {
 
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
-    .select("id, organization_id, role")
+    .select("id, organization_id, role, dash_access_analytics")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -56,6 +56,10 @@ export default async function AnalyticsPage(props: {
       organization_id: user.user_metadata?.organization_id || null,
       role: ""
     } as any;
+  }
+
+  if (profile?.role === "seller" && !profile?.dash_access_analytics) {
+    redirect("/dashboard/perfil");
   }
 
   const { cookies } = await import("next/headers");

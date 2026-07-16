@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getMyProfile } from "@/lib/admin-actions";
+import { redirect } from "next/navigation";
 import CatalogManagerClient from "./CatalogManagerClient";
 
 export default async function CatalogManagerPage() {
@@ -9,6 +10,14 @@ export default async function CatalogManagerPage() {
 
   if (!profile) {
     return <div>Perfil não encontrado.</div>;
+  }
+
+  if (profile.role === "seller") {
+    const catalogPerms = (profile.granular_permissions as any)?.catalog || {};
+    const canManageProducts = catalogPerms.create !== false || catalogPerms.edit !== false || catalogPerms.delete !== false;
+    if (!canManageProducts) {
+      redirect("/dashboard/perfil");
+    }
   }
 
   const orgId = profile.organization_id;

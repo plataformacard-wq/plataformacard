@@ -1,68 +1,164 @@
 import { NextResponse } from 'next/server';
-import { updateOrganizationPlan } from '@/lib/admin-actions';
-// import crypto from 'crypto';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { revalidatePath } from 'next/cache';
+import crypto from 'crypto';
 
 /**
- * Esqueleto da Rota de Webhook para Pagamentos
- * Esta rota será chamada pelo Gateway de Pagamentos (Stripe, Kiwify, Mercado Pago)
- * quando uma assinatura for criada, renovada ou cancelada.
+ * Rota de Webhook para Pagamentos (Stripe & Kiwify)
+ * Esta rota é chamada pelos gateways de pagamento.
+ * Ela possui validação de assinatura criptográfica (HMAC-SHA1 para Kiwify) e validação por token secreto.
  */
 export async function POST(request: Request) {
   try {
+    const secretKey = process.env.PAYMENT_WEBHOOK_SECRET;
+
+    // Proteção Fail-Safe: Se a chave secreta de webhooks não estiver configurada no servidor,
+    // a rota falha por segurança em produção para evitar bypasses de R$ 0.
+    if (!secretKey && process.env.NODE_ENV === 'production') {
+      console.error("❌ [WEBHOOK ERROR]: PAYMENT_WEBHOOK_SECRET não está configurado no servidor.");
+      return NextResponse.json({ error: 'Webhook signature key not configured' }, { status: 500 });
+    }
+
     const body = await request.text();
-    // Exemplo de como validar a assinatura do webhook (comum no Stripe/Kiwify)
-    // const signature = request.headers.get('webhook-signature');
-    // if (!isValidSignature(body, signature, process.env.WEBHOOK_SECRET)) {
-    //   return NextResponse.json({ error: 'Assinatura Inválida' }, { status: 401 });
-    // }
+    const url = new URL(request.url);
+
+    // 1. Obter assinaturas/tokens enviados
+    const kiwifySignature = request.headers.get('x-kiwify-signature');
+    const querySecret = url.searchParams.get('secret');
+    const bypassToken = url.searchParams.get('bypass');
+
+    let isAuthorized = false;
+
+    // A. Bypass para desenvolvimento local (apenas fora de produção)
+    if (process.env.NODE_ENV === 'development' && bypassToken === 'true') {
+      console.warn("⚠️ [WEBHOOK]: Bypass de segurança ativo no ambiente de Desenvolvimento Local.");
+      isAuthorized = true;
+    }
+
+    // B. Validação 1: Token secreto na URL (Query Parameter)
+    // Muito útil e 100% seguro se configurado via HTTPS
+    if (!isAuthorized && secretKey && querySecret === secretKey) {
+      isAuthorized = true;
+    }
+
+    // C. Validação 2: Assinatura Kiwify HMAC-SHA1 no Header
+    if (!isAuthorized && secretKey && kiwifySignature) {
+      try {
+        const hmac = crypto.createHmac('sha1', secretKey);
+        hmac.update(body);
+        const computedSignature = hmac.digest('hex');
+
+        const signatureBuffer = Buffer.from(kiwifySignature, 'utf-8');
+        const computedBuffer = Buffer.from(computedSignature, 'utf-8');
+
+        // Comparação segura contra timing attacks (evita erros se os tamanhos forem diferentes)
+        if (signatureBuffer.length === computedBuffer.length) {
+          isAuthorized = crypto.timingSafeEqual(computedBuffer, signatureBuffer);
+        }
+      } catch (err) {
+        console.error("Erro na verificação HMAC da assinatura Kiwify:", err);
+      }
+    }
+
+    // Se nenhuma das formas de autenticação for válida, rejeita
+    if (!isAuthorized) {
+      console.warn("🚫 [WEBHOOK UNAUTHORIZED]: Tentativa de chamada de webhook sem assinatura válida.");
+      return NextResponse.json({ error: 'Assinatura Inválida ou Ausente' }, { status: 401 });
+    }
 
     const event = JSON.parse(body);
 
-    // Exemplo de mapeamento de eventos
-    if (event.type === 'checkout.session.completed' || event.type === 'subscription_created') {
-      
-      // O orgId geralmente é passado via metadata na criação do link de pagamento
-      const orgId = event.data.object.metadata?.org_id;
-      const productOrPlanCode = event.data.object.plan?.id || event.data.object.product_id;
+    // Mapeamento dinâmico de chaves e dados para suportar Stripe e Kiwify
+    const orgId = event.custom_variables?.org_id || 
+                  event.data?.object?.metadata?.org_id || 
+                  event.metadata?.org_id;
 
-      if (!orgId) {
-        console.error("Webhook recebido, mas sem orgId no metadata.");
-        return NextResponse.json({ error: 'Missing orgId' }, { status: 400 });
-      }
+    const productOrPlanCode = event.product_id || 
+                              event.plan?.id || 
+                              event.data?.object?.plan?.id || 
+                              event.data?.object?.product_id;
 
-      // 1. Mapear o código do produto/plano do Gateway para os IDs do nosso Banco
+    if (!orgId) {
+      console.error("Webhook recebido e autenticado, mas sem orgId nos metadados.");
+      return NextResponse.json({ error: 'Missing orgId in metadata' }, { status: 400 });
+    }
+
+    // Verificar se o evento é uma aprovação de pagamento/assinatura
+    const isApprovalEvent = 
+      event.type === 'checkout.session.completed' || 
+      event.type === 'subscription_created' ||
+      event.order_status === 'approved' ||
+      event.status === 'approved' ||
+      event.event === 'order_approved';
+
+    // Verificar se o evento é um cancelamento/estorno/reembolso
+    const isCancellationEvent = 
+      event.type === 'customer.subscription.deleted' ||
+      event.order_status === 'refunded' ||
+      event.order_status === 'charged_back' ||
+      event.status === 'refunded' ||
+      event.status === 'charged_back' ||
+      event.event === 'subscription_canceled';
+
+    // Para evitar falha de autenticação "Não autorizado" de verifySuperAdmin,
+    // fazemos a atualização direta no banco de dados com createAdminClient (Service Role Key)
+    const supabase = createAdminClient();
+
+    if (isApprovalEvent) {
+      // Mapear o código do produto do Gateway para os IDs internos do Banco
       let internalPlanId = null;
       if (productOrPlanCode === 'prod_basic_100') {
         internalPlanId = "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62"; // BASIC
       } else if (productOrPlanCode === 'prod_enterprise_0') {
         internalPlanId = "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26"; // ENTERPRISE
       } else {
-        internalPlanId = "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0"; // START (Fallback)
+        internalPlanId = "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0"; // START / PRO (Fallback)
       }
 
-      // 2. Atualiza a organização automaticamente
-      const result = await updateOrganizationPlan(orgId, internalPlanId);
+      const { error: dbError } = await supabase
+        .from("organizations")
+        .update({ plan_id: internalPlanId })
+        .eq("id", orgId);
       
-      if (result.error) {
-        console.error("Falha ao atualizar plano via webhook:", result.error);
+      if (dbError) {
+        console.error(`Erro ao atualizar plano para a org ${orgId} via webhook:`, dbError);
         return NextResponse.json({ error: 'Failed to update plan' }, { status: 500 });
       }
 
-      console.log(`✅ [WEBHOOK] Plano da Organização ${orgId} atualizado para ${internalPlanId}`);
+      try {
+        revalidatePath("/main/clientes");
+      } catch (cacheErr) {
+        console.warn("Erro ao revalidar cache:", cacheErr);
+      }
+
+      console.log(`✅ [WEBHOOK SUCCESS]: Plano da Org ${orgId} atualizado para ${internalPlanId}`);
       return NextResponse.json({ received: true, status: 'success' });
     }
 
-    // Se for cancelamento de assinatura (downgrade para Free/Start)
-    if (event.type === 'customer.subscription.deleted') {
-      const orgId = event.data.object.metadata?.org_id;
-      if (orgId) {
-        const fallbackPlanId = "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0"; // START
-        await updateOrganizationPlan(orgId, fallbackPlanId);
-        console.log(`⚠️ [WEBHOOK] Assinatura cancelada. Org ${orgId} sofreu downgrade para START.`);
+    if (isCancellationEvent) {
+      const fallbackPlanId = "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0"; // START / PRO (Downgrade)
+      
+      const { error: dbError } = await supabase
+        .from("organizations")
+        .update({ plan_id: fallbackPlanId })
+        .eq("id", orgId);
+      
+      if (dbError) {
+        console.error(`Erro ao efetuar downgrade de plano para a org ${orgId} via webhook:`, dbError);
+        return NextResponse.json({ error: 'Failed to downgrade plan' }, { status: 500 });
       }
+
+      try {
+        revalidatePath("/main/clientes");
+      } catch (cacheErr) {
+        console.warn("Erro ao revalidar cache:", cacheErr);
+      }
+
+      console.log(`⚠️ [WEBHOOK DOWNGRADE]: Assinatura cancelada/reembolsada. Org ${orgId} alterada para START.`);
+      return NextResponse.json({ received: true, status: 'downgraded' });
     }
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true, info: 'No action taken for this event type' });
   } catch (error) {
     console.error("Erro no processamento do webhook:", error);
     return NextResponse.json({ error: 'Webhook Handler Failed' }, { status: 500 });

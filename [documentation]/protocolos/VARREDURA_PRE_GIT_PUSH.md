@@ -26,6 +26,11 @@ Este protocolo DEVE ser executado integralmente antes de qualquer `git push` par
 - [x] **Documentação:** Atualizar a Seção 7 do `DOCUMENTATION.md`. (OK).
 - [x] **Pendências:** Mover tarefas concluídas para o log. (OK).
 
+## 6. Auditoria de Segurança (Security Guardrails)
+- [x] **Políticas RLS do Supabase:** Garantir que novas tabelas possuam RLS ativo e que consultas públicas não exponham chaves de API, senhas ou tokens confidenciais (conforme regras do [PROTOCOLO_SEGURANCA.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/[documentation]/protocolos/PROTOCOLO_SEGURANCA.md)).
+- [x] **Injeção de Prompt:** Garantir que variáveis de inputs em chamadas de IA estejam delimitadas por tags XML e acompanhadas de instruções estritas de isolamento de contexto no prompt do sistema.
+- [x] **Segurança de Webhooks:** Assegurar que endpoints de webhooks validem assinaturas criptográficas (como HMAC-SHA1 da Kiwify) ou query tokens, implementando tratamento fail-safe caso as chaves não estejam configuradas.
+
 ---
 ## 💡 Lições Aprendidas (Post-Mortem de Deploy)
 

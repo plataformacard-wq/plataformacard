@@ -23,6 +23,7 @@ Contém as regras vitais do sistema, fluxos de contingência e métodos de desen
 - `PROTOCOLO_DE_REFATORACAO_DE_MONOLITOS.md`
 - `PROTOCOLO_DESCONTAMINACAO.md`
 - `PROTOCOLO_CLEAR_USER.md`
+- `PROTOCOLO_SEGURANCA.md`
 
 ### 2. `/estrategia`
 Contém a base intelectual de negócio do aplicativo, definições de monetização, responsabilidades de produto e análises de conformidade legal.
@@ -31,6 +32,7 @@ Contém a base intelectual de negócio do aplicativo, definições de monetizaç
 - `PERFIL_PRODUCT_MANAGER.md`
 - `ANALISE_TAG_NFC.md`
 - `RELATORIO_SEGURANCA_LGPD.md`
+- `MANIFESTO_SAAS.md`
 
 ### 3. `/planejamento`
 Contém listas de afazeres atuais, escopos de projetos futuros e documentos para restaurar e sincronizar o estado da IA (Prompts e Walkthroughs).

@@ -18,6 +18,14 @@ export default async function ConfiguracoesPage() {
     .eq("id", user.id)
     .single();
 
+  if (profile?.role === "seller") {
+    const catalogPerms = (profile.granular_permissions as any)?.catalog || {};
+    const canConfig = catalogPerms.settings_general !== false || catalogPerms.settings_behavior !== false || catalogPerms.settings_banners !== false;
+    if (!canConfig) {
+      redirect("/dashboard/catalogo");
+    }
+  }
+
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
