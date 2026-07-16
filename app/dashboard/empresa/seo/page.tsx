@@ -70,7 +70,7 @@ export default function SEOPage() {
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("organization_id, role")
+          .select("organization_id, role, granular_permissions")
           .eq("user_id", user.id)
           .maybeSingle();
 
