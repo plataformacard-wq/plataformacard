@@ -46,6 +46,48 @@ export default function GerenciarAcessosPage() {
     setLoading(false);
   }
 
+  function matchesPreset(perms: any, preset: any) {
+    if (!perms || !preset) return false;
+    for (const module of ['catalog', 'company', 'analytics', 'profile']) {
+      for (const key of Object.keys(preset[module] || {})) {
+        if ((perms[module]?.[key] ?? false) !== preset[module][key]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function getAccessStatus(seller: SellerAccess) {
+    const p = seller.granular_permissions;
+    if (!p) return "Acesso Analítico";
+
+    const total = {
+      catalog: { create: true, edit: true, delete: true, bulk: true, settings_general: true, settings_behavior: true, settings_banners: true, settings_status: true },
+      company: { hours: true, seo: true, domain: true },
+      analytics: { general: true, financial: true },
+      profile: { basic_info: true, avatar: true, password: true, messages_when_closed: true, redirect_leads: true, recess: true }
+    };
+    const admin = {
+      catalog: { create: true, edit: true, delete: false, bulk: true, settings_general: true, settings_behavior: false, settings_banners: true, settings_status: false },
+      company: { hours: true, seo: false, domain: false },
+      analytics: { general: true, financial: false },
+      profile: { basic_info: true, avatar: true, password: false, messages_when_closed: true, redirect_leads: false, recess: false }
+    };
+    const analitico = {
+      catalog: { create: false, edit: false, delete: false, bulk: false, settings_general: false, settings_behavior: false, settings_banners: false, settings_status: false },
+      company: { hours: false, seo: false, domain: false },
+      analytics: { general: true, financial: false },
+      profile: { basic_info: false, avatar: false, password: false, messages_when_closed: false, redirect_leads: false, recess: false }
+    };
+
+    if (matchesPreset(p, total)) return "Acesso Total Gestor";
+    if (matchesPreset(p, admin)) return "Acesso Administrativo";
+    if (matchesPreset(p, analitico)) return "Acesso Analítico";
+
+    return "Acesso Personalizado";
+  }
+
   async function handleToggle(sellerId: string, field: 'dash_access_catalog' | 'dash_access_analytics' | 'dash_access_company' | 'dash_access_profile', currentValue: boolean) {
     setUpdatingId(sellerId);
     setMessage({ type: "", text: "" });
@@ -214,7 +256,8 @@ export default function GerenciarAcessosPage() {
             <thead className="bg-[var(--dash-bg)] border-b" style={{ borderColor: "var(--dash-border)" }}>
               <tr>
                 <th className="px-6 py-4 font-semibold" style={{ color: "var(--dash-text-secondary)" }}>Vendedor</th>
-                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Perfil de Acesso</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Status</th>
+                <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Preset</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Cadastro</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Catálogo</th>
                 <th className="px-6 py-4 font-semibold text-center" style={{ color: "var(--dash-text-secondary)" }}>Analytics</th>
@@ -234,7 +277,7 @@ export default function GerenciarAcessosPage() {
                 </tr>
               ) : filteredSellers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>
+                  <td colSpan={8} className="px-6 py-8 text-center text-sm" style={{ color: "var(--dash-text-muted)" }}>
                     Nenhum vendedor encontrado.
                   </td>
                 </tr>
@@ -258,17 +301,28 @@ export default function GerenciarAcessosPage() {
                     </td>
                     
                     <td className="px-6 py-4 text-center">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
+                        getAccessStatus(seller) === "Acesso Total Gestor" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                        getAccessStatus(seller) === "Acesso Administrativo" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                        getAccessStatus(seller) === "Acesso Analítico" ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                        "bg-zinc-500/10 text-zinc-500 dark:text-zinc-400 border-zinc-500/20"
+                      }`}>
+                        {getAccessStatus(seller)}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
                       <select
                         onChange={(e) => handleApplyPreset(seller.id, e.target.value)}
                         value=""
                         disabled={updatingId === seller.id}
-                        className="dash-select rounded-lg border pl-3 py-1.5 text-xs bg-[var(--dash-surface)]"
+                        className="dash-select rounded-2xl border pl-3 py-1.5 text-xs bg-[var(--dash-surface)]"
                         style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       >
                         <option value="" disabled>Aplicar Preset...</option>
-                        <option value="total">🟢 Acesso Total (Gestor)</option>
-                        <option value="intermediario">🟡 Intermediário</option>
-                        <option value="minimo">🔴 Acesso Mínimo</option>
+                        <option value="total">🟢 Acesso Total Gestor</option>
+                        <option value="intermediario">🔵 Acesso Administrativo</option>
+                        <option value="minimo">🔴 Acesso Analítico</option>
                       </select>
                     </td>
 
@@ -343,7 +397,7 @@ export default function GerenciarAcessosPage() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setPasswordModalSeller(seller)}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-80 transition-opacity"
+                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-80 transition-opacity"
                       >
                         <IdCard size={14} /> Dados de Acesso
                       </button>
