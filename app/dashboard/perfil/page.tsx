@@ -13,15 +13,52 @@ export default function PerfilContent() {
 
   return (
     <div className="relative space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-          {manager.view === "card" ? "Editar Cartão Público" : "Meu Perfil"}
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-          {manager.view === "card" 
-            ? "Gerencie as informações que aparecem para seus clientes." 
-            : "Gerencie seus dados de acesso e informações administrativas."}
-        </p>
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
+            {manager.view === "card" ? "Editar Cartão Público" : "Meu Perfil"}
+          </h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
+            {manager.view === "card" 
+              ? "Gerencie as informações que aparecem para seus clientes." 
+              : "Gerencie seus dados de acesso e informações administrativas."}
+          </p>
+        </div>
+        
+        {/* Badges de Acesso (Apenas para Colaboradores) */}
+        {!manager.loading && manager.role === "seller" && manager.profileAccess && (
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            {((manager.granularPermissions?.catalog?.edit !== false && manager.granularPermissions?.catalog?.create !== false) ||
+              manager.granularPermissions?.analytics?.view !== false ||
+              (manager.granularPermissions?.company?.hours !== false || manager.granularPermissions?.company?.seo !== false) ||
+              manager.granularPermissions?.profile?.basic_info !== false) && (
+              <span className="text-xs font-bold text-[var(--dash-text-muted)] flex items-center gap-1 mr-1">
+                <ShieldCheck size={14} /> Meus Acessos:
+              </span>
+            )}
+            
+            {manager.granularPermissions?.catalog?.edit !== false && manager.granularPermissions?.catalog?.create !== false && (
+              <span className="text-[10px] px-2 py-1 rounded-md font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wider">
+                Catálogo
+              </span>
+            )}
+            {manager.granularPermissions?.analytics?.view !== false && (
+              <span className="text-[10px] px-2 py-1 rounded-md font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wider">
+                Analytics
+              </span>
+            )}
+            {(manager.granularPermissions?.company?.hours !== false || manager.granularPermissions?.company?.seo !== false) && (
+              <span className="text-[10px] px-2 py-1 rounded-md font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wider">
+                Empresa
+              </span>
+            )}
+            {manager.granularPermissions?.profile?.basic_info !== false && (
+              <span className="text-[10px] px-2 py-1 rounded-md font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wider">
+                Perfil
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {manager.loading ? (

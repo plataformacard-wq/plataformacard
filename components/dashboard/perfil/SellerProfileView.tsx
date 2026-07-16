@@ -42,8 +42,8 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="w-full">
+        <div className="w-full">
           {view === "card" && (
             <ProfileIdentitySection 
               view={view}
@@ -201,35 +201,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
           )}
         </div>
 
-        {/* Resumo de Permissões */}
-        <div className="lg:col-span-1">
-          <div
-            className="rounded-2xl border p-6 shadow-sm sticky top-6"
-            style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-          >
-            <h2 className="text-base font-semibold flex items-center gap-2 mb-4" style={{ color: "var(--dash-text-primary)" }}>
-              <ShieldCheck size={18} className="text-primary" /> Meus Acessos
-            </h2>
-            <div className="space-y-4">
-              <PermissionItem 
-                label="Editar Catálogo" 
-                hasPermission={granularPermissions?.catalog?.edit !== false && granularPermissions?.catalog?.create !== false} 
-              />
-              <PermissionItem 
-                label="Ver Analytics" 
-                hasPermission={granularPermissions?.analytics?.view !== false} 
-              />
-              <PermissionItem 
-                label="Gerenciar Empresa" 
-                hasPermission={granularPermissions?.company?.hours !== false || granularPermissions?.company?.seo !== false} 
-              />
-              <PermissionItem 
-                label="Editar Meu Perfil" 
-                hasPermission={granularPermissions?.profile?.basic_info !== false} 
-              />
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
