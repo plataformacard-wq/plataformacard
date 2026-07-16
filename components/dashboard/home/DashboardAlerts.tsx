@@ -25,7 +25,7 @@ export default function DashboardAlerts({
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`p-6 rounded-[32px] border backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
+        className={`p-6 rounded-[27px] border backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
           hasActiveMasterState 
             ? "border-purple-500/20 bg-purple-500/5"
             : hasOwnedMasterState
@@ -100,7 +100,7 @@ export default function DashboardAlerts({
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-6 overflow-hidden rounded-[32px] bg-gradient-to-br from-indigo-600 to-violet-700 p-6 md:p-8 relative"
+          className="mb-6 overflow-hidden rounded-[27px] bg-gradient-to-br from-indigo-600 to-violet-700 p-6 md:p-8 relative"
         >
           <div className="absolute right-0 top-0 w-64 h-64 bg-[var(--dash-surface)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           <div className="relative z-10">
@@ -140,7 +140,7 @@ export default function DashboardAlerts({
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-[32px] border border-red-500/20 bg-red-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+          className="p-6 rounded-[27px] border border-red-500/20 bg-red-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">

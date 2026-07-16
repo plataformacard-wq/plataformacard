@@ -15,6 +15,12 @@ const REPLACEMENTS = [
     replace: 'bg-[var(--dash-surface)]',
     desc: "Substituindo bg-white por bg-[var(--dash-surface)]"
   },
+  // 3. Substituir arredondamentos exagerados ou hardcoded (ex: rounded-[32px]) para o padrão rounded-[27px]
+  {
+    regex: /(?<![a-zA-Z0-9-])rounded-\[\d+px\](?![a-zA-Z0-9-])/g,
+    replace: 'rounded-[27px]',
+    desc: "Padronizando arredondamentos customizados para rounded-[27px]"
+  },
   // 2. Substituir text-black por text-[var(--dash-text-primary)]
   {
     regex: /(?<![a-zA-Z0-9-])text-black(?![a-zA-Z0-9-])/g,

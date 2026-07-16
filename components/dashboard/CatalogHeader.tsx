@@ -69,7 +69,7 @@ export default function CatalogHeader({
       </div>
 
       {!adminCatalogId ? (
-        <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="flex flex-col gap-3 rounded-[27px] border p-6 min-w-[300px] shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">
             <span>Limite de Produtos</span>
             <span className={productLimit > 0 && productUsageCount >= productLimit ? "text-red-500" : "text-emerald-500"}>
@@ -90,7 +90,7 @@ export default function CatalogHeader({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3 rounded-[32px] border p-6 min-w-[300px] shadow-sm bg-purple-500/5 border-purple-500/10" style={{ borderColor: "rgba(168, 85, 247, 0.3)" }}>
+        <div className="flex flex-col gap-3 rounded-[27px] border p-6 min-w-[300px] shadow-sm bg-purple-500/5 border-purple-500/10" style={{ borderColor: "rgba(168, 85, 247, 0.3)" }}>
           <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-purple-500">
             <span>Status do Estoque Master</span>
             <span className="text-purple-500">Ativo</span>

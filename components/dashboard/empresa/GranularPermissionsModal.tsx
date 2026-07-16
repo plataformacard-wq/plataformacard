@@ -80,7 +80,7 @@ export default function GranularPermissionsModal({ sellerName, module, initialPe
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md rounded-[32px] p-8 shadow-2xl border"
+        className="w-full max-w-md rounded-[27px] p-8 shadow-2xl border"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <div className="mb-6 flex items-center gap-4">

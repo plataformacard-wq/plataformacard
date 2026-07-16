@@ -137,7 +137,7 @@ export default function CatalogManagerClient({
   return (
     <div className="flex flex-col gap-6">
       {/* Box de Integração com o Bling */}
-      <div className="rounded-[24px] p-6 border shadow-sm mb-2" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="rounded-[27px] p-6 border shadow-sm mb-2" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>

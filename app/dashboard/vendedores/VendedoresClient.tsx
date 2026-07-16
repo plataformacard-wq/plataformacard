@@ -574,16 +574,16 @@ export default function VendedoresClient({
                 <div 
                   key={v.id} 
                   onClick={() => handleOpenForm(v)}
-                  className="group relative flex flex-col md:flex-row items-center gap-6 p-5 rounded-[32px] border transition-all hover:shadow-xl hover:border-primary/30 cursor-pointer"
+                  className="group relative flex flex-col md:flex-row items-center gap-6 p-5 rounded-[27px] border transition-all hover:shadow-xl hover:border-primary/30 cursor-pointer"
                   style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                 >
                   {/* Foto e Info Principal */}
                   <div className="flex items-center gap-4 w-full md:w-auto md:min-w-[280px] md:max-w-[300px]">
                     <div className="relative flex-shrink-0">
                       {v.avatar_url ? (
-                        <img src={v.avatar_url} className="h-20 w-20 rounded-[24px] object-cover border-2 border-white shadow-md" />
+                        <img src={v.avatar_url} className="h-20 w-20 rounded-[27px] object-cover border-2 border-white shadow-md" />
                       ) : (
-                        <div className="h-20 w-20 rounded-[24px] bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
+                        <div className="h-20 w-20 rounded-[27px] bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
                           {v.full_name?.charAt(0) || "V"}
                         </div>
                       )}
