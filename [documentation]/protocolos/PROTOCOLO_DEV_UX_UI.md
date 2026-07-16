@@ -41,7 +41,7 @@ Para dar o aspecto de software avançado, elementos flutuantes (como Headers fix
 ## 05. Regras de Arredondamento de Cantos (Border Radius)
 Seguindo o design system já estabelecido e aprovado para o aplicativo (Padrão Apple/Premium):
 
-* **Cards Grandes, Painéis, Modais e Blocos de Destaque:** Devem utilizar obrigatoriamente cantos bem arredondados: `rounded-2xl` (ou `rounded-3xl` dependendo da área pública).
+* **Cards Grandes, Painéis, Modais e Blocos de Destaque:** Devem utilizar obrigatoriamente cantos bem arredondados: `rounded-2xl` (ou `rounded-[27px]`).
 * **Botões Principais, Inputs de Texto, Selects e Caixas Menores:** Devem utilizar obrigatoriamente `rounded-xl`.
-* **Badges, Tags e Elementos Minúsculos:** Podem utilizar `rounded-md` ou `rounded-full` (pílula).
-* **NUNCA** utilize cantos quadrados (`rounded-none`) ou arredondamentos ríspidos (`rounded-sm`) em componentes modernos da aplicação.
+* **Badges, Tags e Stickers:** Devem utilizar obrigatoriamente `rounded` (arredondamento leve, padrão de 4px). NUNCA utilize `rounded-full` (pílula) para stickers.
+* **NUNCA** utilize cantos quadrados (`rounded-none`) ou arredondamentos ríspidos (`rounded-sm`) em componentes modernos da aplicação, exceto em stickers que usam `rounded`.

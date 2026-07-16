@@ -119,7 +119,7 @@ function RecessCountdown({ endsAt }: { endsAt: string }) {
   if (!timeLeft) return null;
 
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[27px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wider border border-purple-200 dark:border-purple-800/30 shadow-sm animate-pulse">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wider border border-purple-200 dark:border-purple-800/30 shadow-sm animate-pulse">
       <Clock size={12} />
       {timeLeft}
     </span>
@@ -621,7 +621,7 @@ export default function VendedoresClient({
                         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
                           <RecessCountdown endsAt={v.recess_ends_at} />
                           {v.redirect_leads && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[27px] bg-zinc-900 dark:bg-zinc-800 text-white text-[10px] font-bold uppercase tracking-wider border border-transparent shadow-sm">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 dark:bg-zinc-800 text-white text-[10px] font-bold uppercase tracking-wider border border-transparent shadow-sm">
                               <Shuffle size={12} className="text-purple-400" />
                               Redirecionamento ativo
                             </span>
@@ -630,7 +630,7 @@ export default function VendedoresClient({
                       )}
                       {v.redirect_leads && !v.is_available && !(v.recess_ends_at && new Date(v.recess_ends_at) > new Date()) && (
                         <div className="mt-2.5 flex items-center">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[27px] bg-zinc-900 dark:bg-zinc-800 text-white text-[10px] font-bold uppercase tracking-wider border border-transparent shadow-sm">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 dark:bg-zinc-800 text-white text-[10px] font-bold uppercase tracking-wider border border-transparent shadow-sm">
                             <Shuffle size={12} className="text-purple-400" />
                             Redirecionamento de clientes ativo
                           </span>

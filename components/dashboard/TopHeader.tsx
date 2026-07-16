@@ -116,7 +116,7 @@ export function TopHeader({
 
       <div className="flex items-center gap-2 md:gap-4">
         {subscriptionStatus && !isAdminPath && role !== "seller" && (
-          <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-[27px] border text-[10px] font-bold uppercase tracking-wider ${
+          <div className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded border text-[10px] font-bold uppercase tracking-wider ${
             subscriptionStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
             subscriptionStatus === 'trialing' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
             subscriptionStatus === 'past_due' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
@@ -221,7 +221,7 @@ export function TopHeader({
           <Link
             href={isB2B ? `/${slug}/catalogo` : `/${slug}`}
             target="_blank"
-            className={`flex items-center gap-2 px-4 py-2 rounded-[27px] text-sm font-bold transition-all whitespace-nowrap shadow-lg ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap shadow-lg ${
               isReady 
                 ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:scale-105" 
                 : "bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] border border-[var(--dash-border)] opacity-80 hover:opacity-100"
@@ -272,7 +272,7 @@ export function TopHeader({
                  role === "seller" ? (jobTitle || "Vendedor") : role}
               </span>
               {role === 'seller' && (
-                <span className={`mt-1.5 inline-flex items-center rounded-[27px] px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest border ${getAccessStatusColor(getAccessStatusName(granularPermissions))}`}>
+                <span className={`mt-1.5 inline-flex items-center rounded px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest border ${getAccessStatusColor(getAccessStatusName(granularPermissions))}`}>
                   {getAccessStatusName(granularPermissions)}
                 </span>
               )}

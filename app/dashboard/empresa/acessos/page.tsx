@@ -301,7 +301,7 @@ export default function GerenciarAcessosPage() {
                     </td>
                     
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[27px] text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
                         getAccessStatus(seller) === "Acesso Total Gestor" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
                         getAccessStatus(seller) === "Acesso Administrativo" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
                         getAccessStatus(seller) === "Acesso Analítico" ? "bg-red-500/10 text-red-500 border-red-500/20" :
@@ -397,7 +397,7 @@ export default function GerenciarAcessosPage() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setPasswordModalSeller(seller)}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-[27px] bg-zinc-900 dark:bg-[var(--dash-surface)] text-white dark:text-[var(--dash-text-primary)] text-xs font-bold hover:opacity-80 transition-opacity"
+                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded bg-zinc-900 dark:bg-[var(--dash-surface)] text-white dark:text-[var(--dash-text-primary)] text-xs font-bold hover:opacity-80 transition-opacity"
                       >
                         <IdCard size={14} /> Dados de Acesso
                       </button>

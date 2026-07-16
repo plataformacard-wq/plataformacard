@@ -117,7 +117,7 @@ export default function ProfileSecuritySection({
         <div className="mt-6">
           <a
             href="/dashboard/perfil/dominio"
-            className="inline-flex px-6 py-3 rounded-[27px] text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90"
+            className="inline-flex px-6 py-3 rounded text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90"
           >
             Configurar Domínio
           </a>

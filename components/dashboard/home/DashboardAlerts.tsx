@@ -104,7 +104,7 @@ export default function DashboardAlerts({
         >
           <div className="absolute right-0 top-0 w-64 h-64 bg-[var(--dash-surface)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--dash-surface)]/20 rounded-[27px] text-white text-xs font-bold uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--dash-surface)]/20 rounded text-white text-xs font-bold uppercase tracking-wider mb-3">
               <span>📅</span> Feriado se aproximando
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
