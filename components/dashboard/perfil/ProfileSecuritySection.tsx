@@ -51,7 +51,7 @@ export default function ProfileSecuritySection({
   const canEditBasicInfo = granularPermissions?.profile?.basic_info ?? true;
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
       {/* Nome Administrativo */}
       <div
         className="rounded-[27px] border p-6 shadow-sm transition-colors"
@@ -105,7 +105,7 @@ export default function ProfileSecuritySection({
 
       {/* Domínio Próprio */}
       <div
-        className="rounded-[27px] border p-6 shadow-sm transition-colors mb-6"
+        className="rounded-[27px] border p-6 shadow-sm transition-colors"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>

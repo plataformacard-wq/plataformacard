@@ -12,8 +12,9 @@ Sempre que você (IA) receber instruções para modificar UI, ou o usuário usar
 
 ## O que deve ser avaliado/corrigido?
 1. **Cores estáticas no Dark Mode**: Classes como `bg-white`, `bg-black`, `text-black` (exceto em Landing Pages B2C). O foco principal é limpar a pasta `app/dashboard/` e `components/`.
-2. **Arredondamento Padrão**: O app possui cantos arredondados estilo SaaS moderno (`rounded-2xl`, `rounded-xl`).
+2. **Arredondamento Padrão**: O app possui cantos arredondados estilo SaaS moderno (`rounded-[27px]`, `rounded-xl`).
 3. **Glassmorphism**: Aplicação de `backdrop-blur-xl` e `bg-black/50`.
+4. **Otimização de Espaços (Prevenção de Vazios)**: Quando as sessões (formulários ou cards) possuírem pouco conteúdo e deixarem espaços em branco exagerados (vazios na tela), organize-os em **duas colunas** (ex: `grid grid-cols-1 lg:grid-cols-2`) para manter o padrão de proporção dos contêineres e um visual preenchido e simétrico.
 
 ## Ação da Skill
 Ao engajar esta skill, você deve rodar o script utilitário contido nesta pasta:
