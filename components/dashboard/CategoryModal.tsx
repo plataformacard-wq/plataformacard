@@ -118,13 +118,13 @@ export default function CategoryModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl border"
+            className="w-full max-w-md rounded-lg overflow-hidden shadow-2xl border"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="relative px-8 py-6 border-b" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface-secondary)" }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
                     <Layers size={20} />
                   </div>
                   <h2 className="text-xl font-black tracking-tight" style={{ color: "var(--dash-text-primary)" }}>
@@ -147,7 +147,7 @@ export default function CategoryModal({
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 flex items-center gap-3 text-red-500"
+                    className="p-4 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 flex items-center gap-3 text-red-500"
                   >
                     <AlertCircle size={18} />
                     <p className="text-xs font-bold">{categoryManageError}</p>
@@ -163,7 +163,7 @@ export default function CategoryModal({
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
                     placeholder="Ex: Camisetas, Promoções, Eletrônicos..."
-                    className="w-full rounded-xl border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
+                    className="w-full rounded-lg border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
                     style={{ 
                       borderColor: "var(--dash-border)", 
                       background: "var(--dash-input-bg)", 
@@ -182,7 +182,7 @@ export default function CategoryModal({
                     value={categoryDescription}
                     onChange={(e) => setCategoryDescription(e.target.value)}
                     placeholder="Uma breve descrição sobre os itens desta categoria..."
-                    className="w-full rounded-xl border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 min-h-[120px] resize-none"
+                    className="w-full rounded-lg border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 min-h-[120px] resize-none"
                     style={{ 
                       borderColor: "var(--dash-border)", 
                       background: "var(--dash-input-bg)", 
@@ -205,7 +205,7 @@ export default function CategoryModal({
                       </div>
                     )}
                     <label className="flex-1 cursor-pointer">
-                      <div className="px-4 py-3 text-sm font-bold text-center rounded-xl border border-dashed hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer"
+                      <div className="px-4 py-3 text-sm font-bold text-center rounded-lg border border-dashed hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer"
                            style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}>
                         {uploadingIcon ? "Enviando..." : (categoryIconUrl ? "Trocar Ícone" : "Fazer Upload de Ícone")}
                       </div>
@@ -240,14 +240,14 @@ export default function CategoryModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 px-6 py-4 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs font-black uppercase tracking-widest hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
+                    className="flex-1 px-6 py-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs font-black uppercase tracking-widest hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={savingCategory}
-                    className="flex-[2] px-6 py-4 rounded-xl bg-emerald-500 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50"
+                    className="flex-[2] px-6 py-4 rounded-lg bg-emerald-500 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50"
                   >
                     {savingCategory ? "Salvando..." : editingCategory ? "Salvar Alterações" : "Criar Categoria"}
                   </button>

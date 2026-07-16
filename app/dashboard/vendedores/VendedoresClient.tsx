@@ -544,7 +544,7 @@ export default function VendedoresClient({
                 <button 
                   onClick={() => handleOpenForm()}
                   disabled={sellerLimit > 0 && sellerCount >= sellerLimit}
-                  className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                  className="flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
                   style={{ background: "var(--dash-text-primary)", color: "var(--dash-bg)" }}
                 >
                   <UserPlus size={18} />
@@ -552,7 +552,7 @@ export default function VendedoresClient({
                 </button>
                 <button 
                   onClick={() => handleOpenForm(undefined, "manager")}
-                  className="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
                   style={{ background: "var(--dash-primary-light)", color: "var(--dash-primary)" }}
                 >
                   <ShieldCheck size={18} />
@@ -682,13 +682,13 @@ export default function VendedoresClient({
                         href={getPublicUrl(v.slug || "", customDomain, false, true)} 
                         target="_blank"
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all"
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all"
                       >
                         <ExternalLink size={14} /> Cartão Virtual
                       </a>
                       <button 
                         onClick={() => handleOpenForm(v)}
-                        className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-black transition-all"
+                        className="px-4 py-2 rounded-lg bg-zinc-900 text-white text-xs font-bold hover:bg-black transition-all"
                       >
                         Editar Ficha
                       </button>

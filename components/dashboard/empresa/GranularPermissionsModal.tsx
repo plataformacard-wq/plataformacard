@@ -100,7 +100,7 @@ export default function GranularPermissionsModal({ sellerName, module, initialPe
               <button
                 key={opt.key}
                 onClick={() => handleToggle(opt.key)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors hover:bg-[var(--dash-hover-bg)]"
+                className="w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors hover:bg-[var(--dash-hover-bg)]"
                 style={{ borderColor: "var(--dash-border)" }}
               >
                 <div className={isChecked ? "text-primary" : "text-[var(--dash-text-muted)]"}>
@@ -115,7 +115,7 @@ export default function GranularPermissionsModal({ sellerName, module, initialPe
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="flex-1 rounded-xl px-4 py-3 text-sm font-bold border transition-colors hover:bg-[var(--dash-hover-bg)]"
+            className="flex-1 rounded-lg px-4 py-3 text-sm font-bold border transition-colors hover:bg-[var(--dash-hover-bg)]"
             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           >
             Cancelar
@@ -123,7 +123,7 @@ export default function GranularPermissionsModal({ sellerName, module, initialPe
           <button
             onClick={() => onSave(localPermissions)}
             disabled={isSaving}
-            className="flex-1 rounded-xl bg-zinc-900 dark:bg-[var(--dash-surface)] px-4 py-3 text-sm font-bold text-white dark:text-[var(--dash-text-primary)] transition-colors hover:opacity-90 disabled:opacity-50"
+            className="flex-1 rounded-lg bg-zinc-900 dark:bg-[var(--dash-surface)] px-4 py-3 text-sm font-bold text-white dark:text-[var(--dash-text-primary)] transition-colors hover:opacity-90 disabled:opacity-50"
           >
             {isSaving ? "Salvando..." : "Salvar Permissões"}
           </button>

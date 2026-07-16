@@ -25,7 +25,7 @@ export default function DrawerImageGallery({
         {/* Imagem Principal */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Imagem Principal</label>
-          <div className="relative aspect-square rounded-xl border-2 border-dashed border-[var(--dash-border)] overflow-hidden flex items-center justify-center bg-[var(--dash-hover-bg)] group">
+          <div className="relative aspect-square rounded-lg border-2 border-dashed border-[var(--dash-border)] overflow-hidden flex items-center justify-center bg-[var(--dash-hover-bg)] group">
             {product.image_url ? (
               <>
                 <img src={product.image_url} alt="Principal" className="w-full h-full object-cover" />
@@ -62,7 +62,7 @@ export default function DrawerImageGallery({
               }
               if (!Array.isArray(urls)) urls = [];
               return urls.map((url: string, idx: number) => (
-                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group">
+                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group">
                   <img src={url} alt="Extra" className="w-full h-full object-cover" />
                   <button 
                     onClick={() => removeGalleryImage(url)}
@@ -73,7 +73,7 @@ export default function DrawerImageGallery({
                 </div>
               ));
             })()}
-            <label className="aspect-square rounded-xl border-2 border-dashed border-[var(--dash-border)] flex items-center justify-center cursor-pointer hover:bg-[var(--dash-hover-bg)] transition-colors">
+            <label className="aspect-square rounded-lg border-2 border-dashed border-[var(--dash-border)] flex items-center justify-center cursor-pointer hover:bg-[var(--dash-hover-bg)] transition-colors">
               <PlusCircle size={20} className="text-[var(--dash-text-muted)]" />
               <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, true)} disabled={uploading} />
             </label>

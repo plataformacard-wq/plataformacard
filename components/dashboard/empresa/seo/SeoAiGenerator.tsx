@@ -38,7 +38,7 @@ export default function SeoAiGenerator(props: any) {
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 placeholder={businessModel === "B2C" ? "Ex: Dr. João Silva" : "Ex: Maj Mobilidade"}
-                className="w-full px-4 py-2.5 rounded-xl border outline-none text-xs transition-all focus:border-emerald-500/50"
+                className="w-full px-4 py-2.5 rounded-lg border outline-none text-xs transition-all focus:border-emerald-500/50"
                 style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -51,7 +51,7 @@ export default function SeoAiGenerator(props: any) {
                 value={businessNiche}
                 onChange={(e) => setBusinessNiche(e.target.value)}
                 placeholder="Ex: Vestuário, Pizzaria, Advocacia"
-                className="w-full px-4 py-2.5 rounded-xl border outline-none text-xs transition-all focus:border-emerald-500/50"
+                className="w-full px-4 py-2.5 rounded-lg border outline-none text-xs transition-all focus:border-emerald-500/50"
                 style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -72,7 +72,7 @@ export default function SeoAiGenerator(props: any) {
             <button 
               onClick={handleGenerateAI}
               disabled={!orgName.trim() || !businessNiche.trim() || generating}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100 shrink-0 shadow-md hover:shadow-lg active:scale-95"
+              className="px-6 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100 shrink-0 shadow-md hover:shadow-lg active:scale-95"
               style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
             >
               {generating ? <Loader2 size={16} className="animate-spin" /> : <><Sparkles size={14} /> Gerar Sugestões</>}

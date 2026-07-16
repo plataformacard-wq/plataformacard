@@ -365,7 +365,7 @@ export default function SEOPage() {
                 value={formData.meta_title}
                 onChange={e => setFormData({ ...formData, meta_title: e.target.value })}
                 placeholder="Ex: Maj Mobilidade - Atacado"
-                className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all"
+                className="w-full px-4 py-3 rounded-lg border outline-none text-sm transition-all"
                 style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -379,7 +379,7 @@ export default function SEOPage() {
                 onChange={e => setFormData({ ...formData, meta_description: e.target.value.slice(0, 320) })}
                 placeholder="Descreva seu negócio para os resultados de busca..."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all resize-none"
+                className="w-full px-4 py-3 rounded-lg border outline-none text-sm transition-all resize-none"
                 style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -391,7 +391,7 @@ export default function SEOPage() {
                 value={formData.meta_keywords}
                 onChange={e => setFormData({ ...formData, meta_keywords: e.target.value })}
                 placeholder="#atacado #bike #mobilidade"
-                className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all"
+                className="w-full px-4 py-3 rounded-lg border outline-none text-sm transition-all"
                 style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -422,7 +422,7 @@ export default function SEOPage() {
               placeholder="Ex: https://instagram.com/suaempresa"
               value={formData.social_instagram}
               onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
-              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full p-3 rounded-lg text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
               style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
             />
           </div>
@@ -433,7 +433,7 @@ export default function SEOPage() {
               placeholder="Ex: https://facebook.com/suaempresa"
               value={formData.social_facebook}
               onChange={(e) => setFormData({ ...formData, social_facebook: e.target.value })}
-              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full p-3 rounded-lg text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
               style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
             />
           </div>
@@ -444,7 +444,7 @@ export default function SEOPage() {
               placeholder="Ex: https://tiktok.com/@suaempresa"
               value={formData.social_tiktok}
               onChange={(e) => setFormData({ ...formData, social_tiktok: e.target.value })}
-              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full p-3 rounded-lg text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
               style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
             />
           </div>
@@ -455,7 +455,7 @@ export default function SEOPage() {
               placeholder="Ex: https://youtube.com/@suaempresa"
               value={formData.social_youtube}
               onChange={(e) => setFormData({ ...formData, social_youtube: e.target.value })}
-              className="w-full p-3 rounded-xl text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full p-3 rounded-lg text-sm outline-none border transition-all hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
               style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
             />
           </div>
@@ -510,7 +510,7 @@ export default function SEOPage() {
                 value={formData.whatsapp}
                 onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
                 placeholder="(00) 00000-0000"
-                className="w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all"
+                className="w-full px-4 py-3 rounded-lg border outline-none text-sm transition-all"
                 style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
               <p className="text-[10px] mt-1.5" style={{ color: "var(--dash-text-muted)" }}>
@@ -612,7 +612,7 @@ export default function SEOPage() {
               className="w-full max-w-md bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 shadow-2xl relative overflow-hidden space-y-6"
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
                   <Sparkles size={20} />
                 </div>
                 <div>
@@ -635,7 +635,7 @@ export default function SEOPage() {
                     setUsedAIAssistant(false);
                     setShowAIWarning(false);
                   }}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-zinc-500/5"
+                  className="px-5 py-2.5 rounded-lg text-xs font-bold transition-all hover:bg-zinc-500/5"
                   style={{ color: "var(--dash-text-muted)" }}
                 >
                   Revisar
@@ -646,7 +646,7 @@ export default function SEOPage() {
                     setUsedAIAssistant(false);
                     handleSave();
                   }}
-                  className="px-6 py-2.5 rounded-xl text-xs font-black transition-all shadow-md hover:scale-105 active:scale-95"
+                  className="px-6 py-2.5 rounded-lg text-xs font-black transition-all shadow-md hover:scale-105 active:scale-95"
                   style={{ background: "var(--dash-text-primary)", color: "var(--dash-surface)" }}
                 >
                   Ok

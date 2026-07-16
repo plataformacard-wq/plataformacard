@@ -23,7 +23,7 @@ export default function DrawerDescription({
         onChange={(e) => updateData(rowIndex, "description", e.target.value)}
         rows={5}
         placeholder="Descreva as características principais do produto..."
-        className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none resize-none"
+        className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"
       />
     </section>
   );

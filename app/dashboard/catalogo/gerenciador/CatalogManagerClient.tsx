@@ -208,14 +208,14 @@ export default function CatalogManagerClient({
                           type="text" 
                           readOnly 
                           value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/bling?orgId=${orgId}`}
-                          className="flex-1 text-xs px-3 py-2.5 rounded-xl border border-blue-500/20 bg-[var(--dash-surface)] dark:bg-black/40 text-blue-900 dark:text-blue-200 outline-none select-all font-mono shadow-sm"
+                          className="flex-1 text-xs px-3 py-2.5 rounded-lg border border-blue-500/20 bg-[var(--dash-surface)] dark:bg-black/40 text-blue-900 dark:text-blue-200 outline-none select-all font-mono shadow-sm"
                         />
                         <button 
                           onClick={() => {
                             navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/bling?orgId=${orgId}`);
                             alert('URL do Webhook copiada com sucesso!');
                           }}
-                          className="shrink-0 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                          className="shrink-0 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm"
                         >
                           Copiar URL
                         </button>
@@ -231,7 +231,7 @@ export default function CatalogManagerClient({
                         <button
                           onClick={handleSyncBling}
                           disabled={isSyncingBling}
-                          className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] px-5 py-2.5 text-sm font-semibold text-[var(--dash-text-primary)] transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 shadow-sm disabled:opacity-50"
+                          className="shrink-0 flex items-center justify-center gap-2 rounded-lg bg-[var(--dash-surface)] border border-[var(--dash-border)] px-5 py-2.5 text-sm font-semibold text-[var(--dash-text-primary)] transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 shadow-sm disabled:opacity-50"
                         >
                           {isSyncingBling ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
                           {isSyncingBling ? "Sincronizando..." : "Forçar Sincronização"}
@@ -249,7 +249,7 @@ export default function CatalogManagerClient({
       <div className="flex justify-end gap-3">
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 shadow-sm"
+          className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 shadow-sm"
         >
           <Plus size={18} /> Criar Catálogo
         </button>
@@ -291,9 +291,9 @@ export default function CatalogManagerClient({
             <div className="p-6 flex-1 flex flex-col">
               <div className="flex items-center gap-4 mb-4">
                 {catalog.logoUrl ? (
-                  <img src={catalog.logoUrl} alt={catalog.name} className="w-16 h-16 rounded-xl object-contain bg-[var(--dash-surface)] shadow-sm" />
+                  <img src={catalog.logoUrl} alt={catalog.name} className="w-16 h-16 rounded-lg object-contain bg-[var(--dash-surface)] shadow-sm" />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary">
                     <Globe size={28} />
                   </div>
                 )}
@@ -330,7 +330,7 @@ export default function CatalogManagerClient({
                   <>
                     <Link 
                       href={catalog.isInherited ? "/dashboard/catalogo/bulk" : "/dashboard/catalogo"}
-                      className="flex-1 py-3 px-4 bg-[var(--dash-border)] hover:bg-black hover:text-white dark:hover:bg-[var(--dash-surface)] dark:hover:text-[var(--dash-text-primary)] text-[var(--dash-text)] rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                      className="flex-1 py-3 px-4 bg-[var(--dash-border)] hover:bg-black hover:text-white dark:hover:bg-[var(--dash-surface)] dark:hover:text-[var(--dash-text-primary)] text-[var(--dash-text)] rounded-lg font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
                     >
                       <Settings size={16} /> 
                       {catalog.isInherited ? "Aceitar Produtos" : "Gerenciar"}
@@ -338,7 +338,7 @@ export default function CatalogManagerClient({
                     {catalog.isOwnedMaster && (
                       <Link 
                         href="/dashboard/franquias"
-                        className="flex-1 py-3 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                        className="flex-1 py-3 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
                       >
                         Liberar p/ Franqueados
                       </Link>
@@ -348,7 +348,7 @@ export default function CatalogManagerClient({
                   <button
                     onClick={() => handleActivate(catalog.id)}
                     disabled={isActivating === catalog.id}
-                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-sm shadow-lg shadow-primary/25 transition-all active:scale-95 flex items-center justify-center gap-2"
                   >
                     {isActivating === catalog.id ? (
                       <RefreshCw size={18} className="animate-spin" />
@@ -389,7 +389,7 @@ export default function CatalogManagerClient({
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
                     placeholder="Ex: Catálogo Matriz Nordeste"
-                    className="w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] text-[var(--dash-text-primary)] px-4 py-3 text-sm outline-none transition focus:border-primary"
+                    className="w-full rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)] text-[var(--dash-text-primary)] px-4 py-3 text-sm outline-none transition focus:border-primary"
                   />
                 </div>
                 <div>
@@ -401,12 +401,12 @@ export default function CatalogManagerClient({
                     onChange={(e) => setNewCatDesc(e.target.value)}
                     placeholder="Descrição interna para identificar a finalidade deste catálogo."
                     rows={3}
-                    className="w-full resize-none rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] text-[var(--dash-text-primary)] px-4 py-3 text-sm outline-none transition focus:border-primary"
+                    className="w-full resize-none rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)] text-[var(--dash-text-primary)] px-4 py-3 text-sm outline-none transition focus:border-primary"
                   />
                 </div>
 
                 {isAllService && (
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]">
                     <div>
                       <h4 className="text-sm font-bold text-[var(--dash-text-primary)]">Liberar para Franqueados?</h4>
                       <p className="text-[10px] mt-0.5 text-[var(--dash-text-secondary)]">
@@ -429,14 +429,14 @@ export default function CatalogManagerClient({
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="flex-1 rounded-xl border border-[var(--dash-border)] text-[var(--dash-text-primary)] py-3 text-sm font-bold transition hover:bg-[var(--dash-hover-bg)]"
+                    className="flex-1 rounded-lg border border-[var(--dash-border)] text-[var(--dash-text-primary)] py-3 text-sm font-bold transition hover:bg-[var(--dash-hover-bg)]"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={creating || !newCatName}
-                    className="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white transition hover:bg-primary/90 disabled:opacity-50"
+                    className="flex-1 rounded-lg bg-primary py-3 text-sm font-bold text-white transition hover:bg-primary/90 disabled:opacity-50"
                   >
                     {creating ? "Criando..." : "Criar Catálogo"}
                   </button>

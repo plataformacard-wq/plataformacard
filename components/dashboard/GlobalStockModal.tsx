@@ -40,7 +40,7 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
           <div className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-[27px] bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
                   <Package size={20} />
                 </div>
                 <div>
@@ -57,14 +57,14 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
                <div className="flex items-center gap-3">
                  <div className="relative flex-1">
                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
-                   <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-10 pr-4 py-2.5 text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary transition" />
+                   <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-10 pr-4 py-2.5 text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary transition" />
                  </div>
                  <div className="w-48 shrink-0 relative">
                    <select 
                      value={filterOption} 
                      onChange={(e) => setFilterOption(e.target.value)}
                      onBlur={() => setFilterOption("default")}
-                     className="dash-select w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-3 py-2.5 text-sm text-[var(--dash-text-primary)] font-medium outline-none focus:border-primary transition"
+                     className="dash-select w-full rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)] pl-3 py-2.5 text-sm text-[var(--dash-text-primary)] font-medium outline-none focus:border-primary transition"
                    >
                      <option value="default">Filtros</option>
                      <option value="highest">Maior Estoque</option>
@@ -81,7 +81,7 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
                    {filtered.map(p => {
                      const isOutOfStock = p.is_in_stock === false || (p.is_in_stock === null && p.stock_quantity === 0);
                      return (
-                       <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)]">
+                       <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)]">
                          <div className="flex flex-col">
                            <span className="text-sm font-medium text-[var(--dash-text-primary)]">{p.name}</span>
                            {p.sku && <span className="text-xs text-[var(--dash-text-muted)]">SKU: {p.sku}</span>}

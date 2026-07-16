@@ -131,7 +131,7 @@ export default function AssinaturaClient() {
   return (
     <div className="w-full space-y-10 pb-20">
       {/* Header Premium */}
-      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl p-10 shadow-sm group/header">
+      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg p-10 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity" />
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -140,7 +140,7 @@ export default function AssinaturaClient() {
               Gerencie seus limites de uso, faturamento e faça upgrade de plano para expandir sua vitrine digital.
             </p>
           </div>
-          <div className="flex items-center gap-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl px-6 py-4">
+          <div className="flex items-center gap-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg px-6 py-4">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner">
               <CreditCard size={20} />
             </div>
@@ -160,7 +160,7 @@ export default function AssinaturaClient() {
 
       {/* Uso de Recursos */}
       {stats && currentPlan && (
-        <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl p-8 shadow-sm space-y-6">
+        <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <ShieldCheck className="text-primary animate-pulse" size={24} />
             <h3 className="text-xl font-bold tracking-tight">Utilização do Plano</h3>
@@ -168,7 +168,7 @@ export default function AssinaturaClient() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Produtos */}
-            <div className="space-y-3 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+            <div className="space-y-3 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Package className="text-primary" size={18} />
@@ -200,7 +200,7 @@ export default function AssinaturaClient() {
 
             {/* Vendedores */}
             {businessModel === "B2B" && (
-              <div className="space-y-3 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+              <div className="space-y-3 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Users className="text-primary" size={18} />
@@ -249,7 +249,7 @@ export default function AssinaturaClient() {
               <motion.div
                 key={plan.id}
                 whileHover={{ y: -6 }}
-                className={`relative rounded-xl border bg-[var(--dash-surface)] p-8 shadow-md flex flex-col min-h-[500px] overflow-hidden transition-all ${
+                className={`relative rounded-lg border bg-[var(--dash-surface)] p-8 shadow-md flex flex-col min-h-[500px] overflow-hidden transition-all ${
                   isCurrent 
                     ? "border-primary shadow-lg ring-1 ring-primary" 
                     : "border-[var(--dash-border)] hover:border-zinc-700"
@@ -303,21 +303,21 @@ export default function AssinaturaClient() {
                   {isCurrent ? (
                     <button
                       disabled
-                      className="w-full bg-[var(--dash-hover-bg)] text-[var(--dash-text-muted)] border border-[var(--dash-border)] rounded-xl py-4 text-xs font-black uppercase tracking-widest cursor-not-allowed"
+                      className="w-full bg-[var(--dash-hover-bg)] text-[var(--dash-text-muted)] border border-[var(--dash-border)] rounded-lg py-4 text-xs font-black uppercase tracking-widest cursor-not-allowed"
                     >
                       Plano Ativo
                     </button>
                   ) : isFree ? (
                     <button
                       disabled
-                      className="w-full bg-[var(--dash-hover-bg)] text-[var(--dash-text-muted)] border border-[var(--dash-border)] rounded-xl py-4 text-xs font-black uppercase tracking-widest cursor-not-allowed"
+                      className="w-full bg-[var(--dash-hover-bg)] text-[var(--dash-text-muted)] border border-[var(--dash-border)] rounded-lg py-4 text-xs font-black uppercase tracking-widest cursor-not-allowed"
                     >
                       Disponível via Suporte
                     </button>
                   ) : (
                     <a
                       href={getCheckoutUrl(plan.id)}
-                      className="flex items-center justify-center gap-2 w-full bg-primary text-white rounded-xl py-4 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-98 transition-all shadow-lg shadow-primary/20 group"
+                      className="flex items-center justify-center gap-2 w-full bg-primary text-white rounded-lg py-4 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-98 transition-all shadow-lg shadow-primary/20 group"
                     >
                       Assinar Plano
                       <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -331,7 +331,7 @@ export default function AssinaturaClient() {
       </div>
 
       {/* Rodapé Informativo */}
-      <div className="rounded-xl border border-dashed border-[var(--dash-border)] p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="rounded-lg border border-dashed border-[var(--dash-border)] p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-start gap-3">
           <HelpCircle className="text-[var(--dash-text-muted)] shrink-0 mt-1" size={20} />
           <div>

@@ -348,13 +348,13 @@ export default function BulkImportModal({
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="w-full max-w-4xl overflow-hidden rounded-xl border shadow-2xl flex flex-col max-h-[90vh]"
+        className="w-full max-w-4xl overflow-hidden rounded-lg border shadow-2xl flex flex-col max-h-[90vh]"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         {/* Header */}
         <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <Database size={20} />
             </div>
             <div>

@@ -263,7 +263,7 @@ export default function ProductDetailDrawer({
           <div className="sticky bottom-0 left-0 right-0 p-6 bg-[var(--dash-surface)] border-t border-[var(--dash-border)] flex gap-4">
             <button 
               onClick={onClose}
-              className="flex-1 p-3 font-bold border border-[var(--dash-border)] rounded-xl hover:bg-[var(--dash-hover-bg)] transition-colors"
+              className="flex-1 p-3 font-bold border border-[var(--dash-border)] rounded-lg hover:bg-[var(--dash-hover-bg)] transition-colors"
             >
               Concluir Edição
             </button>

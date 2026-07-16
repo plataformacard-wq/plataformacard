@@ -48,7 +48,7 @@ export default function CatalogCategoryList({
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
             <Layers size={24} />
           </div>
           <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Categorias</h2>
@@ -58,7 +58,7 @@ export default function CatalogCategoryList({
             <button
               onClick={handleMakeAllVisible}
               disabled={makingAllVisible}
-              className="flex items-center gap-2 rounded-xl px-5 py-2.5 bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg px-5 py-2.5 bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
             >
               {makingAllVisible ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
@@ -73,7 +73,7 @@ export default function CatalogCategoryList({
               setEditingCategory(null);
               setShowCategoryModal(true);
             }}
-            className="flex items-center gap-2 rounded-xl px-5 py-2.5 bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/10"
+            className="flex items-center gap-2 rounded-lg px-5 py-2.5 bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/10"
           >
             <Plus size={18} /> Nova Categoria
           </button>

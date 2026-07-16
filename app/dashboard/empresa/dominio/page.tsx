@@ -162,7 +162,7 @@ export default function DominioPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3 text-red-600 dark:text-red-400">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3 text-red-600 dark:text-red-400">
           <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
           <p className="text-sm font-medium">{error}</p>
         </div>
@@ -186,13 +186,13 @@ export default function DominioPage() {
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
               placeholder="ex: minhaloja.com.br"
-              className="flex-1 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] px-4 py-3 text-sm text-[var(--dash-text-primary)] outline-none transition focus:border-primary"
+              className="flex-1 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] px-4 py-3 text-sm text-[var(--dash-text-primary)] outline-none transition focus:border-primary"
               disabled={actionLoading}
             />
             <button
               onClick={handleAddDomain}
               disabled={actionLoading || !domain}
-              className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="rounded-lg bg-primary px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Vincular"}
             </button>
@@ -222,7 +222,7 @@ export default function DominioPage() {
 
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
                 {!domainStatus?.verified && (
-                  <button onClick={loadData} disabled={loading} className="w-full sm:w-auto rounded-xl bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] px-4 py-2.5 text-sm font-semibold text-[var(--dash-text-primary)] hover:bg-[var(--dash-border)] transition flex items-center justify-center gap-2 shadow-sm">
+                  <button onClick={loadData} disabled={loading} className="w-full sm:w-auto rounded-lg bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] px-4 py-2.5 text-sm font-semibold text-[var(--dash-text-primary)] hover:bg-[var(--dash-border)] transition flex items-center justify-center gap-2 shadow-sm">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                     Verificar propagação do Domínio
                   </button>
@@ -230,7 +230,7 @@ export default function DominioPage() {
                 <button
                   onClick={handleRemoveDomain}
                   disabled={actionLoading}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors bg-red-500/10 hover:bg-red-500/20 px-4 py-2.5 rounded-xl"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors bg-red-500/10 hover:bg-red-500/20 px-4 py-2.5 rounded-lg"
                 >
                   {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                   Remover
@@ -263,7 +263,7 @@ export default function DominioPage() {
               {isConfigOpen && (
                 <div className="px-6 pb-6 border-t border-[var(--dash-border)] pt-6">
                   {/* Banner de Aviso 24h */}
-              <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
+              <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
                 <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0" />
                 <div>
                   <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400">Atenção ao tempo de propagação</h4>
@@ -285,7 +285,7 @@ export default function DominioPage() {
                   }
 
                   return (
-                    <div key={idx} className="relative rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 shadow-sm">
+                    <div key={idx} className="relative rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 shadow-sm">
                       <div className="absolute top-4 right-4 flex items-center gap-2">
                         {nativeStatus[`host-${idx}`] === "loading" && <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Testando DNS...</span>}
                         {nativeStatus[`host-${idx}`] === true && <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> Propagado</span>}

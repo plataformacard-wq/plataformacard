@@ -109,7 +109,7 @@ export function TopHeader({
           <input 
             type="text" 
             placeholder="Buscar recursos..." 
-            className="h-10 w-64 rounded-xl border bg-[var(--dash-input-bg)] pl-10 pr-4 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+            className="h-10 w-64 rounded-lg border bg-[var(--dash-input-bg)] pl-10 pr-4 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
           />
         </div>
       </div>
@@ -138,7 +138,7 @@ export function TopHeader({
         <div ref={notificationsRef} className="relative">
           <button 
             onClick={handleOpenNotifications}
-            className="relative rounded-xl p-2.5 text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-primary transition-all"
+            className="relative rounded-lg p-2.5 text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-primary transition-all"
           >
             <Bell size={20} />
             {hasUnread && (
@@ -211,7 +211,7 @@ export function TopHeader({
         <button
           type="button"
           onClick={toggleTheme}
-          className="rounded-xl p-2.5 text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-primary transition-all"
+          className="rounded-lg p-2.5 text-[var(--dash-text-secondary)] hover:bg-[var(--dash-hover-bg)] hover:text-primary transition-all"
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
@@ -242,7 +242,7 @@ export function TopHeader({
           <button
             type="button"
             onClick={() => setIsUserMenuOpen((prev) => !prev)}
-            className="flex items-center gap-3 rounded-xl p-1 pr-2 transition-all hover:bg-[var(--dash-hover-bg)]"
+            className="flex items-center gap-3 rounded-lg p-1 pr-2 transition-all hover:bg-[var(--dash-hover-bg)]"
           >
             {avatar ? (
               <img
@@ -296,7 +296,7 @@ export function TopHeader({
                   <Link
                     href="/dashboard/perfil#perfil"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--dash-text-secondary)] transition-all hover:bg-[var(--dash-hover-bg)] hover:text-primary"
+                    className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--dash-text-secondary)] transition-all hover:bg-[var(--dash-hover-bg)] hover:text-primary"
                   >
                     <User size={16} />
                     Meu Perfil
@@ -308,7 +308,7 @@ export function TopHeader({
                     console.log("Logout clicado!");
                     handleLogout();
                   }}
-                  className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
+                  className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
                 >
                   <LogOut size={16} />
                   Sair

@@ -102,12 +102,12 @@ export default function AiReviewModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-2xl bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           {/* Header */}
           <div className="px-8 py-6 border-b border-[var(--dash-border)] flex items-center justify-between bg-emerald-500/5">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <div className="h-10 w-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
                 <Sparkles size={20} />
               </div>
               <div>
@@ -115,7 +115,7 @@ export default function AiReviewModal({
                 <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Revisão Sugerida pela IA</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-[var(--dash-hover-bg)] rounded-xl transition-colors text-[var(--dash-text-muted)]">
+            <button onClick={onClose} className="p-2 hover:bg-[var(--dash-hover-bg)] rounded-lg transition-colors text-[var(--dash-text-muted)]">
               <X size={20} />
             </button>
           </div>
@@ -139,7 +139,7 @@ export default function AiReviewModal({
                       </button>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <div className="relative p-4 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)] opacity-60 overflow-hidden">
+                      <div className="relative p-4 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] opacity-60 overflow-hidden">
                         <span className="absolute top-2 right-3 text-[8px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">Original</span>
                         {change.field === 'Descrição' || change.field === 'Ficha Técnica' ? (
                           <div className="text-[10px] opacity-70 line-through max-h-20 overflow-hidden text-[var(--dash-text-muted)] pt-3" dangerouslySetInnerHTML={{ __html: change.from || '' }} />
@@ -147,7 +147,7 @@ export default function AiReviewModal({
                           <p className="text-xs font-medium text-[var(--dash-text-muted)] line-through pt-2">{change.from || '(Vazio)'}</p>
                         )}
                       </div>
-                      <div className={`relative p-4 rounded-xl border transition-all ${acceptedFields[change.id] ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-zinc-100 border-zinc-200 opacity-40'}`}>
+                      <div className={`relative p-4 rounded-lg border transition-all ${acceptedFields[change.id] ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-zinc-100 border-zinc-200 opacity-40'}`}>
                         <span className={`absolute top-2 right-3 text-[8px] font-black uppercase tracking-widest ${acceptedFields[change.id] ? 'text-emerald-500' : 'text-zinc-400'}`}>
                           Sugerido
                         </span>
@@ -172,7 +172,7 @@ export default function AiReviewModal({
                           ) : change.field === 'Descrição' ? (
                             <div className={acceptedFields[change.id] ? "" : "pointer-events-none opacity-50"}>
                               {(!editedValues[change.id] || editedValues[change.id].trim() === '' || editedValues[change.id] === '<p><br></p>') ? (
-                                <div className="flex flex-col items-center justify-center p-6 bg-emerald-500/5 rounded-xl border border-dashed border-emerald-500/20">
+                                <div className="flex flex-col items-center justify-center p-6 bg-emerald-500/5 rounded-lg border border-dashed border-emerald-500/20">
                                   <p className="text-xs text-[var(--dash-text-secondary)] mb-3 text-center font-medium">
                                     A IA não conseguiu gerar a descrição para este produto usando as regras avançadas.
                                   </p>
@@ -245,7 +245,7 @@ export default function AiReviewModal({
                   <div className={`p-4 rounded-[27px] border transition-all ${acceptedFields['single'] ? 'bg-emerald-500/[0.03] border-emerald-500/20' : 'bg-zinc-100 border-zinc-200 opacity-40'}`}>
                     <div className={acceptedFields['single'] ? "" : "pointer-events-none opacity-50"}>
                       {(!editedValues['single'] || editedValues['single'].trim() === '' || editedValues['single'] === '<p><br></p>') ? (
-                        <div className="flex flex-col items-center justify-center p-6 bg-emerald-500/5 rounded-xl border border-dashed border-emerald-500/20">
+                        <div className="flex flex-col items-center justify-center p-6 bg-emerald-500/5 rounded-lg border border-dashed border-emerald-500/20">
                           <p className="text-xs text-[var(--dash-text-secondary)] mb-3 text-center font-medium">
                             A IA não conseguiu gerar a descrição para este produto usando as regras avançadas.
                           </p>

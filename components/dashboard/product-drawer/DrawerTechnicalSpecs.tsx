@@ -53,17 +53,17 @@ export default function DrawerTechnicalSpecs({
               placeholder="Título (ex: Material)"
               value={spec.label}
               onChange={(e) => updateSpec(idx, "label", e.target.value)}
-              className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
+              className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg text-sm"
             />
             <input 
               placeholder="Valor (ex: Alumínio)"
               value={spec.value}
               onChange={(e) => updateSpec(idx, "value", e.target.value)}
-              className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl text-sm"
+              className="flex-1 p-2 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg text-sm"
             />
             <button 
               onClick={() => removeSpec(idx)}
-              className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"
+              className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
             >
               <X size={14} />
             </button>

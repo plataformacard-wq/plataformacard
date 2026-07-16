@@ -7,7 +7,7 @@ export default function PromoPreviewArea({
   actionType
 }: any) {
   return (
-    <div className="space-y-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-xl">
+    <div className="space-y-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-lg">
       <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)] flex items-center justify-between">
         <span>Simulação do Reajuste</span>
         <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-bold">

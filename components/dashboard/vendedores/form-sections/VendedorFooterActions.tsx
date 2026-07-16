@@ -22,7 +22,7 @@ export function VendedorFooterActions(props: any) {
             {!showTerminateConfirm ? (
               <button 
                 onClick={() => setShowTerminateConfirm(true)}
-                className="px-4 py-2 text-sm rounded-xl font-bold transition-all text-red-500 hover:bg-red-500/10 flex items-center gap-1.5 opacity-60 hover:opacity-100"
+                className="px-4 py-2 text-sm rounded-lg font-bold transition-all text-red-500 hover:bg-red-500/10 flex items-center gap-1.5 opacity-60 hover:opacity-100"
               >
                 <Trash2 size={16} /> Desligar Vendedor
               </button>
@@ -34,13 +34,13 @@ export function VendedorFooterActions(props: any) {
                 <button 
                   onClick={handleTerminate}
                   disabled={terminating}
-                  className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl hover:bg-red-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50"
                 >
                   {terminating ? "Desligando..." : "Confirmar"}
                 </button>
                 <button 
                   onClick={() => setShowTerminateConfirm(false)}
-                  className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700"
                 >
                   Cancelar
                 </button>
@@ -49,7 +49,7 @@ export function VendedorFooterActions(props: any) {
           </>
         )}
         {message && (
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
             message.toLowerCase().includes("erro") || 
             message.toLowerCase().includes("negada") || 
             message.toLowerCase().includes("banco") 

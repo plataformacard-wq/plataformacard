@@ -241,7 +241,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           <section className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <Package size={24} />
                 </div>
                 <h2 className="text-2xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
@@ -264,7 +264,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                 {(userRole !== 'seller' || granularPermissions?.catalog?.create !== false) && (
                   <button
                     onClick={handleOpenCreateProduct}
-                    className="hidden md:flex items-center gap-2 rounded-xl px-6 py-3 bg-primary text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
+                    className="hidden md:flex items-center gap-2 rounded-lg px-6 py-3 bg-primary text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
                   >
                     <Plus size={20} /> Novo {catalogType === 'service' ? 'Serviço' : 'Produto'}
                   </button>

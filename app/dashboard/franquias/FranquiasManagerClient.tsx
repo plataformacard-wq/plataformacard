@@ -88,8 +88,8 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
   return (
     <div className="space-y-6">
       {catalogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-12 text-center shadow-sm">
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 mb-6">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-12 text-center shadow-sm">
+          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 mb-6">
             <Store size={32} />
           </div>
           <h2 className="text-xl font-black mb-2" style={{ color: "var(--dash-text-primary)" }}>Nenhum catálogo matriz encontrado</h2>
@@ -114,7 +114,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
               <button
                 key={catalog.id}
                 onClick={() => setActiveCatalogId(catalog.id)}
-                className={`w-full flex flex-col items-start rounded-xl border p-4 text-left transition-all ${
+                className={`w-full flex flex-col items-start rounded-lg border p-4 text-left transition-all ${
                   activeCatalogId === catalog.id 
                     ? "border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/50" 
                     : "border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-emerald-500/30 hover:bg-emerald-500/5"
@@ -143,7 +143,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                 key={activeCatalogId}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] shadow-sm overflow-hidden"
+                className="rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] shadow-sm overflow-hidden"
               >
                 {(() => {
                   const activeCat = catalogs.find(c => c.id === activeCatalogId);
@@ -159,13 +159,13 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                             <p className="text-sm mt-2 max-w-xl" style={{ color: "var(--dash-text-secondary)" }}>{activeCat.description}</p>
                           </div>
                           
-                          <div className="shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-emerald-500/10 text-emerald-500">
+                          <div className="shrink-0 flex items-center justify-center h-16 w-16 rounded-lg bg-emerald-500/10 text-emerald-500">
                             <Store size={28} />
                           </div>
                         </div>
 
                         {/* Invite Link Section */}
-                        <div className="mt-8 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+                        <div className="mt-8 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-5">
                           <div className="flex items-center gap-2 mb-3">
                             <LinkIcon size={16} className="text-emerald-600" />
                             <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400">Link de Convite para Franqueados</h4>
@@ -199,7 +199,7 @@ export default function FranquiasManagerClient({ organizationId, orgSlug }: { or
                         </div>
 
                         {activeFranks.length === 0 ? (
-                          <div className="rounded-xl border border-dashed border-[var(--dash-border)] p-8 text-center bg-[var(--dash-surface)]">
+                          <div className="rounded-lg border border-dashed border-[var(--dash-border)] p-8 text-center bg-[var(--dash-surface)]">
                             <Users size={32} className="mx-auto mb-3 text-[var(--dash-text-muted)]" />
                             <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>Nenhum franqueado ainda</p>
                             <p className="text-xs mt-1" style={{ color: "var(--dash-text-secondary)" }}>

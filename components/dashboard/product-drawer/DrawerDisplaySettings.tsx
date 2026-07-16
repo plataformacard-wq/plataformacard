@@ -44,7 +44,7 @@ export default function DrawerDisplaySettings({
       </h4>
       
       <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+        <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
           <div className="flex items-center gap-2">
             <List size={18} className="text-[var(--dash-text-muted)]" />
             <span className="text-sm font-medium">Especificações</span>
@@ -57,7 +57,7 @@ export default function DrawerDisplaySettings({
           </button>
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+        <div className="flex items-center justify-between p-4 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
           <div className="flex items-center gap-2">
             <Palette size={18} className="text-[var(--dash-text-muted)]" />
             <span className="text-sm font-medium">Cores do Produto</span>
@@ -70,7 +70,7 @@ export default function DrawerDisplaySettings({
           </button>
         </div>
 
-        <div className="md:col-span-2 flex flex-col gap-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+        <div className="md:col-span-2 flex flex-col gap-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Tag size={18} className="text-emerald-500" />
@@ -89,7 +89,7 @@ export default function DrawerDisplaySettings({
                 value={product.highlight_text || ""}
                 onChange={(e) => updateData(rowIndex, "highlight_text", e.target.value)}
                 placeholder="Ex: Produto Exclusivo, Sem CNH..."
-                className="w-full p-3 bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-3 bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-lg text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
               />
             </motion.div>
           )}
@@ -97,7 +97,7 @@ export default function DrawerDisplaySettings({
       </div>
 
       {effectiveShowColors && (
-        <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl space-y-6">
+        <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg space-y-6">
           <div className="flex items-center justify-between">
             <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-zinc-400">
               <Palette size={14} /> Adicione suas cores
@@ -117,7 +117,7 @@ export default function DrawerDisplaySettings({
                     setColorPickerValue(color);
                     setIsPickerOpen(true);
                   }}
-                  className={`h-14 w-14 rounded-xl border-4 shadow-xl transition-all hover:scale-105 active:scale-95 ${editingColorIdx === idx ? 'border-primary ring-4 ring-primary/20' : 'border-white'}`}
+                  className={`h-14 w-14 rounded-lg border-4 shadow-xl transition-all hover:scale-105 active:scale-95 ${editingColorIdx === idx ? 'border-primary ring-4 ring-primary/20' : 'border-white'}`}
                   style={{ backgroundColor: color }}
                 />
                 <button 
@@ -148,7 +148,7 @@ export default function DrawerDisplaySettings({
                     setIsPickerOpen(!isPickerOpen);
                   }
                 }}
-                className="h-14 w-14 rounded-xl border-4 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all relative"
+                className="h-14 w-14 rounded-lg border-4 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all relative"
                 style={{ background: "linear-gradient(to bottom, #ff0000 0%, #ff00ff 17%, #0000ff 33%, #00ffff 50%, #00ff00 67%, #ffff00 83%, #ff0000 100%)" }}
               >
                 <div className="absolute inset-0 flex items-center justify-center bg-black/5 hover:bg-transparent transition-colors">
@@ -164,7 +164,7 @@ export default function DrawerDisplaySettings({
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 bottom-full mb-4 z-[70] p-6 rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.5)] border min-w-[280px]"
+                      className="absolute right-0 bottom-full mb-4 z-[70] p-6 rounded-lg shadow-[0_25px_60px_rgba(0,0,0,0.5)] border min-w-[280px]"
                       style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
                     >
                       <div className="space-y-5">
@@ -199,8 +199,8 @@ export default function DrawerDisplaySettings({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
-                          <div className="h-10 w-10 rounded-xl border shadow-inner shrink-0" style={{ backgroundColor: colorPickerValue, borderColor: "var(--dash-border)" }} />
+                        <div className="flex items-center gap-4 p-4 rounded-lg border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                          <div className="h-10 w-10 rounded-lg border shadow-inner shrink-0" style={{ backgroundColor: colorPickerValue, borderColor: "var(--dash-border)" }} />
                           <div className="flex-1">
                             <p className="text-[9px] font-black uppercase tracking-widest mb-0.5" style={{ color: "var(--dash-text-muted)" }}>[Cor Personalizada]</p>
                             <p className="text-xs font-mono font-bold" style={{ color: "var(--dash-text-primary)" }}>{colorPickerValue.toUpperCase()}</p>
@@ -214,7 +214,7 @@ export default function DrawerDisplaySettings({
                               setIsPickerOpen(false);
                               setEditingColorIdx(null);
                             }}
-                            className="px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                            className="px-4 py-3.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border"
                             style={{ background: "var(--dash-surface-secondary)", color: "var(--dash-text-muted)", borderColor: "var(--dash-border)" }}
                           >
                             Cancelar
@@ -225,7 +225,7 @@ export default function DrawerDisplaySettings({
                               addColor(colorPickerValue);
                               setIsPickerOpen(false);
                             }}
-                            className="px-4 py-3.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-95 border-none"
+                            className="px-4 py-3.5 bg-primary text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-95 border-none"
                           >
                             {editingColorIdx !== null ? "Atualizar" : "Confirmar"}
                           </button>

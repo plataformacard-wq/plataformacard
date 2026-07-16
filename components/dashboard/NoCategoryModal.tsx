@@ -40,7 +40,7 @@ export default function NoCategoryModal({
                     onClose();
                     onCreateCategory();
                   }}
-                  className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                  className="w-full rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
                 >
                   Criar Minha Primeira Categoria
                 </button>

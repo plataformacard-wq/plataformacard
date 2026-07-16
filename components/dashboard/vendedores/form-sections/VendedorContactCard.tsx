@@ -50,7 +50,7 @@ export function VendedorContactCard(props: any) {
             value={formWhatsapp} 
             onChange={e => setFormWhatsapp(formatWhatsApp(e.target.value))}
             placeholder="(00) 00000-0000"
-            className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+            className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           />
         </div>
@@ -59,7 +59,7 @@ export function VendedorContactCard(props: any) {
           <input 
             type="text" value={formSlug} onChange={e => setFormSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
             placeholder="ex: nome_do_vendedor"
-            className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+            className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           />
           {formSlug && (
@@ -70,7 +70,7 @@ export function VendedorContactCard(props: any) {
         </div>
       </div>
       
-      <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between bg-[var(--dash-bg)] p-3 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
+      <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between bg-[var(--dash-bg)] p-3 rounded-lg border" style={{ borderColor: "var(--dash-border)" }}>
         <div>
           <p className="text-[13px] font-bold" style={{ color: "var(--dash-text-primary)" }}>Receber mensagens fora do horário?</p>
           <p className="text-[11px] text-[var(--dash-text-muted)] mt-0.5">Se desligado, bloqueia o botão quando fechado.</p>
@@ -93,7 +93,7 @@ export function VendedorContactCard(props: any) {
           onChange={e => setFormWhatsappTemplate(e.target.value)}
           placeholder="Ex: Olá! Vi o item {item_nome} no valor de {item_preco} e tenho interesse."
           rows={3}
-          className="w-full px-4 py-3 rounded-xl border outline-none bg-[var(--dash-bg)] text-sm"
+          className="w-full px-4 py-3 rounded-lg border outline-none bg-[var(--dash-bg)] text-sm"
           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
         />
         <div className="mt-2 flex flex-wrap gap-2">
@@ -197,7 +197,7 @@ export function VendedorContactCard(props: any) {
                   max="365"
                   value={formRecessDays} 
                   onChange={e => setFormRecessDays(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
+                  className="w-full px-3 py-1.5 rounded-lg border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 />
               </div>
@@ -209,13 +209,13 @@ export function VendedorContactCard(props: any) {
                   max="23"
                   value={formRecessHours} 
                   onChange={e => setFormRecessHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
-                  className="w-full px-3 py-1.5 rounded-xl border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
+                  className="w-full px-3 py-1.5 rounded-lg border outline-none bg-[var(--dash-bg)] text-xs text-center font-semibold"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 />
               </div>
             </div>
             
-            <div className="text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-purple-600 dark:text-purple-400 leading-relaxed">
+            <div className="text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 text-purple-600 dark:text-purple-400 leading-relaxed">
               <p className="font-semibold flex items-center gap-1">
                 <Info size={12} />
                 {formRecessDays === 0 && formRecessHours === 0 ? (

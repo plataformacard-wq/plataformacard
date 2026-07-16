@@ -371,7 +371,7 @@ export default function BulkPromoModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", duration: 0.4 }}
-          className="w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl flex flex-col max-h-[90vh]"
+          className="w-full max-w-2xl overflow-hidden rounded-lg border shadow-2xl flex flex-col max-h-[90vh]"
           style={{ 
             background: "var(--dash-surface)", 
             borderColor: "var(--dash-border)",
@@ -381,7 +381,7 @@ export default function BulkPromoModal({
           {/* Header */}
           <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "var(--dash-border)" }}>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                 {actionType === "apply_promo" ? (
                   <Tags size={20} />
                 ) : actionType === "apply_markup" ? (
@@ -487,7 +487,7 @@ export default function BulkPromoModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[var(--dash-hover-bg)] transition-colors"
+                  className="px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[var(--dash-hover-bg)] transition-colors"
                   style={{ color: "var(--dash-text-secondary)" }}
                   disabled={isProcessing}
                 >
@@ -497,7 +497,7 @@ export default function BulkPromoModal({
                   type="button"
                   onClick={handleSubmit}
                   disabled={isProcessing || previewData.affectedCount === 0}
-                  className={`flex items-center gap-2 px-8 py-2.5 text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                  className={`flex items-center gap-2 px-8 py-2.5 text-white rounded-lg font-bold text-sm shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                     actionType === "apply_promo"
                       ? "bg-primary shadow-primary/20 hover:opacity-90"
                       : actionType === "apply_markup"

@@ -40,7 +40,7 @@ import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 // Carregamento dinâmico do editor RichTextEditor wrapper para evitar erros de SSR e ChunkLoadError
 const RichTextEditor = nextDynamic(() => import("./RichTextEditor"), { 
   ssr: false,
-  loading: () => <div className="h-[120px] w-full rounded-xl border border-zinc-200 bg-zinc-50 animate-pulse" />
+  loading: () => <div className="h-[120px] w-full rounded-lg border border-zinc-200 bg-zinc-50 animate-pulse" />
 });
 
 
@@ -567,7 +567,7 @@ export default function ProductModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
       <div 
-        className="w-full max-w-2xl rounded-xl border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
+        className="w-full max-w-2xl rounded-lg border p-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] overflow-hidden"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
       >
         {/* Header */}
@@ -583,7 +583,7 @@ export default function ProductModal({
                   <button
                     type="button"
                     onClick={handleCopyLastProduct}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-500 text-[10px] font-black hover:bg-emerald-500/20 transition-all border border-emerald-500/20 uppercase tracking-wider mr-10"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-black hover:bg-emerald-500/20 transition-all border border-emerald-500/20 uppercase tracking-wider mr-10"
                   >
                     <Copy size={12} /> Copiar dados do último
                   </button>
@@ -610,7 +610,7 @@ export default function ProductModal({
                         setSaving(false);
                       }
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black hover:bg-red-500/20 transition-all border border-red-500/20 uppercase tracking-wider mr-10"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 text-[10px] font-black hover:bg-red-500/20 transition-all border border-red-500/20 uppercase tracking-wider mr-10"
                     title="Este produto é um clone. Clique para restaurar ao original."
                   >
                     <RotateCcw size={12} /> Restaurar Vínculo
@@ -621,7 +621,7 @@ export default function ProductModal({
                 Gerencie os detalhes e a apresentação do seu item.
               </p>
               {isCaaS && allowCaasDetachment && (
-                <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+                <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
                   <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-xs font-bold text-amber-500">
                     Você tem permissão para editar a estrutura deste produto. Se alterar o Nome, Descrição, SKU ou Categoria, 
@@ -630,7 +630,7 @@ export default function ProductModal({
                 </div>
               )}
             </div>
-            <button onClick={onClose} className="rounded-xl p-3 transition-colors" style={{ background: "var(--dash-surface)", color: "var(--dash-text-muted)" }}>
+            <button onClick={onClose} className="rounded-lg p-3 transition-colors" style={{ background: "var(--dash-surface)", color: "var(--dash-text-muted)" }}>
               <XIcon size={24} />
             </button>
           </div>
@@ -638,22 +638,22 @@ export default function ProductModal({
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8">
           <form id="productForm" onSubmit={handleSubmit} className="space-y-8">
-            {productFormError && <p className="text-xs text-red-500 font-bold bg-red-50 p-4 rounded-xl border border-red-100">{productFormError}</p>}
+            {productFormError && <p className="text-xs text-red-500 font-bold bg-red-50 p-4 rounded-lg border border-red-100">{productFormError}</p>}
 
             {/* Seletor de Tipo (Apenas se Híbrido) */}
             {catalogType === 'hybrid' && (
-              <div className="flex p-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50">
+              <div className="flex p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50">
                 <button
                   type="button"
                   onClick={() => { setItemType("product"); setEnableSku(true); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'product' ? 'bg-[var(--dash-surface)] dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${itemType === 'product' ? 'bg-[var(--dash-surface)] dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
                 >
                   <Package size={16} /> Produto
                 </button>
                 <button
                   type="button"
                   onClick={() => { setItemType("service"); setEnableSku(false); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'service' ? 'bg-[var(--dash-surface)] dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${itemType === 'service' ? 'bg-[var(--dash-surface)] dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
                 >
                   <Settings size={16} /> Serviço
                 </button>
@@ -665,7 +665,7 @@ export default function ProductModal({
               <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: "var(--dash-text-muted)" }}>
                 <Package size={16} /> Identidade do {itemType === 'service' ? 'Serviço' : 'Produto'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-xl border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-lg border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                 <div className="md:col-span-2">
                   <label className="mb-2 flex items-center gap-2 text-sm font-black text-zinc-700 uppercase tracking-wider">
                     <Tag size={16} className="text-emerald-500" /> Categoria
@@ -673,7 +673,7 @@ export default function ProductModal({
                   <select
                     value={selectedCategoryId}
                     onChange={(e) => setSelectedCategoryId(e.target.value)}
-                    className="dash-select w-full rounded-xl border pl-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500/50"
+                    className="dash-select w-full rounded-lg border pl-5 py-4 text-sm font-medium outline-none transition-all focus:border-emerald-500/50"
                     style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   >
                     <option value="" style={{ backgroundColor: "var(--dash-input-bg)" }}>Selecione uma categoria</option>
@@ -704,7 +704,7 @@ export default function ProductModal({
                     disabled={isCaasLocked}
                     value={productName}
                     onChange={(e) => setProductName(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
+                    className="w-full rounded-lg border pl-5 pr-12 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50"
                     style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                   {nameError && <p className="mt-1.5 text-xs text-red-500">{nameError}</p>}
@@ -728,7 +728,7 @@ export default function ProductModal({
                     onChange={(e) => setSku(e.target.value)}
                     disabled={!enableSku || isCaasLocked}
                     placeholder="Ex: SERV-01, PROD-99..."
-                    className={`w-full rounded-xl border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
+                    className={`w-full rounded-lg border px-5 py-4 text-sm font-bold outline-none transition-all focus:border-emerald-500/50 ${!enableSku ? 'opacity-30' : ''}`}
                     style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
@@ -761,7 +761,7 @@ export default function ProductModal({
                     }}
                     placeholder={itemType === 'service' ? 'Ex: ATENDIMENTO EM 24H, GARANTIA TOTAL...' : 'Ex: PRODUTO EXCLUSIVO, SEM CNH...'}
                     disabled={!showHighlight || isCaasLocked}
-                    className={`w-full rounded-xl border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
+                    className={`w-full rounded-lg border px-6 py-5 text-sm font-black outline-none transition-all focus:border-emerald-500/50 ${!showHighlight ? 'opacity-30 grayscale pointer-events-none' : 'border-emerald-500/30 bg-emerald-500/[0.02]'}`}
                     style={{ background: showHighlight ? "rgba(16, 185, 129, 0.02)" : "var(--dash-input-bg)", borderColor: showHighlight ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                   {showHighlight && (
@@ -779,14 +779,14 @@ export default function ProductModal({
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                   <div 
                     onClick={() => setIsActive(!isActive)} 
-                    className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${isActive ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
+                    className={`flex items-center justify-between p-6 rounded-lg border-2 transition-all cursor-pointer ${isActive ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
                     style={{ 
                       borderColor: isActive ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                       background: isActive ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
                     }}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${isActive ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
                         <Eye size={20} />
                       </div>
                       <div>
@@ -805,14 +805,14 @@ export default function ProductModal({
                   <div className="flex flex-col gap-4">
                     <div 
                       onClick={() => setIsInStock(!isInStock)} 
-                      className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${isInStock ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
+                      className={`flex items-center justify-between p-6 rounded-lg border-2 transition-all cursor-pointer ${isInStock ? 'border-emerald-500 bg-emerald-500/[0.05]' : ''}`}
                       style={{ 
                         borderColor: isInStock ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                         background: isInStock ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isInStock ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${isInStock ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
                           <Package size={20} />
                         </div>
                         <div>
@@ -833,7 +833,7 @@ export default function ProductModal({
                         if (isCaaS) return; // Nao deixa alterar se for CaaS puro?
                         setManualStock(!manualStock);
                       }} 
-                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer ${manualStock ? 'border-amber-500 bg-amber-500/[0.05]' : ''}`}
+                      className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all cursor-pointer ${manualStock ? 'border-amber-500 bg-amber-500/[0.05]' : ''}`}
                       style={{ 
                         borderColor: manualStock ? "rgba(245, 158, 11, 0.3)" : "var(--dash-border)",
                         background: manualStock ? "rgba(245, 158, 11, 0.05)" : "var(--dash-surface-secondary)"
@@ -861,7 +861,7 @@ export default function ProductModal({
                           value={stockQuantity}
                           onChange={(e) => setStockQuantity(e.target.value)}
                           placeholder="Ex: 97"
-                          className="w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:border-emerald-500 focus:outline-none"
+                          className="w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:border-emerald-500 focus:outline-none"
                           style={{
                             backgroundColor: "var(--dash-input-bg)",
                             borderColor: "var(--dash-border)",
@@ -890,7 +890,7 @@ export default function ProductModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* VAREJO */}
                 <div 
-                  className={`relative p-8 rounded-xl border-2 transition-all duration-500 ${
+                  className={`relative p-8 rounded-lg border-2 transition-all duration-500 ${
                     hasRetail 
                       ? 'border-emerald-500 bg-emerald-500/[0.05] shadow-[0_20px_40px_rgba(16,185,129,0.12)]' 
                       : 'opacity-20 grayscale'
@@ -902,7 +902,7 @@ export default function ProductModal({
                 >
                   <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-xl ${hasRetail ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <div className={`p-3 rounded-lg ${hasRetail ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
                         <Tag size={20} />
                       </div>
                       <span className="text-sm font-black uppercase tracking-tighter" style={{ color: hasRetail ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Varejo</span>
@@ -942,11 +942,11 @@ export default function ProductModal({
                         onChange={(e) => setProductPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
                         disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
-                        className={`w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
+                        className={`w-full rounded-lg border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       {editingProduct?.is_caas && editingProduct.original_master_price != null && parsePrice(productPrice) !== editingProduct.original_master_price && editingProduct.allow_price_overrides !== false && (
-                        <div className="mt-2 p-3 rounded-xl bg-blue-50/50 border border-blue-100 flex items-center justify-between gap-3">
+                        <div className="mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100 flex items-center justify-between gap-3">
                            <div className="flex items-center gap-2 text-[10px]">
                              <div className="p-1.5 rounded-full bg-blue-100 text-blue-500"><BellRing size={14} /></div>
                              <span className="text-blue-900/80 font-medium">O preço no Master é <b className="text-blue-700">R$ {editingProduct.original_master_price.toFixed(2).replace('.', ',')}</b></span>
@@ -967,7 +967,7 @@ export default function ProductModal({
                         onChange={(e) => setProductCompareAtPrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
                         disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
-                        className={`w-full rounded-xl border-2 border-dashed pl-12 pr-6 py-3 text-sm font-bold line-through outline-none focus:border-zinc-400 transition-all ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
+                        className={`w-full rounded-lg border-2 border-dashed pl-12 pr-6 py-3 text-sm font-bold line-through outline-none focus:border-zinc-400 transition-all ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}
                       />
                     </div>
@@ -976,7 +976,7 @@ export default function ProductModal({
 
                 {/* ATACADO */}
                 <div 
-                  className={`relative p-8 rounded-xl border-2 transition-all duration-500 ${
+                  className={`relative p-8 rounded-lg border-2 transition-all duration-500 ${
                     hasWholesale 
                       ? 'border-emerald-500 bg-emerald-500/[0.05] shadow-[0_20px_40px_rgba(16,185,129,0.12)]' 
                       : 'opacity-20 grayscale'
@@ -988,7 +988,7 @@ export default function ProductModal({
                 >
                   <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-xl ${hasWholesale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <div className={`p-3 rounded-lg ${hasWholesale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
                         <DollarSign size={20} />
                       </div>
                       <span className="text-sm font-black uppercase tracking-tighter" style={{ color: hasWholesale ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Atacado</span>
@@ -1017,7 +1017,7 @@ export default function ProductModal({
                         onChange={(e) => setWholesalePrice(sanitizePriceTyping(e.target.value))} 
                         placeholder="0,00" 
                         disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
-                        className={`w-full rounded-xl border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
+                        className={`w-full rounded-lg border-2 pl-12 pr-6 py-5 text-2xl font-black outline-none focus:border-emerald-500 transition-all shadow-inner ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                     </div>
@@ -1030,7 +1030,7 @@ export default function ProductModal({
                         onChange={(e) => setWholesaleMinQuantity(e.target.value)} 
                         placeholder="Ex: 10" 
                         disabled={isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)}
-                        className={`w-full rounded-xl border-2 pl-6 pr-16 py-3 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
+                        className={`w-full rounded-lg border-2 pl-6 pr-16 py-3 text-sm font-bold outline-none focus:border-emerald-500/50 transition-all ${(isCaasLocked || (isCaaS && editingProduct?.allow_price_overrides === false)) ? 'opacity-50' : ''}`}
                         style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       <span className="absolute right-4 top-[38px] text-[10px] font-black uppercase tracking-widest pointer-events-none" style={{ color: "var(--dash-text-muted)" }}>UNID.</span>
@@ -1046,7 +1046,7 @@ export default function ProductModal({
                 <button 
                   type="button" 
                   onClick={() => setShowSpecs(!effectiveShowSpecs)} 
-                  className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all ${effectiveShowSpecs ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
+                  className={`flex items-center justify-between p-6 rounded-lg border-2 transition-all ${effectiveShowSpecs ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
                   style={{ 
                     borderColor: effectiveShowSpecs ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                     background: effectiveShowSpecs ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
@@ -1066,7 +1066,7 @@ export default function ProductModal({
                 <button 
                   type="button" 
                   onClick={() => setShowColors(!effectiveShowColors)} 
-                  className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all ${effectiveShowColors ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
+                  className={`flex items-center justify-between p-6 rounded-lg border-2 transition-all ${effectiveShowColors ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : ''}`}
                   style={{ 
                     borderColor: effectiveShowColors ? "rgba(16, 185, 129, 0.3)" : "var(--dash-border)",
                     background: effectiveShowColors ? "rgba(16, 185, 129, 0.05)" : "var(--dash-surface-secondary)"
@@ -1088,7 +1088,7 @@ export default function ProductModal({
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-8 rounded-xl border-2 space-y-6"
+                  className="p-8 rounded-lg border-2 space-y-6"
                   style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
                 >
                   <div className="flex items-center justify-between">
@@ -1098,7 +1098,7 @@ export default function ProductModal({
                   <div className="flex flex-wrap gap-4">
                     {productColors.map((c, i) => (
                       <div key={i} className="group relative">
-                        <div className="h-14 w-14 rounded-xl border-4 shadow-xl cursor-pointer transition-transform hover:scale-110" style={{ backgroundColor: c, borderColor: "var(--dash-surface)" }} onClick={() => removeColor(i)} />
+                        <div className="h-14 w-14 rounded-lg border-4 shadow-xl cursor-pointer transition-transform hover:scale-110" style={{ backgroundColor: c, borderColor: "var(--dash-surface)" }} onClick={() => removeColor(i)} />
                         <div className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                           <XIcon size={10} />
                         </div>
@@ -1108,7 +1108,7 @@ export default function ProductModal({
                       <button 
                         type="button" 
                         onClick={() => setIsPickerOpen(!isPickerOpen)} 
-                        className="h-14 w-14 rounded-xl border-2 border-dashed flex items-center justify-center text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 transition-all"
+                        className="h-14 w-14 rounded-lg border-2 border-dashed flex items-center justify-center text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 transition-all"
                         style={{ borderColor: "var(--dash-border)" }}
                       >
                         <Plus size={24} />
@@ -1127,7 +1127,7 @@ export default function ProductModal({
                         <button 
                           type="button"
                           onClick={() => { addColor(colorPickerValue); setIsPickerOpen(false); }}
-                          className="px-6 py-2 bg-zinc-900 text-white rounded-xl text-xs font-black uppercase tracking-widest"
+                          className="px-6 py-2 bg-zinc-900 text-white rounded-lg text-xs font-black uppercase tracking-widest"
                         >
                           Confirmar Cor
                         </button>
@@ -1150,12 +1150,12 @@ export default function ProductModal({
                       value={specsTitle} 
                       onChange={e => setSpecsTitle(e.target.value)} 
                       placeholder="Ex: ESPECIFICAÇÕES TÉCNICAS" 
-                      className="w-full rounded-xl border-2 px-5 py-3 text-xs font-black uppercase tracking-widest outline-none focus:border-emerald-500/50 transition-all" 
+                      className="w-full rounded-lg border-2 px-5 py-3 text-xs font-black uppercase tracking-widest outline-none focus:border-emerald-500/50 transition-all" 
                       style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
 
-                  <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed shadow-sm transition-all hover:border-emerald-500/30" style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+                  <div className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed shadow-sm transition-all hover:border-emerald-500/30" style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
                     <input 
                       type="text" 
                       value={specChaveDraft} 
@@ -1206,7 +1206,7 @@ export default function ProductModal({
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9 }}
-                          className={`group flex items-center justify-between p-4 rounded-xl border-2 hover:border-emerald-500/30 transition-all shadow-sm ${editingSpecIndex === i ? '' : 'cursor-grab active:cursor-grabbing'}`}
+                          className={`group flex items-center justify-between p-4 rounded-lg border-2 hover:border-emerald-500/30 transition-all shadow-sm ${editingSpecIndex === i ? '' : 'cursor-grab active:cursor-grabbing'}`}
                           style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
                         >
                           {editingSpecIndex === i ? (
@@ -1283,7 +1283,7 @@ export default function ProductModal({
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      className="relative h-24 w-24 rounded-xl overflow-hidden border-2 cursor-grab active:cursor-grabbing group shadow-sm hover:shadow-md transition-all"
+                      className="relative h-24 w-24 rounded-lg overflow-hidden border-2 cursor-grab active:cursor-grabbing group shadow-sm hover:shadow-md transition-all"
                       style={{ 
                         borderColor: i === 0 ? "var(--dash-primary)" : "var(--dash-border)",
                         background: "var(--dash-surface-secondary)"
@@ -1316,7 +1316,7 @@ export default function ProductModal({
                   <button 
                     type="button"
                     onClick={() => setShowImageEditor(true)}
-                    className="h-24 w-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 group"
+                    className="h-24 w-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 group"
                     style={{ backgroundColor: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
                   >
                     <Upload size={20} className="text-zinc-500 group-hover:text-emerald-500 transition-colors" />
@@ -1329,7 +1329,7 @@ export default function ProductModal({
             {/* SESSÃO: FILTRO DE QUALIDADE IA */}
             <div className="pt-10 border-t space-y-6" style={{ borderColor: "var(--dash-border)" }}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                   <Sparkles size={20} />
                 </div>
                 <div>
@@ -1406,7 +1406,7 @@ export default function ProductModal({
                       e.stopPropagation();
                       setIsAiGenerationEnabled(!isAiGenerationEnabled);
                     }}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 cursor-pointer ${isAiGenerationEnabled ? 'border-emerald-500/20 text-emerald-500' : 'border-blue-500/20 text-blue-500'}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 cursor-pointer ${isAiGenerationEnabled ? 'border-emerald-500/20 text-emerald-500' : 'border-blue-500/20 text-blue-500'}`}
                     title={isAiGenerationEnabled ? "Desativar Geração de Descrição" : "Ativar Geração de Descrição"}
                   >
                     {isAiGenerationEnabled ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
@@ -1438,7 +1438,7 @@ export default function ProductModal({
             form="productForm"
             type="submit" 
             disabled={saving}
-            className="px-10 py-4 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+            className="px-10 py-4 bg-emerald-500 text-white rounded-lg font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
           >
             {saving ? "Salvando..." : isEditMode ? "Atualizar" : "Criar Produto"}
           </button>

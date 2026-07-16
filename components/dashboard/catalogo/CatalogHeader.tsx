@@ -56,7 +56,7 @@ export default function CatalogHeader({
                 const supabase = createClient();
                 await supabase.from("catalogs").update({ type: type.id }).eq("id", catalogId);
               }}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${
                 catalogType === type.id 
                   ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20" 
                   : "bg-transparent border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"

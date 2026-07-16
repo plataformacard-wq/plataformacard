@@ -69,7 +69,7 @@ export default function ProfileSecuritySection({
             value={accountName}
             disabled={!canEditBasicInfo}
             onChange={(e) => setAccountName(e.target.value)}
-            className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
             style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           />
           {canEditBasicInfo && (
@@ -78,7 +78,7 @@ export default function ProfileSecuritySection({
                 type="button"
                 onClick={handleSaveAccountName}
                 disabled={saving}
-                className="mt-4 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-4 px-6 py-2 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? "Salvando..." : "Salvar Nome"}
               </button>
@@ -135,7 +135,7 @@ export default function ProfileSecuritySection({
         <p className="mt-1 text-sm text-[var(--dash-text-muted)] leading-relaxed">
           Gerencie onde a sua conta está logada. Se você esqueceu sua conta aberta em outro computador, pode desconectar todos os outros dispositivos remotamente.
         </p>
-        <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border bg-emerald-500/5" style={{ borderColor: "var(--dash-border)" }}>
+        <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-lg border bg-emerald-500/5" style={{ borderColor: "var(--dash-border)" }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
               <ShieldCheck size={20} />
@@ -149,7 +149,7 @@ export default function ProfileSecuritySection({
             type="button"
             onClick={handleSignOutOtherSessions}
             disabled={saving}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 border border-red-500/20 transition-all active:scale-95 disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-500/10 border border-red-500/20 transition-all active:scale-95 disabled:opacity-50"
           >
             Desconectar Outros Dispositivos
           </button>
@@ -186,7 +186,7 @@ export default function ProfileSecuritySection({
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
-                      className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                      className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors"
                       style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
@@ -197,7 +197,7 @@ export default function ProfileSecuritySection({
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       placeholder="Repita a senha"
-                      className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                      className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors"
                       style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
@@ -205,7 +205,7 @@ export default function ProfileSecuritySection({
                     type="button"
                     onClick={handleChangePassword}
                     disabled={changingPassword || !newPassword || newPassword !== confirmNewPassword}
-                    className="w-full px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                    className="w-full px-6 py-3 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                   >
                     {changingPassword ? "Enviando Código..." : "Alterar Senha"}
                   </button>
@@ -230,7 +230,7 @@ export default function ProfileSecuritySection({
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 123456"
-                      className="w-full rounded-xl border px-4 py-4 text-center text-2xl tracking-widest font-bold outline-none transition-colors"
+                      className="w-full rounded-lg border px-4 py-4 text-center text-2xl tracking-widest font-bold outline-none transition-colors"
                       style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
@@ -238,7 +238,7 @@ export default function ProfileSecuritySection({
                     type="button"
                     onClick={handleVerifyOtp}
                     disabled={changingPassword || otpCode.length < 6}
-                    className="w-full px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-6 py-3 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95 bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {changingPassword ? "Verificando..." : "Validar e Atualizar Senha"}
                   </button>

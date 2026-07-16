@@ -24,7 +24,7 @@ export default function DashboardQuickActions({ quickActions }: { quickActions: 
             href={action.href}
             className={`group flex items-start gap-4 rounded-[27px] border bg-gradient-to-br ${action.color} p-5 transition-all hover:scale-[1.02] hover:shadow-md`}
           >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--dash-surface)] text-2xl shadow-sm border border-[var(--dash-border)]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[var(--dash-surface)] text-2xl shadow-sm border border-[var(--dash-border)]">
               {action.icon}
             </div>
             <div className="flex-1">

@@ -93,7 +93,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
                  <p className="text-sm text-[var(--dash-text-secondary)] max-w-md mb-6 leading-relaxed">
                    Para visualizar as métricas globais, alertas de baixo estoque e a volumetria de categorias, é necessário conectar a sua conta do Bling.
                  </p>
-                 <Link href="/dashboard/integracoes" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-sm">
+                 <Link href="/dashboard/integracoes" className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm">
                    Conectar Bling Agora
                  </Link>
               </div>

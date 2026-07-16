@@ -110,14 +110,14 @@ export default function ConfiguracoesBannersTab(props: any) {
                 </div>
                 <button
                   onClick={handleAddBanner}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
                   <Plus size={16} /> Adicionar Banner
                 </button>
               </div>
 
               {/* Toggle Exibir Banners */}
-              <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+              <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
                 <div className="space-y-1 pr-6">
                   <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Exibir Banners no Catálogo Público</label>
                   <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
@@ -133,7 +133,7 @@ export default function ConfiguracoesBannersTab(props: any) {
               </div>
 
               {/* Configurações do Carrossel */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
                 <div className="space-y-3">
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
                     Tempo de Transição (Segundos)
@@ -167,13 +167,13 @@ export default function ConfiguracoesBannersTab(props: any) {
               {/* Lista de Banners */}
               <div className="space-y-4">
                 {localBanners.length === 0 ? (
-                  <div className="text-center p-12 border-2 border-dashed border-[var(--dash-border)] rounded-xl">
+                  <div className="text-center p-12 border-2 border-dashed border-[var(--dash-border)] rounded-lg">
                     <ImageIcon size={48} className="mx-auto text-[var(--dash-text-muted)] opacity-50 mb-4" />
                     <p className="text-[var(--dash-text-muted)] font-medium">Nenhum banner configurado.</p>
                   </div>
                 ) : (
                   localBanners.map((banner: any, index: number) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl hover:border-primary/50 transition-colors">
+                    <div key={index} className="flex items-center gap-4 p-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg hover:border-primary/50 transition-colors">
                       <div className="flex flex-col gap-1">
                         <button disabled={index === 0} onClick={() => handleMoveBanner(index, 'up')} className="p-1 text-[var(--dash-text-muted)] hover:text-white disabled:opacity-20"><ArrowUp size={16} /></button>
                         <button disabled={index === localBanners.length - 1} onClick={() => handleMoveBanner(index, 'down')} className="p-1 text-[var(--dash-text-muted)] hover:text-white disabled:opacity-20"><ArrowDown size={16} /></button>
@@ -213,15 +213,15 @@ export default function ConfiguracoesBannersTab(props: any) {
                             updated[index].active = updated[index].active === false ? true : false;
                             setLocalBanners(updated);
                           }} 
-                          className="p-3 bg-[var(--dash-hover-bg)] hover:bg-emerald-500/20 hover:text-emerald-500 rounded-xl transition-colors"
+                          className="p-3 bg-[var(--dash-hover-bg)] hover:bg-emerald-500/20 hover:text-emerald-500 rounded-lg transition-colors"
                           title={banner.active !== false ? "Ocultar Banner" : "Visualizar Banner"}
                         >
                           {banner.active !== false ? <Eye size={16} /> : <EyeOff size={16} />}
                         </button>
-                        <button onClick={() => handleEditBanner(index)} className="p-3 bg-[var(--dash-hover-bg)] hover:bg-primary/20 hover:text-primary rounded-xl transition-colors">
+                        <button onClick={() => handleEditBanner(index)} className="p-3 bg-[var(--dash-hover-bg)] hover:bg-primary/20 hover:text-primary rounded-lg transition-colors">
                           <Edit2 size={16} />
                         </button>
-                        <button onClick={() => handleRemoveBanner(index)} className="p-3 bg-[var(--dash-hover-bg)] hover:bg-red-500/20 hover:text-red-500 rounded-xl transition-colors">
+                        <button onClick={() => handleRemoveBanner(index)} className="p-3 bg-[var(--dash-hover-bg)] hover:bg-red-500/20 hover:text-red-500 rounded-lg transition-colors">
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -324,7 +324,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                           type="text"
                           value={tempBanner.title || ""}
                           onChange={(e) => setTempBanner({ ...tempBanner, title: e.target.value })}
-                          className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
+                          className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
                           placeholder="Ex: Oferta de Inverno"
                         />
                       </div>
@@ -335,7 +335,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                           type="text"
                           value={tempBanner.description || ""}
                           onChange={(e) => setTempBanner({ ...tempBanner, description: e.target.value })}
-                          className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
+                          className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
                           placeholder="Até 50% OFF em toda a loja..."
                         />
                       </div>
@@ -348,7 +348,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                           type="text"
                           value={tempBanner.button_text || ""}
                           onChange={(e) => setTempBanner({ ...tempBanner, button_text: e.target.value })}
-                          className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
+                          className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
                           placeholder="Comprar Agora"
                         />
                       </div>
@@ -359,7 +359,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                             type="text"
                             value={tempBanner.button_link || ""}
                             onChange={(e) => setTempBanner({ ...tempBanner, button_link: e.target.value })}
-                            className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-xl focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
+                            className="w-full p-4 bg-[var(--dash-bg)] border border-[var(--dash-border)] rounded-lg focus:border-primary outline-none text-sm font-medium transition-colors text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)]"
                             placeholder="https://... ou ID do Produto"
                           />
                         </div>
@@ -378,13 +378,13 @@ export default function ConfiguracoesBannersTab(props: any) {
               <div className="flex justify-end gap-4 mt-10">
                 <button
                   onClick={() => setIsBannerModalOpen(false)}
-                  className="px-6 py-3 rounded-xl text-sm font-bold text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] transition-colors"
+                  className="px-6 py-3 rounded-lg text-sm font-bold text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSaveBannerModal}
-                  className="px-8 py-3 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                  className="px-8 py-3 rounded-lg bg-primary text-white text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                 >
                   Salvar Banner
                 </button>

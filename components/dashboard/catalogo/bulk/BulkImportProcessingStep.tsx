@@ -28,11 +28,11 @@ export default function BulkImportProcessingStep({ stats }: BulkImportProcessing
       </p>
       
       <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-12">
-        <div className="bg-[var(--dash-bg)] p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
+        <div className="bg-[var(--dash-bg)] p-4 rounded-lg border" style={{ borderColor: "var(--dash-border)" }}>
           <p className="text-2xl font-bold text-primary">{stats.created}</p>
           <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Produtos Criados</p>
         </div>
-        <div className="bg-[var(--dash-bg)] p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)" }}>
+        <div className="bg-[var(--dash-bg)] p-4 rounded-lg border" style={{ borderColor: "var(--dash-border)" }}>
           <p className="text-2xl font-bold text-red-500">{stats.failed}</p>
           <p className="text-xs" style={{ color: "var(--dash-text-muted)" }}>Falhas</p>
         </div>

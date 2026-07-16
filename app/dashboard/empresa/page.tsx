@@ -516,7 +516,7 @@ export default function EmpresaPage() {
           {businessHours.custom_alerts && businessHours.custom_alerts.length > 0 && (
             <div className="space-y-4">
               {businessHours.custom_alerts.map((alert) => (
-                <div key={alert.id} className="flex flex-col sm:flex-row gap-3 p-4 rounded-xl border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}>
+                <div key={alert.id} className="flex flex-col sm:flex-row gap-3 p-4 rounded-lg border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}>
                   <div className="flex-1">
                     <input
                       type="text"

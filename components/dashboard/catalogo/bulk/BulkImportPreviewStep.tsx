@@ -29,7 +29,7 @@ export default function BulkImportPreviewStep({
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
     >
-      <div className="border rounded-xl overflow-hidden" style={{ borderColor: "var(--dash-border)" }}>
+      <div className="border rounded-lg overflow-hidden" style={{ borderColor: "var(--dash-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-[var(--dash-hover-bg)]/50">
@@ -62,7 +62,7 @@ export default function BulkImportPreviewStep({
       <div className="flex justify-end gap-3 pt-6">
         <button 
           onClick={() => setStep("mapping")}
-          className="px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[var(--dash-hover-bg)] transition-colors"
+          className="px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-[var(--dash-hover-bg)] transition-colors"
           style={{ color: "var(--dash-text-secondary)" }}
         >
           Ajustar Mapeamento
@@ -70,7 +70,7 @@ export default function BulkImportPreviewStep({
         <button 
           onClick={startImport}
           disabled={isProcessing}
-          className="flex items-center gap-2 px-8 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-8 py-2.5 bg-primary text-white rounded-lg font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
         >
           {isProcessing ? (
             <>

@@ -44,6 +44,12 @@ const REPLACEMENTS = [
     replace: '$1rounded',
     desc: "Padronizando stickers (inline-flex com texto pequeno) para rounded (4px)"
   },
+  // 6. Converter todos os botões e inputs (rounded-xl) para o novo padrão (rounded-lg)
+  {
+    regex: /(?<![a-zA-Z0-9-])rounded-xl(?![a-zA-Z0-9-])/g,
+    replace: 'rounded-lg',
+    desc: "Padronizando botões e inputs (rounded-xl) para o novo padrão rounded-lg"
+  },
   // 3. Remover rounded-none e rounded-sm e sugerir rounded-xl ou 2xl (neste script simples vamos forçar rounded-xl para caixas)
   // Como as bordas de card demandam rounded-2xl, mas não conseguimos distinguir contexto facilmente, 
   // vamos emitir warning para bordas quadradas.

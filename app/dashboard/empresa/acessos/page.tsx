@@ -232,7 +232,7 @@ export default function GerenciarAcessosPage() {
       </div>
 
       {message.text && (
-        <div className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+        <div className={`p-4 rounded-lg flex items-center gap-3 ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
           <AlertCircle size={20} />
           <span className="text-sm font-medium">{message.text}</span>
         </div>
@@ -287,9 +287,9 @@ export default function GerenciarAcessosPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         {seller.avatar_url ? (
-                          <img src={seller.avatar_url} alt={seller.full_name || ""} className="w-10 h-10 rounded-xl object-cover" />
+                          <img src={seller.avatar_url} alt={seller.full_name || ""} className="w-10 h-10 rounded-lg object-cover" />
                         ) : (
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
                             {seller.full_name?.charAt(0) || "V"}
                           </div>
                         )}
@@ -429,7 +429,7 @@ export default function GerenciarAcessosPage() {
               </div>
             </div>
 
-            <div className="mb-6 rounded-xl p-4 bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs">
+            <div className="mb-6 rounded-lg p-4 bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs">
               <strong>Dica:</strong> O vendedor não precisa de e-mail! O acesso é feito usando o próprio <strong>Slug</strong> como Usuário e a senha que você definir abaixo.
             </div>
 
@@ -438,7 +438,7 @@ export default function GerenciarAcessosPage() {
                 <label className="mb-2 block text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                   Usuário (Slug)
                 </label>
-                <div className="w-full rounded-xl border px-4 py-3 text-sm font-mono opacity-70 bg-black/5 dark:bg-[var(--dash-surface)]/5" style={{ borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}>
+                <div className="w-full rounded-lg border px-4 py-3 text-sm font-mono opacity-70 bg-black/5 dark:bg-[var(--dash-surface)]/5" style={{ borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}>
                   {passwordModalSeller.slug}
                 </div>
               </div>
@@ -453,7 +453,7 @@ export default function GerenciarAcessosPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border pl-4 pr-12 py-3 text-sm outline-none focus:border-primary transition-colors"
+                    className="w-full rounded-lg border pl-4 pr-12 py-3 text-sm outline-none focus:border-primary transition-colors"
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}
                   />
                   <button
@@ -474,7 +474,7 @@ export default function GerenciarAcessosPage() {
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-500 transition-colors hover:bg-emerald-500/20"
+                className="w-full mt-2 flex items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-500 transition-colors hover:bg-emerald-500/20"
               >
                 {copied ? <Check size={18} /> : <Copy size={18} />}
                 {copied ? "Mensagem Copiada!" : "Copiar Mensagem do WhatsApp"}
@@ -483,7 +483,7 @@ export default function GerenciarAcessosPage() {
               <div className="flex items-center gap-3 mt-8">
                 <button
                   onClick={() => { setPasswordModalSeller(null); setNewPassword(""); setShowPassword(false); setCopied(false); }}
-                  className="flex-1 rounded-xl px-4 py-3 text-sm font-bold border transition-colors hover:bg-[var(--dash-hover-bg)]"
+                  className="flex-1 rounded-lg px-4 py-3 text-sm font-bold border transition-colors hover:bg-[var(--dash-hover-bg)]"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 >
                   Fechar
@@ -491,7 +491,7 @@ export default function GerenciarAcessosPage() {
                 <button
                   onClick={handleUpdatePassword}
                   disabled={passwordUpdating || newPassword.length < 6}
-                  className="flex-1 rounded-xl bg-zinc-900 dark:bg-[var(--dash-surface)] px-4 py-3 text-sm font-bold text-white dark:text-[var(--dash-text-primary)] transition-colors hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-zinc-900 dark:bg-[var(--dash-surface)] px-4 py-3 text-sm font-bold text-white dark:text-[var(--dash-text-primary)] transition-colors hover:opacity-90 disabled:opacity-50"
                 >
                   {passwordUpdating ? "Salvando..." : "Salvar Senha"}
                 </button>

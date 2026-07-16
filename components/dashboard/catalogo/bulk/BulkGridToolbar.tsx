@@ -33,7 +33,7 @@ export default function BulkGridToolbar(props: any) {
           <div className="flex items-center gap-3">
             <button
               onClick={addRow}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all border-none"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all border-none"
             >
               <Plus size={18} />
               Novo Produto
@@ -42,7 +42,7 @@ export default function BulkGridToolbar(props: any) {
             <button
               onClick={handleSave}
               disabled={saving || data.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-900/20"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-900/20"
             >
               {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
               Salvar Alterações
@@ -73,7 +73,7 @@ export default function BulkGridToolbar(props: any) {
           </div>
 
           {/* Direita: Ferramentas de Dados */}
-          <div className="flex flex-wrap items-center gap-2 bg-[var(--dash-hover-bg)] p-1.5 rounded-xl border border-[var(--dash-border)]">
+          <div className="flex flex-wrap items-center gap-2 bg-[var(--dash-hover-bg)] p-1.5 rounded-lg border border-[var(--dash-border)]">
             <button
               onClick={() => setShowImportModal(true)}
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--dash-text-primary)] hover:bg-[var(--dash-surface)] hover:shadow-sm rounded-lg transition-all"
@@ -189,7 +189,7 @@ export default function BulkGridToolbar(props: any) {
           <div className="flex flex-wrap items-center gap-3 flex-1">
             <button
               onClick={() => setShowPromoModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 text-purple-600 border border-purple-600/20 rounded-xl font-bold hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 text-purple-600 border border-purple-600/20 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition-all shadow-sm"
               title="Ajustar preços e promoções em lote"
             >
               <Tags size={16} />
@@ -198,7 +198,7 @@ export default function BulkGridToolbar(props: any) {
 
             <div className="h-6 w-px bg-[var(--dash-border)] mx-1" />
 
-            <div className="flex bg-[var(--dash-hover-bg)] rounded-xl border border-[var(--dash-border)] p-1 overflow-x-auto custom-scrollbar">
+            <div className="flex bg-[var(--dash-hover-bg)] rounded-lg border border-[var(--dash-border)] p-1 overflow-x-auto custom-scrollbar">
               <button
                 onClick={() => {
                   if (confirm("Deseja ATIVAR todos os produtos carregados nesta lista?")) {

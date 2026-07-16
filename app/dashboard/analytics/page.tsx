@@ -170,7 +170,7 @@ export default async function AnalyticsPage(props: {
       <div className="print-only mb-10 pb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img src="/icon.png" alt="Logo" className="w-16 h-16 object-contain rounded-xl" />
+            <img src="/icon.png" alt="Logo" className="w-16 h-16 object-contain rounded-lg" />
             <div>
               <p className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{organizationName}</p>
               <p className="text-xs font-medium text-zinc-400 mt-1">ID: {orgId?.substring(0, 8) || "N/A"}</p>
@@ -201,7 +201,7 @@ export default async function AnalyticsPage(props: {
       </div>
 
       {fetchError && (
-        <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-600">
+        <div className="mb-6 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-600">
           <AlertCircle size={20} />
           <p className="text-xs font-medium">{fetchError}</p>
         </div>

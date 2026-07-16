@@ -21,7 +21,7 @@ export default function TopCategoriesModal({ isOpen, onClose, categories }: TopC
           <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-[27px] bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
                   <BarChart2 size={20} />
                 </div>
                 <div>
@@ -38,7 +38,7 @@ export default function TopCategoriesModal({ isOpen, onClose, categories }: TopC
                {sorted.length > 0 ? (
                  <div className="space-y-3">
                    {sorted.map((cat, idx) => (
-                     <div key={idx} className="flex flex-col p-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)]">
+                     <div key={idx} className="flex flex-col p-4 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)]">
                        <div className="flex items-center justify-between mb-2">
                          <span className="text-sm font-bold text-[var(--dash-text-primary)]">{cat.name}</span>
                          <span className="text-xs font-medium text-[var(--dash-text-muted)]">{cat.percentage.toFixed(1)}% do catálogo</span>

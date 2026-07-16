@@ -41,7 +41,7 @@ export default function DashboardKpiGrid({ stats, loading }: { stats: StatItem[]
           className="group relative overflow-hidden rounded-[27px] border bg-[var(--dash-surface)] p-6 transition-all hover:border-primary/50 hover:shadow-lg"
         >
           <div className="flex items-center justify-between">
-            <div className={`rounded-xl p-2.5 ${stat.bgClass} ${stat.textClass}`}>
+            <div className={`rounded-lg p-2.5 ${stat.bgClass} ${stat.textClass}`}>
               <stat.icon size={22} />
             </div>
             <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">

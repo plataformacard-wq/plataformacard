@@ -65,7 +65,7 @@ export default function AnalyticsControls({ organizationId, profileId }: Analyti
             key={period.value}
             onClick={() => handlePeriodChange(period.value)}
             disabled={isPending}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               currentPeriod === period.value
                 ? "bg-primary text-white shadow-lg"
                 : "text-dash-text-muted hover:text-dash-text-primary hover:bg-zinc-500/10"
@@ -81,7 +81,7 @@ export default function AnalyticsControls({ organizationId, profileId }: Analyti
         {!showConfirm ? (
           <button
             onClick={() => setShowConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 transition-all"
           >
             <RotateCcw size={14} />
             Resetar Estatísticas
@@ -106,14 +106,14 @@ export default function AnalyticsControls({ organizationId, profileId }: Analyti
                 <button
                   onClick={() => setShowConfirm(false)}
                   disabled={isResetting}
-                  className="px-3 py-1.5 rounded-xl text-[10px] font-black text-dash-text-muted hover:bg-zinc-500/10 transition-all"
+                  className="px-3 py-1.5 rounded-lg text-[10px] font-black text-dash-text-muted hover:bg-zinc-500/10 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleReset}
                   disabled={isResetting}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black bg-rose-600 text-white hover:bg-rose-700 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black bg-rose-600 text-white hover:bg-rose-700 transition-all disabled:opacity-50"
                 >
                   {isResetting ? <Loader2 size={12} className="animate-spin" /> : "Confirmar"}
                 </button>

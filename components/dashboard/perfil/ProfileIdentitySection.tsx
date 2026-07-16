@@ -213,7 +213,7 @@ export default function ProfileIdentitySection(props: any) {
                     <div className="p-6 pt-0 space-y-6 border-t" style={{ borderColor: "var(--dash-border)" }}>
                       
                       {!canCustomize && (
-                        <div className="mb-4 text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-2">
+                        <div className="mb-4 text-[10px] bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-2">
                           <Info size={14} /> Você está utilizando o horário padrão da sua empresa.
                         </div>
                       )}

@@ -29,7 +29,7 @@ export default function AnalyticsError({
         </p>
       </div>
 
-      <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-left max-w-2xl w-full overflow-hidden">
+      <div className="p-4 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-left max-w-2xl w-full overflow-hidden">
         <p className="text-[10px] font-mono text-rose-500 break-all">
           {error.message}
         </p>
@@ -37,7 +37,7 @@ export default function AnalyticsError({
 
       <button
         onClick={() => reset()}
-        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+        className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all"
       >
         <RotateCcw size={16} />
         Tentar Novamente

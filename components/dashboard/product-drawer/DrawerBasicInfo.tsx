@@ -32,7 +32,7 @@ export default function DrawerBasicInfo({
           <input 
             value={product.name}
             onChange={(e) => updateData(rowIndex, "name", e.target.value)}
-            className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
+            className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none"
           />
         </div>
 
@@ -42,7 +42,7 @@ export default function DrawerBasicInfo({
             <select 
               value={product.category_id || ""}
               onChange={(e) => updateData(rowIndex, "category_id", e.target.value)}
-              className="dash-select w-full pl-3 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
+              className="dash-select w-full pl-3 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none"
             >
               {categories.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -54,7 +54,7 @@ export default function DrawerBasicInfo({
             <input 
               value={product.sku || ""}
               onChange={(e) => updateData(rowIndex, "sku", e.target.value)}
-              className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none"
+              className="w-full p-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
         </div>

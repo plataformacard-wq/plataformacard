@@ -123,7 +123,7 @@ export function VendedorIdentityCard(props: any) {
               <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Membro <span className="text-red-500">*</span></label>
               <input 
                 type="text" value={formName} onChange={e => setFormName(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -133,7 +133,7 @@ export function VendedorIdentityCard(props: any) {
                 <select 
                   value={props.formRole} onChange={e => props.setFormRole && props.setFormRole(e.target.value)}
                   disabled={props.readOnlyRole}
-                  className="dash-select w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="dash-select w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 >
                   <option value="seller">Colaborador</option>
@@ -146,7 +146,7 @@ export function VendedorIdentityCard(props: any) {
               <input 
                 type="text" value={formJobTitle} onChange={e => setFormJobTitle(e.target.value)}
                 placeholder="Ex: Consultor de Vendas"
-                className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -162,7 +162,7 @@ export function VendedorIdentityCard(props: any) {
                 placeholder="um pequeno texto sobre o vendedor"
                 maxLength={80}
                 rows={2}
-                className="w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] resize-none"
+                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] resize-none"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>

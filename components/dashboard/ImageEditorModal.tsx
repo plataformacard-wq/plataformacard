@@ -154,13 +154,13 @@ export default function ImageEditorModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl"
+          className="relative w-full max-w-2xl overflow-hidden rounded-lg border shadow-2xl"
           style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b p-6" style={{ borderColor: "var(--dash-border)" }}>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
                 <Crop size={20} />
               </div>
               <h3 className="text-lg font-bold" style={{ color: "var(--dash-text-primary)" }}>
@@ -241,7 +241,7 @@ export default function ImageEditorModal({
                 {/* Instructions */}
                 <div className="rounded-[27px] p-5 border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                   <div className="flex gap-4">
-                    <div className="shrink-0 h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                    <div className="shrink-0 h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                       <Info className="text-emerald-500" size={20} />
                     </div>
                     <div className="space-y-1">
@@ -281,7 +281,7 @@ export default function ImageEditorModal({
             <button
               onClick={resetAndClose}
               disabled={isProcessing}
-              className="rounded-xl px-6 py-3 text-sm font-bold transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 disabled:opacity-50"
+              className="rounded-lg px-6 py-3 text-sm font-bold transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 disabled:opacity-50"
               style={{ color: "var(--dash-text-muted)" }}
             >
               Cancelar
@@ -289,7 +289,7 @@ export default function ImageEditorModal({
             <button
               onClick={handleConfirm}
               disabled={!imageSrc || isProcessing}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-black text-white shadow-xl shadow-emerald-500/20 transition-all hover:bg-emerald-500 disabled:opacity-50 active:scale-95"
+              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3 text-sm font-black text-white shadow-xl shadow-emerald-500/20 transition-all hover:bg-emerald-500 disabled:opacity-50 active:scale-95"
             >
               {isProcessing ? (
                 <>

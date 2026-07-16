@@ -26,7 +26,7 @@ export default function DashboardTeamList({
       <div className="space-y-3">
         {sellers.length > 0 ? (
           sellers.map((s) => (
-            <div key={s.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-[var(--dash-hover-bg)] transition-all group">
+            <div key={s.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--dash-hover-bg)] transition-all group">
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs overflow-hidden border border-primary/20">
                   {s.avatar_url ? <img src={s.avatar_url} className="h-full w-full object-cover" /> : s.full_name?.charAt(0)}

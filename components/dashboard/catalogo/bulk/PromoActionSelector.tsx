@@ -10,7 +10,7 @@ export default function PromoActionSelector({ actionType, setActionType }: { act
         <button
           type="button"
           onClick={() => setActionType("apply_promo")}
-          className={`p-4 rounded-xl border text-left flex flex-col gap-2 transition-all hover:border-primary/50 ${
+          className={`p-4 rounded-lg border text-left flex flex-col gap-2 transition-all hover:border-primary/50 ${
             actionType === "apply_promo" 
               ? "border-primary bg-primary/5 shadow-md shadow-primary/5 font-bold" 
               : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]"
@@ -26,7 +26,7 @@ export default function PromoActionSelector({ actionType, setActionType }: { act
         <button
           type="button"
           onClick={() => setActionType("apply_markup")}
-          className={`p-4 rounded-xl border text-left flex flex-col gap-2 transition-all hover:border-emerald-500/50 ${
+          className={`p-4 rounded-lg border text-left flex flex-col gap-2 transition-all hover:border-emerald-500/50 ${
             actionType === "apply_markup" 
               ? "border-emerald-500 bg-emerald-500/5 shadow-md shadow-emerald-500/5 font-bold" 
               : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]"
@@ -42,7 +42,7 @@ export default function PromoActionSelector({ actionType, setActionType }: { act
         <button
           type="button"
           onClick={() => setActionType("revert")}
-          className={`p-4 rounded-xl border text-left flex flex-col gap-2 transition-all hover:border-amber-500/50 ${
+          className={`p-4 rounded-lg border text-left flex flex-col gap-2 transition-all hover:border-amber-500/50 ${
             actionType === "revert" 
               ? "border-amber-500 bg-amber-500/5 shadow-md shadow-amber-500/5 font-bold" 
               : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)]"

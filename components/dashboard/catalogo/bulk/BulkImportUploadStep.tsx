@@ -40,8 +40,8 @@ export default function BulkImportUploadStep({
             <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
               1
             </div>
-            <div className="flex-1 p-6 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
-              <div className="p-3 bg-green-100 text-green-600 rounded-xl">
+            <div className="flex-1 p-6 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
+              <div className="p-3 bg-green-100 text-green-600 rounded-lg">
                 <FileSpreadsheet size={24} />
               </div>
               <h4 className="font-bold text-sm">Baixar Modelo</h4>
@@ -60,8 +60,8 @@ export default function BulkImportUploadStep({
             <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
               2
             </div>
-            <div className="flex-1 p-6 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+            <div className="flex-1 p-6 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-primary/50 transition-all w-full flex flex-col items-center gap-3">
+              <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
                 <Upload size={24} />
               </div>
               <h4 className="font-bold text-sm">Subir no Sheets</h4>
@@ -77,8 +77,8 @@ export default function BulkImportUploadStep({
             <div className="z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
               3
             </div>
-            <div className="flex-1 p-6 rounded-xl border border-primary bg-primary/5 transition-all w-full flex flex-col items-center gap-3 shadow-xl shadow-primary/5">
-              <div className="p-3 bg-primary text-white rounded-xl">
+            <div className="flex-1 p-6 rounded-lg border border-primary bg-primary/5 transition-all w-full flex flex-col items-center gap-3 shadow-xl shadow-primary/5">
+              <div className="p-3 bg-primary text-white rounded-lg">
                 <RefreshCw size={24} />
               </div>
               <h4 className="font-bold text-sm text-primary">Conectar & Sync</h4>
@@ -107,11 +107,11 @@ export default function BulkImportUploadStep({
         <div className="pt-8 border-t border-[var(--dash-border)]">
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="w-full border-2 border-dashed rounded-xl p-6 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
+            className="w-full border-2 border-dashed rounded-lg p-6 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
             style={{ borderColor: "var(--dash-border)" }}
           >
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-[var(--dash-hover-bg)] flex items-center justify-center text-[var(--dash-text-muted)] group-hover:text-primary transition-colors">
+              <div className="h-12 w-12 rounded-lg bg-[var(--dash-hover-bg)] flex items-center justify-center text-[var(--dash-text-muted)] group-hover:text-primary transition-colors">
                 <Upload size={24} />
               </div>
               <div className="text-left">
@@ -126,7 +126,7 @@ export default function BulkImportUploadStep({
               className="hidden" 
               accept=".csv,.xlsx,.xls"
             />
-            <div className="px-4 py-2 bg-[var(--dash-hover-bg)] rounded-xl text-[10px] font-bold" style={{ color: "var(--dash-text-secondary)" }}>
+            <div className="px-4 py-2 bg-[var(--dash-hover-bg)] rounded-lg text-[10px] font-bold" style={{ color: "var(--dash-text-secondary)" }}>
               Selecionar Arquivo
             </div>
           </div>

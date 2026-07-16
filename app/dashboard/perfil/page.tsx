@@ -168,7 +168,7 @@ export default function PerfilContent() {
 
       {manager.saveMessage && (
         <div
-          className="fixed bottom-6 right-6 z-50 rounded-xl border px-4 py-3 text-sm shadow-lg transition-colors"
+          className="fixed bottom-6 right-6 z-50 rounded-lg border px-4 py-3 text-sm shadow-lg transition-colors"
           style={{
             background: "var(--dash-surface)",
             borderColor: "var(--dash-border)",

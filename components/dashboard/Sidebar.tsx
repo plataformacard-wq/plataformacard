@@ -320,7 +320,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                   <div key={item.label} className="space-y-1">
                     <button
                       onClick={() => toggleMenu(item.label)}
-                      className={`group relative flex w-full items-center justify-between rounded-xl p-3 text-sm font-medium transition-all ${
+                      className={`group relative flex w-full items-center justify-between rounded-lg p-3 text-sm font-medium transition-all ${
                         isActive 
                           ? "text-white bg-primary" 
                           : "text-[var(--dash-sidebar-text)] hover:bg-[var(--dash-surface)]/10 hover:text-[var(--dash-sidebar-text-active)]"
@@ -386,7 +386,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`group relative flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-all ${
+                  className={`group relative flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-all ${
                     isActive 
                       ? "text-white bg-primary" 
                       : "text-[var(--dash-sidebar-text)] hover:bg-[var(--dash-surface)]/10 hover:text-[var(--dash-sidebar-text-active)]"

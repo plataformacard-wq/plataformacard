@@ -50,7 +50,7 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
           <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-[27px] bg-[var(--dash-surface)] dark:bg-zinc-900 shadow-2xl border border-red-500/20">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 p-6 bg-red-500/5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
                   <AlertTriangle size={20} />
                 </div>
                 <div>
@@ -67,7 +67,7 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
                {products.length > 0 ? (
                  <div className="space-y-2">
                    {products.map(p => (
-                     <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                     <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
                        <div className="flex flex-col flex-1 pr-4">
                          <span className="text-sm font-medium text-zinc-900 dark:text-white truncate" title={p.name}>{p.name}</span>
                          {p.sku && <span className="text-xs text-zinc-500">SKU: {p.sku}</span>}

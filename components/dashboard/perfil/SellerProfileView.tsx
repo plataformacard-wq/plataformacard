@@ -125,7 +125,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
                       type="password"
                       value={manager.newPassword}
                       onChange={(e) => manager.setNewPassword(e.target.value)}
-                      className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                      className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors"
                       style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
@@ -135,7 +135,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
                       type="password"
                       value={manager.confirmNewPassword}
                       onChange={(e) => manager.setConfirmNewPassword(e.target.value)}
-                      className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                      className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors"
                       style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                   </div>
@@ -144,13 +144,13 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
                       type="button"
                       onClick={manager.handleChangePassword}
                       disabled={manager.changingPassword}
-                      className="mt-2 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-[var(--dash-primary)] text-[var(--dash-primary-foreground)] hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mt-2 px-6 py-2 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95 bg-[var(--dash-primary)] text-[var(--dash-primary-foreground)] hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {manager.changingPassword ? "Solicitando..." : "Redefinir Senha"}
                     </button>
                   </div>
                   {manager.otpSent && (
-                    <div className="mt-4 p-4 rounded-xl border border-primary bg-primary/5">
+                    <div className="mt-4 p-4 rounded-lg border border-primary bg-primary/5">
                       <p className="text-sm mb-2" style={{ color: "var(--dash-text-primary)" }}>
                         Enviamos um código para o seu e-mail vinculado (ou fale com o gestor).
                       </p>
@@ -159,14 +159,14 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
                         placeholder="Digite o código"
                         value={manager.otpCode}
                         onChange={(e) => manager.setOtpCode(e.target.value)}
-                        className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors mb-2"
+                        className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors mb-2"
                         style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       />
                       <button
                         type="button"
                         onClick={manager.handleVerifyOtp}
                         disabled={manager.changingPassword}
-                        className="w-full px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-6 py-2 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95 bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Confirmar Troca de Senha
                       </button>

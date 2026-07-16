@@ -395,7 +395,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             </div>
             <button 
               onClick={handleExitShadow}
-              className="w-full md:w-auto shrink-0 px-5 py-2 rounded-xl bg-[var(--dash-surface)] text-amber-600 text-[10px] font-black uppercase tracking-wider hover:bg-amber-50 transition-all shadow-sm active:scale-95 text-center"
+              className="w-full md:w-auto shrink-0 px-5 py-2 rounded-lg bg-[var(--dash-surface)] text-amber-600 text-[10px] font-black uppercase tracking-wider hover:bg-amber-50 transition-all shadow-sm active:scale-95 text-center"
             >
               Encerrar Simulação
             </button>
@@ -461,7 +461,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
               </button>
             </div>
             <div className="p-4 flex gap-4">
-              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shrink-0">
+              <div className="h-12 w-12 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 shrink-0">
                 <Clock size={24} className="animate-pulse" />
               </div>
               <div className="flex-1 min-w-0">

@@ -924,7 +924,7 @@ export default function BulkGridEditor() {
                     onClick={() => {
                       window.location.href = "/dashboard/catalogo";
                     }}
-                    className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                    className="w-full rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
                   >
                     Ir para Gestão de Categorias
                   </button>

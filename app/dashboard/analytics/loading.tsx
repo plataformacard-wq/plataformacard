@@ -6,10 +6,10 @@ export default function LoadingAnalytics() {
           <div className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800 rounded-lg" />
           <div className="h-4 w-64 bg-zinc-100 dark:bg-zinc-900 rounded-lg" />
         </div>
-        <div className="h-10 w-32 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+        <div className="h-10 w-32 bg-zinc-200 dark:bg-zinc-800 rounded-lg" />
       </div>
 
-      <div className="h-12 w-full bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
+      <div className="h-12 w-full bg-zinc-100 dark:bg-zinc-900 rounded-lg" />
 
       {/* KPIs Skeletons */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

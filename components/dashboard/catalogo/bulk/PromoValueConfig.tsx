@@ -10,7 +10,7 @@ export default function PromoValueConfig({
 }: any) {
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-5 rounded-lg">
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
             Tipo de Ajuste
@@ -61,7 +61,7 @@ export default function PromoValueConfig({
               value={adjustValue}
               onChange={(e) => setAdjustValue(e.target.value)}
               placeholder="0.00"
-              className="w-full bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl pl-10 pr-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className="w-full bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg pl-10 pr-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             />
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function PromoValueConfig({
             <button
               type="button"
               onClick={() => setTargetChannel("both")}
-              className={`flex-1 py-3 text-xs font-bold rounded-xl border transition-all ${
+              className={`flex-1 py-3 text-xs font-bold rounded-lg border transition-all ${
                 targetChannel === "both"
                   ? "bg-primary border-primary text-white font-bold"
                   : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
@@ -88,7 +88,7 @@ export default function PromoValueConfig({
             <button
               type="button"
               onClick={() => setTargetChannel("b2c")}
-              className={`flex-1 py-3 text-xs font-bold rounded-xl border transition-all ${
+              className={`flex-1 py-3 text-xs font-bold rounded-lg border transition-all ${
                 targetChannel === "b2c"
                   ? "bg-primary border-primary text-white font-bold"
                   : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"
@@ -99,7 +99,7 @@ export default function PromoValueConfig({
             <button
               type="button"
               onClick={() => setTargetChannel("b2b")}
-              className={`flex-1 py-3 text-xs font-bold rounded-xl border transition-all ${
+              className={`flex-1 py-3 text-xs font-bold rounded-lg border transition-all ${
                 targetChannel === "b2b"
                   ? "bg-primary border-primary text-white font-bold"
                   : "border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] hover:bg-[var(--dash-hover-bg)]"

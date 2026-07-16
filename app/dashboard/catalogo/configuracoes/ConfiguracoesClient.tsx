@@ -218,7 +218,7 @@ ${iframeResizerCode}
             {canViewGeneral && (
               <button
                 onClick={() => setActiveTab("geral")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <Layout size={16} />
                 Geral
@@ -229,7 +229,7 @@ ${iframeResizerCode}
               <>
                 <button
                   onClick={() => setActiveTab("status")}
-                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                 >
                   <Activity size={16} />
                   Status
@@ -237,7 +237,7 @@ ${iframeResizerCode}
                 {initialCatalog.business_model === "ALL_SERVICE" && (
                   <button
                     onClick={() => setActiveTab("implementar")}
-                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                   >
                     <Code size={16} />
                     Implementar
@@ -249,7 +249,7 @@ ${iframeResizerCode}
             {canViewBanners && (
               <button
                 onClick={() => setActiveTab("banners")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <ImageIcon size={16} />
                 Banners
@@ -291,7 +291,7 @@ ${iframeResizerCode}
                     value={catalog.name || ""}
                     disabled={isInheritingMaster}
                     onChange={(e) => setCatalog({ ...catalog, name: e.target.value })}
-                    className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
                     placeholder="Ex: Minha Loja Virtual"
                   />
                   <p className="text-[11px] text-[var(--dash-text-muted)] font-medium pl-2">
@@ -304,22 +304,22 @@ ${iframeResizerCode}
                   <label className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
                     <Zap size={14} className="text-primary" /> Tipo de Catálogo
                   </label>
-                  <div className={`flex flex-wrap p-1.5 rounded-xl bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] ${isInheritingMaster ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
+                  <div className={`flex flex-wrap p-1.5 rounded-lg bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] ${isInheritingMaster ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
                     <button
                       onClick={() => !isInheritingMaster && setCatalogType("product")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Package size={18} /> Produto
                     </button>
                     <button
                       onClick={() => !isInheritingMaster && setCatalogType("service")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Settings size={18} /> Serviço
                     </button>
                     <button
                       onClick={() => !isInheritingMaster && setCatalogType("hybrid")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Sparkles size={18} /> Híbrido
                     </button>
@@ -343,7 +343,7 @@ ${iframeResizerCode}
                       disabled={isInheritingMaster}
                       onChange={(e) => setCatalog({ ...catalog, description: e.target.value })}
                       rows={6}
-                      className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
                       placeholder="Descreva seu negócio para seus clientes e para o Google..."
                     />
                   </div>
@@ -355,7 +355,7 @@ ${iframeResizerCode}
                       </label>
                       <div className="group relative">
                         <HelpCircle size={14} className="text-[var(--dash-text-muted)] cursor-help" />
-                        <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-zinc-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl leading-relaxed">
+                        <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-zinc-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl leading-relaxed">
                           Use as tags para injetar dados reais do produto na mensagem. Ex: "Olá, quero saber mais sobre o {`{nome}`}"
                         </div>
                       </div>
@@ -365,7 +365,7 @@ ${iframeResizerCode}
                       disabled={isInheritingMaster}
                       onChange={(e) => setWhatsappTemplate(e.target.value)}
                       rows={6}
-                      className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      className={`w-full p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all resize-none leading-relaxed font-medium text-sm ${isInheritingMaster ? 'opacity-60 cursor-not-allowed' : ''}`}
                       placeholder="Ex: Olá! Vi o item {nome} no valor de {preco} e gostaria de saber mais..."
                     />
                     
@@ -376,7 +376,7 @@ ${iframeResizerCode}
                           key={tag}
                           type="button"
                           onClick={() => !isInheritingMaster && setWhatsappTemplate((prev: string) => prev + `{${tag}}`)}
-                          className="px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
+                          className="px-4 py-2 rounded-lg bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
                         >
                           {`{${tag}}`}
                         </button>
@@ -392,7 +392,7 @@ ${iframeResizerCode}
                   </h4>
                   <div className="space-y-4">
                     {/* Ocultação de Preços */}
-                    <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+                    <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
                       <div className="space-y-1 pr-6">
                         <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Ocultar Preços (Negociação via WhatsApp)</label>
                         <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
@@ -408,7 +408,7 @@ ${iframeResizerCode}
                     </div>
 
                     {/* Produtos Esgotados no Fim */}
-                    <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl">
+                    <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
                       <div className="space-y-1 pr-6">
                         <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">Produtos Esgotados no Fim</label>
                         <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
@@ -469,7 +469,7 @@ ${iframeResizerCode}
               </div>
 
               {isInheritingMaster && (
-                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400 mb-2">
+                <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400 mb-2">
                   <p className="text-sm font-medium flex items-start gap-2">
                     <Info size={18} className="shrink-0 mt-0.5" />
                     Você está operando com um Catálogo Franqueado (Master). As informações básicas do seu catálogo são herdadas automaticamente. Você ainda pode alterar o Comportamento da Vitrine e Banners.
@@ -492,7 +492,7 @@ ${iframeResizerCode}
                     </button>
                   </div>
                   {!isActive && (
-                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400">
+                    <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400">
                       <p className="text-sm font-medium flex items-start gap-2">
                         <Info size={18} className="shrink-0 mt-0.5" />
                         Seu catálogo próprio está <strong>desativado</strong>. Os clientes não conseguirão ver seus produtos personalizados. Mantenha desativado caso esteja usando um Catálogo Master (Franquia/Plataforma).
@@ -536,7 +536,7 @@ ${iframeResizerCode}
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-8 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Layout size={20} />
                   </div>
                   <h3 className="text-lg font-black tracking-tight">Personalização</h3>
@@ -553,7 +553,7 @@ ${iframeResizerCode}
                         Para o catálogo funcionar perfeitamente sem barras de rolagem duplas, crie um "Container" ou "Caixa" no seu construtor de sites (ex: Elementor, Wix) com as seguintes <strong>Alturas Mínimas (Min-Height)</strong>:
                       </p>
                       <div className="flex flex-col gap-4">
-                        <div className="flex-1 bg-black/40 border border-[var(--dash-border)] rounded-xl p-4">
+                        <div className="flex-1 bg-black/40 border border-[var(--dash-border)] rounded-lg p-4">
                           <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)] mb-1 flex items-center gap-1.5">
                             <Layout size={12} /> Desktop / Computador
                           </p>
@@ -561,7 +561,7 @@ ${iframeResizerCode}
                             {recommendedHeightDesktop}px
                           </p>
                         </div>
-                        <div className="flex-1 bg-black/40 border border-blue-500/30 rounded-xl p-4 relative overflow-hidden">
+                        <div className="flex-1 bg-black/40 border border-blue-500/30 rounded-lg p-4 relative overflow-hidden">
                           <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-xl"></div>
                           <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1 flex items-center gap-1.5">
                             <Smartphone size={12} /> Mobile / Celular
@@ -577,13 +577,13 @@ ${iframeResizerCode}
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 mt-6">
-                      <div className="flex gap-3 bg-[var(--dash-surface)] p-4 rounded-xl border border-[var(--dash-border)]">
+                      <div className="flex gap-3 bg-[var(--dash-surface)] p-4 rounded-lg border border-[var(--dash-border)]">
                         <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
                         <p className="text-[11px] leading-relaxed text-[var(--dash-text-muted)] font-medium">
                           O modo Embed oculta o cabeçalho global automaticamente.
                         </p>
                       </div>
-                      <div className="flex gap-3 bg-[var(--dash-surface)] p-4 rounded-xl border border-[var(--dash-border)]">
+                      <div className="flex gap-3 bg-[var(--dash-surface)] p-4 rounded-lg border border-[var(--dash-border)]">
                         <Code size={16} className="text-emerald-500 shrink-0 mt-0.5" />
                         <p className="text-[11px] leading-relaxed text-[var(--dash-text-muted)] font-medium">
                           Nosso script iFrameResizer tenta ajustar a altura automaticamente, mas o Fallback de CSS é essencial.
@@ -597,7 +597,7 @@ ${iframeResizerCode}
               <a 
                 href={embedUrl} 
                 target="_blank" 
-                className="group flex items-center justify-between w-full p-6 bg-emerald-500 text-white rounded-xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
+                className="group flex items-center justify-between w-full p-6 bg-emerald-500 text-white rounded-lg font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
               >
                 <div className="flex items-center gap-3">
                    <ExternalLink size={20} />
@@ -612,14 +612,14 @@ ${iframeResizerCode}
               <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-8 shadow-sm space-y-6 relative overflow-hidden">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-zinc-500/10 flex items-center justify-center text-[var(--dash-text-primary)]">
+                    <div className="h-10 w-10 rounded-lg bg-zinc-500/10 flex items-center justify-center text-[var(--dash-text-primary)]">
                       <Code size={20} />
                     </div>
                     <h3 className="text-lg font-black tracking-tight">Código iFrame</h3>
                   </div>
                   <button 
                     onClick={copyToClipboard}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
                       copied ? "bg-emerald-500 text-white" : "bg-black text-white hover:bg-zinc-800"
                     }`}
                   >

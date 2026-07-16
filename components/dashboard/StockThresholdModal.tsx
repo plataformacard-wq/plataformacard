@@ -94,7 +94,7 @@ export default function StockThresholdModal({
                   min="0"
                   value={threshold}
                   onChange={(e) => setThreshold(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-[var(--dash-surface)] dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-[var(--dash-surface)] dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                   placeholder="Ex: 5"
                 />
               </div>
@@ -103,14 +103,14 @@ export default function StockThresholdModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl px-5 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                  className="rounded-lg px-5 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 disabled:opacity-50 shadow-sm"
+                  className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 disabled:opacity-50 shadow-sm"
                 >
                   <Save size={18} />
                   {isSaving ? "Salvando..." : "Salvar Alerta"}

@@ -62,7 +62,7 @@ export default function DashboardAlerts({
         </div>
         <Link
           href="/dashboard/catalogo/gerenciador"
-          className={`shrink-0 w-full sm:w-auto rounded-xl px-5 py-2.5 text-sm font-bold text-white transition flex items-center justify-center gap-2 mt-4 md:mt-0 ${
+          className={`shrink-0 w-full sm:w-auto rounded-lg px-5 py-2.5 text-sm font-bold text-white transition flex items-center justify-center gap-2 mt-4 md:mt-0 ${
             hasActiveMasterState ? "bg-purple-600 hover:bg-purple-700" : hasOwnedMasterState ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700"
           }`}
         >
@@ -119,14 +119,14 @@ export default function DashboardAlerts({
               <button
                 onClick={() => handleHolidayDecision(upcomingHoliday.date, false)}
                 disabled={processingHolidayDecision}
-                className="bg-[var(--dash-surface)]/20 hover:bg-[var(--dash-surface)]/30 text-white border border-white/20 font-bold px-6 py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                className="bg-[var(--dash-surface)]/20 hover:bg-[var(--dash-surface)]/30 text-white border border-white/20 font-bold px-6 py-3 rounded-lg transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 🏝️ Vou folgar (Pausar 24h)
               </button>
               <button
                 onClick={() => handleHolidayDecision(upcomingHoliday.date, true)}
                 disabled={processingHolidayDecision}
-                className="bg-[var(--dash-surface)] text-indigo-700 hover:bg-indigo-50 font-bold px-6 py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                className="bg-[var(--dash-surface)] text-indigo-700 hover:bg-indigo-50 font-bold px-6 py-3 rounded-lg transition-all shadow-md flex items-center justify-center gap-2"
               >
                 💼 Vou trabalhar
               </button>
@@ -160,7 +160,7 @@ export default function DashboardAlerts({
           </div>
           <Link
             href={isB2B ? "/dashboard/vendedores" : "/dashboard/perfil#cartao"}
-            className="shrink-0 w-full sm:w-auto rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 flex items-center justify-center gap-2 mt-4 md:mt-0"
+            className="shrink-0 w-full sm:w-auto rounded-lg bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 flex items-center justify-center gap-2 mt-4 md:mt-0"
           >
             {isB2B ? (sellerCount === 0 ? "Cadastrar Vendedor" : "Configurar Vendedores") : "Configurar WhatsApp"}
             <ArrowUpRight size={16} />
@@ -195,7 +195,7 @@ export default function DashboardAlerts({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {coreChecklist.map((item: any, idx: number) => (
-              <Link key={idx} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--dash-surface-secondary)] transition group border border-transparent hover:border-[var(--dash-border)]">
+              <Link key={idx} href={item.href} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--dash-surface-secondary)] transition group border border-transparent hover:border-[var(--dash-border)]">
                 <div className={`flex items-center justify-center h-8 w-8 rounded-full shrink-0 ${item.done ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[var(--dash-border)] text-[var(--dash-text-muted)]'}`}>
                   {item.done ? "✓" : item.icon}
                 </div>
