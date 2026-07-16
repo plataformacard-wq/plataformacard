@@ -268,8 +268,11 @@ export default function ProfileIdentitySection(props: any) {
             </div>
           )}
 
+          {/* Spacer to prevent content from being hidden behind fixed button */}
+          <div className="h-20 w-full" />
+
           {/* Action */}
-          <div className="flex items-center justify-end pt-6">
+          <div className="fixed bottom-6 right-4 md:right-8 z-40">
             <button 
               onClick={handleSave} 
               disabled={saving || !nameInput.trim()}
