@@ -273,7 +273,7 @@ export default function ProfileIdentitySection(props: any) {
             <button 
               onClick={handleSave} 
               disabled={saving || !nameInput.trim()}
-              className={`px-8 py-3 rounded-[27px] font-bold transition-all shadow-xl active:scale-95 ${
+              className={`px-8 py-3 rounded-lg font-bold transition-all shadow-xl active:scale-95 ${
                 saving || !nameInput.trim() 
                 ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
                 : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-emerald-500/20"
