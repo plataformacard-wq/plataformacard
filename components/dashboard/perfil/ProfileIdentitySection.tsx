@@ -66,7 +66,8 @@ export default function ProfileIdentitySection(props: any) {
     handleSave,
     slugOriginal,
     granularPermissions,
-    role
+    role,
+    isReadOnly = false,
   } = props;
 
   const canEditRecess = granularPermissions?.profile?.recess ?? true;
@@ -139,6 +140,7 @@ export default function ProfileIdentitySection(props: any) {
             formName={nameInput}
             formSlug={slugInput}
             customDomain={customDomain}
+            isReadOnly={isReadOnly}
           />
 
           {/* Ficha Principal (Idêntica ao Gestor) */}
@@ -160,6 +162,7 @@ export default function ProfileIdentitySection(props: any) {
               setFormBio={setBioInput}
               formRole={role || "seller"}
               readOnlyRole={true}
+              isReadOnly={isReadOnly}
             />
 
             <VendedorContactCard 
@@ -185,11 +188,12 @@ export default function ProfileIdentitySection(props: any) {
               setFormRecessHours={setRecessHours}
               formHidePrices={false}
               setFormHidePrices={() => {}}
+              isReadOnly={isReadOnly}
             />
           </div>
 
           {/* Card 3: Permissões e Horários (Específico ou Colapsável) */}
-          {canEditRecess && (
+          {!isReadOnly && canEditRecess && (
             <div className="rounded-[27px] border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
               <button 
                 type="button"

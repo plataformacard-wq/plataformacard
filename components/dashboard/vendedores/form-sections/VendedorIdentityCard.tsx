@@ -17,6 +17,7 @@ export function VendedorIdentityCard(props: any) {
     setFormJobTitle,
     formBio,
     setFormBio,
+    isReadOnly = false,
   } = props;
 
   return (
@@ -114,6 +115,28 @@ export function VendedorIdentityCard(props: any) {
                 </button>
               )}
             </div>
+            {!isReadOnly && (
+              <div className="flex items-center justify-center md:justify-start gap-4 mt-1">
+                <button 
+                  onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
+                  className="text-xs font-bold text-primary hover:underline"
+                >
+                  {formPublicBanner ? "Alterar Banner" : "Enviar Banner"}
+                </button>
+                
+                {formPublicBanner && (
+                  <button 
+                    onClick={() => {
+                      setFormPublicBanner(null);
+                      setFormPublicBannerFile(null);
+                    }}
+                    className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                  >
+                    <X size={12} /> Remover
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
         
@@ -123,7 +146,8 @@ export function VendedorIdentityCard(props: any) {
               <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nome do Membro <span className="text-red-500">*</span></label>
               <input 
                 type="text" value={formName} onChange={e => setFormName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
+                disabled={isReadOnly}
+                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -132,7 +156,7 @@ export function VendedorIdentityCard(props: any) {
               <div className="relative">
                 <select 
                   value={props.formRole} onChange={e => props.setFormRole && props.setFormRole(e.target.value)}
-                  disabled={props.readOnlyRole}
+                  disabled={props.readOnlyRole || isReadOnly}
                   className="dash-select w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 >
@@ -146,7 +170,8 @@ export function VendedorIdentityCard(props: any) {
               <input 
                 type="text" value={formJobTitle} onChange={e => setFormJobTitle(e.target.value)}
                 placeholder="Ex: Consultor de Vendas"
-                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
+                disabled={isReadOnly}
+                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>
@@ -162,7 +187,8 @@ export function VendedorIdentityCard(props: any) {
                 placeholder="um pequeno texto sobre o vendedor"
                 maxLength={80}
                 rows={2}
-                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] resize-none"
+                disabled={isReadOnly}
+                className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] resize-none disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>

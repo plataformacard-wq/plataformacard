@@ -23,6 +23,7 @@ export function VendedorContactCard(props: any) {
     setFormRecessDays,
     formRecessHours,
     setFormRecessHours,
+    isReadOnly = false,
   } = props;
 
   const formatWhatsApp = (value: string) => {
@@ -59,7 +60,8 @@ export function VendedorContactCard(props: any) {
           <input 
             type="text" value={formSlug} onChange={e => setFormSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
             placeholder="ex: nome_do_vendedor"
-            className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)]"
+            disabled={isReadOnly}
+            className="w-full px-4 py-2 rounded-lg border outline-none bg-[var(--dash-bg)] disabled:opacity-60 disabled:cursor-not-allowed"
             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
           />
           {formSlug && (
@@ -70,19 +72,21 @@ export function VendedorContactCard(props: any) {
         </div>
       </div>
       
-      <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between bg-[var(--dash-bg)] p-3 rounded-lg border" style={{ borderColor: "var(--dash-border)" }}>
-        <div>
-          <p className="text-[13px] font-bold" style={{ color: "var(--dash-text-primary)" }}>Receber mensagens fora do horário?</p>
-          <p className="text-[11px] text-[var(--dash-text-muted)] mt-0.5">Se desligado, bloqueia o botão quando fechado.</p>
+      {!isReadOnly && (
+        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between bg-[var(--dash-bg)] p-3 rounded-lg border" style={{ borderColor: "var(--dash-border)" }}>
+          <div>
+            <p className="text-[13px] font-bold" style={{ color: "var(--dash-text-primary)" }}>Receber mensagens fora do horário?</p>
+            <p className="text-[11px] text-[var(--dash-text-muted)] mt-0.5">Se desligado, bloqueia o botão quando fechado.</p>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setFormAcceptsMessagesWhenClosed(!formAcceptsMessagesWhenClosed)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none mt-2 md:mt-0 ${formAcceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${formAcceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
         </div>
-        <button 
-          type="button"
-          onClick={() => setFormAcceptsMessagesWhenClosed(!formAcceptsMessagesWhenClosed)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none mt-2 md:mt-0 ${formAcceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
-        >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${formAcceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
-        </button>
-      </div>
+      )}
 
       <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
         <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-2 block">
@@ -113,29 +117,32 @@ export function VendedorContactCard(props: any) {
         </p>
       </div>
 
-      <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-        <label className={`flex items-start gap-3 p-4 rounded-[27px] border cursor-pointer transition-all ${formRedirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
-          <div className="mt-0.5">
-            <input 
-              type="checkbox" 
-              checked={formRedirectLeads} 
-              onChange={e => setFormRedirectLeads(e.target.checked)} 
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Redirecionar Cliente (Em caso de Pausa)</span>
+      {!isReadOnly && (
+        <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+          <label className={`flex items-start gap-3 p-4 rounded-[27px] border cursor-pointer transition-all ${formRedirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+            <div className="mt-0.5">
+              <input 
+                type="checkbox" 
+                checked={formRedirectLeads} 
+                onChange={e => setFormRedirectLeads(e.target.checked)} 
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+              />
             </div>
-            <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)]">
-              Se ativado, quando este vendedor for marcado como Inativo (pausado), os clientes que acessarem o link dele serão redirecionados para a lista de consultores ativos da loja, evitando a perda do lead.
-            </p>
-          </div>
-        </label>
-      </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Redirecionar Cliente (Em caso de Pausa)</span>
+              </div>
+              <p className="text-[10px] leading-relaxed text-[var(--dash-text-muted)]">
+                Se ativado, quando este vendedor for marcado como Inativo (pausado), os clientes que acessarem o link dele serão redirecionados para a lista de consultores ativos da loja, evitando a perda do lead.
+              </p>
+            </div>
+          </label>
+        </div>
+      )}
 
       {/* Exibir Preços (Atacado vs Varejo) */}
-      <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+      {!isReadOnly && (
+        <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
         <label className={`flex items-start gap-3 p-4 rounded-[27px] border cursor-pointer transition-all ${!formHidePrices ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
           <div className="mt-0.5">
             <input 
@@ -155,9 +162,11 @@ export function VendedorContactCard(props: any) {
           </div>
         </label>
       </div>
+      )}
 
       {/* Automação de Recesso */}
-      <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
+      {!isReadOnly && (
+        <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
         <div className="flex items-center gap-2 mb-3">
           <Calendar size={16} className="text-purple-500" />
           <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Programar Recesso Temporário</span>
@@ -232,6 +241,7 @@ export function VendedorContactCard(props: any) {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

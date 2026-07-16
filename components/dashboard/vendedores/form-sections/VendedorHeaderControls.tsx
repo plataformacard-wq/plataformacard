@@ -13,7 +13,8 @@ export function VendedorHeaderControls(props: any) {
     customDomain,
     hideBackButton,
     customTitle,
-    customSubtitle
+    customSubtitle,
+    isReadOnly = false,
   } = props;
 
   return (
@@ -49,7 +50,8 @@ export function VendedorHeaderControls(props: any) {
             <button 
               type="button"
               onClick={() => setFormAvailable(!formAvailable)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              disabled={isReadOnly}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''} ${formAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${formAvailable ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>

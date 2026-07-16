@@ -65,16 +65,6 @@ export default function PerfilContent() {
         <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
           Carregando dados...
         </p>
-      ) : !manager.profileAccess ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
-            <ShieldCheck size={32} />
-          </div>
-          <h2 className="text-xl font-bold mb-2" style={{ color: "var(--dash-text-primary)" }}>Acesso Restrito</h2>
-          <p className="max-w-md" style={{ color: "var(--dash-text-secondary)" }}>
-            O seu gestor desabilitou o acesso às configurações do seu próprio cadastro. Entre em contato caso precise de alterações.
-          </p>
-        </div>
       ) : manager.role === "seller" ? (
         <SellerProfileView manager={manager} />
       ) : (

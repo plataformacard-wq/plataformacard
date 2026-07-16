@@ -100,6 +100,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
               acceptsMessagesWhenClosed={manager.acceptsMessagesWhenClosed}
               setAcceptsMessagesWhenClosed={manager.setAcceptsMessagesWhenClosed}
               granularPermissions={manager.granularPermissions}
+              isReadOnly={!manager.profileAccess}
             />
           )}
 
