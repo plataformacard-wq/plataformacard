@@ -26,3 +26,11 @@ Você está expressamente proibido de permitir que componentes React cresçam de
 Sempre que estiver modificando um arquivo que ultrapasse a marca de **500 linhas**, você deve OBRIGATORIAMENTE acionar a Skill de `Refatoração Proativa` e sugerir uma pausa para aplicar o **Protocolo de Refatoração de Monolitos (PRM)**.
 - Componentes pesados de UI e modais devem ser divididos em sub-componentes (padrão UI-as-a-Service).
 - Se você ignorar essa regra e permitir que um componente chegue a 800+ linhas, estará quebrando uma regra central da arquitetura.
+
+## Auditoria de UX/UI Constante (Protocolo UX/UI)
+Você deve OBRIGATORIAMENTE policiar todas as suas edições de React/Tailwind com base no `PROTOCOLO_DEV_UX_UI.md`.
+Sempre que criar ou editar uma interface:
+1. **NUNCA** use `bg-white`, `bg-black`, `text-black`, `text-white` em estrutura (use sempre as variáveis CSS como `bg-[var(--dash-surface)]` e `text-[var(--dash-text-primary)]`).
+2. Utilize cantos arredondados generosos (`rounded-2xl` para containers, `rounded-xl` para botões/inputs). **NUNCA** use `rounded-none`.
+3. Garanta feedback visual de carregamento (`Loader2`) e interações de hover em botões.
+Sempre que um usuário mencionar "implementar interface", "UX", "UI", "adicionar botão", ou se o "protocolo start" for iniciado, você deve acionar a Skill `Auditoria UX/UI` para rodar o script de varredura no dashboard.

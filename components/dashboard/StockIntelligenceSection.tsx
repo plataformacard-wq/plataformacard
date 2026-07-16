@@ -62,7 +62,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
     return (
       <div className="mb-10 mt-10 rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] overflow-hidden shadow-sm">
         <div 
-          className="p-6 flex items-center justify-between cursor-pointer group hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="p-6 flex items-center justify-between cursor-pointer group hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 transition-colors"
           onClick={() => setIsFallbackExpanded(!isFallbackExpanded)}
         >
           <div className="flex items-center gap-3">
@@ -241,7 +241,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
           {lowStockProducts.length > 0 ? (
             <div className="space-y-2 overflow-y-auto flex-1 max-h-[110px] pr-2 custom-scrollbar">
               {lowStockProducts.map(p => (
-                <div key={p.id} className="flex items-center justify-between bg-white dark:bg-black/40 p-2 rounded-lg border border-red-500/10 shadow-sm">
+                <div key={p.id} className="flex items-center justify-between bg-[var(--dash-surface)] dark:bg-black/40 p-2 rounded-lg border border-red-500/10 shadow-sm">
                   <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[140px]" title={p.name}>{p.name}</span>
                   <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 shrink-0">{p.stock_quantity} un</span>
                 </div>

@@ -323,7 +323,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                       className={`group relative flex w-full items-center justify-between rounded-xl p-3 text-sm font-medium transition-all ${
                         isActive 
                           ? "text-white bg-primary" 
-                          : "text-[var(--dash-sidebar-text)] hover:bg-white/10 hover:text-[var(--dash-sidebar-text-active)]"
+                          : "text-[var(--dash-sidebar-text)] hover:bg-[var(--dash-surface)]/10 hover:text-[var(--dash-sidebar-text-active)]"
                       } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
                       title={isCollapsed ? item.label : ""}
                     >
@@ -389,7 +389,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                   className={`group relative flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-all ${
                     isActive 
                       ? "text-white bg-primary" 
-                      : "text-[var(--dash-sidebar-text)] hover:bg-white/10 hover:text-[var(--dash-sidebar-text-active)]"
+                      : "text-[var(--dash-sidebar-text)] hover:bg-[var(--dash-surface)]/10 hover:text-[var(--dash-sidebar-text-active)]"
                   } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
                   title={isCollapsed ? item.label : ""}
                 >

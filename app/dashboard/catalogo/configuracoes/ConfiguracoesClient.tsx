@@ -218,7 +218,7 @@ ${iframeResizerCode}
             {canViewGeneral && (
               <button
                 onClick={() => setActiveTab("geral")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <Layout size={16} />
                 Geral
@@ -229,7 +229,7 @@ ${iframeResizerCode}
               <>
                 <button
                   onClick={() => setActiveTab("status")}
-                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                 >
                   <Activity size={16} />
                   Status
@@ -237,7 +237,7 @@ ${iframeResizerCode}
                 {initialCatalog.business_model === "ALL_SERVICE" && (
                   <button
                     onClick={() => setActiveTab("implementar")}
-                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                   >
                     <Code size={16} />
                     Implementar
@@ -249,7 +249,7 @@ ${iframeResizerCode}
             {canViewBanners && (
               <button
                 onClick={() => setActiveTab("banners")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <ImageIcon size={16} />
                 Banners
@@ -307,19 +307,19 @@ ${iframeResizerCode}
                   <div className={`flex flex-wrap p-1.5 rounded-xl bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] ${isInheritingMaster ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
                     <button
                       onClick={() => !isInheritingMaster && setCatalogType("product")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "product" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Package size={18} /> Produto
                     </button>
                     <button
                       onClick={() => !isInheritingMaster && setCatalogType("service")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "service" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Settings size={18} /> Serviço
                     </button>
                     <button
                       onClick={() => !isInheritingMaster && setCatalogType("hybrid")}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-white text-black shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${catalogType === "hybrid" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                     >
                       <Sparkles size={18} /> Híbrido
                     </button>
@@ -403,7 +403,7 @@ ${iframeResizerCode}
                         onClick={() => setHidePrices(!hidePrices)}
                         className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${hidePrices ? 'bg-emerald-500' : 'bg-zinc-700'}`}
                       >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${hidePrices ? 'translate-x-2' : '-translate-x-2'}`} />
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-[var(--dash-surface)] shadow ring-0 transition duration-300 ease-in-out ${hidePrices ? 'translate-x-2' : '-translate-x-2'}`} />
                       </button>
                     </div>
 
@@ -419,7 +419,7 @@ ${iframeResizerCode}
                         onClick={() => setOutOfStockAtEnd(!outOfStockAtEnd)}
                         className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${outOfStockAtEnd ? 'bg-emerald-500' : 'bg-zinc-700'}`}
                       >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${outOfStockAtEnd ? 'translate-x-2' : '-translate-x-2'}`} />
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-[var(--dash-surface)] shadow ring-0 transition duration-300 ease-in-out ${outOfStockAtEnd ? 'translate-x-2' : '-translate-x-2'}`} />
                       </button>
                     </div>
                   </div>
@@ -488,7 +488,7 @@ ${iframeResizerCode}
                       onClick={() => setIsActive(!isActive)}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-zinc-300'}`}
                     >
-                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--dash-surface)] shadow ring-0 transition duration-200 ease-in-out ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
                   </div>
                   {!isActive && (

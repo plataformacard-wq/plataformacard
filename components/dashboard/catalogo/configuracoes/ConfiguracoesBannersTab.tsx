@@ -110,7 +110,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                 </div>
                 <button
                   onClick={handleAddBanner}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--dash-surface)] text-[var(--dash-text-primary)] font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
                   <Plus size={16} /> Adicionar Banner
                 </button>
@@ -128,7 +128,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                   onClick={() => setShowBanners(!showBanners)}
                   className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${showBanners ? 'bg-emerald-500' : 'bg-zinc-700'}`}
                 >
-                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${showBanners ? 'translate-x-2' : '-translate-x-2'}`} />
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-[var(--dash-surface)] shadow ring-0 transition duration-300 ease-in-out ${showBanners ? 'translate-x-2' : '-translate-x-2'}`} />
                 </button>
               </div>
 
@@ -369,7 +369,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                 <div className="flex items-center gap-3">
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" checked={tempBanner.active !== false} onChange={(e) => setTempBanner({ ...tempBanner, active: e.target.checked })} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[var(--dash-surface)] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                     <span className="ml-3 text-sm font-medium text-[var(--dash-text-primary)]">Banner Ativo</span>
                   </label>
                 </div>

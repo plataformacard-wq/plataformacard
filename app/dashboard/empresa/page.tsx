@@ -431,7 +431,7 @@ export default function EmpresaPage() {
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${
                   businessHours.holiday_settings?.autoCloseOnNationalHolidays ? "translate-x-6" : "translate-x-1"
                 }`}
               />

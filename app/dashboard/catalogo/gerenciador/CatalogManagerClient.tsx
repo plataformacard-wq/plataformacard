@@ -208,7 +208,7 @@ export default function CatalogManagerClient({
                           type="text" 
                           readOnly 
                           value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/bling?orgId=${orgId}`}
-                          className="flex-1 text-xs px-3 py-2.5 rounded-xl border border-blue-500/20 bg-white dark:bg-black/40 text-blue-900 dark:text-blue-200 outline-none select-all font-mono shadow-sm"
+                          className="flex-1 text-xs px-3 py-2.5 rounded-xl border border-blue-500/20 bg-[var(--dash-surface)] dark:bg-black/40 text-blue-900 dark:text-blue-200 outline-none select-all font-mono shadow-sm"
                         />
                         <button 
                           onClick={() => {
@@ -231,7 +231,7 @@ export default function CatalogManagerClient({
                         <button
                           onClick={handleSyncBling}
                           disabled={isSyncingBling}
-                          className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] px-5 py-2.5 text-sm font-semibold text-[var(--dash-text-primary)] transition-colors hover:bg-black/5 dark:hover:bg-white/5 shadow-sm disabled:opacity-50"
+                          className="shrink-0 flex items-center justify-center gap-2 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] px-5 py-2.5 text-sm font-semibold text-[var(--dash-text-primary)] transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 shadow-sm disabled:opacity-50"
                         >
                           {isSyncingBling ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
                           {isSyncingBling ? "Sincronizando..." : "Forçar Sincronização"}
@@ -291,7 +291,7 @@ export default function CatalogManagerClient({
             <div className="p-6 flex-1 flex flex-col">
               <div className="flex items-center gap-4 mb-4">
                 {catalog.logoUrl ? (
-                  <img src={catalog.logoUrl} alt={catalog.name} className="w-16 h-16 rounded-xl object-contain bg-white shadow-sm" />
+                  <img src={catalog.logoUrl} alt={catalog.name} className="w-16 h-16 rounded-xl object-contain bg-[var(--dash-surface)] shadow-sm" />
                 ) : (
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary">
                     <Globe size={28} />
@@ -330,7 +330,7 @@ export default function CatalogManagerClient({
                   <>
                     <Link 
                       href={catalog.isInherited ? "/dashboard/catalogo/bulk" : "/dashboard/catalogo"}
-                      className="flex-1 py-3 px-4 bg-[var(--dash-border)] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-[var(--dash-text)] rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                      className="flex-1 py-3 px-4 bg-[var(--dash-border)] hover:bg-black hover:text-white dark:hover:bg-[var(--dash-surface)] dark:hover:text-[var(--dash-text-primary)] text-[var(--dash-text)] rounded-xl font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
                     >
                       <Settings size={16} /> 
                       {catalog.isInherited ? "Aceitar Produtos" : "Gerenciar"}
@@ -420,7 +420,7 @@ export default function CatalogManagerClient({
                         checked={isPlatform}
                         onChange={(e) => setIsPlatform(e.target.checked)}
                       />
-                      <div className="peer h-6 w-11 rounded-full bg-zinc-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-focus:outline-none dark:bg-zinc-700"></div>
+                      <div className="peer h-6 w-11 rounded-full bg-zinc-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-[var(--dash-surface)] after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-focus:outline-none dark:bg-zinc-700"></div>
                     </label>
                   </div>
                 )}

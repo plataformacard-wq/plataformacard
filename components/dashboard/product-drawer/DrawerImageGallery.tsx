@@ -30,7 +30,7 @@ export default function DrawerImageGallery({
               <>
                 <img src={product.image_url} alt="Principal" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <label className="cursor-pointer p-2 bg-white rounded-full text-black hover:scale-110 transition-transform">
+                  <label className="cursor-pointer p-2 bg-[var(--dash-surface)] rounded-full text-[var(--dash-text-primary)] hover:scale-110 transition-transform">
                     <PlusCircle size={20} />
                     <input type="file" className="hidden" onChange={(e) => handleImageUpload(e)} disabled={uploading} />
                   </label>
@@ -44,7 +44,7 @@ export default function DrawerImageGallery({
               </label>
             )}
             {uploading && (
-              <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+              <div className="absolute inset-0 bg-[var(--dash-surface)]/80 flex items-center justify-center">
                 <Loader2 className="animate-spin text-primary" />
               </div>
             )}

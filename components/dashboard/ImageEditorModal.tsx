@@ -169,7 +169,7 @@ export default function ImageEditorModal({
             </div>
             <button
               onClick={resetAndClose}
-              className="rounded-full p-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+              className="rounded-full p-2 transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5"
               style={{ color: "var(--dash-text-muted)" }}
             >
               <X size={20} />
@@ -227,7 +227,7 @@ export default function ImageEditorModal({
                     step={0.1}
                     aria-labelledby="Zoom"
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-200 dark:bg-white/10 accent-emerald-500 border border-zinc-300 dark:border-white/5"
+                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-200 dark:bg-[var(--dash-surface)]/10 accent-emerald-500 border border-zinc-300 dark:border-white/5"
                   />
                   <Plus size={16} className="text-zinc-500" />
                   <button 
@@ -281,7 +281,7 @@ export default function ImageEditorModal({
             <button
               onClick={resetAndClose}
               disabled={isProcessing}
-              className="rounded-xl px-6 py-3 text-sm font-bold transition-colors hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+              className="rounded-xl px-6 py-3 text-sm font-bold transition-colors hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 disabled:opacity-50"
               style={{ color: "var(--dash-text-muted)" }}
             >
               Cancelar

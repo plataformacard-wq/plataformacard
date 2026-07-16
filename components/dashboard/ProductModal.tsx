@@ -646,14 +646,14 @@ export default function ProductModal({
                 <button
                   type="button"
                   onClick={() => { setItemType("product"); setEnableSku(true); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'product' ? 'bg-white dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'product' ? 'bg-[var(--dash-surface)] dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
                 >
                   <Package size={16} /> Produto
                 </button>
                 <button
                   type="button"
                   onClick={() => { setItemType("service"); setEnableSku(false); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'service' ? 'bg-white dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${itemType === 'service' ? 'bg-[var(--dash-surface)] dark:bg-zinc-700 text-emerald-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
                 >
                   <Settings size={16} /> Serviço
                 </button>
@@ -718,7 +718,7 @@ export default function ProductModal({
                     >
                       <span className="text-[9px] font-bold text-zinc-500 group-hover:text-emerald-500 transition-colors uppercase">Habilitar</span>
                       <div className={`w-8 h-4 rounded-full relative transition-colors ${enableSku ? 'bg-emerald-500' : 'bg-zinc-400'}`}>
-                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${enableSku ? 'left-4.5' : 'left-0.5'}`} />
+                        <div className={`absolute top-0.5 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all ${enableSku ? 'left-4.5' : 'left-0.5'}`} />
                       </div>
                     </div>
                   </div>
@@ -747,7 +747,7 @@ export default function ProductModal({
                       <div className={`w-10 h-5 rounded-full relative transition-colors ${showHighlight ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
                         <motion.div 
                           animate={{ x: showHighlight ? 22 : 4 }}
-                          className="absolute top-1 w-3 h-3 bg-white rounded-full"
+                          className="absolute top-1 w-3 h-3 bg-[var(--dash-surface)] rounded-full"
                         />
                       </div>
                     </div>
@@ -797,7 +797,7 @@ export default function ProductModal({
                     <div className={`w-10 h-5 rounded-full relative transition-colors ${isActive ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
                       <motion.div 
                         animate={{ x: isActive ? 22 : 4 }}
-                        className="absolute top-1 w-3 h-3 bg-white rounded-full"
+                        className="absolute top-1 w-3 h-3 bg-[var(--dash-surface)] rounded-full"
                       />
                     </div>
                   </div>
@@ -823,7 +823,7 @@ export default function ProductModal({
                       <div className={`w-10 h-5 rounded-full relative transition-colors ${isInStock ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
                         <motion.div 
                           animate={{ x: isInStock ? 22 : 4 }}
-                          className="absolute top-1 w-3 h-3 bg-white rounded-full"
+                          className="absolute top-1 w-3 h-3 bg-[var(--dash-surface)] rounded-full"
                         />
                       </div>
                     </div>
@@ -847,7 +847,7 @@ export default function ProductModal({
                       <div className={`w-8 h-4 rounded-full relative transition-colors ${manualStock ? 'bg-amber-500' : 'bg-zinc-700'}`}>
                         <motion.div 
                           animate={{ x: manualStock ? 18 : 2 }}
-                          className="absolute top-0.5 w-3 h-3 bg-white rounded-full"
+                          className="absolute top-0.5 w-3 h-3 bg-[var(--dash-surface)] rounded-full"
                         />
                       </div>
                     </div>
@@ -916,7 +916,7 @@ export default function ProductModal({
                     >
                       <motion.div 
                         animate={{ x: hasRetail ? 28 : 4 }}
-                        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm"
+                        className="absolute top-1 w-5 h-5 bg-[var(--dash-surface)] rounded-full shadow-sm"
                       />
                     </button>
                   </div>
@@ -1002,7 +1002,7 @@ export default function ProductModal({
                     >
                       <motion.div 
                         animate={{ x: hasWholesale ? 28 : 4 }}
-                        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm"
+                        className="absolute top-1 w-5 h-5 bg-[var(--dash-surface)] rounded-full shadow-sm"
                       />
                     </button>
                   </div>
@@ -1059,7 +1059,7 @@ export default function ProductModal({
                     <span className="text-sm font-black uppercase tracking-tight" style={{ color: effectiveShowSpecs ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Especificações</span>
                   </div>
                   <div className={`w-10 h-5 rounded-full relative transition-colors ${effectiveShowSpecs ? 'bg-emerald-500' : 'bg-zinc-600'}`}>
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${effectiveShowSpecs ? 'right-1' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all ${effectiveShowSpecs ? 'right-1' : 'left-1'}`} />
                   </div>
                 </button>
 
@@ -1079,7 +1079,7 @@ export default function ProductModal({
                     <span className="text-sm font-black uppercase tracking-tight" style={{ color: effectiveShowColors ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>Cores</span>
                   </div>
                   <div className={`w-10 h-5 rounded-full relative transition-colors ${effectiveShowColors ? 'bg-emerald-500' : 'bg-zinc-600'}`}>
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${effectiveShowColors ? 'right-1' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all ${effectiveShowColors ? 'right-1' : 'left-1'}`} />
                   </div>
                 </button>
               </div>
@@ -1406,7 +1406,7 @@ export default function ProductModal({
                       e.stopPropagation();
                       setIsAiGenerationEnabled(!isAiGenerationEnabled);
                     }}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer ${isAiGenerationEnabled ? 'border-emerald-500/20 text-emerald-500' : 'border-blue-500/20 text-blue-500'}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 cursor-pointer ${isAiGenerationEnabled ? 'border-emerald-500/20 text-emerald-500' : 'border-blue-500/20 text-blue-500'}`}
                     title={isAiGenerationEnabled ? "Desativar Geração de Descrição" : "Ativar Geração de Descrição"}
                   >
                     {isAiGenerationEnabled ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}

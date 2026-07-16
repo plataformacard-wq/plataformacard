@@ -102,9 +102,9 @@ export default function DashboardAlerts({
           animate={{ opacity: 1, scale: 1 }}
           className="mb-6 overflow-hidden rounded-[32px] bg-gradient-to-br from-indigo-600 to-violet-700 p-6 md:p-8 relative"
         >
-          <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+          <div className="absolute right-0 top-0 w-64 h-64 bg-[var(--dash-surface)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-bold uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--dash-surface)]/20 rounded-full text-white text-xs font-bold uppercase tracking-wider mb-3">
               <span>📅</span> Feriado se aproximando
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
@@ -119,14 +119,14 @@ export default function DashboardAlerts({
               <button
                 onClick={() => handleHolidayDecision(upcomingHoliday.date, false)}
                 disabled={processingHolidayDecision}
-                className="bg-white/20 hover:bg-white/30 text-white border border-white/20 font-bold px-6 py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                className="bg-[var(--dash-surface)]/20 hover:bg-[var(--dash-surface)]/30 text-white border border-white/20 font-bold px-6 py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 🏝️ Vou folgar (Pausar 24h)
               </button>
               <button
                 onClick={() => handleHolidayDecision(upcomingHoliday.date, true)}
                 disabled={processingHolidayDecision}
-                className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-6 py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                className="bg-[var(--dash-surface)] text-indigo-700 hover:bg-indigo-50 font-bold px-6 py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
               >
                 💼 Vou trabalhar
               </button>

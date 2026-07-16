@@ -154,7 +154,7 @@ export default function ProfileIdentitySection(props: any) {
                       onClick={() => !recessActive && setIsAvailable(!isAvailable)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isAvailable && !recessActive ? 'bg-emerald-500' : 'bg-slate-300'} ${recessActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAvailable && !recessActive ? 'translate-x-6' : 'translate-x-1'}`} />
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${isAvailable && !recessActive ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
 
@@ -335,7 +335,7 @@ export default function ProfileIdentitySection(props: any) {
                         onClick={() => setAcceptsMessagesWhenClosed(!acceptsMessagesWhenClosed)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed ${acceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
                       >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${acceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${acceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
                   </div>

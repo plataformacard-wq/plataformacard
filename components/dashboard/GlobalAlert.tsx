@@ -41,7 +41,7 @@ export default function GlobalAlert({ noticeId, noticeText, isActive }: GlobalAl
           <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 px-4 py-3 text-white shadow-lg">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
               <div className="flex flex-1 items-center gap-3">
-                <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md">
+                <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--dash-surface)]/20 backdrop-blur-md">
                   <Zap size={18} className="animate-pulse" />
                 </div>
                 <div className="flex flex-col">
@@ -52,7 +52,7 @@ export default function GlobalAlert({ noticeId, noticeText, isActive }: GlobalAl
               
               <button 
                 onClick={handleDismiss}
-                className="rounded-lg p-1.5 hover:bg-white/20 transition-colors"
+                className="rounded-lg p-1.5 hover:bg-[var(--dash-surface)]/20 transition-colors"
                 title="Fechar aviso"
               >
                 <X size={18} />

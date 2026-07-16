@@ -177,7 +177,7 @@ export default async function AnalyticsPage(props: {
             </div>
           </div>
           <div className="text-right">
-            <h1 className="text-3xl font-black text-black">Relatório de Desempenho</h1>
+            <h1 className="text-3xl font-black text-[var(--dash-text-primary)]">Relatório de Desempenho</h1>
             <p className="text-[10px] font-black uppercase tracking-widest text-primary mt-2">
               Documento Oficial • {new Date().toLocaleDateString("pt-BR")}
             </p>

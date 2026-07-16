@@ -172,7 +172,7 @@ export default function ProductListItem({
                   {product.type === 'service' ? 'Disponível' : 'Visível'}
                 </span>
                 <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
+                  <div className={`absolute top-0.5 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ export default function ProductListItem({
               >
                 <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Estoque</span>
                 <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
+                  <div className={`absolute top-0.5 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
                 </div>
               </div>
             </div>

@@ -80,7 +80,7 @@ export function VendedorContactCard(props: any) {
           onClick={() => setFormAcceptsMessagesWhenClosed(!formAcceptsMessagesWhenClosed)}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none mt-2 md:mt-0 ${formAcceptsMessagesWhenClosed ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
         >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formAcceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${formAcceptsMessagesWhenClosed ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
       </div>
 

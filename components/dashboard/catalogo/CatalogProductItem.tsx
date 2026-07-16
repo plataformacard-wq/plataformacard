@@ -133,7 +133,7 @@ export default function CatalogProductItem({
                   {product.type === 'service' ? 'Disponível' : 'Visível'}
                 </span>
                 <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-200'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
+                  <div className={`absolute top-0.5 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all duration-300 ${product.is_active !== false ? 'left-4.5' : 'left-0.5'}`} />
                 </div>
               </div>
 
@@ -143,7 +143,7 @@ export default function CatalogProductItem({
               >
                 <span className="text-[9px] font-bold uppercase text-[var(--dash-text-muted)]">Estoque</span>
                 <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${product.is_in_stock !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
+                  <div className={`absolute top-0.5 w-3 h-3 bg-[var(--dash-surface)] rounded-full transition-all duration-300 ${product.is_in_stock !== false ? 'left-4.5' : 'left-0.5'}`} />
                 </div>
                 <span className="ml-2 flex items-center justify-center min-w-[3.5rem] text-[11px] font-black text-emerald-900 bg-emerald-400 px-2 py-1 rounded-md shadow-sm border border-emerald-500" title={product.manual_stock ? "Estoque Manual" : "Sincronizado via ERP"}>
                   {product.stock_quantity !== null && product.stock_quantity !== undefined ? Math.floor(product.stock_quantity) : '-'} un {product.manual_stock ? '✋' : ''}

@@ -493,7 +493,7 @@ export default function SEOPage() {
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${
                     formData.centralize_leads ? "translate-x-6" : "translate-x-1"
                   }`}
                 />

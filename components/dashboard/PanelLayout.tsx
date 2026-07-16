@@ -381,7 +381,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         {isShadowMode && (
           <div className="relative z-[40] bg-amber-500 text-white px-4 md:px-6 py-2.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md shrink-0">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 shrink-0 rounded-lg bg-white/20 flex items-center justify-center shadow-inner">
+              <div className="h-8 w-8 shrink-0 rounded-lg bg-[var(--dash-surface)]/20 flex items-center justify-center shadow-inner">
                 <Clock size={16} className="animate-pulse" />
               </div>
               <div className="flex flex-col text-left">
@@ -395,7 +395,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             </div>
             <button 
               onClick={handleExitShadow}
-              className="w-full md:w-auto shrink-0 px-5 py-2 rounded-xl bg-white text-amber-600 text-[10px] font-black uppercase tracking-wider hover:bg-amber-50 transition-all shadow-sm active:scale-95 text-center"
+              className="w-full md:w-auto shrink-0 px-5 py-2 rounded-xl bg-[var(--dash-surface)] text-amber-600 text-[10px] font-black uppercase tracking-wider hover:bg-amber-50 transition-all shadow-sm active:scale-95 text-center"
             >
               Encerrar Simulação
             </button>
@@ -452,7 +452,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             initial={{ opacity: 0, x: 100, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 100, scale: 0.9 }}
-            className="fixed bottom-8 right-8 z-[9999] w-80 bg-white dark:bg-zinc-900 border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden"
+            className="fixed bottom-8 right-8 z-[9999] w-80 bg-[var(--dash-surface)] dark:bg-zinc-900 border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="bg-emerald-500 px-4 py-2 flex items-center justify-between">
               <span className="text-[10px] font-black text-white uppercase tracking-widest">Novo Lead Detectado!</span>

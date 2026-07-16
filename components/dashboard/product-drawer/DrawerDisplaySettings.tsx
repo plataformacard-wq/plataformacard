@@ -53,7 +53,7 @@ export default function DrawerDisplaySettings({
             onClick={() => updateData(rowIndex, "show_specs", !effectiveShowSpecs)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${effectiveShowSpecs ? 'bg-primary' : 'bg-zinc-600'}`}
           >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowSpecs ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${effectiveShowSpecs ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
 
@@ -66,7 +66,7 @@ export default function DrawerDisplaySettings({
             onClick={() => updateData(rowIndex, "show_colors", !effectiveShowColors)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${effectiveShowColors ? 'bg-primary' : 'bg-zinc-600'}`}
           >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${effectiveShowColors ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${effectiveShowColors ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
 
@@ -80,7 +80,7 @@ export default function DrawerDisplaySettings({
               onClick={() => updateData(rowIndex, "show_highlight", !product.show_highlight)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${product.show_highlight ? 'bg-emerald-500' : 'bg-zinc-600'}`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${product.show_highlight ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${product.show_highlight ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
           {product.show_highlight && (
@@ -172,7 +172,7 @@ export default function DrawerDisplaySettings({
                           <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>
                             {editingColorIdx !== null ? "Ajustar Cor" : "Nova Escolha"}
                           </span>
-                          <button onClick={() => setIsPickerOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                          <button onClick={() => setIsPickerOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-[var(--dash-surface)]/5 rounded-full transition-colors">
                             <X size={14} style={{ color: "var(--dash-text-muted)" }} />
                           </button>
                         </div>

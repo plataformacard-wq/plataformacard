@@ -333,7 +333,7 @@ export default function GerenciarAcessosPage() {
                           disabled={updatingId === seller.id}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${(seller.dash_access_profile ?? true) ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(seller.dash_access_profile ?? true) ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${(seller.dash_access_profile ?? true) ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                         {(seller.dash_access_profile ?? true) && (
                           <button onClick={() => setGranularModal({ seller, module: 'profile' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
@@ -350,7 +350,7 @@ export default function GerenciarAcessosPage() {
                           disabled={updatingId === seller.id}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_catalog ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_catalog ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${seller.dash_access_catalog ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                         {seller.dash_access_catalog && (
                           <button onClick={() => setGranularModal({ seller, module: 'catalog' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
@@ -367,7 +367,7 @@ export default function GerenciarAcessosPage() {
                           disabled={updatingId === seller.id}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_analytics ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_analytics ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${seller.dash_access_analytics ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                         {seller.dash_access_analytics && (
                           <button onClick={() => setGranularModal({ seller, module: 'analytics' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
@@ -384,7 +384,7 @@ export default function GerenciarAcessosPage() {
                           disabled={updatingId === seller.id}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${seller.dash_access_company ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${seller.dash_access_company ? 'translate-x-6' : 'translate-x-1'}`} />
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--dash-surface)] transition-transform ${seller.dash_access_company ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                         {seller.dash_access_company && (
                           <button onClick={() => setGranularModal({ seller, module: 'company' })} className="text-[var(--dash-text-muted)] hover:text-primary transition-colors">
@@ -397,7 +397,7 @@ export default function GerenciarAcessosPage() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setPasswordModalSeller(seller)}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-80 transition-opacity"
+                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-2xl bg-zinc-900 dark:bg-[var(--dash-surface)] text-white dark:text-[var(--dash-text-primary)] text-xs font-bold hover:opacity-80 transition-opacity"
                       >
                         <IdCard size={14} /> Dados de Acesso
                       </button>
@@ -420,7 +420,7 @@ export default function GerenciarAcessosPage() {
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="mb-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-white flex items-center justify-center text-white dark:text-black">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-[var(--dash-surface)] flex items-center justify-center text-white dark:text-[var(--dash-text-primary)]">
                 <IdCard size={24} />
               </div>
               <div>
@@ -438,7 +438,7 @@ export default function GerenciarAcessosPage() {
                 <label className="mb-2 block text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                   Usuário (Slug)
                 </label>
-                <div className="w-full rounded-xl border px-4 py-3 text-sm font-mono opacity-70 bg-black/5 dark:bg-white/5" style={{ borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}>
+                <div className="w-full rounded-xl border px-4 py-3 text-sm font-mono opacity-70 bg-black/5 dark:bg-[var(--dash-surface)]/5" style={{ borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}>
                   {passwordModalSeller.slug}
                 </div>
               </div>
@@ -491,7 +491,7 @@ export default function GerenciarAcessosPage() {
                 <button
                   onClick={handleUpdatePassword}
                   disabled={passwordUpdating || newPassword.length < 6}
-                  className="flex-1 rounded-xl bg-zinc-900 dark:bg-white px-4 py-3 text-sm font-bold text-white dark:text-black transition-colors hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 rounded-xl bg-zinc-900 dark:bg-[var(--dash-surface)] px-4 py-3 text-sm font-bold text-white dark:text-[var(--dash-text-primary)] transition-colors hover:opacity-90 disabled:opacity-50"
                 >
                   {passwordUpdating ? "Salvando..." : "Salvar Senha"}
                 </button>

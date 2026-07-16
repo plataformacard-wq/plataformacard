@@ -89,7 +89,7 @@ export default function BulkImportUploadStep({
                   value={sheetUrl}
                   onChange={(e) => setSheetUrl(e.target.value)}
                   placeholder="Link do Google Sheets..."
-                  className="flex-1 bg-white border border-primary/20 rounded-lg px-2 py-2 text-[9px] outline-none focus:ring-2 focus:ring-primary/20"
+                  className="flex-1 bg-[var(--dash-surface)] border border-primary/20 rounded-lg px-2 py-2 text-[9px] outline-none focus:ring-2 focus:ring-primary/20"
                 />
                 <button 
                   onClick={handleFetchSheet}

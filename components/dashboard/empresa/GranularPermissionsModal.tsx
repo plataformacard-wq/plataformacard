@@ -123,7 +123,7 @@ export default function GranularPermissionsModal({ sellerName, module, initialPe
           <button
             onClick={() => onSave(localPermissions)}
             disabled={isSaving}
-            className="flex-1 rounded-xl bg-zinc-900 dark:bg-white px-4 py-3 text-sm font-bold text-white dark:text-black transition-colors hover:opacity-90 disabled:opacity-50"
+            className="flex-1 rounded-xl bg-zinc-900 dark:bg-[var(--dash-surface)] px-4 py-3 text-sm font-bold text-white dark:text-[var(--dash-text-primary)] transition-colors hover:opacity-90 disabled:opacity-50"
           >
             {isSaving ? "Salvando..." : "Salvar Permissões"}
           </button>
