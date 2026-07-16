@@ -129,7 +129,7 @@ export default function AssinaturaClient() {
   const currentPlan = plans.find(p => p.id === currentPlanId);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 pb-20">
+    <div className="w-full space-y-10 pb-20">
       {/* Header Premium */}
       <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl p-10 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity" />

@@ -42,7 +42,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
         </button>
       </div>
 
-      <div className="w-full max-w-5xl mx-auto">
+      <div className="w-full">
         <div className="w-full">
           {view === "card" && (
             <ProfileIdentitySection 

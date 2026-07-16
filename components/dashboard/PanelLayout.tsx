@@ -437,7 +437,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         )}
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="mx-auto max-w-7xl">
+          <div className="w-full">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
               {children}
             </motion.div>

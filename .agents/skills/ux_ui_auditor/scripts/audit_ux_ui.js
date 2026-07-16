@@ -21,6 +21,17 @@ const REPLACEMENTS = [
     replace: 'rounded-[27px]',
     desc: "Padronizando arredondamentos (2xl, 3xl e customizados) para a nova assinatura visual rounded-[27px]"
   },
+  // 4. Garantir que as sessões estiquem até a margem do navegador (PanelLayout) e não fiquem centralizadas e pequenas
+  {
+    regex: /(?<![a-zA-Z0-9-])(w-full\s+)?max-w-[34567]xl\s+mx-auto(?![a-zA-Z0-9-])/g,
+    replace: 'w-full',
+    desc: "Removendo constrições de largura em páginas para garantir alinhamento com as margens laterais do navegador"
+  },
+  {
+    regex: /(?<![a-zA-Z0-9-])mx-auto\s+(w-full\s+)?max-w-[34567]xl(?![a-zA-Z0-9-])/g,
+    replace: 'w-full',
+    desc: "Removendo constrições de largura em páginas para garantir alinhamento com as margens laterais do navegador"
+  },
   // 2. Substituir text-black por text-[var(--dash-text-primary)]
   {
     regex: /(?<![a-zA-Z0-9-])text-black(?![a-zA-Z0-9-])/g,

@@ -124,7 +124,7 @@ export default async function CatalogManagerPage() {
     : catalogs;
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+    <div className="p-6 md:p-8 w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--dash-text)] flex items-center gap-3">
           <span className="p-2 bg-[var(--dash-hover-bg)] rounded-xl text-primary">

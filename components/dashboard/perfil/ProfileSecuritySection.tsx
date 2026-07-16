@@ -51,7 +51,7 @@ export default function ProfileSecuritySection({
   const canEditBasicInfo = granularPermissions?.profile?.basic_info ?? true;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Nome Administrativo */}
       <div
         className="rounded-[27px] border p-6 shadow-sm transition-colors"

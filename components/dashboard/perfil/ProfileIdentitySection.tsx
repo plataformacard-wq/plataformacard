@@ -128,7 +128,7 @@ export default function ProfileIdentitySection(props: any) {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-4xl mx-auto space-y-6"
+              className="w-full space-y-6"
             >
               {/* Header com Toggle */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[27px] border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
