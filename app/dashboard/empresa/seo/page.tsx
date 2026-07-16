@@ -351,7 +351,7 @@ export default function SEOPage() {
       />
 
       {/* 02 - Conteúdo SEO & Ativos de Marca */}
-      <div className="rounded-2xl border p-6 shadow-sm space-y-8" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="rounded-[27px] border p-6 shadow-sm space-y-8" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         {/* Conteúdo SEO */}
         <section className="space-y-6">
           <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>01. Conteúdo da Página</h2>
@@ -408,7 +408,7 @@ export default function SEOPage() {
       </div>
 
       {/* Redes Sociais */}
-      <div className="rounded-2xl border p-6 shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="rounded-[27px] border p-6 shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <h2 className="text-base font-semibold mb-1" style={{ color: "var(--dash-text-primary)" }}>03. Redes Sociais da Empresa</h2>
         <p className="text-sm mb-6" style={{ color: "var(--dash-text-secondary)" }}>
           Os links das redes sociais aparecerão publicamente nos cartões de todos os vendedores e no catálogo da empresa. Deixe em branco se não quiser exibir.
@@ -464,9 +464,9 @@ export default function SEOPage() {
 
       {/* 04 - CRM/Leads */}
       {businessModel === "B2B" && (
-        <div className="rounded-2xl border p-6 shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="rounded-[27px] border p-6 shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>04. Configurações de Leads (CRM)</h2>
-          <div className="p-5 rounded-2xl border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+          <div className="p-5 rounded-[27px] border transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
             <div className="flex items-center justify-between">
               <div className="flex gap-3">
                 <div className={`mt-1 p-2 rounded-lg ${formData.centralize_leads ? "bg-emerald-500/10 text-emerald-600" : "bg-blue-500/10 text-blue-600"}`}>
@@ -524,9 +524,9 @@ export default function SEOPage() {
       )}
 
       {/* 04 - Google Preview */}
-      <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <h2 className="text-base font-semibold mb-4" style={{ color: "var(--dash-text-primary)" }}>Pré-visualização no Google</h2>
-        <div className="rounded-2xl p-8 space-y-2 border shadow-sm transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+        <div className="rounded-[27px] p-8 space-y-2 border shadow-sm transition-all" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 overflow-hidden">
               {formData.favicon_url ? <img src={formData.favicon_url} className="w-full h-full object-cover" /> : <Globe size={10} className="text-zinc-400" />}
@@ -547,7 +547,7 @@ export default function SEOPage() {
         <button 
           onClick={handleSaveClick}
           disabled={saving}
-          className="px-8 py-3 rounded-2xl text-sm font-black transition-all shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
+          className="px-8 py-3 rounded-[27px] text-sm font-black transition-all shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
         >
           {saving ? <Loader2 size={18} className="animate-spin" /> : (businessModel === "B2C" ? "Salvar Cartão Público" : "Salvar Configurações")}
         </button>
@@ -609,7 +609,7 @@ export default function SEOPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-6"
+              className="w-full max-w-md bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 shadow-2xl relative overflow-hidden space-y-6"
             >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
@@ -658,7 +658,7 @@ export default function SEOPage() {
       </AnimatePresence>
 
       {message && (
-        <div className={`fixed bottom-10 right-10 flex items-center gap-2 px-6 py-3 text-white rounded-2xl shadow-2xl z-50 animate-bounce ${
+        <div className={`fixed bottom-10 right-10 flex items-center gap-2 px-6 py-3 text-white rounded-[27px] shadow-2xl z-50 animate-bounce ${
           message.type === "success" ? "bg-emerald-500" : message.type === "error" ? "bg-rose-500" : "bg-blue-500"
         }`}>
           {message.type === "success" ? <CheckCircle2 size={20} /> : <Info size={20} />}

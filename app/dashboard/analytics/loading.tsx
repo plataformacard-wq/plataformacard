@@ -14,15 +14,15 @@ export default function LoadingAnalytics() {
       {/* KPIs Skeletons */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-32 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800" />
+          <div key={i} className="h-32 bg-zinc-50 dark:bg-zinc-900/50 rounded-[27px] border border-zinc-100 dark:border-zinc-800" />
         ))}
       </section>
 
       {/* Funnel Skeleton */}
-      <section className="h-64 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800" />
+      <section className="h-64 bg-zinc-50 dark:bg-zinc-900/50 rounded-[27px] border border-zinc-100 dark:border-zinc-800" />
 
       {/* Table Skeleton */}
-      <section className="h-96 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800" />
+      <section className="h-96 bg-zinc-50 dark:bg-zinc-900/50 rounded-[27px] border border-zinc-100 dark:border-zinc-800" />
     </div>
   );
 }

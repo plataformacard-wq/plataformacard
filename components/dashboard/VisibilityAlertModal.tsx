@@ -35,7 +35,7 @@ export default function VisibilityAlertModal({
             className="relative w-full max-w-md rounded-[27px] p-8 shadow-2xl border"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
-            <div className="h-16 w-16 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center text-amber-500 mb-6 mx-auto border border-amber-100 dark:border-amber-900/20">
+            <div className="h-16 w-16 bg-amber-50 dark:bg-amber-900/10 rounded-[27px] flex items-center justify-center text-amber-500 mb-6 mx-auto border border-amber-100 dark:border-amber-900/20">
               <Info size={32} />
             </div>
             
@@ -47,7 +47,7 @@ export default function VisibilityAlertModal({
 
             <div className="flex flex-col gap-4">
               <label 
-                className="flex items-center gap-3 cursor-pointer p-4 rounded-2xl border group transition-all"
+                className="flex items-center gap-3 cursor-pointer p-4 rounded-[27px] border group transition-all"
                 style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
               >
                 <input 
@@ -62,13 +62,13 @@ export default function VisibilityAlertModal({
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-zinc-100 text-zinc-500 text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                  className="flex-1 px-6 py-4 rounded-[27px] bg-zinc-100 text-zinc-500 text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-zinc-900 text-white text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-black/10"
+                  className="flex-1 px-6 py-4 rounded-[27px] bg-zinc-900 text-white text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-black/10"
                 >
                   Confirmar
                 </button>

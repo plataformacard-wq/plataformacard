@@ -181,10 +181,10 @@ export default function ImageEditorModal({
             {!imageSrc ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                className="group flex cursor-pointer flex-col items-center justify-center rounded-[27px] border-2 border-dashed p-12 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface-secondary)" }}
               >
-                <div className="mb-4 rounded-2xl p-5 shadow-sm transition-transform group-hover:scale-110" style={{ background: "var(--dash-surface)" }}>
+                <div className="mb-4 rounded-[27px] p-5 shadow-sm transition-transform group-hover:scale-110" style={{ background: "var(--dash-surface)" }}>
                   <Upload className="text-emerald-500" size={32} />
                 </div>
                 <p className="mb-1 font-bold" style={{ color: "var(--dash-text-primary)" }}>
@@ -204,7 +204,7 @@ export default function ImageEditorModal({
             ) : (
               <div className="space-y-6">
                 {/* Cropper Container */}
-                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-black">
+                <div className="relative h-80 w-full overflow-hidden rounded-[27px] bg-black">
                   <Cropper
                     image={imageSrc}
                     crop={crop}
@@ -239,7 +239,7 @@ export default function ImageEditorModal({
                 </div>
 
                 {/* Instructions */}
-                <div className="rounded-2xl p-5 border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
+                <div className="rounded-[27px] p-5 border" style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}>
                   <div className="flex gap-4">
                     <div className="shrink-0 h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
                       <Info className="text-emerald-500" size={20} />
@@ -270,7 +270,7 @@ export default function ImageEditorModal({
             )}
 
             {error && (
-              <div className="mt-6 flex items-center gap-3 rounded-2xl bg-red-500/10 p-4 border border-red-500/20 text-sm font-bold text-red-400">
+              <div className="mt-6 flex items-center gap-3 rounded-[27px] bg-red-500/10 p-4 border border-red-500/20 text-sm font-bold text-red-400">
                 <AlertCircle size={18} />
                 <span>{error}</span>
               </div>

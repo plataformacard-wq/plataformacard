@@ -27,7 +27,7 @@ export function VendedorFooterActions(props: any) {
                 <Trash2 size={16} /> Desligar Vendedor
               </button>
             ) : (
-              <div className="flex items-center gap-3 bg-red-50 dark:bg-red-950/30 p-2 rounded-2xl border border-red-200 dark:border-red-900 absolute left-0 bottom-full mb-4 whitespace-nowrap z-20 shadow-2xl origin-bottom-left animate-in fade-in zoom-in duration-200">
+              <div className="flex items-center gap-3 bg-red-50 dark:bg-red-950/30 p-2 rounded-[27px] border border-red-200 dark:border-red-900 absolute left-0 bottom-full mb-4 whitespace-nowrap z-20 shadow-2xl origin-bottom-left animate-in fade-in zoom-in duration-200">
                 <span className="text-xs font-bold text-red-600 dark:text-red-400 px-2">
                   Desligar permanentemente? Os dados pessoais serão removidos.
                 </span>
@@ -71,7 +71,7 @@ export function VendedorFooterActions(props: any) {
         <button 
           onClick={handleSave} 
           disabled={saving || !isFormValid}
-          className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+          className={`px-8 py-3 rounded-[27px] font-bold transition-all shadow-xl active:scale-95 ${
             saving || !isFormValid 
             ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
             : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-emerald-500/20"

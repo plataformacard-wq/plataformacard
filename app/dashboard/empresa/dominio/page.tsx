@@ -169,7 +169,7 @@ export default function DominioPage() {
       )}
 
       {!currentDomain ? (
-        <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-xl">
+        <div className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-xl">
           <div className="mb-6 flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
               <Globe className="h-6 w-6" />
@@ -201,7 +201,7 @@ export default function DominioPage() {
       ) : (
         <div className="space-y-6">
           {/* Caixa de Status e Ações */}
-          <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-xl">
+          <div className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">{currentDomain}</h2>
@@ -242,7 +242,7 @@ export default function DominioPage() {
           {/* Configuração DNS */}
           {!domainStatus?.verified && domainStatus?.verification && domainStatus.verification.length > 0 && (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] shadow-xl overflow-hidden">
+              <div className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] shadow-xl overflow-hidden">
                 <button 
                 onClick={() => setIsConfigOpen(!isConfigOpen)}
                 className="w-full flex items-center justify-between p-6 text-left hover:bg-[var(--dash-hover-bg)] transition-colors"
@@ -327,7 +327,7 @@ export default function DominioPage() {
         </div>
 
         {/* Tutorial / Guia Passo a Passo */}
-        <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] p-6 shadow-xl">
+        <div className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] p-6 shadow-xl">
           <div className="flex items-start gap-3">
                   <Info className="mt-0.5 h-5 w-5 text-primary shrink-0" />
                   <div>

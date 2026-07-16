@@ -54,7 +54,7 @@ export default function ProfileSecuritySection({
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Nome Administrativo */}
       <div
-        className="rounded-2xl border p-6 shadow-sm transition-colors"
+        className="rounded-[27px] border p-6 shadow-sm transition-colors"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
@@ -89,7 +89,7 @@ export default function ProfileSecuritySection({
 
       {/* Email de Acesso */}
       <div
-        className="rounded-2xl border p-6 shadow-sm transition-colors"
+        className="rounded-[27px] border p-6 shadow-sm transition-colors"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
@@ -105,7 +105,7 @@ export default function ProfileSecuritySection({
 
       {/* Domínio Próprio */}
       <div
-        className="rounded-2xl border p-6 shadow-sm transition-colors mb-6"
+        className="rounded-[27px] border p-6 shadow-sm transition-colors mb-6"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
@@ -126,7 +126,7 @@ export default function ProfileSecuritySection({
 
       {/* Sessões e Dispositivos */}
       <div
-        className="rounded-2xl border p-6 shadow-sm transition-colors"
+        className="rounded-[27px] border p-6 shadow-sm transition-colors"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
@@ -159,7 +159,7 @@ export default function ProfileSecuritySection({
       {/* Segurança (Troca de Senha com OTP) */}
       {canEditPassword && (
         <div
-          className="rounded-2xl border p-6 shadow-sm transition-colors"
+          className="rounded-[27px] border p-6 shadow-sm transition-colors"
           style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
         >
           <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
@@ -216,7 +216,7 @@ export default function ProfileSecuritySection({
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="space-y-4 p-6 rounded-2xl border border-primary/20 bg-primary/5"
+                  className="space-y-4 p-6 rounded-[27px] border border-primary/20 bg-primary/5"
                 >
                   <div className="text-center">
                     <ShieldCheck size={40} className="text-primary mx-auto mb-3" />

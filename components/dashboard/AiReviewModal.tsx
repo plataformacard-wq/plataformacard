@@ -128,7 +128,7 @@ export default function AiReviewModal({
             {changes ? (
               <div className="space-y-6">
                 {changes.map((change, i) => (
-                  <div key={i} className={`space-y-3 p-4 rounded-2xl border-2 transition-all ${acceptedFields[change.id] ? 'border-emerald-500/20 bg-emerald-500/[0.01]' : 'border-zinc-500/10 opacity-60'}`}>
+                  <div key={i} className={`space-y-3 p-4 rounded-[27px] border-2 transition-all ${acceptedFields[change.id] ? 'border-emerald-500/20 bg-emerald-500/[0.01]' : 'border-zinc-500/10 opacity-60'}`}>
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">{change.field}</p>
                       <button 
@@ -215,7 +215,7 @@ export default function AiReviewModal({
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">Texto Atual (Original)</p>
                   <div 
-                    className="p-5 rounded-2xl bg-[var(--dash-bg)] border border-[var(--dash-border)] text-sm font-medium opacity-60 max-h-[150px] overflow-y-auto custom-scrollbar"
+                    className="p-5 rounded-[27px] bg-[var(--dash-bg)] border border-[var(--dash-border)] text-sm font-medium opacity-60 max-h-[150px] overflow-y-auto custom-scrollbar"
                     style={{ color: "var(--dash-text-secondary)" }}
                     dangerouslySetInnerHTML={{ __html: original || '' }}
                   />
@@ -242,7 +242,7 @@ export default function AiReviewModal({
                       </button>
                     </div>
                   </div>
-                  <div className={`p-4 rounded-2xl border transition-all ${acceptedFields['single'] ? 'bg-emerald-500/[0.03] border-emerald-500/20' : 'bg-zinc-100 border-zinc-200 opacity-40'}`}>
+                  <div className={`p-4 rounded-[27px] border transition-all ${acceptedFields['single'] ? 'bg-emerald-500/[0.03] border-emerald-500/20' : 'bg-zinc-100 border-zinc-200 opacity-40'}`}>
                     <div className={acceptedFields['single'] ? "" : "pointer-events-none opacity-50"}>
                       {(!editedValues['single'] || editedValues['single'].trim() === '' || editedValues['single'] === '<p><br></p>') ? (
                         <div className="flex flex-col items-center justify-center p-6 bg-emerald-500/5 rounded-xl border border-dashed border-emerald-500/20">
@@ -284,7 +284,7 @@ export default function AiReviewModal({
             </button>
             <button 
               onClick={() => onConfirm(acceptedFields, editedValues)}
-              className="px-8 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              className="px-8 py-4 bg-emerald-500 text-white rounded-[27px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
             >
               <Check size={18} /> Aceitar Sugestões Selecionadas
             </button>

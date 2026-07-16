@@ -42,7 +42,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
         </button>
       </div>
 
-      <div className="w-full">
+      <div className="w-full max-w-5xl mx-auto">
         <div className="w-full">
           {view === "card" && (
             <ProfileIdentitySection 
@@ -112,7 +112,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
                   Para manter simples, renderizamos os campos de senha aqui.
               */}
               <div
-                className="rounded-2xl border p-6 shadow-sm transition-colors"
+                className="rounded-[27px] border p-6 shadow-sm transition-colors"
                 style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
               >
                 <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
@@ -175,7 +175,7 @@ export default function SellerProfileView({ manager }: SellerProfileViewProps) {
                 </div>
               </div>
               <div
-                className="rounded-2xl border p-6 shadow-sm transition-colors"
+                className="rounded-[27px] border p-6 shadow-sm transition-colors"
                 style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
               >
                 <div className="flex items-center justify-between">

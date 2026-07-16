@@ -20,14 +20,14 @@ export function VendedorIdentityCard(props: any) {
   } = props;
 
   return (
-    <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+    <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
       <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
         <Users size={18} className="text-primary" /> Identidade do Vendedor
       </h3>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex flex-col items-center gap-3">
           <div 
-            className="group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
+            className="group relative h-28 w-28 rounded-[27px] border overflow-hidden bg-zinc-50 transition-all hover:border-primary/50 cursor-pointer" 
             style={{ borderColor: "var(--dash-border)" }}
             onClick={() => { setActiveUploadType("avatar"); setShowImageEditor(true); }}
           >
@@ -68,9 +68,9 @@ export function VendedorIdentityCard(props: any) {
         </div>
 
         {/* Banner Upload Section */}
-        <div className="flex flex-col md:flex-row items-center gap-6 p-4 rounded-2xl border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-bg)" }}>
+        <div className="flex flex-col md:flex-row items-center gap-6 p-4 rounded-[27px] border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-bg)" }}>
           <div 
-            className="w-full md:w-48 h-24 rounded-2xl border-2 border-dashed overflow-hidden relative group cursor-pointer transition-all hover:border-primary/50 shrink-0 flex flex-col items-center justify-center gap-1"
+            className="w-full md:w-48 h-24 rounded-[27px] border-2 border-dashed overflow-hidden relative group cursor-pointer transition-all hover:border-primary/50 shrink-0 flex flex-col items-center justify-center gap-1"
             style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
             onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
           >

@@ -38,7 +38,7 @@ export default function DashboardKpiGrid({ stats, loading }: { stats: StatItem[]
         <motion.div
           key={idx}
           variants={item}
-          className="group relative overflow-hidden rounded-2xl border bg-[var(--dash-surface)] p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+          className="group relative overflow-hidden rounded-[27px] border bg-[var(--dash-surface)] p-6 transition-all hover:border-primary/50 hover:shadow-lg"
         >
           <div className="flex items-center justify-between">
             <div className={`rounded-xl p-2.5 ${stat.bgClass} ${stat.textClass}`}>

@@ -65,7 +65,7 @@ export default function StockThresholdModal({
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-[var(--dash-surface)] dark:bg-zinc-900 p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800"
+            className="relative w-full max-w-md overflow-hidden rounded-[27px] bg-[var(--dash-surface)] dark:bg-zinc-900 p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800"
           >
             <button
               onClick={onClose}

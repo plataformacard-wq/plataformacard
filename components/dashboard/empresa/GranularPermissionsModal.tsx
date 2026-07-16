@@ -84,7 +84,7 @@ export default function GranularPermissionsModal({ sellerName, module, initialPe
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <div className="mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+          <div className="w-12 h-12 rounded-[27px] bg-primary/10 flex items-center justify-center text-primary">
             <ShieldCheck size={24} />
           </div>
           <div>

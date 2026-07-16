@@ -207,7 +207,7 @@ export default async function AnalyticsPage(props: {
         </div>
       )}
 
-      <Suspense fallback={<div className="h-20 w-full animate-pulse bg-zinc-500/5 rounded-2xl mb-8" />}>
+      <Suspense fallback={<div className="h-20 w-full animate-pulse bg-zinc-500/5 rounded-[27px] mb-8" />}>
         <AnalyticsControls 
           organizationId={pOrgId || ""} 
           profileId={pId} 
@@ -224,7 +224,7 @@ export default async function AnalyticsPage(props: {
           { label: "Cliques em produto", value: summary.productClicks, icon: MousePointerClick, text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20 hover:border-amber-500/40" },
           { label: "Conversas iniciadas", value: summary.conversationsStarted, icon: MessageCircle, text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20 hover:border-emerald-500/40" },
         ].map((kpi) => (
-          <div key={kpi.label} className={`rounded-3xl border ${kpi.border} bg-[var(--dash-surface)] p-6 relative overflow-hidden flex flex-col hover:shadow-lg transition-all group`}>
+          <div key={kpi.label} className={`rounded-[27px] border ${kpi.border} bg-[var(--dash-surface)] p-6 relative overflow-hidden flex flex-col hover:shadow-lg transition-all group`}>
             <div className="flex items-center gap-3 mb-4">
               <div className={`rounded-lg ${kpi.bg} ${kpi.text} p-2 group-hover:scale-110 transition-transform`}>
                 <kpi.icon size={20} />
@@ -241,7 +241,7 @@ export default async function AnalyticsPage(props: {
       </section>
 
       {/* Funil */}
-      <section className="mt-8 rounded-3xl border border-[var(--dash-border)] p-6 md:p-8 shadow-sm bg-[var(--dash-surface)]">
+      <section className="mt-8 rounded-[27px] border border-[var(--dash-border)] p-6 md:p-8 shadow-sm bg-[var(--dash-surface)]">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-zinc-500/10 p-2 text-zinc-500">
             <Filter size={20} />
@@ -262,7 +262,7 @@ export default async function AnalyticsPage(props: {
             { label: "Catálogo", target: "Produto", rate: rateCatalogToProduct, sub: `${summary.productClicks} de ${summary.catalogViews}` },
             { label: "Produto", target: "Conversa", rate: rateProductToConversation, sub: `${summary.conversationsStarted} de ${summary.productClicks}` },
           ].map((f) => (
-            <div key={f.label} className="rounded-2xl border border-[var(--dash-border)] p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors bg-[var(--dash-bg)] group">
+            <div key={f.label} className="rounded-[27px] border border-[var(--dash-border)] p-5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors bg-[var(--dash-bg)] group">
               <div className="flex items-center gap-2 mb-3 text-sm font-semibold" style={{ color: "var(--dash-text-secondary)" }}>
                 <span>{f.label}</span>
                 <ArrowRight size={14} className="opacity-50 group-hover:translate-x-1 transition-transform" />
@@ -278,7 +278,7 @@ export default async function AnalyticsPage(props: {
       </section>
 
       {/* Conversão por produto */}
-      <section className="mt-8 rounded-3xl border border-[var(--dash-border)] p-6 md:p-8 shadow-sm bg-[var(--dash-surface)]">
+      <section className="mt-8 rounded-[27px] border border-[var(--dash-border)] p-6 md:p-8 shadow-sm bg-[var(--dash-surface)]">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-indigo-500/10 p-2 text-indigo-500">
             <TrendingUp size={20} />
@@ -295,13 +295,13 @@ export default async function AnalyticsPage(props: {
 
         {productConversion.length === 0 ? (
           <div
-            className="rounded-2xl border-2 border-dashed p-8 text-center text-sm font-medium"
+            className="rounded-[27px] border-2 border-dashed p-8 text-center text-sm font-medium"
             style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-muted)" }}
           >
             Ainda não há dados suficientes para análise de conversão.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-[var(--dash-border)]">
+          <div className="overflow-x-auto rounded-[27px] border border-[var(--dash-border)]">
             <table className="w-full text-sm">
               <thead className="bg-[var(--dash-bg)]">
                 <tr className="border-b" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-secondary)" }}>

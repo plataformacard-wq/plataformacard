@@ -131,7 +131,7 @@ export default function ProfileIdentitySection(props: any) {
               className="max-w-4xl mx-auto space-y-6"
             >
               {/* Header com Toggle */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[27px] border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
                 <div>
                   <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
                     Editar Cartão Público
@@ -144,7 +144,7 @@ export default function ProfileIdentitySection(props: any) {
                 {/* Controles de Acesso Rápido */}
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Switch de Disponibilidade */}
-                  <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/20 px-4 py-2 rounded-2xl border border-[var(--dash-border)]">
+                  <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/20 px-4 py-2 rounded-[27px] border border-[var(--dash-border)]">
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${isAvailable && !recessActive ? 'text-emerald-500 font-extrabold' : 'text-slate-400'}`}>
                       {isAvailable && !recessActive ? 'Disponível' : 'Indisponível'}
                     </span>
@@ -164,7 +164,7 @@ export default function ProfileIdentitySection(props: any) {
                       href={getPublicUrl(slugInput, customDomain, true, true)} 
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
+                      className="flex items-center justify-center gap-2 px-4 py-2 rounded-[27px] bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
                     >
                       <ExternalLink size={14} /> Cartão Virtual
                     </a>
@@ -173,14 +173,14 @@ export default function ProfileIdentitySection(props: any) {
               </div>
 
               {/* Card 1: Identidade */}
-              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+              <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
                 <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
                   <Users size={18} className="text-primary" /> Identidade do Vendedor
                 </h3>
                 <div className="flex flex-col md:flex-row gap-8">
                   <div className="flex flex-col items-center gap-3">
                     <div 
-                      className={`group relative h-28 w-28 rounded-3xl border overflow-hidden bg-zinc-50 transition-all ${canEditAvatar ? 'hover:border-primary/50 cursor-pointer' : 'opacity-80'}`} 
+                      className={`group relative h-28 w-28 rounded-[27px] border overflow-hidden bg-zinc-50 transition-all ${canEditAvatar ? 'hover:border-primary/50 cursor-pointer' : 'opacity-80'}`} 
                       style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                       onClick={() => { if (canEditAvatar) { setActiveUploadType("avatar"); setShowImageEditor(true); } }}
                     >
@@ -262,13 +262,13 @@ export default function ProfileIdentitySection(props: any) {
 
               
               {/* Card 1.5: Banner Público */}
-              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+              <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
                 <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
                   <ImageIcon size={18} className="text-primary" /> Banner do Perfil Público
                 </h3>
                 <div className="flex flex-col items-center gap-4">
                   <div 
-                    className="w-full h-32 md:h-48 rounded-2xl border-2 border-dashed overflow-hidden relative group cursor-pointer transition-all hover:border-primary/50"
+                    className="w-full h-32 md:h-48 rounded-[27px] border-2 border-dashed overflow-hidden relative group cursor-pointer transition-all hover:border-primary/50"
                     style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                     onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
                   >
@@ -303,7 +303,7 @@ export default function ProfileIdentitySection(props: any) {
               </div>
 
               {/* Card 2: Contato e Link */}
-              <div className="rounded-3xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+              <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
                 <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
                   <Phone size={18} className="text-primary" /> Contato e Link
                 </h3>
@@ -393,7 +393,7 @@ export default function ProfileIdentitySection(props: any) {
                 </div>
 
                 <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-                  <label className={`flex items-start gap-3 p-4 rounded-2xl border transition-all ${redirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'} ${canEditRedirectLeads ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'}`}>
+                  <label className={`flex items-start gap-3 p-4 rounded-[27px] border transition-all ${redirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'} ${canEditRedirectLeads ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'}`}>
                     <div className="mt-0.5">
                       <input 
                         type="checkbox" 
@@ -425,7 +425,7 @@ export default function ProfileIdentitySection(props: any) {
                     </span>
                   </div>
                   
-                  <label className={`flex items-start gap-3 p-4 rounded-2xl border transition-all ${recessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'} ${canEditRecess ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'}`}>
+                  <label className={`flex items-start gap-3 p-4 rounded-[27px] border transition-all ${recessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'} ${canEditRecess ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'}`}>
                     <div className="mt-0.5">
                       <input 
                         type="checkbox" 
@@ -453,7 +453,7 @@ export default function ProfileIdentitySection(props: any) {
                   </label>
 
                   {recessActive && (
-                    <div className="mt-4 p-4 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20 border border-[var(--dash-border)] space-y-4">
+                    <div className="mt-4 p-4 rounded-[27px] bg-zinc-50/50 dark:bg-zinc-800/20 border border-[var(--dash-border)] space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Dias de Recesso</label>
@@ -503,7 +503,7 @@ export default function ProfileIdentitySection(props: any) {
               </div>
 
               {/* Card 3: Permissões e Horários (Colapsável) */}
-              <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+              <div className="rounded-[27px] border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
                 <button 
                   type="button"
                   onClick={() => setShowHoursConfig(!showHoursConfig)}
@@ -596,7 +596,7 @@ export default function ProfileIdentitySection(props: any) {
                 <button 
                   onClick={handleSave} 
                   disabled={saving || !nameInput.trim()}
-                  className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-xl active:scale-95 ${
+                  className={`px-8 py-3 rounded-[27px] font-bold transition-all shadow-xl active:scale-95 ${
                     saving || !nameInput.trim() 
                     ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
                     : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-emerald-500/20"

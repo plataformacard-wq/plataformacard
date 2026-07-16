@@ -83,7 +83,7 @@ export default function CatalogCategoryList({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {loadingCategories ? (
           Array(4).fill(0).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800" />
+            <div key={i} className="h-24 animate-pulse rounded-[27px] bg-zinc-100 dark:bg-zinc-800" />
           ))
         ) : categories.filter(c => c.catalog_id === catalogId).length === 0 ? (
           <div className="col-span-full p-12 text-center rounded-[27px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>

@@ -198,7 +198,7 @@ export default function CatalogManagerClient({
                   className="overflow-hidden"
                 >
                   <div className="pt-4 flex flex-col gap-4">
-                    <div className="p-5 rounded-2xl border border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/5">
+                    <div className="p-5 rounded-[27px] border border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/5">
                       <h3 className="text-sm font-bold text-blue-800 dark:text-blue-400 mb-1">Webhooks (Tempo Real)</h3>
                       <p className="text-xs text-blue-600/80 dark:text-blue-400/80 mb-4 leading-relaxed">
                         Para que o estoque seja atualizado automaticamente assim que houver uma movimentação no Bling, cadastre a URL abaixo na aba "Webhooks" selecionando o evento "Estoque" (stock).
@@ -222,7 +222,7 @@ export default function CatalogManagerClient({
                       </div>
                     </div>
                     
-                    <div className="p-5 rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-bg)]">
+                    <div className="p-5 rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-bg)]">
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <div>
                           <h3 className="text-sm font-bold text-[var(--dash-text-primary)]">Sincronização Manual (Forçada)</h3>
@@ -261,7 +261,7 @@ export default function CatalogManagerClient({
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`relative rounded-3xl border-2 transition-all duration-300 overflow-hidden flex flex-col ${
+            className={`relative rounded-[27px] border-2 transition-all duration-300 overflow-hidden flex flex-col ${
               catalog.isActive 
                 ? "border-primary bg-[var(--dash-bg)] shadow-[0_8px_30px_rgb(0,0,0,0.12)]" 
                 : "border-[var(--dash-border)] bg-[var(--dash-hover-bg)] opacity-80 hover:opacity-100"
@@ -370,7 +370,7 @@ export default function CatalogManagerClient({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl bg-[var(--dash-surface)] border-[var(--dash-border)]"
+              className="w-full max-w-md overflow-hidden rounded-[27px] border shadow-2xl bg-[var(--dash-surface)] border-[var(--dash-border)]"
             >
               <div className="p-6 border-b border-[var(--dash-border)] flex items-center justify-between">
                 <h3 className="text-lg font-bold text-[var(--dash-text-primary)]">Novo Catálogo</h3>

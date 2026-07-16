@@ -59,7 +59,7 @@ export default function AnalyticsControls({ organizationId, profileId }: Analyti
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
       {/* Period Selectors */}
-      <div className="flex items-center gap-1 bg-dash-bg border border-border p-1 rounded-2xl overflow-x-auto no-scrollbar max-w-full">
+      <div className="flex items-center gap-1 bg-dash-bg border border-border p-1 rounded-[27px] overflow-x-auto no-scrollbar max-w-full">
         {PERIODS.map((period) => (
           <button
             key={period.value}
@@ -90,7 +90,7 @@ export default function AnalyticsControls({ organizationId, profileId }: Analyti
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 p-1.5 bg-dash-bg border border-rose-500/50 rounded-2xl shadow-2xl z-10"
+            className="flex items-center gap-2 p-1.5 bg-dash-bg border border-rose-500/50 rounded-[27px] shadow-2xl z-10"
           >
             {success ? (
               <div className="flex items-center gap-2 px-4 py-1.5 text-emerald-500">

@@ -115,7 +115,7 @@ export default function DashboardClient({ initialData }: { initialData: any }) {
             <DashboardTeamList sellers={initialData.sellers} sellerCount={initialData.sellerCount} />
           )}
 
-          <div className="rounded-3xl bg-slate-900 p-8 text-white relative overflow-hidden dark:bg-primary/20 dark:border dark:border-primary/30">
+          <div className="rounded-[27px] bg-slate-900 p-8 text-white relative overflow-hidden dark:bg-primary/20 dark:border dark:border-primary/30">
             <div className="relative z-10">
               <span className="inline-block rounded-full bg-primary/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">Dica Premium</span>
               <h3 className="mt-4 text-xl font-bold">Aumente suas vendas</h3>
@@ -129,7 +129,7 @@ export default function DashboardClient({ initialData }: { initialData: any }) {
             <div className="absolute -top-10 -left-10 h-24 w-24 rounded-full bg-blue-500 opacity-20 blur-2xl" />
           </div>
 
-          <div className="rounded-2xl border border-dashed border-[var(--dash-border)] p-6">
+          <div className="rounded-[27px] border border-dashed border-[var(--dash-border)] p-6">
             <h4 className="text-sm font-bold text-[var(--dash-text-primary)] mb-4">Atualizações Recentes</h4>
             <div className="space-y-4">
               {[1, 2].map((i) => (

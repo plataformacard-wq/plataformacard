@@ -568,7 +568,7 @@ export default function VendedoresClient({
                 placeholder="Buscar por nome ou telefone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-2xl border outline-none"
+                className="w-full pl-12 pr-4 py-3 rounded-[27px] border outline-none"
                 style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
               />
             </div>

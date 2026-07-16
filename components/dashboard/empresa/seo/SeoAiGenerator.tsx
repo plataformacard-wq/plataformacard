@@ -12,9 +12,9 @@ export default function SeoAiGenerator(props: any) {
   } = props;
 
   return (
-    <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+    <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
       <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--dash-text-secondary)" }}>Assistente Inteligente</h2>
-      <div className="border rounded-2xl p-5 space-y-4" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
+      <div className="border rounded-[27px] p-5 space-y-4" style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}>
         {/* Header */}
         <div className="flex items-center gap-3 pb-3 border-b" style={{ borderColor: "var(--dash-border)" }}>
           <div className="p-2 rounded-lg bg-emerald-500/10">

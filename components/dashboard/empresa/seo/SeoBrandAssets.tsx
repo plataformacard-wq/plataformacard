@@ -22,7 +22,7 @@ export default function SeoBrandAssets(props: any) {
             <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Favicon (Ícone da Aba)</label>
             <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1:1 Quadrado (ex: 256x256 px)</span>
           </div>
-          <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
+          <div className="h-32 border-2 border-dashed rounded-[27px] flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                 onClick={() => { setActiveUploadType("favicon"); setShowImageEditor(true); }}>
             {formData.favicon_url ? (
@@ -57,7 +57,7 @@ export default function SeoBrandAssets(props: any) {
             </label>
             <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 2:1 Retangular (ex: 800x400 px)</span>
           </div>
-          <div className="h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
+          <div className="h-32 border-2 border-dashed rounded-[27px] flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
                 style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
                 onClick={() => { setActiveUploadType("logo"); setShowImageEditor(true); }}>
             {formData.logo_url ? (
@@ -91,7 +91,7 @@ export default function SeoBrandAssets(props: any) {
           <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner de Compartilhamento (Redes Sociais)</label>
           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Recomendado: 1200x630 px</span>
         </div>
-        <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
+        <div className="h-40 border-2 border-dashed rounded-[27px] flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
               style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
               onClick={() => { setActiveUploadType("banner"); setShowImageEditor(true); }}>
           {formData.og_image_url ? (
@@ -124,7 +124,7 @@ export default function SeoBrandAssets(props: any) {
           <label className="text-xs font-bold" style={{ color: "var(--dash-text-secondary)" }}>Banner do Cartão Público</label>
           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Aparece no topo do perfil público. Recomendado: 1200x400 px</span>
         </div>
-        <div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
+        <div className="h-40 border-2 border-dashed rounded-[27px] flex flex-col items-center justify-center gap-2 relative group cursor-pointer transition-all hover:bg-zinc-500/5 overflow-hidden"
               style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}
               onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}>
           {formData.public_banner_url ? (

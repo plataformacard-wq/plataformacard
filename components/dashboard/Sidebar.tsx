@@ -406,7 +406,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
           {!isCollapsed && (
             <div className="mt-auto px-4 pb-6">
-              <div className="rounded-2xl bg-[var(--dash-surface-secondary)] p-4 border border-[var(--dash-border)]">
+              <div className="rounded-[27px] bg-[var(--dash-surface-secondary)] p-4 border border-[var(--dash-border)]">
                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Status do Sistema</p>
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />

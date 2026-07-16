@@ -97,10 +97,10 @@ export default function ConfiguracoesBannersTab(props: any) {
             exit={{ opacity: 0, y: -10 }}
             className="grid gap-8"
           >
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 md:p-8 shadow-sm space-y-8">
               <div className="flex items-center justify-between border-b border-[var(--dash-border)] pb-8">
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                  <div className="h-14 w-14 rounded-[27px] bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                     <ImageIcon size={28} />
                   </div>
                   <div>
@@ -236,7 +236,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                   onClick={handleSave}
                   disabled={saving}
                   className={`
-                    flex items-center gap-3 px-12 py-4 rounded-2xl font-black text-lg transition-all shadow-xl
+                    flex items-center gap-3 px-12 py-4 rounded-[27px] font-black text-lg transition-all shadow-xl
                     ${saved ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'}
                     disabled:opacity-50
                   `}
@@ -269,7 +269,7 @@ export default function ConfiguracoesBannersTab(props: any) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="relative bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             >
               <h2 className="text-2xl font-black tracking-tight mb-8 text-[var(--dash-text-primary)]">
                 {editingBannerIndex !== null ? "Editar Banner" : "Novo Banner"}
@@ -284,7 +284,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                         </label>
                         <div 
                           onClick={() => setUploadMode("desktop")}
-                          className={`relative aspect-[4/1] md:aspect-auto md:h-32 rounded-2xl overflow-hidden border-2 border-dashed cursor-pointer transition-all ${tempBanner.image_desktop_url ? 'border-primary/50' : 'border-[var(--dash-border)] hover:border-primary'}`}
+                          className={`relative aspect-[4/1] md:aspect-auto md:h-32 rounded-[27px] overflow-hidden border-2 border-dashed cursor-pointer transition-all ${tempBanner.image_desktop_url ? 'border-primary/50' : 'border-[var(--dash-border)] hover:border-primary'}`}
                         >
                           {tempBanner.image_desktop_url ? (
                             <img src={tempBanner.image_desktop_url} alt="Desktop" className="w-full h-full object-cover" />
@@ -303,7 +303,7 @@ export default function ConfiguracoesBannersTab(props: any) {
                         </label>
                         <div 
                           onClick={() => setUploadMode("mobile")}
-                          className={`relative aspect-[5/2] md:aspect-auto md:h-32 rounded-2xl overflow-hidden border-2 border-dashed cursor-pointer transition-all ${tempBanner.image_mobile_url ? 'border-primary/50' : 'border-[var(--dash-border)] hover:border-primary'}`}
+                          className={`relative aspect-[5/2] md:aspect-auto md:h-32 rounded-[27px] overflow-hidden border-2 border-dashed cursor-pointer transition-all ${tempBanner.image_mobile_url ? 'border-primary/50' : 'border-[var(--dash-border)] hover:border-primary'}`}
                         >
                           {tempBanner.image_mobile_url ? (
                             <img src={tempBanner.image_mobile_url} alt="Mobile" className="w-full h-full object-cover" />

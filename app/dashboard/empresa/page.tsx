@@ -279,7 +279,7 @@ export default function EmpresaPage() {
 
 
       <div
-        className="rounded-2xl border p-6 shadow-sm"
+        className="rounded-[27px] border p-6 shadow-sm"
         style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
       >
         <div className="flex items-center justify-between mb-6">
@@ -590,7 +590,7 @@ export default function EmpresaPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="rounded-2xl px-8 py-3 text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
+          className="rounded-[27px] px-8 py-3 text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
         >
           {saving ? "Salvando..." : "Salvar Horários da Empresa"}
         </button>

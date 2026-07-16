@@ -49,18 +49,18 @@ export default function CatalogProductItem({
       {/* Imagem compacta */}
       <div className="relative flex-shrink-0">
         {product.is_in_stock === false && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-2xl">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-[27px]">
             <span className="bg-rose-600 !text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg">Esgotado</span>
           </div>
         )}
         {getProductImage(product) ? (
           <img 
             src={getProductImage(product)!} 
-            className={`h-16 w-16 rounded-2xl object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
+            className={`h-16 w-16 rounded-[27px] object-cover border border-zinc-100 shadow-sm bg-zinc-50 transition-opacity ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} 
             alt={product.name}
           />
         ) : (
-          <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} style={{ background: "var(--dash-surface-secondary)" }}>
+          <div className={`h-16 w-16 rounded-[27px] flex items-center justify-center text-zinc-400 ${(product.is_in_stock === false || product.is_active === false) ? 'opacity-50' : 'opacity-100'}`} style={{ background: "var(--dash-surface-secondary)" }}>
             <Package size={24} />
           </div>
         )}

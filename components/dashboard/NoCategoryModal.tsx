@@ -21,11 +21,11 @@ export default function NoCategoryModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-[27px] border shadow-2xl"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="p-8 text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[27px] bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
                 <AlertCircle size={32} />
               </div>
               <h3 className="mb-2 text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>

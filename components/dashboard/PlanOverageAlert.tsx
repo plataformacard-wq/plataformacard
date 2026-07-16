@@ -29,7 +29,7 @@ export default function PlanOverageAlert({ overages, planName }: PlanOverageAler
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="mx-4 md:mx-8 mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+        className="mx-4 md:mx-8 mt-4 rounded-[27px] border border-amber-500/30 bg-amber-500/10 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4"
       >
         {/* Ícone */}
         <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center">

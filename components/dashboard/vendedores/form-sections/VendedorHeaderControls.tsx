@@ -22,7 +22,7 @@ export function VendedorHeaderControls(props: any) {
         <ChevronLeft size={18} /> Voltar para a lista
       </button>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[27px] border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div>
           <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
             {selectedSeller ? `Editando: ${formName}` : "Nova Ficha de Vendedor"}
@@ -37,7 +37,7 @@ export function VendedorHeaderControls(props: any) {
         {/* Controles de Acesso Rápido */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Switch de Disponibilidade */}
-          <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/20 px-4 py-2 rounded-2xl border border-[var(--dash-border)]">
+          <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/20 px-4 py-2 rounded-[27px] border border-[var(--dash-border)]">
             <span className={`text-[10px] font-bold uppercase tracking-wider ${formAvailable ? 'text-emerald-500 font-extrabold' : 'text-slate-400'}`}>
               {formAvailable ? 'Disponível' : 'Indisponível'}
             </span>
@@ -56,7 +56,7 @@ export function VendedorHeaderControls(props: any) {
               href={getPublicUrl(formSlug, customDomain, false, true)} 
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-[27px] bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all border border-primary/20 shadow-sm"
             >
               <ExternalLink size={14} /> Cartão Virtual
             </a>

@@ -245,7 +245,7 @@ export default function GerenciarAcessosPage() {
           placeholder="Buscar vendedor por nome ou slug..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 rounded-2xl border outline-none"
+          className="w-full pl-12 pr-4 py-3 rounded-[27px] border outline-none"
           style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
         />
       </div>
@@ -301,7 +301,7 @@ export default function GerenciarAcessosPage() {
                     </td>
                     
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[27px] text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
                         getAccessStatus(seller) === "Acesso Total Gestor" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
                         getAccessStatus(seller) === "Acesso Administrativo" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
                         getAccessStatus(seller) === "Acesso Analítico" ? "bg-red-500/10 text-red-500 border-red-500/20" :
@@ -316,7 +316,7 @@ export default function GerenciarAcessosPage() {
                         onChange={(e) => handleApplyPreset(seller.id, e.target.value)}
                         value=""
                         disabled={updatingId === seller.id}
-                        className="dash-select rounded-2xl border pl-3 py-1.5 text-xs bg-[var(--dash-surface)]"
+                        className="dash-select rounded-[27px] border pl-3 py-1.5 text-xs bg-[var(--dash-surface)]"
                         style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                       >
                         <option value="" disabled>Aplicar Preset...</option>
@@ -397,7 +397,7 @@ export default function GerenciarAcessosPage() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setPasswordModalSeller(seller)}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-2xl bg-zinc-900 dark:bg-[var(--dash-surface)] text-white dark:text-[var(--dash-text-primary)] text-xs font-bold hover:opacity-80 transition-opacity"
+                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-[27px] bg-zinc-900 dark:bg-[var(--dash-surface)] text-white dark:text-[var(--dash-text-primary)] text-xs font-bold hover:opacity-80 transition-opacity"
                       >
                         <IdCard size={14} /> Dados de Acesso
                       </button>
@@ -420,7 +420,7 @@ export default function GerenciarAcessosPage() {
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="mb-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-[var(--dash-surface)] flex items-center justify-center text-white dark:text-[var(--dash-text-primary)]">
+              <div className="w-12 h-12 rounded-[27px] bg-zinc-900 dark:bg-[var(--dash-surface)] flex items-center justify-center text-white dark:text-[var(--dash-text-primary)]">
                 <IdCard size={24} />
               </div>
               <div>

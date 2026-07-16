@@ -24,7 +24,7 @@ export default function BulkGridToolbar(props: any) {
   return (
     <>
       {/* --- Toolbar Refatorada --- */}
-      <div className="flex flex-col gap-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-2xl shadow-sm">
+      <div className="flex flex-col gap-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-[27px] shadow-sm">
         
         {/* Linha 1: Ações Principais e Integrações */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">

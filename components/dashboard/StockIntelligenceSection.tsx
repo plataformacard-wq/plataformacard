@@ -60,7 +60,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
 
   if (!hasBlingConnection) {
     return (
-      <div className="mb-10 mt-10 rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] overflow-hidden shadow-sm">
+      <div className="mb-10 mt-10 rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] overflow-hidden shadow-sm">
         <div 
           className="p-6 flex items-center justify-between cursor-pointer group hover:bg-black/5 dark:hover:bg-[var(--dash-surface)]/5 transition-colors"
           onClick={() => setIsFallbackExpanded(!isFallbackExpanded)}
@@ -86,7 +86,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
               className="overflow-hidden"
             >
               <div className="p-8 border-t border-[var(--dash-border)] flex flex-col items-center justify-center text-center bg-[var(--dash-bg)]/50">
-                 <div className="rounded-2xl bg-blue-500/10 p-4 mb-4 text-blue-500">
+                 <div className="rounded-[27px] bg-blue-500/10 p-4 mb-4 text-blue-500">
                    <Package size={32} />
                  </div>
                  <h3 className="text-lg font-bold text-[var(--dash-text-primary)] mb-2">Estoque Global Inativo</h3>
@@ -145,7 +145,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
         {/* Card 1: Estoque Global */}
         <div 
           onClick={() => setIsGlobalModalOpen(true)}
-          className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 flex flex-col justify-between cursor-pointer hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all group relative z-50"
+          className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 flex flex-col justify-between cursor-pointer hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all group relative z-50"
         >
            <div className="flex items-center justify-between mb-4">
              <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
         {/* Card 2: Top Categorias */}
         <div 
           onClick={() => setIsCategoryModalOpen(true)}
-          className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 cursor-pointer hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/5 transition-all group"
+          className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 cursor-pointer hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/5 transition-all group"
         >
           <div className="flex items-center gap-2 mb-4">
              <div className="rounded-lg bg-purple-500/10 p-2 text-purple-500 group-hover:scale-110 transition-transform">
@@ -220,7 +220,7 @@ export default function StockIntelligenceSection({ activeOrgId, hasBlingConnecti
              if ((e.target as HTMLElement).closest('button')) return;
              setIsAlertModalOpen(true);
           }}
-          className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 relative overflow-hidden flex flex-col cursor-pointer hover:border-red-500/40 hover:shadow-lg hover:shadow-red-500/10 transition-all group"
+          className="rounded-[27px] border border-red-500/20 bg-red-500/5 p-6 relative overflow-hidden flex flex-col cursor-pointer hover:border-red-500/40 hover:shadow-lg hover:shadow-red-500/10 transition-all group"
         >
           <div className="flex items-center justify-between mb-4">
              <div className="flex items-center gap-2">

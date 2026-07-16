@@ -788,8 +788,8 @@ export default function BulkGridEditor() {
 
   return (
     <>
-      <div className="md:hidden flex flex-col items-center justify-center p-8 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-3xl text-center space-y-4 shadow-sm my-10">
-        <div className="h-16 w-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-2">
+      <div className="md:hidden flex flex-col items-center justify-center p-8 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] text-center space-y-4 shadow-sm my-10">
+        <div className="h-16 w-16 bg-blue-500/10 text-blue-500 rounded-[27px] flex items-center justify-center mb-2">
           <AlertCircle size={32} />
         </div>
         <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Dispositivo não Suportado</h2>
@@ -817,7 +817,7 @@ export default function BulkGridEditor() {
       />
 
       {/* --- Grid --- */}
-      <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] shadow-sm overflow-hidden">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -906,11 +906,11 @@ export default function BulkGridEditor() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl"
+              className="w-full max-w-md overflow-hidden rounded-[27px] border shadow-2xl"
               style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
             >
               <div className="p-8 text-center">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[27px] bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
                   <AlertCircle size={32} />
                 </div>
                 <h3 className="mb-2 text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>

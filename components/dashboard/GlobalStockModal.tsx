@@ -37,7 +37,7 @@ export default function GlobalStockModal({ isOpen, onClose, products }: GlobalSt
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
+          <div className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-[27px] bg-[var(--dash-surface)] shadow-2xl border border-[var(--dash-border)]">
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">

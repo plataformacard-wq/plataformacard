@@ -145,7 +145,7 @@ export default function ImageUploadModal({
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-[var(--dash-surface)]/5 px-6 py-12 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                className="group relative flex flex-col items-center justify-center rounded-[27px] border-2 border-dashed border-white/10 bg-[var(--dash-surface)]/5 px-6 py-12 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5"
               >
                 <input
                   type="file"
@@ -153,7 +153,7 @@ export default function ImageUploadModal({
                   onChange={handleFileChange}
                   className="absolute inset-0 cursor-pointer opacity-0"
                 />
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--dash-surface)]/5 text-zinc-400 transition-colors group-hover:bg-emerald-500/20 group-hover:text-emerald-400">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[27px] bg-[var(--dash-surface)]/5 text-zinc-400 transition-colors group-hover:bg-emerald-500/20 group-hover:text-emerald-400">
                   <Upload size={28} />
                 </div>
                 <p className="text-lg font-bold text-white">Clique ou arraste uma foto</p>
@@ -162,7 +162,7 @@ export default function ImageUploadModal({
             ) : (
               // Step 2: Crop
               <div className="space-y-6">
-                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-zinc-950">
+                <div className="relative h-80 w-full overflow-hidden rounded-[27px] bg-zinc-950">
                   <Cropper
                     image={image}
                     crop={crop}
@@ -195,14 +195,14 @@ export default function ImageUploadModal({
                   <button
                     onClick={handleReset}
                     disabled={isUploading}
-                    className="flex-1 rounded-2xl border border-white/10 bg-[var(--dash-surface)]/5 py-4 text-sm font-bold text-zinc-400 transition-all hover:bg-[var(--dash-surface)]/10 hover:text-white disabled:opacity-50"
+                    className="flex-1 rounded-[27px] border border-white/10 bg-[var(--dash-surface)]/5 py-4 text-sm font-bold text-zinc-400 transition-all hover:bg-[var(--dash-surface)]/10 hover:text-white disabled:opacity-50"
                   >
                     Trocar Imagem
                   </button>
                   <button
                     onClick={handleUpload}
                     disabled={isUploading}
-                    className="flex flex-[2] items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-sm font-black text-[var(--dash-text-primary)] transition-all hover:bg-emerald-400 disabled:opacity-50"
+                    className="flex flex-[2] items-center justify-center gap-2 rounded-[27px] bg-emerald-500 py-4 text-sm font-black text-[var(--dash-text-primary)] transition-all hover:bg-emerald-400 disabled:opacity-50"
                   >
                     {isUploading ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-black/10 border-t-black" />

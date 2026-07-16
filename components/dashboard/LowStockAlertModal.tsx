@@ -47,7 +47,7 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
       {isOpen && (
         <motion.div key="alert-modal" className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-[var(--dash-surface)] dark:bg-zinc-900 shadow-2xl border border-red-500/20">
+          <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative flex flex-col w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-[27px] bg-[var(--dash-surface)] dark:bg-zinc-900 shadow-2xl border border-red-500/20">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 p-6 bg-red-500/5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-500">

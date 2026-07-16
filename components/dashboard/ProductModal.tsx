@@ -1388,7 +1388,7 @@ export default function ProductModal({
                   }
                 }}
                 disabled={!!aiLoadingType}
-                className={`w-full flex items-center justify-between p-6 rounded-2xl border-2 border-dashed transition-all group disabled:opacity-50 ${isAiGenerationEnabled ? 'border-emerald-500/30 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.08] hover:border-emerald-500/50' : 'border-blue-500/30 bg-blue-500/[0.03] hover:bg-blue-500/[0.08] hover:border-blue-500/50'}`}
+                className={`w-full flex items-center justify-between p-6 rounded-[27px] border-2 border-dashed transition-all group disabled:opacity-50 ${isAiGenerationEnabled ? 'border-emerald-500/30 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.08] hover:border-emerald-500/50' : 'border-blue-500/30 bg-blue-500/[0.03] hover:bg-blue-500/[0.08] hover:border-blue-500/50'}`}
               >
                 <div className="text-left flex-1">
                   <p className={`text-sm font-black uppercase tracking-widest mb-1 transition-colors ${isAiGenerationEnabled ? 'text-emerald-500' : 'text-blue-500'}`}>

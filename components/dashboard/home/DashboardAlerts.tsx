@@ -34,7 +34,7 @@ export default function DashboardAlerts({
         }`}
       >
         <div className="flex items-center gap-4">
-          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${
+          <div className={`h-12 w-12 rounded-[27px] flex items-center justify-center shrink-0 ${
             hasActiveMasterState 
               ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
               : hasOwnedMasterState
@@ -79,7 +79,7 @@ export default function DashboardAlerts({
               key={alert.id}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-2xl flex items-start gap-3 backdrop-blur-md border ${
+              className={`p-4 rounded-[27px] flex items-start gap-3 backdrop-blur-md border ${
                 alert.color === 'red' ? 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400' :
                 alert.color === 'yellow' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-700 dark:text-yellow-400' :
                 alert.color === 'green' ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400' :
@@ -143,7 +143,7 @@ export default function DashboardAlerts({
           className="p-6 rounded-[27px] border border-red-500/20 bg-red-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+            <div className="h-12 w-12 rounded-[27px] bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
               <MessageCircle size={24} />
             </div>
             <div>
@@ -173,7 +173,7 @@ export default function DashboardAlerts({
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-sm"
+          className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-sm"
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
             <div>
@@ -215,7 +215,7 @@ export default function DashboardAlerts({
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-2xl border border-violet-500/20 bg-violet-500/5 backdrop-blur-md flex items-start gap-3"
+          className="p-4 rounded-[27px] border border-violet-500/20 bg-violet-500/5 backdrop-blur-md flex items-start gap-3"
         >
           <div className="h-10 w-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 shrink-0">
             <span className="text-lg">📸</span>

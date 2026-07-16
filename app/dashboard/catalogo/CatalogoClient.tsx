@@ -1211,7 +1211,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           className="p-6 rounded-[27px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+            <div className="h-12 w-12 rounded-[27px] bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
               <AlertCircle size={24} />
             </div>
             <div>
@@ -1248,7 +1248,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
           </p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-10 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="px-10 py-4 bg-primary text-white rounded-[27px] font-bold text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             Recarregar Catálogo
           </button>
@@ -1290,7 +1290,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                     placeholder="Buscar por nome ou SKU..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-2xl border outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5 caret-primary"
+                    className="w-full pl-11 pr-4 py-3 rounded-[27px] border outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/5 caret-primary"
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
@@ -1306,7 +1306,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             </div>
 
             {productListError && (
-              <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-500 text-sm font-medium">
+              <div className="p-4 rounded-[27px] bg-red-50 border border-red-100 text-red-500 text-sm font-medium">
                 {productListError}
               </div>
             )}

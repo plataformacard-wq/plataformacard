@@ -206,7 +206,7 @@ ${iframeResizerCode}
   return (
     <div className="space-y-8 pb-20">
       {/* Header Premium */}
-      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm group/header">
+      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 md:p-8 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity group-hover/header:opacity-100" />
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -214,7 +214,7 @@ ${iframeResizerCode}
             <p className="text-[var(--dash-text-muted)] font-medium max-w-xl">Gerencie a identidade e a implementação da sua vitrine digital em um só lugar.</p>
           </div>
           
-          <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-2xl border border-[var(--dash-border)] overflow-x-auto">
+          <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-[27px] border border-[var(--dash-border)] overflow-x-auto">
             {canViewGeneral && (
               <button
                 onClick={() => setActiveTab("geral")}
@@ -269,9 +269,9 @@ ${iframeResizerCode}
             className="grid gap-8"
           >
             {/* Informações Básicas */}
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 md:p-8 shadow-sm space-y-8">
               <div className="flex items-center gap-4 border-b border-[var(--dash-border)] pb-8">
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                <div className="h-14 w-14 rounded-[27px] bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <BookOpen size={28} />
                 </div>
                 <div>
@@ -432,7 +432,7 @@ ${iframeResizerCode}
                   onClick={handleSave}
                   disabled={saving}
                   className={`
-                    flex items-center gap-3 px-12 py-4 rounded-2xl font-black text-lg transition-all shadow-xl
+                    flex items-center gap-3 px-12 py-4 rounded-[27px] font-black text-lg transition-all shadow-xl
                     ${saved ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'}
                     disabled:opacity-50
                   `}
@@ -457,9 +457,9 @@ ${iframeResizerCode}
             exit={{ opacity: 0, y: -10 }}
             className="grid gap-8"
           >
-            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
+            <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 md:p-8 shadow-sm space-y-8">
               <div className="flex items-center gap-4 border-b border-[var(--dash-border)] pb-8">
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                <div className="h-14 w-14 rounded-[27px] bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <Activity size={28} />
                 </div>
                 <div>
@@ -507,7 +507,7 @@ ${iframeResizerCode}
                   onClick={handleSave}
                   disabled={saving}
                   className={`
-                    flex items-center gap-3 px-12 py-4 rounded-2xl font-black text-lg transition-all shadow-xl
+                    flex items-center gap-3 px-12 py-4 rounded-[27px] font-black text-lg transition-all shadow-xl
                     ${saved ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'}
                     disabled:opacity-50
                   `}
@@ -534,7 +534,7 @@ ${iframeResizerCode}
           >
             {/* Controles de Customização */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 shadow-sm space-y-6">
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-8 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Layout size={20} />
@@ -545,7 +545,7 @@ ${iframeResizerCode}
                 <div className="space-y-6">
                   <div className="pt-4 border-t border-[var(--dash-border)] space-y-4">
                     {/* Alerta Destacado do Container */}
-                    <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-6 shadow-lg shadow-amber-500/5">
+                    <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-[27px] p-6 shadow-lg shadow-amber-500/5">
                       <h4 className="flex items-center gap-2 text-sm font-black text-amber-500 mb-4 uppercase tracking-widest">
                         <Layout size={18} /> Guia de Container (Site Hospedeiro)
                       </h4>
@@ -609,7 +609,7 @@ ${iframeResizerCode}
 
             {/* Código e Instruções */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 shadow-sm space-y-6 relative overflow-hidden">
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-8 shadow-sm space-y-6 relative overflow-hidden">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-zinc-500/10 flex items-center justify-center text-[var(--dash-text-primary)]">
@@ -628,14 +628,14 @@ ${iframeResizerCode}
                   </button>
                 </div>
 
-                <div className="bg-zinc-950 rounded-2xl p-6 font-mono text-xs text-emerald-400 border border-white/5 leading-relaxed overflow-x-auto shadow-inner">
+                <div className="bg-zinc-950 rounded-[27px] p-6 font-mono text-xs text-emerald-400 border border-white/5 leading-relaxed overflow-x-auto shadow-inner">
                    <pre className="whitespace-pre-wrap break-all">
                      {iframeCode}
                    </pre>
                 </div>
               </div>
 
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-8 shadow-sm">
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-8 shadow-sm">
                  <h3 className="text-lg font-black tracking-tight mb-8 flex items-center gap-3">
                    <Layers size={20} className="text-emerald-500" />
                    Guia de Implementação
@@ -662,7 +662,7 @@ ${iframeResizerCode}
                      <ChevronRight size={14} className="group-open:rotate-90 transition-transform" />
                      Dicas Avançadas para Mobile / Wix
                    </summary>
-                   <div className="mt-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl">
+                   <div className="mt-4 p-5 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[27px]">
                      <p className="text-xs text-[var(--dash-text-primary)] font-medium leading-relaxed">
                        Se o seu construtor de sites (ex: Wix, WordPress) não suportar auto-ajuste de altura (Resizer), 
                        e o catálogo estiver sendo cortado no celular, defina a configuração de rolagem (<code className="bg-zinc-800/10 px-1 py-0.5 rounded">overflow</code>) 

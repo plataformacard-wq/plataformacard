@@ -18,7 +18,7 @@ export default function DashboardTeamList({
   if (sellerCount === null) return null;
 
   return (
-    <div className="rounded-3xl border bg-[var(--dash-surface)] p-6 shadow-sm border-[var(--dash-border)]">
+    <div className="rounded-[27px] border bg-[var(--dash-surface)] p-6 shadow-sm border-[var(--dash-border)]">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-[var(--dash-text-primary)]">Equipe & Mini-sites</h3>
         <Link href="/dashboard/vendedores" className="text-[10px] font-bold text-primary hover:underline">GERENCIAR</Link>
