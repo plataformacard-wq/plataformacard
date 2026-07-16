@@ -11,25 +11,30 @@ export function VendedorHeaderControls(props: any) {
     setFormAvailable,
     formSlug,
     customDomain,
+    hideBackButton,
+    customTitle,
+    customSubtitle
   } = props;
 
   return (
     <>
-      <button 
-        onClick={() => setView('list')}
-        className="flex items-center gap-2 text-sm font-medium text-[var(--dash-text-secondary)] hover:text-primary transition-colors"
-      >
-        <ChevronLeft size={18} /> Voltar para a lista
-      </button>
+      {!hideBackButton && (
+        <button 
+          onClick={() => setView('list')}
+          className="flex items-center gap-2 text-sm font-medium text-[var(--dash-text-secondary)] hover:text-primary transition-colors"
+        >
+          <ChevronLeft size={18} /> Voltar para a lista
+        </button>
+      )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[27px] border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div>
           <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
-            {selectedSeller ? `Editando: ${formName}` : "Nova Ficha de Vendedor"}
+            {customTitle ? customTitle : (selectedSeller ? `Editando: ${formName}` : "Nova Ficha de Vendedor")}
           </h2>
-          {selectedSeller && (
+          {(selectedSeller || customSubtitle) && (
             <p className="text-xs text-[var(--dash-text-muted)] mt-1">
-              Gerencie a disponibilidade e acesse o cartão virtual do vendedor sem sair desta página.
+              {customSubtitle ? customSubtitle : "Gerencie a disponibilidade e acesse o cartão virtual do vendedor sem sair desta página."}
             </p>
           )}
         </div>

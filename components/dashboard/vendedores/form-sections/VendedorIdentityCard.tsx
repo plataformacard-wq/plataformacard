@@ -131,8 +131,9 @@ export function VendedorIdentityCard(props: any) {
               <label className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Nível de Acesso (Cargo)</label>
               <div className="relative">
                 <select 
-                  value={props.formRole} onChange={e => props.setFormRole(e.target.value)}
-                  className="dash-select w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)]"
+                  value={props.formRole} onChange={e => props.setFormRole && props.setFormRole(e.target.value)}
+                  disabled={props.readOnlyRole}
+                  className="dash-select w-full px-4 py-2 rounded-xl border outline-none bg-[var(--dash-bg)] disabled:opacity-70 disabled:cursor-not-allowed"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 >
                   <option value="seller">Colaborador</option>
