@@ -326,7 +326,7 @@ export default async function AnalyticsPage(props: {
                       <td className="py-3 px-4 font-medium" style={{ color: "var(--dash-text-secondary)" }}>{item.clicks}</td>
                       <td className="py-3 px-4 font-medium" style={{ color: "var(--dash-text-secondary)" }}>{item.whatsapp_clicks}</td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${rateNum > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400'}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-[27px] text-xs font-bold ${rateNum > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400'}`}>
                           {rateNum}%
                         </span>
                       </td>

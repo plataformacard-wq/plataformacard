@@ -272,7 +272,7 @@ export function TopHeader({
                  role === "seller" ? (jobTitle || "Vendedor") : role}
               </span>
               {role === 'seller' && (
-                <span className={`mt-1.5 inline-flex items-center rounded px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest border ${getAccessStatusColor(getAccessStatusName(granularPermissions))}`}>
+                <span className={`mt-1.5 inline-flex items-center rounded-[27px] px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest border ${getAccessStatusColor(getAccessStatusName(granularPermissions))}`}>
                   {getAccessStatusName(granularPermissions)}
                 </span>
               )}

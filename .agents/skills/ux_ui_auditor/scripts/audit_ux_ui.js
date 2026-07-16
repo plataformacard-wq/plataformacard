@@ -38,6 +38,12 @@ const REPLACEMENTS = [
     replace: 'text-[var(--dash-text-primary)]',
     desc: "Substituindo text-black por text-[var(--dash-text-primary)]"
   },
+  // 5. Padronizar bordas de Stickers/Badges para rounded-[27px]
+  {
+    regex: /(inline-flex[^"']*?)rounded(?:-[a-z0-9\[\]]+)?(?=[^"']*?(?:uppercase|tracking-[a-z]+|text-\[?\d*(?:px|xs|sm)\]?))/g,
+    replace: '$1rounded-[27px]',
+    desc: "Padronizando stickers (inline-flex com texto pequeno) para rounded-[27px]"
+  },
   // 3. Remover rounded-none e rounded-sm e sugerir rounded-xl ou 2xl (neste script simples vamos forçar rounded-xl para caixas)
   // Como as bordas de card demandam rounded-2xl, mas não conseguimos distinguir contexto facilmente, 
   // vamos emitir warning para bordas quadradas.

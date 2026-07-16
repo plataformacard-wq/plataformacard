@@ -143,12 +143,12 @@ export default function CatalogManagerClient({
             <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
               Integração Bling (Estoque)
               {hasBlingConnection ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600 border border-emerald-200">
+                <span className="inline-flex items-center gap-1.5 rounded-[27px] bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600 border border-emerald-200">
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                   Conectado
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-600 border border-red-200">
+                <span className="inline-flex items-center gap-1.5 rounded-[27px] bg-red-50 px-2 py-1 text-xs font-medium text-red-600 border border-red-200">
                   <div className="h-1.5 w-1.5 rounded-full bg-red-500"></div>
                   Não Conectado
                 </span>
