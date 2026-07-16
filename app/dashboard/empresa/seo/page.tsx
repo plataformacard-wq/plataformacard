@@ -82,6 +82,14 @@ export default function SEOPage() {
         const isSuperAdmin = profile?.role === "main_admin";
         const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
 
+        if (profile?.role === "seller") {
+          const seoAllowed = profile?.granular_permissions?.company?.seo !== false;
+          if (!seoAllowed) {
+            window.location.href = "/dashboard/perfil";
+            return;
+          }
+        }
+
         if (activeOrgId) {
           setOrgId(activeOrgId);
           const { data: org } = await supabase

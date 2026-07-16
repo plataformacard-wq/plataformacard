@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 import { Package, X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Tag, Check, Layers, Info, MessageCircle, Clock, Share2 } from "lucide-react";
 import Image from "next/image";
 import { createPortal } from "react-dom";

@@ -34,6 +34,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | "ALL_SERVICE" | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
+  const [jobTitle, setJobTitle] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -42,6 +43,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
     dash_access_analytics: false,
     dash_access_company: false,
   });
+  const [granularPermissions, setGranularPermissions] = useState<any>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -139,7 +141,9 @@ export function PanelLayout({ children }: PanelLayoutProps) {
         setAvatar(profile.avatar_url || null);
         setRole(userRole);
         setSlug(profile.slug || null);
+        setJobTitle(profile.job_title || null);
         setSubscriptionStatus(profile.subscription_status || null);
+        setGranularPermissions(profile.granular_permissions || null);
         setPermissions({
           dash_access_catalog: !!profile.dash_access_catalog,
           dash_access_analytics: !!profile.dash_access_analytics,
@@ -177,10 +181,15 @@ export function PanelLayout({ children }: PanelLayoutProps) {
             setPlanId(orgPlanId);
             setCurrentPlanName(getPlanName(orgPlanId));
 
-            // Substitui o avatar pelo icone da empresa, caso exista. Se não, mantém o do perfil (ou null para fallback 'M')
+            // Para Lojistas (admins), substitui o avatar pelo icone da empresa se existir.
+            // Para vendedores, mantém o do perfil e usa o da empresa como fallback.
             if (org?.favicon_url) {
               const cacheBuster = `${org.favicon_url}${org.favicon_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
-              setAvatar(cacheBuster);
+              if (userRole !== "seller") {
+                setAvatar(cacheBuster);
+              } else if (!profile.avatar_url) {
+                setAvatar(cacheBuster);
+              }
             }
 
             if (org?.whatsapp) {
@@ -362,6 +371,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           localStorage.setItem("dash-sidebar-collapsed", String(val));
         }}
         permissions={permissions}
+        granularPermissions={granularPermissions}
         isReady={isReady}
         isShadowMode={isShadowMode}
       />
@@ -403,6 +413,7 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           isAdminPath={isAdminPath}
           subscriptionStatus={subscriptionStatus || undefined}
           notifications={allNotifications}
+          jobTitle={jobTitle}
           toggleTheme={() => {
             const next = !isDark;
             setIsDark(next);

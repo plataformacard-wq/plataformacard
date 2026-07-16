@@ -1,9 +1,10 @@
 "use client";
 
-import { motion, LayoutGroup } from "framer-motion";
+import { m as motion, LayoutGroup } from "framer-motion";
 import { Package, Search, Maximize2, Tag, Check, Layers, ChevronRight, MessageCircle, Clock, Share2, ChevronLeft, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useInView } from "react-intersection-observer";
 import { sanitizeText, formatPrice } from "../utils";
 import React, { memo } from "react";
 
@@ -38,6 +39,11 @@ const ProductCard = memo(({
   handleShare,
   lastViewTimestamp
 }: any) => {
+  const { ref, inView } = useInView({
+    triggerOnce: false,
+    rootMargin: '800px 0px',
+  });
+
   const hasMultipleImages = product.image_urls && product.image_urls.length > 0;
   const productGallery = product.image_url ? [product.image_url, ...(product.image_urls || [])] : (product.image_urls || []);
   
@@ -65,6 +71,7 @@ const ProductCard = memo(({
 
   return (
     <motion.div
+      ref={ref}
       layout={isEmbed && isMobile}
       id={product.id}
       onClick={(e) => {
@@ -73,6 +80,8 @@ const ProductCard = memo(({
       whileHover={(sellerStatus === 'paused' || isAcceptingOrders === false) ? {} : { y: -4 }}
       className={`flex flex-col h-full group relative bg-[var(--public-card-bg)] border ${isExpanded ? 'border-emerald-500 shadow-xl' : 'border-[var(--public-card-border)] shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'} rounded-xl overflow-hidden transition-all duration-300 ${(sellerStatus === 'paused' || isAcceptingOrders === false) ? 'cursor-default opacity-90' : (isExpanded ? '' : 'cursor-pointer hover:border-emerald-500/30')}`}
     >
+      {inView ? (
+        <>
       <div className={`aspect-square relative overflow-hidden bg-[var(--public-card-bg)] flex items-center justify-center ${isExpanded ? 'p-4' : 'p-0'}`}>
         {isExpanded && (
           <button 
@@ -395,6 +404,10 @@ const ProductCard = memo(({
           </motion.div>
         )}
       </div>
+      </>
+      ) : (
+        <div className="h-full w-full min-h-[300px] flex items-center justify-center bg-[var(--public-card-border)]/10 animate-pulse" />
+      )}
     </motion.div>
   );
 });

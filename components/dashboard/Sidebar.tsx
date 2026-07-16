@@ -42,6 +42,7 @@ interface SidebarProps {
     dash_access_analytics: boolean;
     dash_access_company: boolean;
   };
+  granularPermissions?: any;
 }
 
 interface NavLink {
@@ -51,7 +52,7 @@ interface NavLink {
   subItems?: { href: string; label: string; icon: React.ElementType }[];
 }
 
-export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, isReady, permissions }: SidebarProps) {
+export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, isReady, permissions, granularPermissions }: SidebarProps) {
   const pathname = usePathname();
   const { globalLogoUrl, globalIconUrl } = useGlobalBranding();
   const [currentHash, setCurrentHash] = useState("");
@@ -142,16 +143,23 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
       const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS && role !== "b2b_admin";
 
+      const companySubItems = [];
+      const canHours = granularPermissions?.company?.hours !== false;
+      const canSeo = granularPermissions?.company?.seo !== false;
+      const canDomain = granularPermissions?.company?.domain !== false;
+      const canAccess = granularPermissions?.company?.access !== false;
+
+      if (canHours) companySubItems.push({ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock });
+      if (canSeo) companySubItems.push({ href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings });
+      if (canDomain) companySubItems.push({ href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe });
+      if (canAccess) companySubItems.push({ href: "/dashboard/empresa/acessos", label: "Gerenciar Acessos", icon: ShieldCheck });
+
       navLinks.push({ 
         label: "Empresa", 
         icon: Building2,
-        subItems: [
-          { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
-          { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
-          { href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
-          { href: "/dashboard/empresa/acessos", label: "Gerenciar Acessos", icon: ShieldCheck },
-        ]
+        subItems: companySubItems
       });
+
       navLinks.push({ 
         label: "Catálogo", 
         icon: BookOpen,
@@ -163,7 +171,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         ]
       });
 
-      if (!isB2C && !isCaaS) { // isB2B || isAllService
+      if (!isB2C && !isCaaS) {
         navLinks.push({ href: "/dashboard/vendedores", label: "Vendedores", icon: Users });
       }
 
@@ -175,35 +183,54 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         navLinks.push({ href: "/dashboard/perfil#cartao", label: "Editar Cartão Público", icon: UserCircle });
       }
     } else if (role === "seller") {
-      // PERMISSÕES DELEGADAS PARA VENDEDORES
       const canAccessCatalog = permissions?.dash_access_catalog;
       const canAccessAnalytics = permissions?.dash_access_analytics;
       const canAccessCompany = permissions?.dash_access_company;
 
       if (canAccessCompany) {
-        const isB2B = businessModel === "B2B";
-        navLinks.push({ 
-          label: "Empresa", 
-          icon: Building2,
-          subItems: [
-            { href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock },
-            { href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings },
-            { href: "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe },
-          ]
-        } as any);
+        const companySubItems = [];
+        const canHours = granularPermissions?.company?.hours !== false;
+        const canSeo = granularPermissions?.company?.seo !== false;
+        const canDomain = granularPermissions?.company?.domain !== false;
+
+        if (canHours) companySubItems.push({ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock });
+        if (canSeo) companySubItems.push({ href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings });
+        if (canDomain) companySubItems.push({ href: "/dashboard/empresa/dominio", label: "Domínio Próprio", icon: Globe });
+
+        if (companySubItems.length > 0) {
+          navLinks.push({ 
+            label: "Empresa", 
+            icon: Building2,
+            subItems: companySubItems
+          } as any);
+        }
       }
 
       if (canAccessCatalog) {
-        navLinks.push({ 
-          label: "Catálogo", 
-          icon: BookOpen,
-          subItems: [
-            { href: "/dashboard/catalogo/gerenciador", label: "Gerenciar Catálogo", icon: BookOpen },
-            { href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings },
-            { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
-            { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
-          ]
-        } as any);
+        const catalogSubItems = [];
+        const catalogPerms = granularPermissions?.catalog || {};
+        const canManageProducts = catalogPerms.create !== false || catalogPerms.edit !== false || catalogPerms.delete !== false;
+        const canConfig = catalogPerms.settings_general !== false || catalogPerms.settings_behavior !== false || catalogPerms.settings_banners !== false;
+        const canBulk = catalogPerms.bulk !== false;
+
+        if (canManageProducts) {
+          catalogSubItems.push({ href: "/dashboard/catalogo/gerenciador", label: "Gerenciar Catálogo", icon: BookOpen });
+          catalogSubItems.push({ href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen });
+        }
+        if (canConfig) {
+          catalogSubItems.push({ href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings });
+        }
+        if (canBulk) {
+          catalogSubItems.push({ href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard });
+        }
+
+        if (catalogSubItems.length > 0) {
+          navLinks.push({ 
+            label: "Catálogo", 
+            icon: BookOpen,
+            subItems: catalogSubItems
+          } as any);
+        }
       }
 
       if (canAccessAnalytics) {
@@ -211,7 +238,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       }
     }
 
-    navLinks.push({ href: "/dashboard/assinatura", label: "Minha Assinatura", icon: CreditCard });
+    if (role !== "seller") {
+      navLinks.push({ href: "/dashboard/assinatura", label: "Minha Assinatura", icon: CreditCard });
+    }
     navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
     
     // ANALYTICS SEMPRE POR ÚLTIMO (Protocolo B2C)

@@ -32,6 +32,7 @@ interface TopHeaderProps {
   isAdminPath?: boolean;
   subscriptionStatus?: string;
   notifications?: any[];
+  jobTitle?: string | null;
 }
 
 export function TopHeader({ 
@@ -47,7 +48,8 @@ export function TopHeader({
   businessModel,
   isAdminPath,
   subscriptionStatus,
-  notifications = []
+  notifications = [],
+  jobTitle
 }: TopHeaderProps) {
   const isB2B = businessModel === "B2B" || businessModel === "ALL_SERVICE";
   const isCaaS = businessModel === "CaaS";
@@ -110,7 +112,7 @@ export function TopHeader({
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        {subscriptionStatus && !isAdminPath && (
+        {subscriptionStatus && !isAdminPath && role !== "seller" && (
           <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
             subscriptionStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
             subscriptionStatus === 'trialing' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
@@ -264,7 +266,7 @@ export function TopHeader({
                  role === "b2b_admin" ? "Gestor Empresarial" : 
                  role === "b2c_admin" ? "Gestor Individual" : 
                  role === "caas_admin" ? "Gestor de Catálogo" : 
-                 role === "seller" ? "Vendedor" : role}
+                 role === "seller" ? (jobTitle || "Vendedor") : role}
               </span>
             </div>
             <ChevronDown size={14} className={`text-[var(--dash-text-muted)] transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />

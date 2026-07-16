@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSellers, updateSeller, updateSellerPassword, updateSellerGranularPermissions, GranularPermissions } from "@/lib/dashboard/sellerActions";
-import { ShieldCheck, KeyRound, AlertCircle, Loader2, Search, Eye, EyeOff, Settings } from "lucide-react";
+import { ShieldCheck, KeyRound, AlertCircle, Loader2, Search, Eye, EyeOff, Settings, IdCard, Copy, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import GranularPermissionsModal from "@/components/dashboard/empresa/GranularPermissionsModal";
 
@@ -28,6 +28,7 @@ export default function GerenciarAcessosPage() {
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [passwordUpdating, setPasswordUpdating] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [granularModal, setGranularModal] = useState<{ seller: SellerAccess, module: "catalog" | "analytics" | "company" | "profile" } | null>(null);
   const [granularSaving, setGranularSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -324,7 +325,7 @@ export default function GerenciarAcessosPage() {
                         onClick={() => setPasswordModalSeller(seller)}
                         className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-80 transition-opacity"
                       >
-                        <KeyRound size={14} /> Redefinir Senha
+                        <IdCard size={14} /> Dados de Acesso
                       </button>
                     </td>
                   </tr>
@@ -346,15 +347,28 @@ export default function GerenciarAcessosPage() {
           >
             <div className="mb-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-white flex items-center justify-center text-white dark:text-black">
-                <ShieldCheck size={24} />
+                <IdCard size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Redefinir Senha</h2>
+                <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>Dados de Acesso</h2>
                 <p className="text-xs" style={{ color: "var(--dash-text-secondary)" }}>Para {passwordModalSeller.full_name}</p>
               </div>
             </div>
 
+            <div className="mb-6 rounded-xl p-4 bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs">
+              <strong>Dica:</strong> O vendedor não precisa de e-mail! O acesso é feito usando o próprio <strong>Slug</strong> como Usuário e a senha que você definir abaixo.
+            </div>
+
             <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+                  Usuário (Slug)
+                </label>
+                <div className="w-full rounded-xl border px-4 py-3 text-sm font-mono opacity-70 bg-black/5 dark:bg-white/5" style={{ borderColor: "var(--dash-input-border)", color: "var(--dash-text-primary)" }}>
+                  {passwordModalSeller.slug}
+                </div>
+              </div>
+
               <div>
                 <label className="mb-2 block text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
                   Nova Senha (Mínimo 6 caracteres)
@@ -378,13 +392,27 @@ export default function GerenciarAcessosPage() {
                 </div>
               </div>
 
+              <button
+                onClick={() => {
+                  const url = typeof window !== 'undefined' ? window.location.origin : 'https://app.plataformashop.com';
+                  const msg = `Olá! Seu acesso ao sistema de vendas foi criado. 🔐\nLink de acesso: ${url}/entrar\nUsuário: ${passwordModalSeller.slug}\nSenha: ${newPassword || '[A Senha que você definiu]'}`;
+                  navigator.clipboard.writeText(msg);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-500 transition-colors hover:bg-emerald-500/20"
+              >
+                {copied ? <Check size={18} /> : <Copy size={18} />}
+                {copied ? "Mensagem Copiada!" : "Copiar Mensagem do WhatsApp"}
+              </button>
+
               <div className="flex items-center gap-3 mt-8">
                 <button
-                  onClick={() => { setPasswordModalSeller(null); setNewPassword(""); setShowPassword(false); }}
+                  onClick={() => { setPasswordModalSeller(null); setNewPassword(""); setShowPassword(false); setCopied(false); }}
                   className="flex-1 rounded-xl px-4 py-3 text-sm font-bold border transition-colors hover:bg-[var(--dash-hover-bg)]"
                   style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 >
-                  Cancelar
+                  Fechar
                 </button>
                 <button
                   onClick={handleUpdatePassword}
