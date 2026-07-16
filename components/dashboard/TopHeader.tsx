@@ -270,13 +270,11 @@ export function TopHeader({
                  role === "caas_admin" ? "Gestor de Catálogo" : 
                  role === "seller" ? (jobTitle || "Vendedor") : role}
               </span>
-              <span className={`mt-1.5 inline-flex items-center rounded px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest ${
-                role === 'seller' 
-                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' 
-                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-              }`}>
-                {role === 'seller' ? 'Acesso Colaborador' : 'Acesso Total'}
-              </span>
+              {role === 'seller' && (
+                <span className="mt-1.5 inline-flex items-center rounded px-1.5 py-[2px] text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  Acesso Colaborador
+                </span>
+              )}
             </div>
             <ChevronDown size={14} className={`text-[var(--dash-text-muted)] transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
           </button>
