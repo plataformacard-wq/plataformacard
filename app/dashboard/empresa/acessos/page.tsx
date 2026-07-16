@@ -250,7 +250,7 @@ export default function GerenciarAcessosPage() {
         />
       </div>
 
-      <div className="rounded-2xl border shadow-xl overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="rounded-[32px] border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-[var(--dash-bg)] border-b" style={{ borderColor: "var(--dash-border)" }}>
@@ -416,7 +416,7 @@ export default function GerenciarAcessosPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md rounded-2xl p-8 shadow-2xl border"
+            className="w-full max-w-md rounded-[32px] p-8 shadow-2xl border"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="mb-6 flex items-center gap-4">

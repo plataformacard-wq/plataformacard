@@ -21,13 +21,7 @@ const REPLACEMENTS = [
     replace: 'text-[var(--dash-text-primary)]',
     desc: "Substituindo text-black por text-[var(--dash-text-primary)]"
   },
-  // 3. Substituir arredondamentos exagerados ou hardcoded (ex: rounded-[32px]) para o padrão rounded-2xl
-  {
-    regex: /(?<![a-zA-Z0-9-])rounded-\[\d+px\](?![a-zA-Z0-9-])/g,
-    replace: 'rounded-2xl',
-    desc: "Padronizando arredondamentos customizados para rounded-2xl"
-  },
-  // 4. Remover rounded-none e rounded-sm e sugerir rounded-xl ou 2xl (neste script simples vamos forçar rounded-xl para caixas)
+  // 3. Remover rounded-none e rounded-sm e sugerir rounded-xl ou 2xl (neste script simples vamos forçar rounded-xl para caixas)
   // Como as bordas de card demandam rounded-2xl, mas não conseguimos distinguir contexto facilmente, 
   // vamos emitir warning para bordas quadradas.
 ];

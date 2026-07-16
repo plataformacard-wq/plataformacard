@@ -38,7 +38,7 @@ export default function CatalogProductItem({
     <Reorder.Item
       value={product}
       onClick={() => handleOpenEdit(product)}
-      className="group relative flex items-center gap-4 p-4 rounded-2xl border transition-all hover:shadow-xl hover:border-emerald-500/30 cursor-pointer"
+      className="group relative flex items-center gap-4 p-4 rounded-[24px] border transition-all hover:shadow-xl hover:border-emerald-500/30 cursor-pointer"
       style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
     >
       {/* Handle de Arraste (Sempre visível para facilitar descoberta) */}

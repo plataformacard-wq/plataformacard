@@ -1208,7 +1208,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+          className="p-6 rounded-[32px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
@@ -1238,7 +1238,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
       />
 
       {!loadingProducts && !loadingCategories && !catalogId ? (
-        <div className="mt-8 flex flex-col items-center justify-center text-center p-16 border-2 border-dashed rounded-2xl" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>
+        <div className="mt-8 flex flex-col items-center justify-center text-center p-16 border-2 border-dashed rounded-[40px]" style={{ borderColor: "var(--dash-border)", background: "var(--dash-surface)" }}>
           <div className="bg-amber-100 dark:bg-amber-900/30 p-5 rounded-full mb-6">
             <AlertCircle className="text-amber-600 dark:text-amber-400" size={48} />
           </div>
@@ -1314,10 +1314,10 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
             <div className="space-y-4">
               {loadingProducts ? (
                 Array(3).fill(0).map((_, i) => (
-                  <div key={i} className="h-32 animate-pulse rounded-2xl" style={{ background: "var(--dash-surface-secondary)" }} />
+                  <div key={i} className="h-32 animate-pulse rounded-[32px]" style={{ background: "var(--dash-surface-secondary)" }} />
                 ))
               ) : (categorizedProducts.categorized.length === 0 && categorizedProducts.uncategorized.length === 0) ? (
-                <div className="p-20 text-center rounded-2xl border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="p-20 text-center rounded-[40px] border border-dashed" style={{ borderColor: "var(--dash-border)" }}>
                   <Package className="mx-auto h-16 w-16 text-zinc-200 mb-4" />
                   <p className="text-zinc-500 font-medium">
                     {searchQuery ? "Nenhum produto corresponde à sua busca." : "Nenhum produto cadastrado."}

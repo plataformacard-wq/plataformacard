@@ -32,7 +32,7 @@ export default function VisibilityAlertModal({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md rounded-2xl p-8 shadow-2xl border"
+            className="relative w-full max-w-md rounded-[32px] p-8 shadow-2xl border"
             style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
           >
             <div className="h-16 w-16 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center text-amber-500 mb-6 mx-auto border border-amber-100 dark:border-amber-900/20">

@@ -409,7 +409,7 @@ export default function EmpresaPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl p-8 border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="rounded-[32px] p-8 border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
             <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
@@ -491,7 +491,7 @@ export default function EmpresaPage() {
       </div>
 
       {businessHours.holiday_settings?.autoCloseOnNationalHolidays && (
-        <div className="rounded-2xl p-8 border shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+        <div className="rounded-[32px] p-8 border shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
             <div>
               <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
