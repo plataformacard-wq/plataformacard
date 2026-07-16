@@ -221,7 +221,7 @@ export function TopHeader({
           <Link
             href={isB2B ? `/${slug}/catalogo` : `/${slug}`}
             target="_blank"
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap shadow-lg ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap shadow-lg ${
               isReady 
                 ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:scale-105" 
                 : "bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] border border-[var(--dash-border)] opacity-80 hover:opacity-100"
