@@ -39,7 +39,7 @@ export function VendedorContactCard(props: any) {
   };
 
   return (
-    <div className="rounded-[27px] border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+    <div className="rounded-2xl border p-6 shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
       <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--dash-text-primary)" }}>
         <Phone size={18} className="text-primary" /> Contato e Link
       </h3>
@@ -119,7 +119,7 @@ export function VendedorContactCard(props: any) {
 
       {!isReadOnly && (
         <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-          <label className={`flex items-start gap-3 p-4 rounded-[27px] border cursor-pointer transition-all ${formRedirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+          <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${formRedirectLeads ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
             <div className="mt-0.5">
               <input 
                 type="checkbox" 
@@ -143,7 +143,7 @@ export function VendedorContactCard(props: any) {
       {/* Exibir Preços (Atacado vs Varejo) */}
       {!isReadOnly && (
         <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--dash-border)" }}>
-        <label className={`flex items-start gap-3 p-4 rounded-[27px] border cursor-pointer transition-all ${!formHidePrices ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+        <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${!formHidePrices ? 'border-primary bg-primary/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
           <div className="mt-0.5">
             <input 
               type="checkbox" 
@@ -172,7 +172,7 @@ export function VendedorContactCard(props: any) {
           <span className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Programar Recesso Temporário</span>
         </div>
         
-        <label className={`flex items-start gap-3 p-4 rounded-[27px] border cursor-pointer transition-all ${formRecessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
+        <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${formRecessActive ? 'border-purple-500 bg-purple-500/5' : 'border-[var(--dash-border)] bg-[var(--dash-bg)]'}`}>
           <div className="mt-0.5">
             <input 
               type="checkbox" 
@@ -196,7 +196,7 @@ export function VendedorContactCard(props: any) {
         </label>
 
         {formRecessActive && (
-          <div className="mt-4 p-4 rounded-[27px] bg-zinc-50/50 dark:bg-zinc-800/20 border border-[var(--dash-border)] space-y-4">
+          <div className="mt-4 p-4 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20 border border-[var(--dash-border)] space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-muted)] mb-1 block">Dias de Recesso</label>
