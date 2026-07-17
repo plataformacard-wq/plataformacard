@@ -24,7 +24,14 @@ export function VendedorContactCard(props: any) {
     formRecessHours,
     setFormRecessHours,
     isReadOnly = false,
+    catalogType = "product",
   } = props;
+
+  // Label dinâmico para a tag {nome} baseado no tipo do catálogo
+  const nomeLabel =
+    catalogType === "service" ? "{nome do serviço}" :
+    catalogType === "hybrid" ? "{nome do item}" :
+    "{nome do produto}";
 
   const formatWhatsApp = (value: string) => {
     const digits = value.replace(/\D/g, "");
@@ -101,14 +108,19 @@ export function VendedorContactCard(props: any) {
           style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
         />
         <div className="mt-2 flex flex-wrap gap-2">
-          {['{nome}', '{preco}', '{sku}', '{link}', '{tipo}', '{vendedor}'].map(tag => (
+          {[
+            { label: nomeLabel, value: '{nome}' },
+            { label: '{preco}', value: '{preco}' },
+            { label: '{sku}', value: '{sku}' },
+            { label: '{categoria}', value: '{categoria}' },
+          ].map(tag => (
             <button
-              key={tag}
+              key={tag.value}
               type="button"
-              onClick={() => setFormWhatsappTemplate((prev: string) => prev + tag)}
+              onClick={() => setFormWhatsappTemplate((prev: string) => prev + tag.value)}
               className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-primary transition-colors"
             >
-              {tag}
+              {tag.label}
             </button>
           ))}
         </div>

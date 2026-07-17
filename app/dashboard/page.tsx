@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getNationalHolidaysFull } from "@/lib/utils/holidays";
+import { getAccessStatusName } from "@/lib/utils/permissions";
 import DashboardClient from "./DashboardClient";
 import { cookies } from "next/headers";
 
@@ -10,14 +11,14 @@ export default async function DashboardPage() {
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role, custom_business_hours")
+    .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role, custom_business_hours, granular_permissions")
     .eq("user_id", user.id)
     .maybeSingle();
 
   if (!profile && user.email) {
     const { data: profileByEmail } = await supabase
       .from("profiles")
-      .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role, custom_business_hours")
+      .select("id, full_name, slug, organization_id, avatar_url, whatsapp, bio, role, custom_business_hours, granular_permissions")
       .eq("email", user.email)
       .maybeSingle();
     if (profileByEmail) profile = profileByEmail;
@@ -181,6 +182,9 @@ export default async function DashboardPage() {
   const isCaaS = businessModel === "CaaS";
   const isB2B = businessModel === "B2B" || (!isCaaS && userRole === "b2b_admin");
 
+  const accessStatusName = getAccessStatusName((profile as any)?.granular_permissions ?? null);
+  const isAnalyticAccess = accessStatusName === "Acesso Analítico";
+
   const initialData = {
     profileData: profile,
     nome: displayName,
@@ -191,6 +195,7 @@ export default async function DashboardPage() {
     businessModel,
     isB2B,
     isCaaS,
+    isAnalyticAccess,
     productCount,
     sellerCount,
     sellers,

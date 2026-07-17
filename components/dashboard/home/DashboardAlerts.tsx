@@ -17,59 +17,62 @@ export default function DashboardAlerts({
   coreChecklist,
   avatarUrl,
   hasSellersWithoutPhoto,
-  isCaaS
+  isCaaS,
+  isAnalyticAccess
 }: any) {
   return (
     <>
-      {/* Permanent Catalog Status Banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`p-6 rounded-[27px] border backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
-          hasActiveMasterState 
-            ? "border-purple-500/20 bg-purple-500/5"
-            : hasOwnedMasterState
-            ? "border-blue-500/20 bg-blue-500/5"
-            : "border-emerald-500/20 bg-emerald-500/5"
-        }`}
-      >
-        <div className="flex items-center gap-4">
-          <div className={`h-12 w-12 rounded-[27px] flex items-center justify-center shrink-0 ${
+      {/* Permanent Catalog Status Banner — oculto para Acesso Analítico */}
+      {!isAnalyticAccess && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-6 rounded-[27px] border backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
             hasActiveMasterState 
-              ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+              ? "border-purple-500/20 bg-purple-500/5"
               : hasOwnedMasterState
-              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-          }`}>
-            <Package size={24} />
-          </div>
-          <div>
-            <h3 className={`font-bold text-base ${
-              hasActiveMasterState ? "text-purple-800 dark:text-purple-400" : hasOwnedMasterState ? "text-blue-800 dark:text-blue-400" : "text-emerald-800 dark:text-emerald-400"
-            }`}>
-              {hasActiveMasterState ? "Operando com Catálogo Franqueado" : hasOwnedMasterState ? "Operando com Catálogo Matriz" : "Operando com Catálogo Próprio"}
-            </h3>
-            <p className={`text-xs mt-1 leading-relaxed max-w-2xl ${
-              hasActiveMasterState ? "text-purple-700/80 dark:text-purple-400/80" : hasOwnedMasterState ? "text-blue-700/80 dark:text-blue-400/80" : "text-emerald-700/80 dark:text-emerald-400/80"
-            }`}>
-              {hasActiveMasterState 
-                ? "Os produtos exibidos na sua vitrine e configurações principais são baseados no catálogo matriz da sua franqueadora."
-                : hasOwnedMasterState
-                ? "Você está operando o catálogo matriz. As alterações aqui refletirão nas lojas da sua rede."
-                : "Os produtos exibidos na sua vitrine são gerenciados exclusivamente por você."}
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/dashboard/catalogo/gerenciador"
-          className={`shrink-0 w-full sm:w-auto rounded-lg px-5 py-2.5 text-sm font-bold text-white transition flex items-center justify-center gap-2 mt-4 md:mt-0 ${
-            hasActiveMasterState ? "bg-purple-600 hover:bg-purple-700" : hasOwnedMasterState ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700"
+              ? "border-blue-500/20 bg-blue-500/5"
+              : "border-emerald-500/20 bg-emerald-500/5"
           }`}
         >
-          Gerenciar
-          <ArrowUpRight size={16} />
-        </Link>
-      </motion.div>
+          <div className="flex items-center gap-4">
+            <div className={`h-12 w-12 rounded-[27px] flex items-center justify-center shrink-0 ${
+              hasActiveMasterState 
+                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                : hasOwnedMasterState
+                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            }`}>
+              <Package size={24} />
+            </div>
+            <div>
+              <h3 className={`font-bold text-base ${
+                hasActiveMasterState ? "text-purple-800 dark:text-purple-400" : hasOwnedMasterState ? "text-blue-800 dark:text-blue-400" : "text-emerald-800 dark:text-emerald-400"
+              }`}>
+                {hasActiveMasterState ? "Operando com Catálogo Franqueado" : hasOwnedMasterState ? "Operando com Catálogo Matriz" : "Operando com Catálogo Próprio"}
+              </h3>
+              <p className={`text-xs mt-1 leading-relaxed max-w-2xl ${
+                hasActiveMasterState ? "text-purple-700/80 dark:text-purple-400/80" : hasOwnedMasterState ? "text-blue-700/80 dark:text-blue-400/80" : "text-emerald-700/80 dark:text-emerald-400/80"
+              }`}>
+                {hasActiveMasterState 
+                  ? "Os produtos exibidos na sua vitrine e configurações principais são baseados no catálogo matriz da sua franqueadora."
+                  : hasOwnedMasterState
+                  ? "Você está operando o catálogo matriz. As alterações aqui refletirão nas lojas da sua rede."
+                  : "Os produtos exibidos na sua vitrine são gerenciados exclusivamente por você."}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/catalogo/gerenciador"
+            className={`shrink-0 w-full sm:w-auto rounded-lg px-5 py-2.5 text-sm font-bold text-white transition flex items-center justify-center gap-2 mt-4 md:mt-0 ${
+              hasActiveMasterState ? "bg-purple-600 hover:bg-purple-700" : hasOwnedMasterState ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700"
+            }`}
+          >
+            Gerenciar
+            <ArrowUpRight size={16} />
+          </Link>
+        </motion.div>
+      )}
 
       {/* Mural de Avisos */}
       {customAlerts.length > 0 && (

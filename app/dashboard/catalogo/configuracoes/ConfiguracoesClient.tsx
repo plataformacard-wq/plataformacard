@@ -371,14 +371,22 @@ ${iframeResizerCode}
                     
                     {/* Tags Rápidas */}
                     <div className={`flex flex-wrap gap-2 pt-2 ${isInheritingMaster ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
-                      {['nome', 'preco', 'sku', 'link', 'tipo'].map(tag => (
+                      {[
+                        {
+                          label: catalogType === "service" ? "{nome do serviço}" : catalogType === "hybrid" ? "{nome do item}" : "{nome do produto}",
+                          value: "nome"
+                        },
+                        { label: "{preco}", value: "preco" },
+                        { label: "{sku}", value: "sku" },
+                        { label: "{categoria}", value: "categoria" },
+                      ].map(tag => (
                         <button
-                          key={tag}
+                          key={tag.value}
                           type="button"
-                          onClick={() => !isInheritingMaster && setWhatsappTemplate((prev: string) => prev + `{${tag}}`)}
+                          onClick={() => !isInheritingMaster && setWhatsappTemplate((prev: string) => prev + `{${tag.value}}`)}
                           className="px-4 py-2 rounded-lg bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all border border-white/10 active:scale-90"
                         >
-                          {`{${tag}}`}
+                          {tag.label}
                         </button>
                       ))}
                     </div>

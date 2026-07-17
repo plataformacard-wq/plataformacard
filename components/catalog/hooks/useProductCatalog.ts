@@ -169,6 +169,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
     return {
       ...product,
       name: sanitizeText(product.name),
+      category_name: category?.name || null,
       show_specs: product.show_specs ?? category?.show_specs ?? true,
       show_colors: product.show_colors ?? category?.show_colors ?? false,
       specs_title: product.specs_title || category?.specs_title || "Especificações Técnicas",
@@ -272,6 +273,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       item_sku: selectedProduct.sku || undefined,
       item_url: typeof window !== 'undefined' ? `${window.location.origin}/${slug}/catalogo#${selectedProduct.id}` : "",
       item_type: selectedProduct.type === 'service' ? 'serviço' : 'produto',
+      item_category: selectedProduct.category_name || undefined,
       seller_name: fullName || "Vendedor",
     });
     

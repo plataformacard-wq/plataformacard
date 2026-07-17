@@ -4,6 +4,7 @@ export type WhatsAppMessageData = {
   item_sku?: string;
   item_url?: string;
   item_type: "produto" | "serviço";
+  item_category?: string;
   seller_name: string;
 };
 
@@ -27,6 +28,8 @@ export function formatWhatsAppMessage(template: string | null | undefined, data:
     "{sku}": data.item_sku || "",
     "{item_url}": data.item_url || "",
     "{link}": data.item_url || "",
+    "{categoria}": data.item_category || "Sem categoria",
+    // Aliases retroativos (mantidos para compatibilidade com templates já salvos)
     "{tipo}": data.item_type,
     "{vendedor}": data.seller_name,
   };

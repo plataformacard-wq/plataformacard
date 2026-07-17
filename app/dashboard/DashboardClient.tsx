@@ -98,6 +98,7 @@ export default function DashboardClient({ initialData }: { initialData: any }) {
         avatarUrl={initialData.avatarUrl}
         hasSellersWithoutPhoto={initialData.hasSellersWithoutPhoto}
         isCaaS={initialData.isCaaS}
+        isAnalyticAccess={initialData.isAnalyticAccess}
       />
 
       <DashboardKpiGrid stats={stats} loading={false} />
