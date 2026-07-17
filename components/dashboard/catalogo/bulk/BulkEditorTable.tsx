@@ -229,7 +229,7 @@ export default function BulkEditorTable({
   );
 
   return (
-    <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] shadow-sm overflow-hidden">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

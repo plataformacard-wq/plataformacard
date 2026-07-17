@@ -194,7 +194,7 @@ export default function ProfileIdentitySection(props: any) {
 
           {/* Card 3: Permissões e Horários (Específico ou Colapsável) */}
           {!isReadOnly && canEditRecess && (
-            <div className="rounded-2xl border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+            <div className="rounded-[27px] border shadow-sm overflow-hidden" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
               <button 
                 type="button"
                 onClick={() => setShowHoursConfig(!showHoursConfig)}

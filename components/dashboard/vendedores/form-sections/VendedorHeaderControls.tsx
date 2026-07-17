@@ -28,7 +28,7 @@ export function VendedorHeaderControls(props: any) {
         </button>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl border shadow-sm backdrop-blur-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[27px] border shadow-sm backdrop-blur-md" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
         <div>
           <h2 className="text-xl font-bold" style={{ color: "var(--dash-text-primary)" }}>
             {customTitle ? customTitle : (selectedSeller ? `Editando: ${formName}` : "Nova Ficha de Vendedor")}
