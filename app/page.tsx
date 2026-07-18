@@ -1,6 +1,15 @@
-import Link from "next/link";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
+import { Header } from "@/components/Header";
+import { HeroSection } from "@/components/HeroSection";
+import { CompanyLogos } from "@/components/CompanyLogos";
+import { HowItWorks } from "@/components/HowItWorks";
+import { WhyChooseUs } from "@/components/WhyChooseUs";
+import { Testimonials } from "@/components/Testimonials";
+import { Faq } from "@/components/Faq";
+import { CtaSection } from "@/components/CtaSection";
+import { Footer } from "@/components/Footer";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -25,251 +34,83 @@ function CheckIcon({ size = 20 }: { size?: number }) {
 
 export default function HomePage() {
   return (
-    <main
-      className={inter.className}
-      style={{
-        minHeight: "100vh",
-        background: "#23262D",
-        color: "#FFFFFF",
-        boxSizing: "border-box",
-        overflowX: "hidden",
-      }}
-    >
-      <AuthRedirectHandler />
+    <main className={`relative min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden ${inter.className}`}>
       
-      {/* Pattern de Fundo (Conexão) */}
-      <div 
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "100vh",
-          backgroundImage: "radial-gradient(circle at 50% -20%, rgba(44, 203, 104, 0.15) 0%, rgba(35, 38, 45, 0) 60%)",
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
-      />
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "0 24px",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        {/* Nav */}
-        <header
+      {/* Padrão de Fundo Global (Fixed Grid + Glow) */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div 
+          className="absolute inset-0 opacity-50" 
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "24px 0",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+            backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+            maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%)'
           }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* Logo Simulado */}
-            <div style={{ width: 32, height: 32, background: "#2CCB68", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 20 }}>
-              P
-            </div>
-            <span className={plusJakarta.className} style={{ color: "#fff", fontSize: 20, fontWeight: 700 }}>
-              Plataforma<span style={{ color: "#2CCB68" }}>Card</span>
-            </span>
-          </div>
-          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-            <Link
-              href="/entrar"
-              style={{
-                color: "#EBEAED",
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: "none",
-                padding: "8px 16px",
-              }}
-            >
-              Fazer Login
-            </Link>
-            <a
-              href={WA_B2B}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                background: "#2CCB68",
-                color: "#23262D",
-                fontSize: 14,
-                fontWeight: 700,
-                padding: "10px 20px",
-                borderRadius: 999,
-                textDecoration: "none",
-                display: "none",
-              }}
-              className="sm:flex"
-            >
-              Falar com Especialista
-            </a>
-          </div>
-        </header>
-
-        {/* Hero */}
-        <section
+        />
+        <div 
+          className="absolute inset-0"
           style={{
-            textAlign: "center",
-            padding: "100px 0 80px",
+            background: 'radial-gradient(circle at 15% 50%, rgba(44, 203, 104, 0.08) 0%, transparent 50%), radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.06) 0%, transparent 50%)'
           }}
-        >
-          <div
-            style={{
-              display: "inline-block",
-              background: "rgba(44, 203, 104, 0.1)",
-              border: "1px solid rgba(44, 203, 104, 0.2)",
-              color: "#2CCB68",
-              padding: "6px 16px",
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              marginBottom: 24,
-            }}
-          >
-            SOLUÇÃO CAAS (CATALOG AS A SERVICE)
-          </div>
-          <h1
-            className={plusJakarta.className}
-            style={{
-              fontSize: "clamp(40px, 5vw, 64px)",
-              lineHeight: 1.1,
-              fontWeight: 800,
-              color: "#fff",
-              margin: "0 auto 24px",
-              maxWidth: 800,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            O fim do caos em PDFs. Retome o <span style={{ color: "#2CCB68" }}>controle absoluto</span> das suas vendas.
-          </h1>
-          <p
-            style={{
-              fontSize: 18,
-              color: "#9AA0A6",
-              maxWidth: 640,
-              margin: "0 auto 40px",
-              lineHeight: 1.6,
-            }}
-          >
-            Centralize seus produtos, atualize preços em tempo real para toda a rede de franqueados e vendedores, e receba pedidos organizados direto no WhatsApp.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 16,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <a
-              href={WA_B2B}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                background: "#2CCB68",
-                color: "#23262D",
-                fontSize: 16,
-                fontWeight: 700,
-                padding: "16px 32px",
-                borderRadius: 999,
-                textDecoration: "none",
-              }}
-              className="btn-hover"
-            >
-              Agendar Demonstração B2B
-            </a>
-            <Link
-              href="#planos"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                background: "transparent",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                color: "#fff",
-                fontSize: 16,
-                fontWeight: 600,
-                padding: "15px 32px",
-                borderRadius: 999,
-                textDecoration: "none",
-              }}
-            >
-              Ver Planos
-            </Link>
-          </div>
-        </section>
+        />
+      </div>
+
+      <div className="relative z-10">
+        <AuthRedirectHandler />
+        <Header />
+        <HeroSection />
+
+        {/* Social Proof Logos */}
+        <CompanyLogos />
 
         {/* Agitation / Dores */}
-        <section style={{ padding: "60px 0" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: 24,
-            }}
-          >
-            {[
-              {
-                title: "Preços Desatualizados",
-                body: "Vendedores fechando negócio com tabela antiga porque não baixaram o PDF novo.",
-                icon: "⚠️",
-              },
-              {
-                title: "Catálogos Amadores",
-                body: "Representantes criando artes ruins que prejudicam a imagem premium da sua marca.",
-                icon: "📉",
-              },
-              {
-                title: "Falta de Métricas",
-                body: "Você envia o PDF no grupo e não tem ideia de quem abriu ou quais produtos olharam.",
-                icon: "👁️‍🗨️",
-              },
-            ].map((card, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)",
-                  borderRadius: 16,
-                  padding: 32,
-                }}
-              >
-                <div style={{ fontSize: 32, marginBottom: 16 }}>{card.icon}</div>
-                <h3 className={plusJakarta.className} style={{ fontSize: 18, fontWeight: 700, color: "#EBEAED", marginBottom: 12 }}>
-                  {card.title}
-                </h3>
-                <p style={{ color: "#9AA0A6", fontSize: 15, lineHeight: 1.5 }}>{card.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <section id="dores" className="py-20 bg-transparent">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              title: "Preços Desatualizados",
+              body: "Vendedores fechando negócio com tabela antiga porque não baixaram o PDF novo.",
+              icon: "⚠️",
+            },
+            {
+              title: "Catálogos Amadores",
+              body: "Representantes criando artes ruins que prejudicam a imagem premium da sua marca.",
+              icon: "📉",
+            },
+            {
+              title: "Falta de Métricas",
+              body: "Você envia o PDF no grupo e não tem ideia de quem abriu ou quais produtos olharam.",
+              icon: "👁️‍🗨️",
+            },
+          ].map((card, i) => (
+            <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition-colors">
+              <div className="text-4xl mb-4">{card.icon}</div>
+              <h3 className={`text-lg font-bold text-zinc-200 mb-3 ${plusJakarta.className}`}>{card.title}</h3>
+              <p className="text-zinc-400 text-sm leading-relaxed">{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        {/* Features B2B */}
-        <section style={{ padding: "80px 0" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 className={plusJakarta.className} style={{ fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 16 }}>
+      {/* Como Funciona Timeline */}
+      <HowItWorks />
+
+      {/* Por Que Escolher a PlataformaShop */}
+      <WhyChooseUs />
+
+      {/* Features B2B */}
+      <section id="recursos" className="py-24 bg-transparent">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className={`text-3xl md:text-4xl font-extrabold text-white mb-4 ${plusJakarta.className}`}>
               A tecnologia que conecta empresas e vendedores
             </h2>
-            <p style={{ color: "#9AA0A6", fontSize: 18, maxWidth: 600, margin: "0 auto" }}>
+            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
               Elimine a fricção entre a sua diretoria comercial e quem está na ponta vendendo.
             </p>
           </div>
 
-          <div style={{ display: "grid", gap: 64 }}>
+          <div className="grid gap-16">
             {[
               {
                 title: "Catálogo Franquias",
@@ -278,7 +119,7 @@ export default function HomePage() {
               },
               {
                 title: "Vitrine Individual Blindada",
-                desc: "Cada vendedor ganha um link exclusivo (ex: plataforma.com/joao-silva) contendo a foto dele e botão para o WhatsApp dele, mas os produtos exibidos obedecem às regras da sua empresa.",
+                desc: "Cada vendedor ganha um link exclusivo contendo a foto dele e botão para o WhatsApp dele, mas os produtos exibidos obedecem às regras da sua empresa.",
                 green: false,
               },
               {
@@ -287,141 +128,92 @@ export default function HomePage() {
                 green: false,
               },
             ].map((feat, idx) => (
-              <div key={idx} style={{ display: "flex", gap: 32, alignItems: "center", flexDirection: idx % 2 !== 0 ? "row-reverse" : "row", flexWrap: "wrap" }}>
-                <div style={{ flex: "1 1 400px" }}>
-                  <h3 className={plusJakarta.className} style={{ fontSize: 28, fontWeight: 800, color: "#EBEAED", marginBottom: 16 }}>
-                    {feat.title}
-                  </h3>
-                  <p style={{ color: "#9AA0A6", fontSize: 16, lineHeight: 1.6 }}>{feat.desc}</p>
+              <div key={idx} className={`flex flex-col md:flex-row gap-8 items-center ${idx % 2 !== 0 ? "md:flex-row-reverse" : ""}`}>
+                <div className="flex-1">
+                  <h3 className={`text-2xl font-bold text-white mb-4 ${plusJakarta.className}`}>{feat.title}</h3>
+                  <p className="text-zinc-400 leading-relaxed">{feat.desc}</p>
                 </div>
-                <div style={{ flex: "1 1 400px", height: 240, background: feat.green ? "rgba(44, 203, 104, 0.05)" : "rgba(255, 255, 255, 0.03)", border: feat.green ? "1px solid rgba(44, 203, 104, 0.2)" : "1px solid rgba(255, 255, 255, 0.05)", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                   {/* Placeholder para uma imagem do sistema depois */}
-                   <span style={{ color: feat.green ? "#2CCB68" : "#9AA0A6", fontSize: 14, fontWeight: 600 }}>Ilustração da Interface</span>
+                <div className={`flex-1 h-64 w-full rounded-3xl flex items-center justify-center border backdrop-blur-md ${feat.green ? "bg-[#2CCB68]/5 border-[#2CCB68]/20" : "bg-white/5 border-white/5"}`}>
+                   <span className={`text-sm font-semibold ${feat.green ? "text-[#2CCB68]" : "text-zinc-500"}`}>Ilustração da Interface</span>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Pricing / B2C Hook */}
-        <section id="planos" style={{ padding: "80px 0 100px" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 className={plusJakarta.className} style={{ fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 16 }}>
+      {/* Prova Social / Depoimentos Animados */}
+      <Testimonials />
+
+      {/* Pricing */}
+      <section id="planos" className="py-24 bg-transparent">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className={`text-3xl md:text-4xl font-extrabold text-white mb-4 ${plusJakarta.className}`}>
               Planos desenhados para o seu tamanho
             </h2>
-            <p style={{ color: "#9AA0A6", fontSize: 18, maxWidth: 600, margin: "0 auto" }}>
+            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
               Você não precisa ser uma corporação gigante para usar tecnologia inteligente.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 32, alignItems: "center" }}>
-            
-            {/* Plano Free (B2C) */}
-            <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 24, padding: 40 }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#EBEAED", marginBottom: 8 }}>Start (Para Autônomos)</div>
-              <div style={{ fontSize: 48, fontWeight: 800, color: "#fff", marginBottom: 8 }} className={plusJakarta.className}>Grátis</div>
-              <p style={{ color: "#9AA0A6", fontSize: 15, marginBottom: 32 }}>Ideal para vendedores independentes e pequenos negócios locais.</p>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md">
+              <div className="text-xl font-bold text-zinc-300 mb-2">Start (Para Autônomos)</div>
+              <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>Grátis</div>
+              <p className="text-zinc-400 mb-8">Ideal para vendedores independentes e pequenos negócios locais.</p>
               
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 40px", display: "flex", flexDirection: "column", gap: 16 }}>
-                {[
-                  "Até 20 produtos no catálogo",
-                  "1 Vitrine Digital Exclusiva",
-                  "Botão direto para o seu WhatsApp",
-                  "Tema Dark Mode Padrão"
-                ].map((item, i) => (
-                  <li key={i} style={{ display: "flex", alignItems: "center", gap: 12, color: "#EBEAED", fontSize: 15 }}>
-                    <div style={{ color: "#2CCB68" }}><CheckIcon size={18} /></div>
+              <ul className="space-y-4 mb-10">
+                {["Até 20 produtos no catálogo", "1 Vitrine Digital Exclusiva", "Botão direto para o seu WhatsApp", "Tema Dark Mode Padrão"].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-zinc-300">
+                    <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
                     {item}
                   </li>
                 ))}
               </ul>
               
-              <Link
-                href="/cadastro"
-                style={{
-                  display: "block",
-                  textAlign: "center",
-                  background: "transparent",
-                  border: "1px solid #2CCB68",
-                  color: "#2CCB68",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  padding: "16px",
-                  borderRadius: 12,
-                  textDecoration: "none",
-                }}
-              >
+              <Link href="/cadastro" className="block text-center w-full py-4 rounded-xl border border-[#2CCB68] text-[#2CCB68] font-bold hover:bg-[#2CCB68]/10 transition-colors">
                 Criar Conta Grátis
               </Link>
             </div>
 
-            {/* Plano Corporate (B2B) */}
-            <div style={{ background: "rgba(44, 203, 104, 0.03)", border: "2px solid #2CCB68", borderRadius: 24, padding: 48, position: "relative" }}>
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "#2CCB68", color: "#23262D", fontSize: 12, fontWeight: 800, padding: "6px 16px", borderRadius: 999, textTransform: "uppercase", whiteSpace: "nowrap" }}>
+            {/* Enterprise Plan */}
+            <div className="bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2CCB68] text-[#0A0A0A] text-xs font-bold px-4 py-1 rounded-full uppercase">
                 Recomendado para Empresas
               </div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#2CCB68", marginBottom: 8 }}>Enterprise (CaaS)</div>
-              <div style={{ fontSize: 48, fontWeight: 800, color: "#fff", marginBottom: 8 }} className={plusJakarta.className}>Customizado</div>
-              <p style={{ color: "#9AA0A6", fontSize: 15, marginBottom: 32 }}>Para distribuidoras, franquias e equipes comerciais que exigem controle total.</p>
+              <div className="text-xl font-bold text-[#2CCB68] mb-2">Enterprise (CaaS)</div>
+              <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>Customizado</div>
+              <p className="text-zinc-400 mb-8">Para distribuidoras, franquias e equipes comerciais que exigem controle total.</p>
               
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 40px", display: "flex", flexDirection: "column", gap: 16 }}>
-                {[
-                  "Produtos Ilimitados (Master Catalog)",
-                  "Dezenas de vendedores sincronizados",
-                  "Gestão centralizada de preços",
-                  "Prioridade de Suporte Técnico"
-                ].map((item, i) => (
-                  <li key={i} style={{ display: "flex", alignItems: "center", gap: 12, color: "#EBEAED", fontSize: 15 }}>
-                    <div style={{ color: "#2CCB68" }}><CheckIcon size={18} /></div>
+              <ul className="space-y-4 mb-10">
+                {["Produtos Ilimitados (Master Catalog)", "Dezenas de vendedores sincronizados", "Gestão centralizada de preços", "Prioridade de Suporte Técnico"].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-zinc-300">
+                    <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
                     {item}
                   </li>
                 ))}
               </ul>
               
-              <a
-                href={WA_B2B}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 10,
-                  background: "#2CCB68",
-                  color: "#23262D",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  padding: "16px",
-                  borderRadius: 12,
-                  textDecoration: "none",
-                }}
-              >
+              <a href={WA_B2B} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-[#2CCB68] text-[#0A0A0A] font-bold hover:bg-[#23994A] hover:text-white transition-colors">
                 <WhatsAppIcon size={20} />
                 Falar com Especialista
               </a>
             </div>
-
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Footer */}
-        <footer style={{ borderTop: "1px solid rgba(255, 255, 255, 0.05)", padding: "40px 0", textAlign: "center", color: "#9AA0A6", fontSize: 14 }}>
-          <p>© {new Date().getFullYear()} PlataformaShop. Todos os direitos reservados.</p>
-        </footer>
+      {/* FAQ */}
+      <Faq />
 
+      {/* Bloco de CTA (Call to Action) Final */}
+      <CtaSection />
+
+      {/* Mapa do Site (Rodapé) */}
+      <Footer />
       </div>
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @media (max-width: 768px) {
-              .sm\\:flex { display: none !important; }
-            }
-            .btn-hover { transition: background 0.2s; }
-            .btn-hover:hover { background: #23994A !important; }
-          `,
-        }}
-      />
     </main>
   );
 }
