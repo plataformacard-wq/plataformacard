@@ -5,14 +5,18 @@ import { Loader2, Settings, BarChart, Users, MessageSquare } from "lucide-react"
 import { updateLandingSettings } from "./actions";
 import { TestimonialsTable } from "./TestimonialsTable";
 import { PartnersTable } from "./PartnersTable";
+import { FaqsTable } from "./FaqsTable";
+import { PlansTable } from "./PlansTable";
 
 type Props = {
   initialSettings: any;
   initialTestimonials: any[];
   initialPartners: any[];
+  initialFaqs: any[];
+  initialPlans: any[];
 };
 
-export function LandingPageClient({ initialSettings, initialTestimonials, initialPartners }: Props) {
+export function LandingPageClient({ initialSettings, initialTestimonials, initialPartners, initialFaqs, initialPlans }: Props) {
   const [activeTab, setActiveTab] = useState("geral");
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsForm, setSettingsForm] = useState(initialSettings || {
@@ -21,11 +25,20 @@ export function LandingPageClient({ initialSettings, initialTestimonials, initia
     seo_title: "PlataformaShop | Catálogo Digital Premium",
     base_users: 1500,
     base_catalogs: 3200,
+    hero_mockup_url: "",
+    social_instagram: "",
+    social_facebook: "",
+    social_linkedin: "",
+    social_youtube: "",
+    social_tiktok: "",
+    social_x: "",
   });
 
   const tabs = [
     { id: "geral", label: "Hero & SEO", icon: Settings },
     { id: "metricas", label: "Métricas Base", icon: BarChart },
+    { id: "planos", label: "Planos", icon: BarChart },
+    { id: "faq", label: "Perguntas (FAQ)", icon: MessageSquare },
     { id: "depoimentos", label: "Depoimentos", icon: MessageSquare },
     { id: "marcas", label: "Marcas Parceiras", icon: Users },
   ];
@@ -95,6 +108,33 @@ export function LandingPageClient({ initialSettings, initialTestimonials, initia
                 className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-4 py-2.5 text-[var(--dash-text-primary)] focus:border-emerald-500 outline-none transition-colors"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--dash-text-primary)] mb-2">URL da Imagem Mockup (Hero)</label>
+              <input 
+                type="text" 
+                placeholder="Deixe em branco para usar a imagem padrão"
+                value={settingsForm.hero_mockup_url || ""}
+                onChange={(e) => setSettingsForm({...settingsForm, hero_mockup_url: e.target.value})}
+                className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-4 py-2.5 text-[var(--dash-text-primary)] focus:border-emerald-500 outline-none transition-colors"
+              />
+            </div>
+
+            <hr className="border-[var(--dash-border)] my-6" />
+            <h3 className="text-lg font-bold text-[var(--dash-text-primary)] mb-4">Redes Sociais (Rodapé)</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {['instagram', 'facebook', 'linkedin', 'youtube', 'tiktok', 'x'].map(social => (
+                <div key={social}>
+                  <label className="block text-xs font-medium text-[var(--dash-text-secondary)] mb-1 capitalize">{social}</label>
+                  <input 
+                    type="text" 
+                    placeholder="URL completa..."
+                    value={settingsForm[`social_${social}`] || ""}
+                    onChange={(e) => setSettingsForm({...settingsForm, [`social_${social}`]: e.target.value})}
+                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-lg px-3 py-2 text-sm text-[var(--dash-text-primary)] focus:border-emerald-500 outline-none transition-colors"
+                  />
+                </div>
+              ))}
+            </div>
             <button 
               onClick={handleSaveSettings}
               disabled={savingSettings}
@@ -142,6 +182,14 @@ export function LandingPageClient({ initialSettings, initialTestimonials, initia
 
         {activeTab === "depoimentos" && (
           <TestimonialsTable initialData={initialTestimonials} />
+        )}
+
+        {activeTab === "faq" && (
+          <FaqsTable initialData={initialFaqs} />
+        )}
+
+        {activeTab === "planos" && (
+          <PlansTable initialData={initialPlans} />
         )}
 
         {activeTab === "marcas" && (

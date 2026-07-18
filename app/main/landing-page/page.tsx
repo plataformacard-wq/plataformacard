@@ -1,7 +1,9 @@
 import { 
   getLandingSettings, 
   getTestimonials, 
-  getPartners 
+  getPartners,
+  getFaqs,
+  getPlans
 } from "./actions";
 import { LandingPageClient } from "./LandingPageClient";
 
@@ -13,6 +15,8 @@ export default async function LandingPageCMS() {
   const settings = await getLandingSettings();
   const testimonials = await getTestimonials();
   const partners = await getPartners();
+  const faqs = await getFaqs();
+  const plans = await getPlans();
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -29,6 +33,8 @@ export default async function LandingPageCMS() {
         initialSettings={settings} 
         initialTestimonials={testimonials} 
         initialPartners={partners} 
+        initialFaqs={faqs}
+        initialPlans={plans}
       />
     </div>
   );

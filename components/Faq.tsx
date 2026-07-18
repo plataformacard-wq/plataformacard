@@ -29,7 +29,8 @@ const FAQ_ITEMS = [
   }
 ];
 
-export function Faq() {
+export function Faq({ faqs }: { faqs?: any[] }) {
+  const finalFaqs = faqs && faqs.length > 0 ? faqs : FAQ_ITEMS;
   const [openIndex, setOpenIndex] = useState<number | null>(0); // O primeiro item começa aberto
 
   const toggleAccordion = (index: number) => {
@@ -55,7 +56,7 @@ export function Faq() {
 
         {/* Lista de Perguntas */}
         <div className="flex flex-col gap-4">
-          {FAQ_ITEMS.map((item, index) => {
+          {finalFaqs.map((item, index) => {
             const isOpen = openIndex === index;
             
             return (

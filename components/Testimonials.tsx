@@ -56,17 +56,26 @@ const REVIEWS = [
 ];
 
 const ReviewCard = ({ review }: { review: any }) => (
-  <div className="bg-[#121212]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 mb-6 hover:bg-[#1a1a1a]/80 transition-colors w-full">
-    <div className="flex gap-1 mb-4">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star key={star} size={14} className="fill-amber-500 text-amber-500" />
-      ))}
-    </div>
-    <p className="text-zinc-300 text-sm leading-relaxed mb-6 font-medium">
-      "{review.text}"
-    </p>
-    <div className="flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${review.color}`}>
+  <div className="bg-[#121212]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 mb-6 hover:bg-[#1a1a1a]/80 transition-colors w-full flex flex-col">
+    {review.image_url ? (
+      <div className="w-full h-auto rounded-xl overflow-hidden mb-4">
+        <img src={review.image_url} alt={`Depoimento de ${review.name}`} className="w-full object-cover" />
+      </div>
+    ) : (
+      <>
+        <div className="flex gap-1 mb-4">
+          {[...Array(review.stars || 5)].map((_, i) => (
+            <Star key={i} size={14} className="fill-amber-500 text-amber-500" />
+          ))}
+        </div>
+        <p className="text-zinc-300 text-sm leading-relaxed mb-6 font-medium">
+          "{review.text}"
+        </p>
+      </>
+    )}
+    
+    <div className="flex items-center gap-3 mt-auto">
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${review.color || 'bg-zinc-800'}`}>
         {review.initials}
       </div>
       <div>

@@ -6,7 +6,9 @@ import { revalidatePath } from "next/cache";
 import { 
   updateSettingsSchema, 
   upsertTestimonialSchema, 
-  upsertPartnerSchema 
+  upsertPartnerSchema,
+  upsertFaqSchema,
+  upsertPlanSchema
 } from "@/lib/validations/cms-schemas";
 
 // --- SETTINGS ---
@@ -185,6 +187,146 @@ export async function deletePartner(id: string) {
 
   if (error) {
     return { success: false, error: "Erro ao deletar parceiro" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/main/landing-page");
+  return { success: true };
+}
+
+// --- FAQs ---
+export async function getFaqs() {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  const { data, error } = await supabase
+    .from("landing_page_faqs")
+    .select("*")
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: false });
+    
+  if (error) {
+    console.error("Error fetching FAQs:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function upsertFaq(payload: any) {
+  const parsed = upsertFaqSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+
+  const { id, ...rest } = parsed.data;
+  
+  const payloadToSave: any = { 
+    ...rest, 
+    updated_at: new Date().toISOString() 
+  };
+  
+  if (id) {
+    payloadToSave.id = id;
+  }
+
+  const { error } = await supabase
+    .from("landing_page_faqs")
+    .upsert(payloadToSave);
+
+  if (error) {
+    console.error("Error upserting FAQ:", error);
+    return { success: false, error: "Erro ao salvar FAQ" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/main/landing-page");
+  return { success: true };
+}
+
+export async function deleteFaq(id: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("landing_page_faqs")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return { success: false, error: "Erro ao deletar FAQ" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/main/landing-page");
+  return { success: true };
+}
+
+// --- PLANS ---
+export async function getPlans() {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+  
+  const { data, error } = await supabase
+    .from("landing_page_plans")
+    .select("*")
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: false });
+    
+  if (error) {
+    console.error("Error fetching Plans:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function upsertPlan(payload: any) {
+  const parsed = upsertPlanSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+
+  const { id, ...rest } = parsed.data;
+  
+  const payloadToSave: any = { 
+    ...rest, 
+    updated_at: new Date().toISOString() 
+  };
+  
+  if (id) {
+    payloadToSave.id = id;
+  }
+
+  const { error } = await supabase
+    .from("landing_page_plans")
+    .upsert(payloadToSave);
+
+  if (error) {
+    console.error("Error upserting Plan:", error);
+    return { success: false, error: "Erro ao salvar Plano" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/main/landing-page");
+  return { success: true };
+}
+
+export async function deletePlan(id: string) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("landing_page_plans")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return { success: false, error: "Erro ao deletar Plano" };
   }
 
   revalidatePath("/");

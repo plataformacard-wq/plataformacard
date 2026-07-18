@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit2, Trash2, Loader2, X } from "lucide-react";
+import { Plus, Edit2, Trash2, Loader2, X, Upload } from "lucide-react";
 import { deleteTestimonial, upsertTestimonial } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 
 type Testimonial = {
   id?: string;
@@ -10,6 +11,7 @@ type Testimonial = {
   initials: string;
   color: string;
   text: string;
+  image_url: string;
   stars: number;
   is_active: boolean;
 };
@@ -20,9 +22,12 @@ export function TestimonialsTable({ initialData }: { initialData: any[] }) {
   const [editingItem, setEditingItem] = useState<Testimonial | null>(null);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const defaultForm = { name: "", initials: "", color: "bg-blue-500", text: "", stars: 5, is_active: true };
+  const defaultForm = { name: "", initials: "", color: "bg-blue-500", text: "", image_url: "", stars: 5, is_active: true };
   const [form, setForm] = useState<Testimonial>(defaultForm);
+
+  const supabase = createClient();
 
   function openNew() {
     setEditingItem(null);
@@ -46,6 +51,34 @@ export function TestimonialsTable({ initialData }: { initialData: any[] }) {
       alert(res.error);
     }
     setDeletingId(null);
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('landing_assets')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('landing_assets')
+        .getPublicUrl(fileName);
+
+      setForm({ ...form, image_url: publicUrlData.publicUrl });
+    } catch (error) {
+      console.error(error);
+      alert("Erro no upload da imagem");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSave() {
@@ -89,14 +122,20 @@ export function TestimonialsTable({ initialData }: { initialData: any[] }) {
               <tr key={item.id} className="border-b border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)]">
                 <td className="px-4 py-3 font-medium text-[var(--dash-text-primary)]">
                   <div className="flex items-center gap-3">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${item.color}`}>
-                      {item.initials}
-                    </div>
+                    {item.image_url ? (
+                      <div className="h-8 w-8 rounded overflow-hidden">
+                        <img src={item.image_url} alt="Print" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${item.color}`}>
+                        {item.initials}
+                      </div>
+                    )}
                     {item.name}
                   </div>
                 </td>
-                <td className="px-4 py-3 truncate max-w-[200px]" title={item.text}>{item.text}</td>
-                <td className="px-4 py-3 text-amber-400">{"★".repeat(item.stars)}</td>
+                <td className="px-4 py-3 truncate max-w-[200px]" title={item.text}>{item.image_url ? "[Imagem de Prova Social]" : item.text}</td>
+                <td className="px-4 py-3 text-amber-400">{item.image_url ? "-" : "★".repeat(item.stars)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                     {item.is_active ? "Ativo" : "Inativo"}
@@ -154,11 +193,36 @@ export function TestimonialsTable({ initialData }: { initialData: any[] }) {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Texto</label>
+                <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Texto (Deixe em branco se for print)</label>
                 <textarea 
                   rows={3} value={form.text} onChange={e => setForm({...form, text: e.target.value})}
                   className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
                 />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-2 uppercase">Print Real (Substitui o Texto)</label>
+                <div className="flex items-center gap-4">
+                  {form.image_url ? (
+                    <div className="h-16 w-32 bg-white/5 border border-[var(--dash-border)] rounded-lg flex items-center justify-center p-2 relative group overflow-hidden">
+                      <img src={form.image_url} alt="Preview" className="max-h-full max-w-full object-cover" />
+                      <button onClick={() => setForm({...form, image_url: ""})} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-16 w-32 bg-[var(--dash-surface-secondary)] border border-dashed border-[var(--dash-border)] rounded-lg flex items-center justify-center text-[var(--dash-text-secondary)] text-xs">
+                      Sem imagem
+                    </div>
+                  )}
+
+                  <div className="flex-1">
+                    <label className="flex items-center justify-center gap-2 w-full bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)] text-[var(--dash-text-primary)] px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition-colors">
+                      {uploading ? <Loader2 size={16} className="animate-spin" /> : <><Upload size={16} /> Fazer Upload</>}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+                    </label>
+                  </div>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -179,7 +243,7 @@ export function TestimonialsTable({ initialData }: { initialData: any[] }) {
             </div>
             <div className="p-4 border-t border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] flex justify-end">
               <button 
-                onClick={handleSave} disabled={loading}
+                onClick={handleSave} disabled={loading || uploading}
                 className="bg-emerald-500 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center min-w-[120px]"
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : "Salvar"}

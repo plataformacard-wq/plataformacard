@@ -99,7 +99,13 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/main/cartoes", label: "Cartões Públicos", icon: UserCircle },
           { href: "/main/caas", label: "Gestão de Catálogos & CaaS", icon: Globe },
           { href: "/main/recursos", label: "Gestão de Recursos", icon: HardDrive },
-          { href: "/main/landing-page", label: "CMS Landing Page", icon: LayoutDashboard },
+        ]
+      },
+      { 
+        label: "CMS (Site Externo)", 
+        icon: LayoutDashboard,
+        subItems: [
+          { href: "/main/landing-page", label: "Página Inicial (Home)", icon: LayoutDashboard },
         ]
       },
       { 

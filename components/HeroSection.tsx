@@ -3,6 +3,7 @@ import Image from 'next/image';
 export function HeroSection({ settings }: { settings?: any }) {
   const headline = settings?.hero_headline || "O fim do caos em PDFs.";
   const subtitle = settings?.hero_subtitle || "O único cartão físico NFC premium do mercado com um catálogo completo integrado. Venda sem taxas através do WhatsApp.";
+  const mockupUrl = settings?.hero_mockup_url || "/hero_mockup.png";
 
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-transparent">
@@ -42,13 +43,21 @@ export function HeroSection({ settings }: { settings?: any }) {
         {/* Right Column (Mockup) */}
         <div className="relative z-10 flex justify-center lg:justify-end p-4 md:p-0">
           <div className="relative w-full max-w-[500px] aspect-square md:aspect-[4/5] rounded-3xl border border-white/10 bg-white/5 overflow-hidden shadow-[0_20px_50px_rgba(44,203,104,0.1)] transform-gpu hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(44,203,104,0.2)] transition-all duration-700 ease-out group">
-             <Image 
-                src="/hero_mockup.png" 
-                alt="PlataformaShop NFC e Catálogo no Celular" 
-                fill 
-                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                priority
-             />
+             {mockupUrl === "/hero_mockup.png" ? (
+               <Image 
+                  src={mockupUrl} 
+                  alt="PlataformaShop Mockup" 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  priority
+               />
+             ) : (
+               <img 
+                  src={mockupUrl} 
+                  alt="PlataformaShop Mockup" 
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+               />
+             )}
              {/* Elegant inner ring / glow */}
              <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/10 pointer-events-none" />
              <div className="absolute inset-0 bg-gradient-to-tr from-[#2CCB68]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />

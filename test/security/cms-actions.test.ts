@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { updateSettingsSchema, upsertTestimonialSchema, upsertPartnerSchema } from "@/lib/validations/cms-schemas";
+import { updateSettingsSchema, upsertTestimonialSchema, upsertPartnerSchema, upsertFaqSchema, upsertPlanSchema } from "@/lib/validations/cms-schemas";
 
 describe("CMS Actions Zod Gatekeeper (Security)", () => {
   it("should reject malicious updateSettings payload", () => {
@@ -39,6 +39,33 @@ describe("CMS Actions Zod Gatekeeper (Security)", () => {
     };
 
     const result = upsertPartnerSchema.safeParse(payload);
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject invalid FAQ payload", () => {
+    const payload = {
+      question: "a", // Too short
+      answer: "b", // Too short
+      display_order: "not-a-number",
+      is_active: "true"
+    };
+    const result = upsertFaqSchema.safeParse(payload);
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject Plan with invalid theme or malicious button_url", () => {
+    const payload = {
+      name: "Plan",
+      price_text: "Free",
+      subtitle: "Sub",
+      theme: "blue", // Invalid theme (only dark or green allowed)
+      features: ["A"],
+      button_text: "Click",
+      button_url: "javascript:alert(1)",
+      display_order: 0,
+      is_active: true
+    };
+    const result = upsertPlanSchema.safeParse(payload);
     expect(result.success).toBe(false);
   });
 });

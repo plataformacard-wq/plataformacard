@@ -41,11 +41,15 @@ export default async function HomePage() {
   const [
     { data: settings },
     { data: testimonials },
-    { data: partners }
+    { data: partners },
+    { data: faqs },
+    { data: plans }
   ] = await Promise.all([
     supabase.from("landing_page_settings").select("*").eq("is_singleton", true).single(),
     supabase.from("landing_page_testimonials").select("*").eq("is_active", true),
-    supabase.from("landing_page_partners").select("*").eq("is_active", true)
+    supabase.from("landing_page_partners").select("*").eq("is_active", true),
+    supabase.from("landing_page_faqs").select("*").eq("is_active", true).order("display_order"),
+    supabase.from("landing_page_plans").select("*").eq("is_active", true).order("display_order")
   ]);
 
   const fallbackSettings = {
@@ -182,61 +186,53 @@ export default async function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md">
-              <div className="text-xl font-bold text-zinc-300 mb-2">Start (Para Autônomos)</div>
-              <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>Grátis</div>
-              <p className="text-zinc-400 mb-8">Ideal para vendedores independentes e pequenos negócios locais.</p>
-              
-              <ul className="space-y-4 mb-10">
-                {["Até 20 produtos no catálogo", "1 Vitrine Digital Exclusiva", "Botão direto para o seu WhatsApp", "Tema Dark Mode Padrão"].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-zinc-300">
-                    <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              
-              <Link href="/cadastro" className="block text-center w-full py-4 rounded-xl border border-[#2CCB68] text-[#2CCB68] font-bold hover:bg-[#2CCB68]/10 transition-colors">
-                Criar Conta Grátis
-              </Link>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2CCB68] text-[#0A0A0A] text-xs font-bold px-4 py-1 rounded-full uppercase">
-                Recomendado para Empresas
+            {(plans || []).map((plan: any) => (
+              <div 
+                key={plan.id} 
+                className={`relative ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md'}`}
+              >
+                {plan.badge_text && (
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-xs font-bold ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-white text-black'}`}>
+                    {plan.badge_text}
+                  </div>
+                )}
+                <div className={`text-xl font-bold mb-2 ${plan.theme === 'green' ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>{plan.name}</div>
+                <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>{plan.price_text}</div>
+                <p className="text-zinc-400 mb-8 h-10">{plan.subtitle}</p>
+                
+                <ul className="space-y-4 mb-10">
+                  {plan.features.map((feat: string, i: number) => (
+                    <li key={i} className="flex items-center gap-3 text-zinc-300">
+                      <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+                
+                {plan.button_url.startsWith("http") ? (
+                  <a href={plan.button_url} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
+                    {plan.button_url.includes("wa.me") && <WhatsAppIcon size={20} />}
+                    {plan.button_text}
+                  </a>
+                ) : (
+                  <Link href={plan.button_url} className={`block text-center w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
+                    {plan.button_text}
+                  </Link>
+                )}
               </div>
-              <div className="text-xl font-bold text-[#2CCB68] mb-2">Enterprise (CaaS)</div>
-              <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>Customizado</div>
-              <p className="text-zinc-400 mb-8">Para distribuidoras, franquias e equipes comerciais que exigem controle total.</p>
-              
-              <ul className="space-y-4 mb-10">
-                {["Produtos Ilimitados (Master Catalog)", "Dezenas de vendedores sincronizados", "Gestão centralizada de preços", "Prioridade de Suporte Técnico"].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-zinc-300">
-                    <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              
-              <a href={WA_B2B} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-[#2CCB68] text-[#0A0A0A] font-bold hover:bg-[#23994A] hover:text-white transition-colors">
-                <WhatsAppIcon size={20} />
-                Falar com Especialista
-              </a>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <Faq />
+      <Faq faqs={faqs || []} />
 
       {/* Bloco de CTA (Call to Action) Final */}
       <CtaSection />
 
       {/* Mapa do Site (Rodapé) */}
-      <Footer />
+      <Footer settings={finalSettings} />
       </div>
     </main>
   );
