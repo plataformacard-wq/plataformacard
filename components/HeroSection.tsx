@@ -1,6 +1,9 @@
 import Image from 'next/image';
 
-export function HeroSection() {
+export function HeroSection({ settings }: { settings?: any }) {
+  const headline = settings?.hero_headline || "O fim do caos em PDFs.";
+  const subtitle = settings?.hero_subtitle || "O único cartão físico NFC premium do mercado com um catálogo completo integrado. Venda sem taxas através do WhatsApp.";
+
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-transparent">
 
@@ -13,13 +16,10 @@ export function HeroSection() {
             O Híbrido Perfeito (NFC + Catálogo)
           </div>
           
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1]">
-            O fim do caos em PDFs. <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 to-zinc-500">Retome o controle das suas vendas.</span>
-          </h1>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1]" dangerouslySetInnerHTML={{ __html: headline }}></h1>
           
           <p className="text-lg md:text-xl text-zinc-400 max-w-lg leading-relaxed">
-            O único cartão físico NFC premium do mercado com um catálogo completo integrado. Venda sem taxas através do WhatsApp.
+            {subtitle}
           </p>
           
           {/* Link Simulator */}

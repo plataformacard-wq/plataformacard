@@ -8,14 +8,16 @@ const COMPANIES = [
   { name: "Empresa Parceira 3", icon: Hexagon, color: "text-zinc-200" },
 ];
 
-export function CompanyLogos() {
+export function CompanyLogos({ partners }: { partners?: any[] }) {
+  const finalPartners = (partners && partners.length > 0) ? partners : COMPANIES;
+  
   // Regra de Negócio: Só inicia o carrossel animado quando tivermos 6 ou mais parceiros.
-  const isAnimatable = COMPANIES.length >= 6;
+  const isAnimatable = finalPartners.length >= 6;
   
   // Se for animável, quadruplica para o loop infinito. Se não, exibe apenas a lista original.
   const displayItems = isAnimatable 
-    ? [...COMPANIES, ...COMPANIES, ...COMPANIES, ...COMPANIES] 
-    : COMPANIES;
+    ? [...finalPartners, ...finalPartners, ...finalPartners, ...finalPartners] 
+    : finalPartners;
 
   return (
     <section className="border-y border-white/5 bg-[#050505] overflow-hidden relative z-20">
@@ -60,7 +62,11 @@ export function CompanyLogos() {
                 key={idx} 
                 className="flex items-center gap-3 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-default"
               >
-                <company.icon size={28} className={company.color} />
+                {company.image_url ? (
+                  <img src={company.image_url} alt={company.name} className="h-8 max-w-[120px] object-contain filter invert" />
+                ) : (
+                  company.icon && <company.icon size={28} className={company.color} />
+                )}
                 <span className="text-xl font-extrabold text-white tracking-tight">
                   {company.name}
                 </span>

@@ -10,6 +10,9 @@ import { Faq } from "@/components/Faq";
 import { CtaSection } from "@/components/CtaSection";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export const revalidate = 60; // ISR cache de 60 segundos
 
 const inter = Inter({ subsets: ["latin"] });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -32,7 +35,28 @@ function CheckIcon({ size = 20 }: { size?: number }) {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createAdminClient();
+
+  const [
+    { data: settings },
+    { data: testimonials },
+    { data: partners }
+  ] = await Promise.all([
+    supabase.from("landing_page_settings").select("*").eq("is_singleton", true).single(),
+    supabase.from("landing_page_testimonials").select("*").eq("is_active", true),
+    supabase.from("landing_page_partners").select("*").eq("is_active", true)
+  ]);
+
+  const fallbackSettings = {
+    hero_headline: "O fim do caos em PDFs.",
+    hero_subtitle: "Retome o controle das suas vendas com o catálogo digital perfeito.",
+    base_users: 1500,
+    base_catalogs: 3200
+  };
+
+  const finalSettings = settings || fallbackSettings;
+
   return (
     <main className={`relative min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden ${inter.className}`}>
       
@@ -58,10 +82,10 @@ export default function HomePage() {
       <div className="relative z-10">
         <AuthRedirectHandler />
         <Header />
-        <HeroSection />
+        <HeroSection settings={finalSettings} />
 
         {/* Social Proof Logos */}
-        <CompanyLogos />
+        <CompanyLogos partners={partners || []} />
 
         {/* Agitation / Dores */}
         <section id="dores" className="py-20 bg-transparent">
@@ -143,7 +167,7 @@ export default function HomePage() {
       </section>
 
       {/* Prova Social / Depoimentos Animados */}
-      <Testimonials />
+      <Testimonials testimonials={testimonials || []} baseUsers={finalSettings.base_users} baseCatalogs={finalSettings.base_catalogs} />
 
       {/* Pricing */}
       <section id="planos" className="py-24 bg-transparent">

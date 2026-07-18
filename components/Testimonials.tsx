@@ -55,7 +55,7 @@ const REVIEWS = [
   },
 ];
 
-const ReviewCard = ({ review }: { review: typeof REVIEWS[0] }) => (
+const ReviewCard = ({ review }: { review: any }) => (
   <div className="bg-[#121212]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 mb-6 hover:bg-[#1a1a1a]/80 transition-colors w-full">
     <div className="flex gap-1 mb-4">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -82,11 +82,24 @@ const ReviewCard = ({ review }: { review: typeof REVIEWS[0] }) => (
   </div>
 );
 
-export function Testimonials() {
+export function Testimonials({ testimonials, baseUsers = 1500, baseCatalogs = 3200 }: { testimonials?: any[], baseUsers?: number, baseCatalogs?: number }) {
+  const finalTestimonials = (testimonials && testimonials.length > 0) ? testimonials : REVIEWS;
+
   // Dividir reviews para criar variabilidade nas colunas
-  const col1 = [...REVIEWS.slice(0, 4), ...REVIEWS.slice(0, 4)];
-  const col2 = [...REVIEWS.slice(4, 8), ...REVIEWS.slice(4, 8)];
-  const col3 = [...REVIEWS.slice(1, 5), ...REVIEWS.slice(1, 5)];
+  // Precisamos ter pelo menos 4 reviews por coluna para o CSS scroll não bugar (repetimos se necessário)
+  const pad = (arr: any[]) => {
+    while (arr.length < 4 && arr.length > 0) arr = [...arr, ...arr];
+    return arr;
+  };
+  
+  const total = finalTestimonials.length;
+  const c1 = finalTestimonials.slice(0, Math.ceil(total/3));
+  const c2 = finalTestimonials.slice(Math.ceil(total/3), Math.ceil((total*2)/3));
+  const c3 = finalTestimonials.slice(Math.ceil((total*2)/3));
+
+  const col1 = pad([...c1, ...c1]);
+  const col2 = pad([...c2, ...c2]);
+  const col3 = pad([...c3, ...c3]);
 
   return (
     <section className="py-24 relative overflow-hidden bg-transparent">
@@ -103,12 +116,12 @@ export function Testimonials() {
 
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
             <div className="text-center">
-              <div className={`text-3xl font-extrabold text-white ${plusJakarta.className}`}>200K+</div>
+              <div className={`text-3xl font-extrabold text-white ${plusJakarta.className}`}>{(baseUsers / 1000).toFixed(0)}K+</div>
               <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Lojas Virtuais</div>
             </div>
             <div className="text-center">
-              <div className={`text-3xl font-extrabold text-white ${plusJakarta.className}`}>500+</div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Franquias</div>
+              <div className={`text-3xl font-extrabold text-white ${plusJakarta.className}`}>{baseCatalogs}+</div>
+              <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Catálogos</div>
             </div>
             <div className="text-center">
               <div className={`text-3xl font-extrabold text-white flex items-center gap-2 justify-center ${plusJakarta.className}`}>
