@@ -40,5 +40,25 @@ Este documento define as normas e padrões de segurança obrigatórios para o de
 
 ---
 
-## 4. Atualização e Deploy
+## 4. Server Actions e Zod Validations (Defesa de Borda)
+*   **Bypass Restrito:** Quando uma Server Action precisar usar `createAdminClient()` (bypass de RLS), é **obrigatório** validar todos os parâmetros de entrada utilizando a biblioteca **Zod**.
+*   **Rejeição Direta:** A barreira Zod deve ser a primeira instrução da Server Action. Se `parsed.success` for falso, a função deve retornar graciosamente `{ success: false, error: "..." }` ou jogar um `Error` amigável para o cliente, abortando imediatamente o processo antes de bater no banco de dados.
+*   **Limites de Input:** Tipos como `string()` no Zod devem incluir restrições explícitas de tamanho (`max()`, `min()`) ou de formato (como `uuid()`) para evitar tentativas de estouro de memória (DoS) e injeções.
+
+---
+
+## 5. Contingência RLS (Shadow Policies)
+*   **Down Migration Segura:** Ao planejar restrições mais agressivas no banco de dados, nunca aplique um `DROP POLICY` imediatamente nas políticas vigentes.
+*   **Prefixo `strict_`:** Crie as novas políticas restritivas com o prefixo `strict_` operando paralelamente às antigas. Somente após testes logados (em Server Actions que escutam quais políticas aprovaram o acesso) e um período de maturação sem erros no sistema, a política antiga deverá ser revogada.
+
+---
+
+## 6. O "Gatekeeper": Testes de Segurança Automatizados
+*   **Zero Trust Code:** Código gerado por Desenvolvedores ou IA (Vibe Coding) não é inerentemente seguro. Todo módulo sensível (Finanças, Catálogo de Organizações, Setup de Admin) deve ter uma suíte de testes de integração em `test/security/`.
+*   **Payloads Maliciosos:** Os testes devem obrigatoriamente simular ações maliciosas, como: injeções de faturas negativas, IDs corrompidos e escalonamento de privilégios.
+*   **Validação Pré-Deploy:** É estritamente proibido realizar o push (Protocolo VPGP) para a branch `main` ou ambiente Vercel caso o comando `npm run test` indique que a barreira de segurança falhou (ou seja, caso as actions aceitem os payloads de ataque).
+
+---
+
+## 7. Atualização e Deploy
 Toda alteração de segurança deve ser documentada e as políticas do Supabase devem ser registradas na pasta `supabase/migrations/` para replicação automática no pipeline de CI/CD.

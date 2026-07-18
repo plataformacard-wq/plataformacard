@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from '@supabase/supabase-js';
+import { bootstrapMainAdminSchema } from '@/lib/validations/setup-schemas';
 
 export async function bootstrapMainAdmin(formData: FormData) {
   const secret = formData.get("secret") as string;
@@ -8,13 +9,24 @@ export async function bootstrapMainAdmin(formData: FormData) {
   const password = formData.get("password") as string;
   const fullName = formData.get("fullName") as string;
 
+  const parsed = bootstrapMainAdminSchema.safeParse({
+    secret,
+    email,
+    password,
+    fullName,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
+  }
+
   const envSecret = process.env.MAIN_ADMIN_SETUP_SECRET;
 
   if (!envSecret) {
     return { error: "Variável MAIN_ADMIN_SETUP_SECRET não configurada no servidor." };
   }
 
-  if (secret !== envSecret) {
+  if (parsed.data.secret !== envSecret) {
     return { error: "Chave secreta inválida. Acesso negado." };
   }
 
@@ -36,11 +48,11 @@ export async function bootstrapMainAdmin(formData: FormData) {
   try {
     // 1. Criar o usuário no Auth (Admin API)
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      password: password,
+      email: parsed.data.email,
+      password: parsed.data.password,
       email_confirm: true, // Já confirma o email direto
       user_metadata: {
-        full_name: fullName
+        full_name: parsed.data.fullName
       }
     });
 
@@ -58,8 +70,8 @@ export async function bootstrapMainAdmin(formData: FormData) {
       id: userData.user.id,
       user_id: userData.user.id,
       role: 'main_admin',
-      full_name: fullName,
-      email: email,
+      full_name: parsed.data.fullName,
+      email: parsed.data.email,
       onboarding_completed: true, // Já considera o onboarding completo pro Main Admin
       onboarding_completed_at: new Date().toISOString()
     });

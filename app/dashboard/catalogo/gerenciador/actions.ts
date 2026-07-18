@@ -3,25 +3,31 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { setActiveCatalogSchema, createCatalogSchema } from "@/lib/validations/catalog-schemas";
 
 export async function setActiveCatalog(
   targetOrgId: string, 
   profileId: string, 
   orgCatalogId: string
 ) {
+  const parsed = setActiveCatalogSchema.safeParse({ targetOrgId, profileId, orgCatalogId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = createAdminClient();
 
   // 1. Atualizar organization_catalogs (desativa todos, ativa o selecionado)
   await supabase
     .from("organization_catalogs")
     .update({ is_enabled: false })
-    .eq("organization_id", targetOrgId);
+    .eq("organization_id", parsed.data.targetOrgId);
 
   const { error: orgErr } = await supabase
     .from("organization_catalogs")
     .update({ is_enabled: true })
-    .eq("id", orgCatalogId)
-    .eq("organization_id", targetOrgId);
+    .eq("id", parsed.data.orgCatalogId)
+    .eq("organization_id", parsed.data.targetOrgId);
 
   if (orgErr) return { success: false, error: orgErr.message };
 
@@ -29,14 +35,14 @@ export async function setActiveCatalog(
   await supabase
     .from("profile_catalogs")
     .update({ is_selected: false })
-    .eq("profile_id", profileId);
+    .eq("profile_id", parsed.data.profileId);
 
   // Verifica se já existe um vínculo em profile_catalogs
   const { data: existingProfileCatalog } = await supabase
     .from("profile_catalogs")
     .select("id")
-    .eq("profile_id", profileId)
-    .eq("organization_catalog_id", orgCatalogId)
+    .eq("profile_id", parsed.data.profileId)
+    .eq("organization_catalog_id", parsed.data.orgCatalogId)
     .maybeSingle();
 
   if (existingProfileCatalog) {
@@ -48,8 +54,8 @@ export async function setActiveCatalog(
     await supabase
       .from("profile_catalogs")
       .insert({
-        profile_id: profileId,
-        organization_catalog_id: orgCatalogId,
+        profile_id: parsed.data.profileId,
+        organization_catalog_id: parsed.data.orgCatalogId,
         is_selected: true,
       });
   }
@@ -59,6 +65,11 @@ export async function setActiveCatalog(
 }
 
 export async function createCatalog(name: string, description: string, isPlatform: boolean) {
+  const parsed = createCatalogSchema.safeParse({ name, description, isPlatform });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message);
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
@@ -71,7 +82,7 @@ export async function createCatalog(name: string, description: string, isPlatfor
 
   const org = Array.isArray(profile?.organizations) ? profile?.organizations[0] : profile?.organizations;
   
-  if (isPlatform && org?.business_model !== "ALL_SERVICE") {
+  if (parsed.data.isPlatform && org?.business_model !== "ALL_SERVICE") {
     throw new Error("Apenas contas ALL_SERVICE podem criar catálogos matriz (liberados para franqueados).");
   }
 
@@ -84,9 +95,9 @@ export async function createCatalog(name: string, description: string, isPlatfor
   const { data: inserted, error } = await adminClient
     .from("catalogs")
     .insert({
-      name,
-      description,
-      catalog_type: isPlatform ? "platform" : "custom",
+      name: parsed.data.name,
+      description: parsed.data.description,
+      catalog_type: parsed.data.isPlatform ? "platform" : "custom",
       owner_id: user.id,
       owner_profile_id: user.id,
       organization_id: profile.organization_id
