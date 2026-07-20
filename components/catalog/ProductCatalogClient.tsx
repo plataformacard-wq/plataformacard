@@ -46,7 +46,8 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
   return (
     <LazyMotion features={domAnimation} strict>
       <div 
-        className="w-full min-h-screen public-theme-container pb-20 selection:bg-emerald-500/30 !max-w-none !mx-0"
+        id="catalog-content-wrapper"
+        className={`w-full public-theme-container pb-20 selection:bg-emerald-500/30 !max-w-none !mx-0 ${isEmbed ? "min-h-0" : "min-h-screen"}`}
         style={{ 
           "--primary-color": primaryColor,
           width: '100%',

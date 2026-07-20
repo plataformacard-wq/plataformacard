@@ -118,12 +118,17 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       let lastHeight = 0;
       let timeoutId: any = null;
 
+      const getTargetHeight = () => {
+        const target = document.getElementById("catalog-content-wrapper");
+        return target ? target.offsetHeight : (document.documentElement.offsetHeight || document.body.scrollHeight);
+      };
+
       const sendHeight = () => {
         if (timeoutId) return;
 
         timeoutId = setTimeout(() => {
           timeoutId = null;
-          const height = document.documentElement.offsetHeight || document.body.scrollHeight;
+          const height = getTargetHeight();
           // Só atualiza se a altura diferir por mais de 25px para evitar micro-ajustes gerados por scrollbars e loops de reflow
           if (Math.abs(height - lastHeight) > 25) {
             lastHeight = height;
@@ -132,15 +137,16 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
         }, 150); // 150ms de throttle para dar estabilidade ao layout
       };
 
-      // Envia a altura inicial e monitora mudanças de tamanho do corpo
+      // Envia a altura inicial e monitora mudanças de tamanho do content-wrapper
+      const targetElement = document.getElementById("catalog-content-wrapper") || document.body;
       const observer = new ResizeObserver(() => sendHeight());
-      observer.observe(document.body);
+      observer.observe(targetElement);
       
       // Também monitora o carregamento de imagens (que mudam a altura após o render inicial)
       window.addEventListener('load', sendHeight);
       
       // Envio inicial imediato
-      const initialHeight = document.documentElement.offsetHeight || document.body.scrollHeight;
+      const initialHeight = getTargetHeight();
       lastHeight = initialHeight;
       window.parent.postMessage({ type: 'plataformashop-height', height: initialHeight }, '*');
 
