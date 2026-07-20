@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Package, RefreshCw, Settings, ChevronDown, Check, Layout, Sparkles } from "lucide-react";
 import EstoqueManualTab from "@/components/dashboard/estoque/EstoqueManualTab";
@@ -45,6 +45,28 @@ export default function EstoqueClient({
   const [isSyncingBling, setIsSyncingBling] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+  // Estados de erro/sucesso do Bling
+  const [blingError, setBlingError] = useState<string | null>(null);
+  const [blingSuccess, setBlingSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get("bling_error");
+      const success = params.get("bling_success");
+      if (error) {
+        setBlingError(error);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+      if (success === "1") {
+        setBlingSuccess("1");
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, []);
 
   const handleSyncBling = async () => {
     setIsSyncingBling(true);
@@ -139,6 +161,69 @@ export default function EstoqueClient({
           </div>
         </div>
       </div>
+
+      {/* Mensagens de Feedback do Bling */}
+      <AnimatePresence>
+        {blingSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20">
+                <Check size={18} />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Integração Concluída!</p>
+                <p className="text-xs opacity-90">Sua conta do Bling foi conectada com sucesso e a sincronização de estoque está ativa.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBlingSuccess(null)}
+              className="text-emerald-600 dark:text-emerald-400 hover:opacity-85 font-black text-sm px-2.5 py-1"
+            >
+              Fechar
+            </button>
+          </motion.div>
+        )}
+
+        {blingError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 font-medium"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-500/20 text-lg font-black leading-none">
+                ⚠️
+              </div>
+              <div>
+                <p className="font-bold text-sm">Falha na Conexão com o Bling</p>
+                <p className="text-xs opacity-90">
+                  {blingError === "client_id_missing"
+                    ? "As credenciais do desenvolvedor Bling (BLING_CLIENT_ID e BLING_CLIENT_SECRET) não foram configuradas nas variáveis de ambiente (.env.local no seu servidor local ou na Vercel em produção). Sem elas, a autenticação não pode ser iniciada."
+                    : blingError === "org_id_missing"
+                    ? "Identificador da organização ausente no processo de integração."
+                    : blingError === "invalid_token"
+                    ? "O token de autorização fornecido pelo Bling expirou ou é inválido. Tente reconectar."
+                    : `Erro retornado pelo Bling: "${blingError}".`}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBlingError(null)}
+              className="text-red-600 dark:text-red-400 hover:opacity-85 font-black text-sm px-2.5 py-1"
+            >
+              Fechar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {activeTab === "manual" ? (
