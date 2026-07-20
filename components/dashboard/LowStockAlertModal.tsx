@@ -76,7 +76,7 @@ export default function LowStockAlertModal({ isOpen, onClose, products, onStockU
                        <div className="flex items-center gap-3">
                          {editingId === p.id ? (
                            <div className="flex items-center gap-2">
-                             <input type="number" min="0" value={editValue} onChange={e => setEditValue(e.target.value)} className="w-20 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-[var(--dash-surface)] dark:bg-zinc-900 px-2 py-1.5 text-sm text-[var(--dash-text-primary)] outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" autoFocus />
+                             <input type="number" min="0" value={editValue} onChange={e => setEditValue(e.target.value)} className="w-20 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" autoFocus />
                              <button onClick={() => handleSave(p)} disabled={isSaving} className="p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50">
                                {isSaving ? <span className="animate-spin text-xs">...</span> : <Check size={16} />}
                              </button>

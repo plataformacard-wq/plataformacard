@@ -141,18 +141,23 @@ export default async function HomePage() {
           <div className="grid gap-16">
             {[
               {
-                title: "Catálogo Franquias",
-                desc: "Crie a estrutura de produtos uma única vez. Quando você atualiza um preço, foto ou descrição, a vitrine de todos os seus vendedores e franqueados é atualizada instantaneamente.",
+                title: "Taxa Zero nas Vendas",
+                desc: "Abandone as plataformas de Link na Bio que cobram até 10% de pedágio. Receba pagamentos via Pix direto na sua conta, sem intermediários.",
                 green: true,
               },
               {
-                title: "Vitrine Individual Blindada",
-                desc: "Cada vendedor ganha um link exclusivo contendo a foto dele e botão para o WhatsApp dele, mas os produtos exibidos obedecem às regras da sua empresa.",
+                title: "Estoque Sincronizado (Bling V3)",
+                desc: "Chega de PDF desatualizado. Integre a plataforma ao seu Bling e seu catálogo sempre mostrará o preço e o estoque reais em tempo real.",
                 green: false,
               },
               {
-                title: "Negociação Direta via WhatsApp",
-                desc: "Sem checkouts complexos que espantam clientes B2B. A plataforma exibe o portfólio de forma magnética e gera um pedido organizado direto no WhatsApp do seu vendedor.",
+                title: "Físico e Digital: O Híbrido Perfeito",
+                desc: "Seu vendedor aborda o cliente fisicamente com o Cartão NFC premium, que abre instantaneamente o catálogo online no celular do cliente.",
+                green: false,
+              },
+              {
+                title: "Incorpore no seu Site (iFrame)",
+                desc: "Com apenas 1 linha de código, você embeda o seu catálogo completo dentro do seu site institucional. Rápido, profissional e conversivo.",
                 green: false,
               },
             ].map((feat, idx) => (
@@ -210,13 +215,21 @@ export default async function HomePage() {
                 </ul>
                 
                 {plan.button_url.startsWith("http") ? (
-                  <a href={plan.button_url} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
-                    {plan.button_url.includes("wa.me") && <WhatsAppIcon size={20} />}
-                    {plan.button_text}
+                  <a href={plan.button_url} target="_blank" rel="noopener noreferrer" className={`flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
+                    <div className="flex items-center gap-2">
+                      {plan.button_url.includes("wa.me") && <WhatsAppIcon size={20} />}
+                      {plan.button_text}
+                    </div>
+                    {plan.theme === 'green' && (
+                      <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Anual ou Setup exigido p/ Cartão Grátis</span>
+                    )}
                   </a>
                 ) : (
-                  <Link href={plan.button_url} className={`block text-center w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
-                    {plan.button_text}
+                  <Link href={plan.button_url} className={`flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
+                    <span>{plan.button_text}</span>
+                    {plan.theme === 'green' && (
+                      <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Anual ou Setup exigido p/ Cartão Grátis</span>
+                    )}
                   </Link>
                 )}
               </div>

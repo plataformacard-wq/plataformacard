@@ -38,7 +38,7 @@ export default function EstoqueClient({
   hasBlingConnection: initialHasBlingConnection,
 }: EstoqueClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"manual" | "bling">("manual");
+  const [activeTab, setActiveTab] = useState<"manual" | "bling">(initialHasBlingConnection ? "bling" : "manual");
   
   // Estados do Bling (copiados e adaptados de CatalogManagerClient)
   const [hasBlingConnection, setHasBlingConnection] = useState(initialHasBlingConnection);

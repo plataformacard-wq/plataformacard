@@ -1,8 +1,8 @@
 import Image from 'next/image';
 
 export function HeroSection({ settings }: { settings?: any }) {
-  const headline = settings?.hero_headline || "O fim do caos em PDFs.";
-  const subtitle = settings?.hero_subtitle || "O único cartão físico NFC premium do mercado com um catálogo completo integrado. Venda sem taxas através do WhatsApp.";
+  const headline = settings?.hero_headline || "O Fim dos Catálogos em PDF.<br/><span class='text-[#2CCB68]'>A Ferramenta Definitiva para o seu Time de Vendas.</span>";
+  const subtitle = settings?.hero_subtitle || "Cartão de Visitas Digital NFC e um Catálogo Transacional Taxa Zero sempre sincronizado com o seu Bling. A máquina de vendas que as maiores empresas usam.";
   const mockupUrl = settings?.hero_mockup_url || "/hero_mockup.png";
 
   return (
@@ -38,6 +38,22 @@ export function HeroSection({ settings }: { settings?: any }) {
             </button>
           </div>
           <p className="text-xs text-zinc-500 mt-2 ml-2">Crie sua conta grátis em 1 minuto. Sem cartão de crédito.</p>
+          
+          {/* Trust Badges B2B */}
+          <div className="mt-6 flex flex-wrap gap-4 items-center border-t border-white/10 pt-6">
+            <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+              <svg className="w-5 h-5 text-[#2CCB68]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              Operações +100k/mês
+            </div>
+            <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+              <svg className="w-5 h-5 text-[#2CCB68]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              Integração Oficial Bling ERP
+            </div>
+            <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+              <svg className="w-5 h-5 text-[#2CCB68]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              Gestão CRM Multi-Vendedores
+            </div>
+          </div>
         </div>
 
         {/* Right Column (Mockup) */}
