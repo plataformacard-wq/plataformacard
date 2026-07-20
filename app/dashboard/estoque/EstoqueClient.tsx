@@ -113,8 +113,9 @@ export default function EstoqueClient({
 
           <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-[27px] border border-[var(--dash-border)] overflow-x-auto shrink-0 self-start lg:self-center">
             <button
+              type="button"
               onClick={() => setActiveTab("manual")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${
                 activeTab === "manual"
                   ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg"
                   : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"
@@ -124,8 +125,9 @@ export default function EstoqueClient({
               Estoque Manual
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("bling")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${
                 activeTab === "bling"
                   ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg"
                   : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"

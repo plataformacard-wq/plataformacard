@@ -184,8 +184,9 @@ ${iframeResizerCode}
           <div className="flex bg-[var(--dash-hover-bg)] p-1.5 rounded-[27px] border border-[var(--dash-border)] overflow-x-auto">
             {canViewGeneral && (
               <button
+                type="button"
                 onClick={() => setActiveTab("geral")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${activeTab === "geral" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <Layout size={16} />
                 Geral
@@ -195,16 +196,18 @@ ${iframeResizerCode}
             {canViewStatus && (
               <>
                 <button
+                  type="button"
                   onClick={() => setActiveTab("status")}
-                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                  className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${activeTab === "status" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                 >
                   <Activity size={16} />
                   Status
                 </button>
                 {initialCatalog.business_model === "ALL_SERVICE" && (
                   <button
+                    type="button"
                     onClick={() => setActiveTab("implementar")}
-                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                    className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${activeTab === "implementar" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
                   >
                     <Code size={16} />
                     Implementar
@@ -215,8 +218,9 @@ ${iframeResizerCode}
 
             {canViewBanners && (
               <button
+                type="button"
                 onClick={() => setActiveTab("banners")}
-                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
+                className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${activeTab === "banners" ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg" : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"}`}
               >
                 <ImageIcon size={16} />
                 Banners
