@@ -246,9 +246,10 @@ export default async function EmbedPage(props: PageProps) {
   return (
     <div className="w-full bg-white overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
-        body { 
+        html, body { 
           margin: 0; 
           padding: 0; 
+          overflow: hidden !important;
           -webkit-transform: translateZ(0); 
           -webkit-backface-visibility: hidden; 
         }
