@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Search, Package, Check, AlertCircle, Loader2 } from "lucide-react";
+import { Search, Package, Check, AlertCircle, Loader2, X } from "lucide-react";
 import { updateProductStock } from "@/app/dashboard/estoque/actions";
 
 interface Product {
@@ -33,6 +33,7 @@ export default function EstoqueManualTab({ products: initialProducts, categories
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, "success" | "error" | null>>({});
+  const [showBlingWarning, setShowBlingWarning] = useState(true);
 
   const itemsPerPage = 25;
 
@@ -87,10 +88,18 @@ export default function EstoqueManualTab({ products: initialProducts, categories
 
   return (
     <div className="space-y-6">
-      {hasBlingConnection && (
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2">
-          <AlertCircle size={16} />
-          Sua conta está integrada ao Bling. A edição manual foi desabilitada para evitar divergências.
+      {hasBlingConnection && showBlingWarning && (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-between gap-2 animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} />
+            <span>Sua conta está integrada ao Bling. A edição manual foi desabilitada para evitar divergências.</span>
+          </div>
+          <button 
+            onClick={() => setShowBlingWarning(false)}
+            className="p-1 hover:bg-amber-500/20 rounded-md transition-colors text-amber-600 dark:text-amber-400 shrink-0"
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
 
@@ -185,10 +194,23 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
-                          defaultValue={p.stock_quantity ?? 0}
-                          disabled={updatingId === p.id || hasBlingConnection}
-                          onBlur={(e) => handleQuantityBlur(p.id, e.target.value, p.stock_quantity)}
+                          value={p.stock_quantity ?? 0}
+                          readOnly={hasBlingConnection}
+                          disabled={updatingId === p.id}
+                          onChange={(e) => {
+                            if (!hasBlingConnection) {
+                              const val = parseInt(e.target.value, 10);
+                              setProducts(prev => prev.map(prod => prod.id === p.id ? { ...prod, stock_quantity: isNaN(val) ? 0 : val } : prod));
+                            }
+                          }}
+                          onBlur={(e) => !hasBlingConnection && handleQuantityBlur(p.id, e.target.value, p.stock_quantity)}
+                          onClick={() => {
+                            if (hasBlingConnection) {
+                              alert("Para alterar o estoque manualmente, você precisa desconectar a integração com o Bling na aba 'Sincronização Bling'.");
+                            }
+                          }}
                           className={`w-24 px-3 py-2 bg-[var(--dash-hover-bg)] border rounded-lg text-center font-bold text-sm outline-none transition-all ${
+                            hasBlingConnection ? "cursor-pointer opacity-70 border-[var(--dash-border)]" :
                             rowStatus === "success"
                               ? "border-green-500 ring-2 ring-green-500/20"
                               : rowStatus === "error"
