@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const orgId = searchParams.get("orgId");
 
   if (!orgId) {
-    return NextResponse.redirect(new URL("/dashboard/empresa?bling_error=org_id_missing", request.url));
+    return NextResponse.redirect(new URL("/dashboard/estoque?bling_error=org_id_missing", request.url));
   }
 
   const supabase = await createClient();
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   const clientId = process.env.BLING_CLIENT_ID;
   if (!clientId) {
-    return NextResponse.redirect(new URL("/dashboard/empresa?bling_error=client_id_missing", request.url));
+    return NextResponse.redirect(new URL("/dashboard/estoque?bling_error=client_id_missing", request.url));
   }
 
   const state = orgId; // Passamos o orgId no state para recuperarmos no callback

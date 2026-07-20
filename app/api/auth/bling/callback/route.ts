@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
 
   // A URL de redirecionamento para voltar pro painel
-  const redirectUrl = new URL("/dashboard/catalogo/gerenciador", request.url);
+  const redirectUrl = new URL("/dashboard/estoque", request.url);
 
   if (error) {
     redirectUrl.searchParams.set("bling_error", error);
