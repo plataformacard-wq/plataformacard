@@ -52,18 +52,20 @@ export default function EstoqueClient({
 
   const handleSyncBling = async () => {
     setIsSyncingBling(true);
+    setBlingSuccess(null);
+    setBlingError(null);
     try {
       const res = await syncBlingStock(orgId);
       if (res.success) {
-        alert(
+        setBlingSuccess(
           `Sincronização concluída! Produtos atualizados: ${res.updatedCount}. Não encontrados/esgotados: ${res.notFoundCount}.`
         );
         router.refresh();
       } else {
-        alert("Erro: " + res.message);
+        setBlingError("Erro: " + res.message);
       }
     } catch (err: any) {
-      alert("Erro ao conectar com a sincronização.");
+      setBlingError("Erro ao conectar com a sincronização.");
     } finally {
       setIsSyncingBling(false);
     }
@@ -98,6 +100,8 @@ export default function EstoqueClient({
       return;
 
     setIsDisconnecting(true);
+    setBlingSuccess(null);
+    setBlingError(null);
     try {
       const res = await fetch("/api/auth/bling/disconnect", {
         method: "POST",
@@ -108,13 +112,13 @@ export default function EstoqueClient({
       const data = await res.json();
       if (res.ok && data.success) {
         setHasBlingConnection(false);
-        alert("Bling desconectado com sucesso.");
+        setBlingSuccess("Bling desconectado com sucesso.");
         router.refresh();
       } else {
-        alert("Erro ao desconectar: " + (data.error || "Desconhecido"));
+        setBlingError("Erro ao desconectar: " + (data.error || "Desconhecido"));
       }
     } catch (err) {
-      alert("Erro de conexão ao tentar desconectar o Bling.");
+      setBlingError("Erro de conexão ao tentar desconectar o Bling.");
     } finally {
       setIsDisconnecting(false);
     }
@@ -178,8 +182,14 @@ export default function EstoqueClient({
                 <Check size={18} />
               </div>
               <div>
-                <p className="font-bold text-sm">Integração Concluída!</p>
-                <p className="text-xs opacity-90">Sua conta do Bling foi conectada com sucesso e a sincronização de estoque está ativa.</p>
+                <p className="font-bold text-sm">
+                  {blingSuccess === "1" ? "Integração Concluída!" : "Sucesso!"}
+                </p>
+                <p className="text-xs opacity-90">
+                  {blingSuccess === "1"
+                    ? "Sua conta do Bling foi conectada com sucesso e a sincronização de estoque está ativa."
+                    : blingSuccess}
+                </p>
               </div>
             </div>
             <button
@@ -204,7 +214,7 @@ export default function EstoqueClient({
                 ⚠️
               </div>
               <div>
-                <p className="font-bold text-sm">Falha na Conexão com o Bling</p>
+                <p className="font-bold text-sm">Atenção</p>
                 <p className="text-xs opacity-90">
                   {blingError === "client_id_missing"
                     ? "As credenciais do desenvolvedor Bling (BLING_CLIENT_ID e BLING_CLIENT_SECRET) não foram configuradas nas variáveis de ambiente (.env.local no seu servidor local ou na Vercel em produção). Sem elas, a autenticação não pode ser iniciada."
@@ -212,7 +222,7 @@ export default function EstoqueClient({
                     ? "Identificador da organização ausente no processo de integração."
                     : blingError === "invalid_token"
                     ? "O token de autorização fornecido pelo Bling expirou ou é inválido. Tente reconectar."
-                    : `Erro retornado pelo Bling: "${blingError}".`}
+                    : blingError}
                 </p>
               </div>
             </div>
