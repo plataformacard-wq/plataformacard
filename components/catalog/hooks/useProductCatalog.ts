@@ -115,10 +115,21 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
     
     // Auto-Height for Embed Mode (CaaS) - TRAVA DE SEGURANÇA
     if (isEmbed) {
+      let lastHeight = 0;
+      let timeoutId: any = null;
+
       const sendHeight = () => {
-        // Use offsetHeight of documentElement for better accuracy in some browsers
-        const height = document.documentElement.offsetHeight || document.body.scrollHeight;
-        window.parent.postMessage({ type: 'plataformashop-height', height }, '*');
+        if (timeoutId) return;
+
+        timeoutId = setTimeout(() => {
+          timeoutId = null;
+          const height = document.documentElement.offsetHeight || document.body.scrollHeight;
+          // Só atualiza se a altura diferir por mais de 4px para evitar micro-ajustes gerados por scrollbars e loops de reflow
+          if (Math.abs(height - lastHeight) > 4) {
+            lastHeight = height;
+            window.parent.postMessage({ type: 'plataformashop-height', height }, '*');
+          }
+        }, 150); // 150ms de throttle para dar estabilidade ao layout
       };
 
       // Envia a altura inicial e monitora mudanças de tamanho do corpo
@@ -129,12 +140,15 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       window.addEventListener('load', sendHeight);
       
       // Envio inicial imediato
-      sendHeight();
+      const initialHeight = document.documentElement.offsetHeight || document.body.scrollHeight;
+      lastHeight = initialHeight;
+      window.parent.postMessage({ type: 'plataformashop-height', height: initialHeight }, '*');
 
       return () => {
         window.removeEventListener("resize", handleResize);
         observer.disconnect();
         window.removeEventListener('load', sendHeight);
+        if (timeoutId) clearTimeout(timeoutId);
       };
     }
 
