@@ -85,6 +85,9 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
       />
       
       <main className={`${isEmbed ? 'w-full px-8 sm:px-6 relative' : 'max-w-6xl mx-auto px-8 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'} z-10`}>
+        {isEmbed && (
+          <LgpdConsentBanner primaryColor={primaryColor} isEmbed={true} />
+        )}
         {state.localShowBanners && (
           <CatalogBannerCarousel 
             banners={state.localBanners || []}
@@ -325,7 +328,9 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         </AnimatePresence>,
         document.body
       )}
-      <LgpdConsentBanner primaryColor={primaryColor} isEmbed={isEmbed} />
+      {!isEmbed && (
+        <LgpdConsentBanner primaryColor={primaryColor} isEmbed={false} />
+      )}
     </div>
     </LazyMotion>
   );

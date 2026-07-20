@@ -56,18 +56,20 @@ export function LgpdConsentBanner({ primaryColor, isEmbed = false }: LgpdConsent
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          initial={isEmbed ? { opacity: 0, y: -15 } : { opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 30, scale: 0.95 }}
+          exit={isEmbed ? { opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" } : { opacity: 0, y: 30, scale: 0.95 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className={`z-[9999] bg-zinc-950/85 dark:bg-zinc-950/90 border border-white/10 text-white rounded-3xl p-5 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-center md:items-start gap-4 max-w-2xl ${
-            isEmbed 
-              ? "sticky bottom-4 mx-4" 
-              : "fixed bottom-6 left-6 right-6 md:left-auto md:right-6"
-          }`}
-          style={{
-            boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.5), inset 0 1px 0 0 rgb(255 255 255 / 0.05)"
-          }}
+          className={
+            isEmbed
+              ? "relative w-full z-10 bg-zinc-950/85 dark:bg-zinc-950/90 border border-white/10 text-white rounded-[2rem] p-5 shadow-lg flex flex-col md:flex-row items-center md:items-start gap-4 mb-6"
+              : "fixed bottom-6 left-6 right-6 md:left-auto md:right-6 z-[9999] bg-zinc-950/85 dark:bg-zinc-950/90 border border-white/10 text-white rounded-3xl p-5 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-center md:items-start gap-4 max-w-2xl"
+          }
+          style={
+            isEmbed
+              ? { boxShadow: "0 10px 30px -10px rgb(0 0 0 / 0.3), inset 0 1px 0 0 rgb(255 255 255 / 0.05)" }
+              : { boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.5), inset 0 1px 0 0 rgb(255 255 255 / 0.05)" }
+          }
         >
           {/* Icon */}
           <div className="shrink-0 h-10 w-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400">
