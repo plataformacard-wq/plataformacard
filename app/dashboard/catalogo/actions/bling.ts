@@ -123,7 +123,10 @@ export async function syncBlingStock(organizationId: string, targetSku?: string)
           if (saldoRes.ok) {
             const saldoData = await saldoRes.json();
             if (saldoData.data && saldoData.data.length > 0) {
-              const saldoFisico = saldoData.data.reduce((sum: number, item: any) => sum + (item.saldoFisico || 0), 0);
+              const item = saldoData.data[0];
+              const saldoFisico = typeof item.saldoFisicoTotal === "number"
+                ? item.saldoFisicoTotal
+                : (item.depositos ? item.depositos.reduce((sum: number, dep: any) => sum + (dep.saldoFisico || 0), 0) : 0);
               const inStock = saldoFisico > 0;
 
               await supabase

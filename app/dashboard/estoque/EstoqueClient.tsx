@@ -50,24 +50,6 @@ export default function EstoqueClient({
   const [blingError, setBlingError] = useState<string | null>(null);
   const [blingSuccess, setBlingSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const error = params.get("bling_error");
-      const success = params.get("bling_success");
-      if (error) {
-        setBlingError(error);
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-      if (success === "1") {
-        setBlingSuccess("1");
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-    }
-  }, []);
-
   const handleSyncBling = async () => {
     setIsSyncingBling(true);
     try {
@@ -86,6 +68,26 @@ export default function EstoqueClient({
       setIsSyncingBling(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get("bling_error");
+      const success = params.get("bling_success");
+      if (error) {
+        setBlingError(error);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+      if (success === "1") {
+        setBlingSuccess("1");
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        // Disparar sincronização automática pós-conexão para atualizar o estoque na hora
+        handleSyncBling();
+      }
+    }
+  }, []);
 
   const handleDisconnectBling = async () => {
     if (
