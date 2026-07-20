@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronRight } from "lucide-react";
-import StockIntelligenceSection from "@/components/dashboard/StockIntelligenceSection";
+import DashboardStockSummary from "@/components/dashboard/home/DashboardStockSummary";
 import DashboardAlerts from "@/components/dashboard/home/DashboardAlerts";
 import DashboardKpiGrid from "@/components/dashboard/home/DashboardKpiGrid";
 import DashboardQuickActions from "@/components/dashboard/home/DashboardQuickActions";
@@ -103,9 +103,8 @@ export default function DashboardClient({ initialData }: { initialData: any }) {
 
       <DashboardKpiGrid stats={stats} loading={false} />
 
-      <StockIntelligenceSection 
+      <DashboardStockSummary 
         activeOrgId={initialData.profileData?.organization_id} 
-        hasBlingConnection={initialData.hasBlingConnection} 
       />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

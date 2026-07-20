@@ -24,7 +24,9 @@ import {
   BadgeDollarSign,
   CreditCard,
   Sparkles,
-  Paintbrush
+  Paintbrush,
+  Package,
+  Kanban
 } from "lucide-react";
 
 interface SidebarProps {
@@ -179,6 +181,9 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         ]
       });
 
+      navLinks.push({ href: "/dashboard/estoque", label: "Estoque", icon: Package });
+      navLinks.push({ href: "/dashboard/crm", label: "CRM de Leads", icon: Kanban });
+
       if (!isB2C && !isCaaS) {
         navLinks.push({ href: "/dashboard/vendedores", label: "Colaboradores", icon: Users });
       }
@@ -239,7 +244,10 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
             subItems: catalogSubItems
           } as any);
         }
+        navLinks.push({ href: "/dashboard/estoque", label: "Estoque", icon: Package });
       }
+
+      navLinks.push({ href: "/dashboard/crm", label: "CRM de Leads", icon: Kanban });
 
       if (canAccessAnalytics) {
         // Analytics será adicionado ao final globalmente
