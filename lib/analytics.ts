@@ -26,19 +26,26 @@ export async function trackAnalyticsEvent({
   metadata?: Record<string, any>;
 }) {
   try {
-    const safeVisitorId =
-      visitorId ??
-      (typeof window !== "undefined"
-        ? window.localStorage.getItem("VISITOR_ID")
-        : null);
+    const isConsentAccepted = typeof window !== "undefined"
+      ? window.localStorage.getItem("plataformashop-lgpd-consent") === "accepted"
+      : false;
 
-    const safeReferrer =
-      referrer ??
-      (typeof document !== "undefined" ? document.referrer : null);
+    const safeVisitorId = isConsentAccepted
+      ? (visitorId ??
+        (typeof window !== "undefined"
+          ? window.localStorage.getItem("VISITOR_ID")
+          : null))
+      : null;
 
-    const safeUserAgent =
-      userAgent ??
-      (typeof navigator !== "undefined" ? navigator.userAgent : null);
+    const safeReferrer = isConsentAccepted
+      ? (referrer ??
+        (typeof document !== "undefined" ? document.referrer : null))
+      : null;
+
+    const safeUserAgent = isConsentAccepted
+      ? (userAgent ??
+        (typeof navigator !== "undefined" ? navigator.userAgent : null))
+      : null;
 
     if (!profileId) {
       console.warn("⚠️ profileId não definido — analytics não enviado");

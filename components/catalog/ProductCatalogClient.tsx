@@ -10,6 +10,7 @@ import { CatalogHeader } from "./ui/CatalogHeader";
 import { CatalogBannerCarousel } from "./ui/CatalogBannerCarousel";
 import { CategorySection } from "./ui/CategorySection";
 import { ProductModal } from "./ui/ProductModal";
+import { LgpdConsentBanner } from "./ui/LgpdConsentBanner";
 
 export default function ProductCatalogClient(props: ProductCatalogClientProps) {
   const {
@@ -324,6 +325,7 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         </AnimatePresence>,
         document.body
       )}
+      <LgpdConsentBanner primaryColor={primaryColor} isEmbed={isEmbed} />
     </div>
     </LazyMotion>
   );
