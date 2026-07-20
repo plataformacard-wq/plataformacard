@@ -682,13 +682,13 @@ export default function VendedoresClient({
                         href={getPublicUrl(v.slug || "", customDomain, false, true)} 
                         target="_blank"
                         onClick={(e) => e.stopPropagation()}
-                        className="group flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 text-primary text-xs font-bold border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-[0_0_14px_rgba(var(--primary-rgb),0.35)] active:scale-95 transition-all duration-200"
+                        className="group flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 text-primary text-xs font-bold border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-[0_0_14px_rgba(var(--primary-rgb),0.35)] active:scale-95 transition-all duration-200"
                       >
                         <ExternalLink size={14} className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /> Cartão Virtual
                       </a>
                       <button 
                         onClick={() => handleOpenForm(v)}
-                        className="px-4 py-2.5 rounded-xl bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] text-xs font-bold border border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)] hover:border-primary/30 active:scale-95 transition-all duration-200"
+                        className="px-4 py-2.5 rounded-lg bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] text-xs font-bold border border-[var(--dash-border)] hover:bg-[var(--dash-hover-bg)] hover:border-primary/30 active:scale-95 transition-all duration-200"
                       >
                         Editar Ficha
                       </button>

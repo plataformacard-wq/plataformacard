@@ -43,7 +43,7 @@ export function VendedorHeaderControls(props: any) {
         {/* Controles de Acesso Rápido */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Switch de Disponibilidade — visual premium */}
-          <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border backdrop-blur-sm transition-all duration-300 ${
+          <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border backdrop-blur-sm transition-all duration-300 ${
             formAvailable
               ? "bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_0_rgba(34,197,94,0.15)]"
               : "bg-[var(--dash-surface-secondary)] border-[var(--dash-border)]"
@@ -72,7 +72,7 @@ export function VendedorHeaderControls(props: any) {
               href={getPublicUrl(formSlug, customDomain, false, true)} 
               target="_blank"
               rel="noreferrer"
-              className="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary/10 text-primary text-xs font-bold border border-primary/20 shadow-sm hover:bg-primary hover:text-white hover:shadow-[0_0_16px_rgba(var(--primary-rgb),0.4)] hover:border-primary active:scale-95 transition-all duration-200"
+              className="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary/10 text-primary text-xs font-bold border border-primary/20 shadow-sm hover:bg-primary hover:text-white hover:shadow-[0_0_16px_rgba(var(--primary-rgb),0.4)] hover:border-primary active:scale-95 transition-all duration-200"
             >
               <ExternalLink size={14} className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               Cartão Virtual
