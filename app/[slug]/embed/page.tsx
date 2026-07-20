@@ -244,9 +244,14 @@ export default async function EmbedPage(props: PageProps) {
   const nationalHolidays = await getNationalHolidays(currentYear);
 
   return (
-    <div className="w-full min-h-screen bg-white overflow-x-hidden">
+    <div className="w-full bg-white overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
-        body { margin: 0; padding: 0; }
+        body { 
+          margin: 0; 
+          padding: 0; 
+          -webkit-transform: translateZ(0); 
+          -webkit-backface-visibility: hidden; 
+        }
         main { 
           max-width: 1200px !important; 
           width: 100% !important; 

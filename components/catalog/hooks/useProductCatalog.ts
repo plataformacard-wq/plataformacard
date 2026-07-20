@@ -124,8 +124,8 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
         timeoutId = setTimeout(() => {
           timeoutId = null;
           const height = document.documentElement.offsetHeight || document.body.scrollHeight;
-          // Só atualiza se a altura diferir por mais de 4px para evitar micro-ajustes gerados por scrollbars e loops de reflow
-          if (Math.abs(height - lastHeight) > 4) {
+          // Só atualiza se a altura diferir por mais de 25px para evitar micro-ajustes gerados por scrollbars e loops de reflow
+          if (Math.abs(height - lastHeight) > 25) {
             lastHeight = height;
             window.parent.postMessage({ type: 'plataformashop-height', height }, '*');
           }
