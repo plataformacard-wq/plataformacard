@@ -1,25 +1,84 @@
-# 🟩 RELATÓRIO DE CONTINUIDADE: Estabilização e Testes de UX com Catálogo Real (MAJ Mobilidade)
+# 🟩 PROMPT DE CONTINUIDADE: Checkout Kiwify, Feature Gating, Estoque por Cores e Protocolo VPGP
 
-**Contexto da Sessão Atual (07/06/2026):**
-Estamos no processo de realizar testes reais de UX, comportamento de layout e refinamentos de design no catálogo público com produtos da **MAJ Mobilidade Elétrica**.
+**Data:** 21/07/2026
 
-Durante as sessões recentes, resolvemos os seguintes pontos:
-1. **Unificação do Singleton do Supabase (Analytics)**: Descobrimos que o módulo **[analytics.ts](file:///c:/Users/Start/plataformashop/lib/analytics.ts)** estava instanciando um cliente paralelo do Supabase (`createClient` de `@supabase/supabase-js`) no navegador. Isso entrava em conflito de chaves concorrentes no `localStorage` com a conexão padrão, disparando o warning `Multiple GoTrueClient instances`. Unificamos a chamada em `analytics.ts` para usar o singleton unificado, limpando definitivamente esse alerta do DevTools.
-2. **Instância de Client Singleton do Supabase**: Implementamos o padrão Singleton em [client.ts](file:///c:/Users/Start/plataformashop/lib/supabase/client.ts) salvando a conexão ativa no `globalThis`. Isso resolve o problema de múltiplas instâncias concorrentes criadas pelo Fast Refresh/Hot Module Replacement no modo de desenvolvimento do Next.js (Turbopack), limpando o console de warnings de autenticação.
-3. **Correção de Retângulo de Preço Vazio (Bug no Modal)**: Corrigimos um bug em [ProductCatalogClient.tsx](file:///c:/Users/Start/plataformashop/components/catalog/ProductCatalogClient.tsx) onde um contêiner cinza vazio (o retângulo de preços) era renderizado para produtos sem preços cadastrados (como os cadastrados para negociação direta no WhatsApp, sem varejo/atacado). Ajustamos a condicional do container para renderizar apenas se `hidePrices` for ativo ou se houver pelo menos um preço válido de varejo ou atacado cadastrado.
-4. **Suavização de Arredondamentos (Design Clean/Premium)**: O arredondamento de cantos (`border-radius`) da modal de detalhes do produto e dos elementos internos foi considerado muito agressivo (ex: card de preço de atacado com `rounded-3xl` e contêineres/botões gerais com `rounded-2xl`). Atenuamos todos os arredondamentos em [ProductCatalogClient.tsx](file:///c:/Users/Start/plataformashop/components/catalog/ProductCatalogClient.tsx) para uma escala mais sóbria e moderna (`rounded-3xl`/`rounded-2xl` -> `rounded-xl`, `rounded-xl` -> `rounded-lg`, `rounded-lg` -> `rounded-md`, e `rounded-md` -> `rounded-sm`).
-5. **Runtime ChunkLoadError (react-quill-new):** O carregamento dinâmico direto do editor Quill gerava falha de carregamento de chunk no Turbopack. Corrigimos isso criando o wrapper centralizado [RichTextEditor.tsx](file:///c:/Users/Start/plataformashop/components/dashboard/RichTextEditor.tsx) (`ssr: false`) e limpamos imports em [CatalogoClient.tsx](file:///c:/Users/Start/plataformashop/app/dashboard/catalogo/CatalogoClient.tsx).
-6. **Ocultação de Produtos no Catálogo Master (Bug de CaaS)**: Ajustamos [page.tsx](file:///c:/Users/Start/plataformashop/app/[slug]/catalogo/page.tsx) para ignorar o filtro de CaaS se o visualizador for o próprio dono, e ordenamos a query de fallbacks por `created_at DESC` para obter o catálogo mais recente.
+---
 
-**Estado Técnico Atual:**
-- **Servidor Dev:** Rodando em segundo plano (`npm run dev`) e acessível em `http://localhost:3000/start-super-admin/catalogo`.
-- **Compilação:** O build de produção do Next.js 16 (Turbopack) está **100% aprovado** e compilou sem nenhum erro de TypeScript ou agrupamento de chunks após a suavização dos cantos.
-- **Banco de Dados**: Produto real `MAJ X15 PRO` renderizando corretamente.
+## 📌 Contexto da Sessão Concluída:
+Nesta sessão, entregamos uma grande atualização de infraestrutura comercial, UX de vendas e controle de estoque na PlataformaShop:
 
-**🔮 Próximos Passos & Tarefas:**
-1. **[CONCLUÍDO] Área de Cadastro de Imagens no Banner (Menu Configurações):** Desenvolvido no menu de configurações do catálogo (`app/dashboard/catalogo/configuracoes/`) uma área dedicada para cadastrar as imagens do banner.
-2. **[CONCLUÍDO] Tela de Assinatura e Planos (Minha Assinatura)**: Rota `/dashboard/assinatura` e Sidebar integradas. Exibe consumo de limites em tempo real e redireciona de forma segura para os checkouts apropriados anexando referências da organização.
-3. **[CONCLUÍDO] Ajuste de Suavização de Borda**: Aplicado o arredondamento de bordas mais sóbrio e moderno na página `AssinaturaClient.tsx` (cantos reduzidos para `rounded-xl`/`rounded-lg`).
-4. **[CONCLUÍDO] Tela de Gestão de Assinaturas & Financeiro no Super Admin (QG)**: Criar uma página dedicada no painel de administração global (Super Admin / QG) para o gerenciamento de assinaturas, controle e overrides de recursos das organizações e parametrização financeira/planos diretamente pelo painel administrativo.
-5. Continuar com os testes de vitrine e iniciar os demais itens de [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/PENDENCIAS.md).
+1. **Página de Checkout Kiwify (`/checkout`):**
+   - Rota `/checkout` com resumo do pedido dinâmico (cálculo de âncora mensal riscada, valor com desconto anual, economia acumulada e selo em destaque de **"Garantia Incondicional de Reembolso de 7 Dias"**).
+   - Formulário de cadastro de dados do assinante (Nome, E-mail, CPF/CNPJ, WhatsApp) com seleção de Pix ou Cartão de Crédito.
+   - Rota de Webhook em `/api/webhooks/kiwify` para confirmação automática de pagamento (`paid`, `approved`) e liberação imediata do plano no Supabase.
 
+2. **Feature Gating (Restrição de Recursos) & Modais de Upsell:**
+   - Mapeamento centralizado de permissões por plano (`lib/plans/feature-matrix.ts`).
+   - Hook `useFeatureGate()` para interceptação de ações restritas.
+   - Modal premium Dark Mode (`UpgradeModal.tsx`) acionado quando o lojista no plano Starter tenta utilizar **IA de SEO**, **Integração Bling V3** ou **Domínio Próprio**.
+
+3. **Controle de Estoque por Cores & Sincronização Bling (Variações Pai/Filhos):**
+   - Estrutura JSONB `colors` estendida com suporte a estoque por cor e SKU individual.
+   - Sincronização automática com a API V3 do Bling (`app/dashboard/catalogo/actions/bling.ts`) para variações Pai/Filhos.
+   - Sub-componente `ProductColorStockSection.tsx` (respeitando o Protocolo PRM sem inchar o arquivo blindado `ProductModal.tsx`).
+   - Tabela de Estoque (`/dashboard/estoque`) com linha expansível (**Accordion**) para ajuste rápido por cor.
+   - Catálogo Público exibindo cores esgotadas como opacas/desabilitadas com o badge `[Esgotado]`.
+
+4. **Documentação & Protocolo VPGP:**
+   - Registrada a pendência de 2FA em `PENDENCIAS.md` como **Bloqueador de Lançamento Online**, com migração `20260721230000_add_2fa_backup_codes.sql` criada no repositório e já executada no banco.
+   - Executado o **Protocolo VPGP (Verify, Push, Github, Push)** com compilação 100% aprovada (`npm run build` Turbopack e `npx tsc --noEmit` com 0 erros), e commit/push para a branch `main`.
+
+---
+
+## 🔗 Links de Teste para a Próxima Sessão (Servidor Dev `http://localhost:3000`):
+
+### 🛒 Checkout & Vendas:
+- **Landing Page (Seção de Planos):** [http://localhost:3000/#planos](http://localhost:3000/#planos)
+- **Checkout PRO Anual:** [http://localhost:3000/checkout?plan=pro&cycle=annual](http://localhost:3000/checkout?plan=pro&cycle=annual)
+- **Checkout Starter Mensal:** [http://localhost:3000/checkout?plan=starter&cycle=monthly](http://localhost:3000/checkout?plan=starter&cycle=monthly)
+- **Checkout Sales Team Anual:** [http://localhost:3000/checkout?plan=sales_team&cycle=annual](http://localhost:3000/checkout?plan=sales_team&cycle=annual)
+
+### 📊 Dashboard & Feature Gating (Testes de Upsell):
+- **Painel Principal:** [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+- **Gestão de Estoque (Accordion por Cor):** [http://localhost:3000/dashboard/estoque](http://localhost:3000/dashboard/estoque)
+- **Gerador de IA SEO (Teste Gating Starter):** [http://localhost:3000/dashboard/empresa/seo](http://localhost:3000/dashboard/empresa/seo)
+- **Domínio Próprio (Teste Gating Starter):** [http://localhost:3000/dashboard/perfil/dominio](http://localhost:3000/dashboard/perfil/dominio)
+
+### 👑 Portal Main Admin:
+- **Login Main:** [http://localhost:3000/main-login](http://localhost:3000/main-login)
+- **Dashboard Main:** [http://localhost:3000/main](http://localhost:3000/main)
+
+---
+
+## 📋 PROMPT PARA COPIAR E COLAR NA PRÓXIMA SESSÃO:
+
+```markdown
+<CONTEXTO_DE_CONTINUIDADE>
+Nós concluímos com sucesso a implementação da Página de Checkout Kiwify, a arquitetura de Feature Gating (Restrição de Recursos por Plano), o Controle de Estoque por Cores com sincronização Bling V3 e o Protocolo VPGP.
+
+*Resumo das Entregas Ativas no Código:*
+1. **Página de Checkout Kiwify (`/checkout`):**
+   - Rota `/checkout` funcional com resumo de preços ancorados, calculador de ciclo (anual vs mensal) e selo de Garantia de Reembolso de 7 Dias.
+   - Rota de Webhook em `/api/webhooks/kiwify` ativando o plano no Supabase.
+2. **Feature Gating & Modais de Upsell:**
+   - Matriz em `lib/plans/feature-matrix.ts`, hook `useFeatureGate.ts` e modal `UpgradeModal.tsx`.
+   - Bloqueio de IA SEO, Bling Sync e Domínio Próprio para o plano Starter.
+3. **Controle de Estoque por Cores & Bling V3:**
+   - Mapeamento de variações Pai/Filho no Bling (`syncBlingStock`).
+   - Accordion de gestão por cor em `/dashboard/estoque` e sub-componente `ProductColorStockSection.tsx`.
+   - Badge visual de `[Esgotado]` para cores sem estoque no catálogo público.
+4. **Segurança e VPGP:**
+   - Migração `20260721230000_add_2fa_backup_codes.sql` registrada em `PENDENCIAS.md`.
+   - Build `npm run build` e `npx tsc --noEmit` (0 erros) commitados e enviados (`git push origin main`).
+
+*Links para Testes:*
+- Landing Page: http://localhost:3000/#planos
+- Checkout PRO Anual: http://localhost:3000/checkout?plan=pro&cycle=annual
+- Checkout Starter Mensal: http://localhost:3000/checkout?plan=starter&cycle=monthly
+- Dashboard Estoque (Accordion): http://localhost:3000/dashboard/estoque
+- Teste Gating IA SEO: http://localhost:3000/dashboard/empresa/seo
+
+*Objetivo da Nova Sessão:*
+Iniciar a execução do Protocolo Start (git sync check, dev server lsof :3000 e varredura de auditoria UX/UI), realizar os testes visuais de checkout/gating e definir o próximo passo de desenvolvimento.
+</CONTEXTO_DE_CONTINUIDADE>
+```
