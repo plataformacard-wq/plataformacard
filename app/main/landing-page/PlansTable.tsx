@@ -336,7 +336,6 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   <label className="text-sm text-[var(--dash-text-primary)]">Ativo (Visível na página)</label>
                 </div>
               </div>
-              </div>
               
               <div className="mt-6 border border-[var(--dash-border)] rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden">
                 <div className="bg-black/10 dark:bg-white/10 px-4 py-2 text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider">
@@ -372,7 +371,8 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                 </div>
               </div>
             </div>
-            <div className="p-4 border-t border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] flex justify-end shrink-0">
+          </div>
+          <div className="p-4 border-t border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] flex justify-end shrink-0">
               <button 
                 onClick={handleSave} disabled={loading}
                 className="bg-emerald-500 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center min-w-[120px]"
