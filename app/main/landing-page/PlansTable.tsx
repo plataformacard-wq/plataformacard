@@ -225,7 +225,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">
-                    Valor do Desconto Anual {form.annual_discount_type === 'percentage' ? '(%)' : '(R$)'}
+                    Valor do Desconto mensal {form.annual_discount_type === 'percentage' ? '(%)' : '(R$)'}
                   </label>
                   <input 
                     type="number" step="0.01" value={form.annual_discount_value || 0} onChange={e => setForm({...form, annual_discount_value: Number(e.target.value)})}
@@ -337,14 +337,17 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     <div className="text-2xl font-black text-[var(--dash-text-primary)]">
                       R$ {previewBasePrice.toFixed(2).replace('.', ',')}/mês
                     </div>
-                    <div className="text-[10px] text-zinc-500 mt-1">Preço puro. Sem ancoragem.</div>
+                    <div className="text-[10px] text-zinc-500 mt-1">
+                      Total de R$ {(previewBasePrice * 12).toFixed(2).replace('.', ',')}
+                    </div>
+                    <div className="text-[10px] text-zinc-600 mt-1">Preço puro. Sem ancoragem.</div>
                   </div>
                   {/* Anual */}
                   <div className="flex flex-col pl-6 relative">
                     <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
                     {previewActiveDiscount > 0 && (
                        <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold bg-[#FFB800] text-black shadow-sm">
-                         R$ {previewActiveDiscount.toFixed(2).replace('.', ',')} OFF
+                         R$ {previewActiveDiscount.toFixed(2).replace('.', ',')} OFF/mês
                        </div>
                     )}
                     <div className="text-xs font-bold text-zinc-500 line-through">
@@ -353,6 +356,11 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     <div className="text-2xl font-black text-[var(--dash-text-primary)]">
                       R$ {previewAnnualPrice.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
+                    {previewActiveDiscount > 0 && (
+                      <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase">
+                        economize R$ {(previewActiveDiscount * 12).toFixed(2).replace('.', ',')} por ano
+                      </div>
+                    )}
                     <div className="text-[10px] text-zinc-500 mt-2 leading-tight">
                       Fatura total: R$ {(previewAnnualPrice * 12).toFixed(2).replace('.', ',')}/ano
                     </div>

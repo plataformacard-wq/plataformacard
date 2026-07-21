@@ -88,7 +88,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
 
             // Calcula o valor exato do desconto para o Sticker (Apenas no Anual)
             const activeDiscountValue = basePrice - currentActivePriceValue;
-            const formattedDiscountSticker = (isAnnual && activeDiscountValue > 0) ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF` : null;
+            const formattedDiscountSticker = (isAnnual && activeDiscountValue > 0) ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF/mês` : null;
 
             // Formata: "R$ 39,90/mês" -> currency: "R$", value: "39,90", suffix: "/mês"
             const priceMatch = typeof displayPriceStr === 'string' ? displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/) : null;
@@ -133,6 +133,17 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     <div className={`text-5xl font-extrabold text-white ${plusJakarta.className}`}>
                       {displayPriceStr}
                     </div>
+                  )}
+
+                  {!isAnnual && currentActivePriceValue > 0 && (
+                     <div className="text-[13px] text-zinc-400 mt-2 font-medium tracking-wide">
+                       Total de R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}
+                     </div>
+                  )}
+                  {isAnnual && activeDiscountValue > 0 && (
+                     <div className="text-[12px] font-bold text-[#2CCB68] mt-2 inline-flex items-center bg-[#2CCB68]/10 px-2.5 py-1 rounded-md w-fit uppercase tracking-wider">
+                       economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano
+                     </div>
                   )}
 
                 </div>
