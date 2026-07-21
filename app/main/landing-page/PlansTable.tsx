@@ -134,13 +134,15 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
               <span className="absolute top-4 left-4 px-2 py-1 bg-red-500/10 text-red-500 text-xs font-bold rounded-full">Inativo</span>
             )}
             
-            {item.badge_text && (
-              <span className={`self-start mt-8 px-3 py-1 rounded-full text-xs font-bold ${item.theme === 'green' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-zinc-300'}`}>
-                {item.badge_text}
-              </span>
-            )}
+            <div className="h-7 mt-8 mb-2">
+              {item.badge_text && (
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${item.theme === 'green' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-black/10 dark:bg-white/10 text-zinc-600 dark:text-zinc-300'}`}>
+                  {item.badge_text}
+                </span>
+              )}
+            </div>
 
-            <h3 className={`text-2xl font-bold mt-4 ${item.theme === 'green' ? 'text-emerald-500' : 'text-[var(--dash-text-primary)]'}`}>
+            <h3 className={`text-2xl font-bold ${item.theme === 'green' ? 'text-emerald-500' : 'text-[var(--dash-text-primary)]'}`}>
               {item.name}
             </h3>
             <div className="text-3xl font-bold text-[var(--dash-text-primary)] mt-2">{item.price_text}</div>
