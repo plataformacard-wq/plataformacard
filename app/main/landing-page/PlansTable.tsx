@@ -346,7 +346,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   <div className="flex flex-col pl-6 relative">
                     <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
                     {previewActiveDiscount > 0 && (
-                       <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold bg-[#FFB800] text-black shadow-sm">
+                       <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFB800] text-black shadow-sm">
                          R$ {previewActiveDiscount.toFixed(2).replace('.', ',')} OFF/mês
                        </div>
                     )}
@@ -357,7 +357,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                       R$ {previewAnnualPrice.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
                     {previewActiveDiscount > 0 && (
-                      <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase">
+                      <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
                         economize R$ {(previewActiveDiscount * 12).toFixed(2).replace('.', ',')} por ano.
                       </div>
                     )}
