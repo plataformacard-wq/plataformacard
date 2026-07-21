@@ -79,14 +79,16 @@ export function PricingSection({ plans }: { plans: any[] }) {
                   </div>
                 )}
                 
-                {/* Badge Desconto (Direita) */}
-                {isAnnual && (
-                  <div className="absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold bg-[#FFB800] text-black shadow-lg">
-                    Economize 50%
-                  </div>
-                )}
-                
-                <div className={`text-xl font-bold mb-2 ${plan.theme === 'green' ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>{plan.name}</div>
+                <div className="flex flex-col items-start gap-2 mb-4">
+                  <div className={`text-xl font-bold ${plan.theme === 'green' ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>{plan.name}</div>
+                  
+                  {/* Badge Desconto (Abaixo do Nome) */}
+                  {isAnnual && (
+                    <div className="px-2.5 py-1 rounded-md text-[11px] uppercase font-bold bg-[#FFB800] text-black shadow-sm">
+                      Economize 50%
+                    </div>
+                  )}
+                </div>
                 
                 <div className="min-h-[96px] mb-2 flex flex-col justify-end">
                   {displayOriginal && (
