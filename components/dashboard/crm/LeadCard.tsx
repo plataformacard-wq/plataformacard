@@ -36,7 +36,7 @@ export default function LeadCard({ lead, index, onClick }: LeadCardProps) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={onClick}
-          className={`p-4 bg-[var(--dash-surface)] border rounded-2xl hover:border-primary/40 hover:shadow-lg transition-all cursor-grab active:cursor-grabbing select-none space-y-3 group ${
+          className={`p-4 bg-[var(--dash-surface)] border rounded-[27px] hover:border-primary/40 hover:shadow-lg transition-all cursor-grab active:cursor-grabbing select-none space-y-3 group ${
             snapshot.isDragging
               ? "border-primary/50 shadow-2xl bg-[var(--dash-hover-bg)] rotate-2 scale-[1.02]"
               : "border-[var(--dash-border)]"

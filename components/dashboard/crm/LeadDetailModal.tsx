@@ -125,7 +125,7 @@ export default function LeadDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-hover-bg)] rounded-xl transition-all"
+            className="p-2 text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-hover-bg)] rounded-lg transition-all"
           >
             <X size={20} />
           </button>
@@ -134,7 +134,7 @@ export default function LeadDetailModal({
         {/* Conteúdo do Modal */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Informações Básicas do Lead */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-[27px]">
             <div>
               <p className="text-xs text-[var(--dash-text-muted)] font-black uppercase">Vendedor</p>
               <p className="text-sm font-bold text-[var(--dash-text-primary)] mt-1">
@@ -165,7 +165,7 @@ export default function LeadDetailModal({
                   placeholder="Ex: João da Silva"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
-                  className="w-full px-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-[var(--dash-text-primary)] transition-all"
+                  className="w-full px-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-[var(--dash-text-primary)] transition-all"
                 />
               </div>
 
@@ -178,7 +178,7 @@ export default function LeadDetailModal({
                   placeholder="Ex: 11999999999"
                   value={clientWhatsapp}
                   onChange={(e) => setClientWhatsapp(e.target.value)}
-                  className="w-full px-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-[var(--dash-text-primary)] transition-all"
+                  className="w-full px-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-[var(--dash-text-primary)] transition-all"
                 />
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function LeadDetailModal({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
-                className="w-full px-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-[var(--dash-text-primary)] resize-none transition-all"
+                className="w-full px-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-[var(--dash-text-primary)] resize-none transition-all"
               />
             </div>
 
@@ -201,7 +201,7 @@ export default function LeadDetailModal({
                 type="button"
                 onClick={handleSaveDetails}
                 disabled={isSavingDetails}
-                className="px-6 py-2.5 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-hover-bg)] hover:bg-[var(--dash-surface)] text-xs font-black uppercase tracking-widest text-[var(--dash-text-primary)] transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                className="px-6 py-2.5 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-hover-bg)] hover:bg-[var(--dash-surface)] text-xs font-black uppercase tracking-widest text-[var(--dash-text-primary)] transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
               >
                 {isSavingDetails && <Loader2 size={14} className="animate-spin" />}
                 Salvar Ficha
@@ -219,7 +219,7 @@ export default function LeadDetailModal({
                 <button
                   type="button"
                   onClick={() => setShowCloseOptions(!showCloseOptions)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                     showCloseOptions
                       ? "bg-red-500/10 text-red-500 border border-red-500/20"
                       : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white"
@@ -231,7 +231,7 @@ export default function LeadDetailModal({
             </div>
 
             {showCloseOptions && (
-              <div className="p-5 border border-emerald-500/20 bg-emerald-500/[0.03] rounded-2xl space-y-4 animate-slideDown">
+              <div className="p-5 border border-emerald-500/20 bg-emerald-500/[0.03] rounded-[27px] space-y-4 animate-slideDown">
                 <p className="text-xs text-[var(--dash-text-muted)] leading-relaxed">
                   Para registrar a venda e abater unidades do produto selecionado no seu estoque
                   automática ou manualmente, preencha os dados abaixo:
@@ -246,7 +246,7 @@ export default function LeadDetailModal({
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
                       disabled={lead.crm_status === "closed"}
-                      className="dash-select w-full border border-[var(--dash-border)] pl-4 py-2.5 rounded-xl bg-[var(--dash-surface)] text-sm font-medium text-[var(--dash-text-primary)] outline-none"
+                      className="dash-select w-full border border-[var(--dash-border)] pl-4 py-2.5 rounded-lg bg-[var(--dash-surface)] text-sm font-medium text-[var(--dash-text-primary)] outline-none"
                     >
                       <option value="">Não vincular / Não abater estoque</option>
                       {products.map((prod) => (
@@ -267,7 +267,7 @@ export default function LeadDetailModal({
                       value={deductQuantity}
                       onChange={(e) => setDeductQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                       disabled={lead.crm_status === "closed" || !selectedProductId}
-                      className="w-full px-4 py-2.5 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-bold text-center text-[var(--dash-text-primary)]"
+                      className="w-full px-4 py-2.5 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg outline-none focus:ring-2 focus:ring-primary text-sm font-bold text-center text-[var(--dash-text-primary)]"
                     />
                   </div>
                 </div>
@@ -278,7 +278,7 @@ export default function LeadDetailModal({
                       type="button"
                       onClick={handleCloseDealSubmit}
                       disabled={isClosingDeal}
-                      className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+                      className="px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
                     >
                       {isClosingDeal ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -291,7 +291,7 @@ export default function LeadDetailModal({
                 )}
 
                 {lead.crm_status === "closed" && lead.stock_deducted && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-xs font-bold">
+                  <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-lg text-xs font-bold">
                     <CheckCircle2 size={16} />
                     Negócio Fechado: foram descontados {lead.stock_deducted} item(ns) do produto
                     vinculado.

@@ -165,8 +165,8 @@ export default function LoginPage() {
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div>
-            <div className="relative flex items-center overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] focus-within:border-[#2CCB68] transition-colors">
-              <div className="pl-4 pr-2 text-zinc-500">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-zinc-500 z-10">
                 <Mail size={18} />
               </div>
               <input
@@ -175,7 +175,7 @@ export default function LoginPage() {
                 value={loginInput}
                 onChange={(e) => setLoginInput(e.target.value)}
                 placeholder="E-mail ou Slug"
-                className="w-full bg-transparent py-3 pr-4 text-sm text-white outline-none placeholder:text-zinc-600"
+                className="w-full rounded-xl border border-white/10 bg-[#0a0a0a] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-[#2CCB68] transition-colors"
                 autoComplete="username"
                 required
               />
@@ -183,8 +183,8 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <div className="relative flex items-center overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] focus-within:border-[#2CCB68] transition-colors">
-              <div className="pl-4 pr-2 text-zinc-500">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-zinc-500 z-10">
                 <Lock size={18} />
               </div>
               <input
@@ -193,14 +193,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Digite sua senha"
-                className="w-full bg-transparent py-3 pr-4 text-sm text-white outline-none placeholder:text-zinc-600"
+                className="w-full rounded-xl border border-white/10 bg-[#0a0a0a] py-3 pl-11 pr-11 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-[#2CCB68] transition-colors"
                 autoComplete="current-password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="px-4 text-zinc-500 hover:text-white transition-colors"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-500 hover:text-white transition-colors z-10"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>

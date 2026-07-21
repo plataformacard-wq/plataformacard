@@ -90,7 +90,7 @@ export default function KanbanBoard({ leads, onDragEnd, onLeadClick }: KanbanBoa
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`flex-1 flex flex-col gap-3 min-h-[400px] rounded-2xl transition-colors ${
+                    className={`flex-1 flex flex-col gap-3 min-h-[400px] rounded-[27px] transition-colors ${
                       snapshot.isDraggingOver
                         ? "bg-[var(--dash-hover-bg)]/30 border border-dashed border-primary/20 p-2"
                         : "p-1"
@@ -106,7 +106,7 @@ export default function KanbanBoard({ leads, onDragEnd, onLeadClick }: KanbanBoa
                         />
                       ))
                     ) : (
-                      <div className="flex flex-col items-center justify-center flex-1 py-12 text-center text-[var(--dash-text-muted)] italic text-xs font-medium border border-dashed border-[var(--dash-border)] rounded-2xl">
+                      <div className="flex flex-col items-center justify-center flex-1 py-12 text-center text-[var(--dash-text-muted)] italic text-xs font-medium border border-dashed border-[var(--dash-border)] rounded-[27px]">
                         Nenhum lead nesta etapa
                       </div>
                     )}

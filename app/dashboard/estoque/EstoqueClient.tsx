@@ -143,7 +143,7 @@ export default function EstoqueClient({
             <button
               type="button"
               onClick={() => setActiveTab("manual")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[27px] font-black text-xs uppercase tracking-widest transition-all ${
                 activeTab === "manual"
                   ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg"
                   : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"
@@ -155,7 +155,7 @@ export default function EstoqueClient({
             <button
               type="button"
               onClick={() => setActiveTab("bling")}
-              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all ${
+              className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[27px] font-black text-xs uppercase tracking-widest transition-all ${
                 activeTab === "bling"
                   ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg"
                   : "text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]"
@@ -175,10 +175,10 @@ export default function EstoqueClient({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium"
+            className="flex items-center justify-between p-4 rounded-[27px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
                 <Check size={18} />
               </div>
               <div>
@@ -207,10 +207,10 @@ export default function EstoqueClient({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 font-medium"
+            className="flex items-center justify-between p-4 rounded-[27px] bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 font-medium"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-500/20 text-lg font-black leading-none">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/20 text-lg font-black leading-none">
                 ⚠️
               </div>
               <div>

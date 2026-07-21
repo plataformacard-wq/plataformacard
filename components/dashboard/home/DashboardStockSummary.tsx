@@ -92,7 +92,7 @@ export default function DashboardStockSummary({ activeOrgId }: DashboardStockSum
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {/* Metrica 1 */}
-        <div className="p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-2xl flex items-center gap-3">
+        <div className="p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-[27px] flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
             <CheckCircle2 size={16} />
           </div>
@@ -107,7 +107,7 @@ export default function DashboardStockSummary({ activeOrgId }: DashboardStockSum
         </div>
 
         {/* Metrica 2 */}
-        <div className="p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-2xl flex items-center gap-3">
+        <div className="p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-[27px] flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
             <AlertTriangle size={16} />
           </div>
@@ -122,7 +122,7 @@ export default function DashboardStockSummary({ activeOrgId }: DashboardStockSum
         </div>
 
         {/* Metrica 3 */}
-        <div className="p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-2xl flex items-center gap-3">
+        <div className="p-4 bg-[var(--dash-hover-bg)]/40 border border-[var(--dash-border)] rounded-[27px] flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
             <AlertTriangle size={16} />
           </div>

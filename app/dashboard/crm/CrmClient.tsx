@@ -119,7 +119,7 @@ export default function CrmClient({ initialLeads, products }: CrmClientProps) {
               placeholder="Buscar por produto, vendedor ou cliente..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-medium text-[var(--dash-text-primary)]"
+              className="w-full pl-12 pr-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-medium text-[var(--dash-text-primary)]"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function CrmClient({ initialLeads, products }: CrmClientProps) {
       {/* Cards de Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="p-4 rounded-2xl bg-blue-500/10 text-blue-500">
+          <div className="p-4 rounded-[27px] bg-blue-500/10 text-blue-500">
             <Users size={24} />
           </div>
           <div>
@@ -140,7 +140,7 @@ export default function CrmClient({ initialLeads, products }: CrmClientProps) {
         </div>
 
         <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-500">
+          <div className="p-4 rounded-[27px] bg-amber-500/10 text-amber-500">
             <Activity size={24} />
           </div>
           <div>
@@ -154,7 +154,7 @@ export default function CrmClient({ initialLeads, products }: CrmClientProps) {
         </div>
 
         <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500">
+          <div className="p-4 rounded-[27px] bg-emerald-500/10 text-emerald-500">
             <CheckCircle size={24} />
           </div>
           <div>

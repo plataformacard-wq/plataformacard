@@ -78,7 +78,7 @@ export async function syncBlingStock(organizationId: string, targetSku?: string)
     // 3. Busca produtos da plataforma que tenham SKU
     let query = supabase
       .from("products")
-      .select("id, sku, manual_stock")
+      .select("id, sku, manual_stock, colors")
       .eq("organization_id", organizationId)
       .not("sku", "is", null)
       .neq("sku", "");
@@ -99,7 +99,7 @@ export async function syncBlingStock(organizationId: string, targetSku?: string)
     // 4. Sincroniza cada produto consultando a API do Bling
     for (const product of products) {
       if (product.manual_stock) {
-        continue; // Pula a sincronização de estoque se o usuário configurou para manual
+        continue; // Pula a sincronização se o estoque for configurado como manual
       }
 
       const res = await fetch(`https://www.bling.com.br/Api/v3/produtos?codigo=${product.sku}`, {
@@ -113,6 +113,79 @@ export async function syncBlingStock(organizationId: string, targetSku?: string)
         const data = await res.json();
         if (data.data && data.data.length > 0) {
           const blingProduct = data.data[0];
+
+          // Verifica se o produto no Bling possui variações filhas
+          const varRes = await fetch(`https://www.bling.com.br/Api/v3/produtos?idPai=${blingProduct.id}`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${accessToken}` }
+          });
+
+          let blingVariations: any[] = [];
+          if (varRes.ok) {
+            const varData = await varRes.json();
+            if (varData.data && Array.isArray(varData.data) && varData.data.length > 0) {
+              blingVariations = varData.data;
+            }
+          }
+
+          if (blingVariations.length > 0) {
+            // Consulta os saldos de estoque de todas as variações filhas do Bling
+            const varIdsQuery = blingVariations.map((v) => `idsProdutos[]=${v.id}`).join("&");
+            const varSaldoRes = await fetch(`https://www.bling.com.br/Api/v3/estoques/saldos?${varIdsQuery}`, {
+              method: "GET",
+              headers: { "Authorization": `Bearer ${accessToken}` }
+            });
+
+            const varSaldosMap: Record<number, number> = {};
+            if (varSaldoRes.ok) {
+              const varSaldoData = await varSaldoRes.json();
+              if (varSaldoData.data && Array.isArray(varSaldoData.data)) {
+                varSaldoData.data.forEach((s: any) => {
+                  const saldo = typeof s.saldoFisicoTotal === "number"
+                    ? s.saldoFisicoTotal
+                    : (s.depositos ? s.depositos.reduce((sum: number, dep: any) => sum + (dep.saldoFisico || 0), 0) : 0);
+                  varSaldosMap[s.produto?.id] = Math.max(0, saldo);
+                });
+              }
+            }
+
+            // Mapeia os dados das variações para o array de cores JSONB
+            const existingColors: any[] = Array.isArray(product.colors) ? product.colors : [];
+            const updatedColors = blingVariations.map((v: any) => {
+              const qty = varSaldosMap[v.id] ?? 0;
+              const varName = v.nome || v.variacao?.nome || "Padrão";
+
+              // Tenta localizar a cor existente pelo SKU ou pelo nome
+              const match = existingColors.find((c: any) =>
+                typeof c === "object" && c !== null && ((c.sku && c.sku === v.codigo) || (c.name && c.name.toLowerCase() === varName.toLowerCase()))
+              );
+
+              return {
+                name: match?.name || varName,
+                hex: match?.hex || "#71717A",
+                sku: v.codigo || match?.sku || null,
+                stock_quantity: qty,
+                is_in_stock: qty > 0
+              };
+            });
+
+            const totalVarStock = updatedColors.reduce((acc, c) => acc + c.stock_quantity, 0);
+
+            await supabase
+              .from("products")
+              .update({
+                colors: updatedColors,
+                show_colors: updatedColors.length > 0,
+                stock_quantity: totalVarStock,
+                is_in_stock: totalVarStock > 0
+              })
+              .eq("id", product.id);
+
+            updatedCount++;
+            continue;
+          }
+
+          // Se não possuir variações, efetua a consulta padrão do produto único
           const saldoRes = await fetch(`https://www.bling.com.br/Api/v3/estoques/saldos?idsProdutos[]=${blingProduct.id}`, {
             method: "GET",
             headers: {

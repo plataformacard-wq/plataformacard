@@ -17,6 +17,7 @@ graph TD
 
 ### 🚨 Bloqueadores de Lançamento Online (Go-Live)
 *Lógica: Pendências de negócio essenciais para que a plataforma opere legal e financeiramente como um SaaS na internet pública.*
+- [ ] **Autenticação de Dois Fatores (2FA / MFA via TOTP):** Implementar obrigatoriedade de 2FA via App Autenticador (Google Authenticator, Authy, 1Password) no Portal Main (Main Admin) para o lançamento 100% online, além de disponibilizar 2FA opcional para lojistas no Dashboard (com trava de segurança na alteração do WhatsApp de atendimento e alerta educativo no Dashboard sobre proteção dos dados de pagamento). *(Nota: O SQL da tabela `user_2fa_backup_codes` já foi executado no banco de dados e a migration `20260721230000_add_2fa_backup_codes.sql` foi salva no repositório. Ver plano em `implementation_plan.md`).*
 - [ ] **Gateway de Pagamento (Checkout):** Integração com Stripe ou MercadoPago para vendas automatizadas (planos e limites). Atualmente os acessos são manuais (High Touch).
 - [ ] **Infraestrutura de Identidade (E-mail e Domínio):** Configurar um domínio próprio na Vercel e registrar um provedor SMTP (ex: Resend) no Supabase. Sem isso, e-mails de recuperação de senha cairão no SPAM e o sistema sofrerá rate-limit após 50 disparos.
 - [x] **Políticas Jurídicas (LGPD e Termos):** Redigir e publicar páginas estáticas de "Termos de Uso" e "Política de Privacidade". Adicionar checkbox obrigatório "Li e aceito os termos" no formulário de cadastro.

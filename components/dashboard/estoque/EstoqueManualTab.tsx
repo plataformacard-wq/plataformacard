@@ -1,8 +1,16 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { Search, Package, Check, AlertCircle, Loader2, X } from "lucide-react";
-import { updateProductStock } from "@/app/dashboard/estoque/actions";
+import React, { useState } from "react";
+import { Search, Package, Check, AlertCircle, Loader2, X, ChevronDown, ChevronRight, Palette } from "lucide-react";
+import { updateProductStock, updateProductColorStock } from "@/app/dashboard/estoque/actions";
+
+interface ColorItem {
+  name: string;
+  hex?: string;
+  sku?: string | null;
+  stock_quantity?: number | null;
+  is_in_stock?: boolean;
+}
 
 interface Product {
   id: string;
@@ -12,6 +20,7 @@ interface Product {
   stock_quantity: number | null;
   is_in_stock: boolean;
   category_id: string | null;
+  colors?: ColorItem[] | null;
   categories?: { name: string } | null;
 }
 
@@ -32,10 +41,16 @@ export default function EstoqueManualTab({ products: initialProducts, categories
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [updatingColorKey, setUpdatingColorKey] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, "success" | "error" | null>>({});
   const [showBlingWarning, setShowBlingWarning] = useState(true);
+  const [expandedProducts, setExpandedProducts] = useState<Record<string, boolean>>({});
 
   const itemsPerPage = 25;
+
+  const toggleExpand = (productId: string) => {
+    setExpandedProducts((prev) => ({ ...prev, [productId]: !prev[productId] }));
+  };
 
   // Filtragem dos produtos
   const filteredProducts = products.filter((product) => {
@@ -86,10 +101,43 @@ export default function EstoqueManualTab({ products: initialProducts, categories
     }
   };
 
+  // Atualização de estoque de cor específica
+  const handleColorQuantityBlur = async (productId: string, colorName: string, valueStr: string, currentVal: number | null) => {
+    const newVal = valueStr === "" ? 0 : parseInt(valueStr, 10);
+    if (isNaN(newVal) || newVal === currentVal) return;
+
+    const colorKey = `${productId}-${colorName}`;
+    setUpdatingColorKey(colorKey);
+
+    try {
+      const res = await updateProductColorStock(productId, colorName, newVal);
+      if (res.success && res.updatedColors) {
+        setProducts((prev) =>
+          prev.map((p) => {
+            if (p.id === productId) {
+              const updatedTotal = res.totalStock ?? p.stock_quantity;
+              return {
+                ...p,
+                colors: res.updatedColors,
+                stock_quantity: updatedTotal,
+                is_in_stock: updatedTotal > 0
+              };
+            }
+            return p;
+          })
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingColorKey(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {hasBlingConnection && showBlingWarning && (
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-between gap-2 animate-fadeIn">
+        <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-between gap-2 animate-fadeIn">
           <div className="flex items-center gap-2">
             <AlertCircle size={16} />
             <span>Sua conta está integrada ao Bling. A edição manual foi desabilitada para evitar divergências.</span>
@@ -115,19 +163,18 @@ export default function EstoqueManualTab({ products: initialProducts, categories
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-12 pr-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-medium text-[var(--dash-text-primary)]"
+            className="w-full pl-12 pr-4 py-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-medium text-[var(--dash-text-primary)]"
           />
         </div>
 
         <div className="w-full md:w-64">
-          {/* Cumprindo a regra do select: usar a classe .dash-select e apenas pl-3 ou pl-4 */}
           <select
             value={selectedCategory}
             onChange={(e) => {
               setSelectedCategory(e.target.value);
               setCurrentPage(1);
             }}
-            className="dash-select w-full border border-[var(--dash-border)] pl-4 py-3 rounded-xl bg-[var(--dash-hover-bg)] text-sm font-medium text-[var(--dash-text-primary)] outline-none"
+            className="dash-select w-full border border-[var(--dash-border)] pl-4 py-3 rounded-lg bg-[var(--dash-hover-bg)] text-sm font-medium text-[var(--dash-text-primary)] outline-none"
           >
             <option value="all">Todas as Categorias</option>
             {categories.map((cat) => (
@@ -156,83 +203,203 @@ export default function EstoqueManualTab({ products: initialProducts, categories
               paginatedProducts.map((p) => {
                 const rowStatus = statuses[p.id];
                 const catName = p.categories ? p.categories.name : "Sem Categoria";
+                const hasColors = Array.isArray(p.colors) && p.colors.length > 0;
+                const isExpanded = expandedProducts[p.id] ?? false;
 
                 return (
-                  <tr
-                    key={p.id}
-                    className={`transition-colors hover:bg-[var(--dash-hover-bg)]/50 ${
-                      rowStatus === "success"
-                        ? "bg-green-500/5"
-                        : rowStatus === "error"
-                        ? "bg-red-500/5"
-                        : ""
-                    }`}
-                  >
-                    <td className="px-6 py-4 flex items-center gap-4">
-                      {p.image_url ? (
-                        <img
-                          src={p.image_url}
-                          alt={p.name}
-                          className="w-12 h-12 rounded-xl object-cover border border-[var(--dash-border)]"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                          <Package size={20} />
+                  <React.Fragment key={p.id}>
+                    <tr
+                      className={`transition-colors hover:bg-[var(--dash-hover-bg)]/50 ${
+                        rowStatus === "success"
+                          ? "bg-green-500/5"
+                          : rowStatus === "error"
+                          ? "bg-red-500/5"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4 flex items-center gap-4">
+                        {hasColors ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleExpand(p.id)}
+                            className="p-1.5 rounded-lg bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] hover:text-white transition-colors"
+                            title="Expandir cores"
+                          >
+                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        ) : null}
+                        {p.image_url ? (
+                          <img
+                            src={p.image_url}
+                            alt={p.name}
+                            className="w-12 h-12 rounded-lg object-cover border border-[var(--dash-border)]"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                            <Package size={20} />
+                          </div>
+                        )}
+                        <div className="flex flex-col">
+                          <span className="font-bold line-clamp-2 max-w-sm" title={p.name}>
+                            {p.name}
+                          </span>
+                          {hasColors && (
+                            <button
+                              type="button"
+                              onClick={() => toggleExpand(p.id)}
+                              className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5 hover:underline text-left"
+                            >
+                              <Palette size={12} />
+                              {p.colors?.length} cor(es) cadastrada(s)
+                            </button>
+                          )}
                         </div>
-                      )}
-                      <span className="font-bold line-clamp-2 max-w-sm" title={p.name}>
-                        {p.name}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-[var(--dash-text-secondary)] font-mono">
-                      {p.sku || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-[var(--dash-text-secondary)]">
-                      {catName}
-                    </td>
-                    <td className="px-6 py-4 relative">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={p.stock_quantity ?? 0}
-                          readOnly={hasBlingConnection}
-                          disabled={updatingId === p.id}
-                          onChange={(e) => {
-                            if (!hasBlingConnection) {
-                              const val = parseInt(e.target.value, 10);
-                              setProducts(prev => prev.map(prod => prod.id === p.id ? { ...prod, stock_quantity: isNaN(val) ? 0 : val } : prod));
-                            }
-                          }}
-                          onBlur={(e) => !hasBlingConnection && handleQuantityBlur(p.id, e.target.value, p.stock_quantity)}
-                          onClick={() => {
-                            if (hasBlingConnection) {
-                              alert("Para alterar o estoque manualmente, você precisa desconectar a integração com o Bling na aba 'Sincronização Bling'.");
-                            }
-                          }}
-                          className={`w-24 px-3 py-2 bg-[var(--dash-hover-bg)] border rounded-lg text-center font-bold text-sm outline-none transition-all ${
-                            hasBlingConnection ? "cursor-pointer opacity-70 border-[var(--dash-border)]" :
-                            rowStatus === "success"
-                              ? "border-green-500 ring-2 ring-green-500/20"
-                              : rowStatus === "error"
-                              ? "border-red-500 ring-2 ring-red-500/20"
-                              : "border-[var(--dash-border)] focus:ring-2 focus:ring-primary"
+                      </td>
+                      <td className="px-6 py-4 text-[var(--dash-text-secondary)] font-mono">
+                        {p.sku || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-[var(--dash-text-secondary)]">
+                        {catName}
+                      </td>
+                      <td className="px-6 py-4 relative">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={p.stock_quantity ?? 0}
+                            readOnly={hasBlingConnection || hasColors}
+                            disabled={updatingId === p.id}
+                            onChange={(e) => {
+                              if (!hasBlingConnection && !hasColors) {
+                                const val = parseInt(e.target.value, 10);
+                                setProducts(prev => prev.map(prod => prod.id === p.id ? { ...prod, stock_quantity: isNaN(val) ? 0 : val } : prod));
+                              }
+                            }}
+                            onBlur={(e) => !hasBlingConnection && !hasColors && handleQuantityBlur(p.id, e.target.value, p.stock_quantity)}
+                            onClick={() => {
+                              if (hasBlingConnection) {
+                                alert("Para alterar o estoque manualmente, você precisa desconectar a integração com o Bling na aba 'Sincronização Bling'.");
+                              } else if (hasColors) {
+                                toggleExpand(p.id);
+                              }
+                            }}
+                            className={`w-24 px-3 py-2 bg-[var(--dash-hover-bg)] border rounded-lg text-center font-bold text-sm outline-none transition-all ${
+                              hasBlingConnection || hasColors ? "cursor-pointer opacity-80 border-[var(--dash-border)]" :
+                              rowStatus === "success"
+                                ? "border-green-500 ring-2 ring-green-500/20"
+                                : rowStatus === "error"
+                                ? "border-red-500 ring-2 ring-red-500/20"
+                                : "border-[var(--dash-border)] focus:ring-2 focus:ring-primary"
+                            }`}
+                            title={hasColors ? "Estoque calculado automaticamente pelas cores" : undefined}
+                          />
+                          {updatingId === p.id && (
+                            <Loader2 size={16} className="animate-spin text-primary" />
+                          )}
+                          {rowStatus === "success" && (
+                            <Check size={16} className="text-green-500 animate-bounce" />
+                          )}
+                          {rowStatus === "error" && (
+                            <AlertCircle size={16} className="text-red-500 animate-pulse" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`inline-flex px-3 py-1 rounded text-xs font-bold ${
+                            p.is_in_stock
+                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                              : "bg-red-500/10 text-red-500 border border-red-500/20"
                           }`}
-                        />
-                        {updatingId === p.id && (
-                          <Loader2 size={16} className="animate-spin text-primary" />
-                        )}
-                        {rowStatus === "success" && (
-                          <Check size={16} className="text-green-500 animate-bounce" />
-                        )}
-                        {rowStatus === "error" && (
-                          <AlertCircle size={16} className="text-red-500 animate-pulse" />
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
-                          p.is_in_stock
+                        >
+                          {p.is_in_stock ? "Em Estoque" : "Esgotado"}
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Sub-tabela de Cores Expansível */}
+                    {hasColors && isExpanded && (
+                      <tr className="bg-[var(--dash-hover-bg)]/20 border-b border-[var(--dash-border)]">
+                        <td colSpan={5} className="px-12 py-3">
+                          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl p-4 space-y-3">
+                            <span className="text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider block">
+                              Estoque por Variação de Cor
+                            </span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {p.colors?.map((c: any, cIdx: number) => {
+                                const colorName = typeof c === "string" ? c : c.name;
+                                const colorHex = typeof c === "object" ? c.hex || "#71717A" : "#71717A";
+                                const colorSku = typeof c === "object" ? c.sku || null : null;
+                                const colorQty = typeof c === "object" && typeof c.stock_quantity === "number" ? c.stock_quantity : 0;
+                                const cKey = `${p.id}-${colorName}`;
+                                const isUpdating = updatingColorKey === cKey;
+
+                                return (
+                                  <div
+                                    key={cIdx}
+                                    className="flex items-center justify-between p-3 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-hover-bg)]/50 gap-3"
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      <span
+                                        className="w-4 h-4 rounded-full border border-black/20 shrink-0"
+                                        style={{ backgroundColor: colorHex }}
+                                      />
+                                      <div className="flex flex-col min-w-0">
+                                        <span className="text-xs font-bold text-[var(--dash-text-primary)] truncate">
+                                          {colorName}
+                                        </span>
+                                        {colorSku && (
+                                          <span className="text-[10px] font-mono text-[var(--dash-text-muted)] truncate">
+                                            SKU: {colorSku}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <input
+                                        type="number"
+                                        defaultValue={colorQty}
+                                        readOnly={hasBlingConnection}
+                                        disabled={isUpdating}
+                                        onChange={(e) => {
+                                          if (!hasBlingConnection) {
+                                            const val = parseInt(e.target.value, 10);
+                                            setProducts((prev) =>
+                                              prev.map((prod) => {
+                                                if (prod.id === p.id && Array.isArray(prod.colors)) {
+                                                  const newCols = prod.colors.map((item: any) => {
+                                                    const nameMatch = typeof item === "string" ? item === colorName : item.name === colorName;
+                                                    if (nameMatch) {
+                                                      return typeof item === "string"
+                                                        ? { name: item, stock_quantity: isNaN(val) ? 0 : val }
+                                                        : { ...item, stock_quantity: isNaN(val) ? 0 : val };
+                                                    }
+                                                    return item;
+                                                  });
+                                                  const newTot = newCols.reduce((s: number, col: any) => s + (col.stock_quantity || 0), 0);
+                                                  return { ...prod, colors: newCols, stock_quantity: newTot, is_in_stock: newTot > 0 };
+                                                }
+                                                return prod;
+                                              })
+                                            );
+                                          }
+                                        }}
+                                        onBlur={(e) => !hasBlingConnection && handleColorQuantityBlur(p.id, colorName, e.target.value, colorQty)}
+                                        className="w-16 px-2 py-1 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded text-center text-xs font-bold text-[var(--dash-text-primary)] outline-none focus:ring-1 focus:ring-primary"
+                                      />
+                                      {isUpdating && <Loader2 size={12} className="animate-spin text-primary" />}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
                             ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                             : "bg-red-500/10 text-red-500 border border-red-500/20"
                         }`}
