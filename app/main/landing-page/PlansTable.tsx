@@ -338,7 +338,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                       R$ {previewBasePrice.toFixed(2).replace('.', ',')}/mês
                     </div>
                     <div className="text-[10px] text-zinc-500 mt-1">
-                      Total de R$ {(previewBasePrice * 12).toFixed(2).replace('.', ',')}
+                      Total de <strong className="text-[var(--dash-text-primary)]">R$ {(previewBasePrice * 12).toFixed(2).replace('.', ',')}</strong> por ano.
                     </div>
                     <div className="text-[10px] text-zinc-600 mt-1">Preço puro. Sem ancoragem.</div>
                   </div>
@@ -358,11 +358,11 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     </div>
                     {previewActiveDiscount > 0 && (
                       <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase">
-                        economize R$ {(previewActiveDiscount * 12).toFixed(2).replace('.', ',')} por ano
+                        economize R$ {(previewActiveDiscount * 12).toFixed(2).replace('.', ',')} por ano.
                       </div>
                     )}
                     <div className="text-[10px] text-zinc-500 mt-2 leading-tight">
-                      Fatura total: R$ {(previewAnnualPrice * 12).toFixed(2).replace('.', ',')}/ano
+                      Fatura total: R$ {(previewAnnualPrice * 12).toFixed(2).replace('.', ',')}/ano.
                     </div>
                   </div>
                 </div>

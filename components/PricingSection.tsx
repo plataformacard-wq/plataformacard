@@ -137,12 +137,12 @@ export function PricingSection({ plans }: { plans: any[] }) {
 
                   {!isAnnual && currentActivePriceValue > 0 && (
                      <div className="text-[13px] text-zinc-400 mt-2 font-medium tracking-wide">
-                       Total de R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}
+                       Total de <strong className="text-zinc-200">R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}</strong> por ano.
                      </div>
                   )}
                   {isAnnual && activeDiscountValue > 0 && (
                      <div className="text-[12px] font-bold text-[#2CCB68] mt-2 inline-flex items-center bg-[#2CCB68]/10 px-2.5 py-1 rounded-md w-fit uppercase tracking-wider">
-                       economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano
+                       economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano.
                      </div>
                   )}
 
