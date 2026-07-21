@@ -106,6 +106,28 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     setForm({ ...form, features: newFeatures });
   }
 
+  // Preview Math for Realtime Modal
+  const parsePricePreview = (str: string | undefined | null) => {
+    if (!str) return 0;
+    const numericStr = str.replace(/[^\d,]/g, '').replace(',', '.');
+    return parseFloat(numericStr) || 0;
+  };
+
+  const previewBasePrice = parsePricePreview(form.price_monthly || form.price_text);
+  let previewAnnualPrice = 0;
+  const discountType = form.annual_discount_type || 'fixed';
+  const discountValue = Number(form.annual_discount_value) || 0;
+
+  if (discountType === 'percentage') {
+    previewAnnualPrice = previewBasePrice * (1 - (discountValue / 100));
+  } else {
+    previewAnnualPrice = previewBasePrice - discountValue;
+  }
+  if (previewAnnualPrice <= 0 && previewBasePrice > 0) {
+    previewAnnualPrice = previewBasePrice;
+  }
+  const previewActiveDiscount = previewBasePrice - previewAnnualPrice;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -312,6 +334,41 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     className="w-4 h-4 rounded border-[var(--dash-border)] text-emerald-500 focus:ring-emerald-500 bg-transparent"
                   />
                   <label className="text-sm text-[var(--dash-text-primary)]">Ativo (Visível na página)</label>
+                </div>
+              </div>
+              </div>
+              
+              <div className="mt-6 border border-[var(--dash-border)] rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden">
+                <div className="bg-black/10 dark:bg-white/10 px-4 py-2 text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider">
+                  Preview Matemático (Tempo Real)
+                </div>
+                <div className="p-4 grid grid-cols-2 gap-6 divide-x divide-[var(--dash-border)]">
+                  {/* Mensal */}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-zinc-500 mb-2 uppercase">Cliente Vê (Modo Mensal)</span>
+                    <div className="text-2xl font-black text-[var(--dash-text-primary)]">
+                      R$ {previewBasePrice.toFixed(2).replace('.', ',')}/mês
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-1">Preço puro. Sem ancoragem.</div>
+                  </div>
+                  {/* Anual */}
+                  <div className="flex flex-col pl-6 relative">
+                    <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
+                    {previewActiveDiscount > 0 && (
+                       <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold bg-[#FFB800] text-black shadow-sm">
+                         R$ {previewActiveDiscount.toFixed(2).replace('.', ',')} OFF
+                       </div>
+                    )}
+                    <div className="text-xs font-bold text-zinc-500 line-through">
+                      R$ {previewBasePrice.toFixed(2).replace('.', ',')}
+                    </div>
+                    <div className="text-2xl font-black text-[var(--dash-text-primary)]">
+                      R$ {previewAnnualPrice.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-2 leading-tight">
+                      Fatura total: R$ {(previewAnnualPrice * 12).toFixed(2).replace('.', ',')}/ano
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
