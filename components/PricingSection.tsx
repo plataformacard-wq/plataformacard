@@ -136,12 +136,6 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     </div>
                   )}
 
-                  {/* Preço Total Faturado no Ano */}
-                  {isAnnual && calculatedAnnualPriceValue > 0 && (
-                    <div className="text-sm font-medium text-zinc-400 mt-2">
-                      Faturado R$ {(calculatedAnnualPriceValue * 12).toFixed(2).replace('.', ',')} por ano
-                    </div>
-                  )}
                 </div>
                 
                 <p className="text-zinc-400 mb-8 h-10">{plan.subtitle}</p>
@@ -172,6 +166,12 @@ export function PricingSection({ plans }: { plans: any[] }) {
                       <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Grátis Incluso!</span>
                     )}
                   </Link>
+                )}
+
+                {isAnnual && calculatedAnnualPriceValue > 0 && (
+                  <div className="text-xs text-zinc-500 mt-5 text-center leading-relaxed">
+                    12 meses por apenas <strong className="text-zinc-300">R$ {(calculatedAnnualPriceValue * 12).toFixed(2).replace('.', ',')}</strong> (preço normal R$ {(originalPriceValue * 12).toFixed(2).replace('.', ',')}). Renovação por R$ {monthlyPriceValue.toFixed(2).replace('.', ',')}/mês.
+                  </div>
                 )}
               </div>
             );
