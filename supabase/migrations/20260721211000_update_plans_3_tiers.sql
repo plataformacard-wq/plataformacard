@@ -13,9 +13,9 @@ INSERT INTO landing_page_plans (
   to_jsonb(ARRAY[
     'Catálogo online sempre atualizado', 
     'Taxa 0% em qualquer venda', 
-    'Gestor de Pedidos: Acompanhe cada negociação', 
-    'Baixa de estoque automática por venda',
-    'Link exclusivo: suamarca.com.br/você'
+    'Status da conversa - Acompanhe cada negociação (CRM)', 
+    'Atualização de estoque a cada venda',
+    'Link exclusivo: www.anotameucontato.com.br/você'
   ]), 
   'Começar Grátis', 
   '/cadastro', 
