@@ -59,7 +59,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
             // Extrai valor numérico de strings formatadas (ex: "R$ 89,90" -> 89.90)
             const parsePrice = (str: string | undefined | null) => {
               if (!str) return 0;
-              const numericStr = str.replace(/[^\d,]/g, '').replace(',', '.');
+              const numericStr = str.replace(/[^0-9,]/g, '').replace(',', '.');
               return parseFloat(numericStr) || 0;
             };
 

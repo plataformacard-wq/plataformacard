@@ -109,7 +109,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
   // Preview Math for Realtime Modal
   const parsePricePreview = (str: string | undefined | null) => {
     if (!str) return 0;
-    const numericStr = str.replace(new RegExp('[^\\\\d,]', 'g'), '').replace(',', '.');
+    const numericStr = str.replace(/[^0-9,]/g, '').replace(',', '.');
     return parseFloat(numericStr) || 0;
   };
 
