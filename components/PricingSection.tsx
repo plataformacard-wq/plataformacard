@@ -40,22 +40,17 @@ export function PricingSection({ plans }: { plans: any[] }) {
               ></div>
               <button
                 onClick={() => setIsAnnual(false)}
-                className={`relative z-10 px-6 py-2 text-sm font-bold rounded-full transition-colors ${!isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-400 hover:text-white'}`}
+                className={`relative z-10 px-8 py-3 text-sm font-bold rounded-full transition-colors ${!isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-400 hover:text-white'}`}
               >
                 Mensal
               </button>
               <button
                 onClick={() => setIsAnnual(true)}
-                className={`relative z-10 px-6 py-2 text-sm font-bold rounded-full transition-colors ${isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-400 hover:text-white'}`}
+                className={`relative z-10 px-8 py-3 text-sm font-bold rounded-full transition-colors ${isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-400 hover:text-white'}`}
               >
                 Anual
               </button>
             </div>
-            {isAnnual && (
-              <span className="bg-[#2CCB68]/10 text-[#2CCB68] text-xs font-bold px-3 py-1 rounded-full animate-pulse border border-[#2CCB68]/20">
-                Economize até 50%
-              </span>
-            )}
           </div>
         </div>
 
@@ -69,14 +64,25 @@ export function PricingSection({ plans }: { plans: any[] }) {
             
             const displayOriginal = isAnnual ? plan.original_price : null;
 
+            // Formata: "R$ 39,90/mês" -> currency: "R$", value: "39,90", suffix: "/mês"
+            const priceMatch = typeof displayPrice === 'string' ? displayPrice.match(/(R\$)\s*([\d,]+)(.*)/) : null;
+
             return (
               <div 
                 key={plan.id} 
-                className={`relative flex flex-col h-full ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md'}`}
+                className={`relative flex flex-col h-full ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md mt-6 lg:mt-0' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md mt-6 lg:mt-0'}`}
               >
+                {/* Badge Recomendado (Centro) */}
                 {plan.badge_text && (
                   <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-xs font-bold ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-white text-black'}`}>
                     {plan.badge_text}
+                  </div>
+                )}
+                
+                {/* Badge Desconto (Direita) */}
+                {isAnnual && (
+                  <div className="absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold bg-[#FFB800] text-black shadow-lg">
+                    Economize 50%
                   </div>
                 )}
                 
@@ -88,9 +94,18 @@ export function PricingSection({ plans }: { plans: any[] }) {
                       {displayOriginal}
                     </div>
                   )}
-                  <div className={`text-5xl font-extrabold text-white ${plusJakarta.className}`}>
-                    {displayPrice}
-                  </div>
+                  
+                  {priceMatch ? (
+                    <div className={`flex items-baseline gap-1 text-white ${plusJakarta.className}`}>
+                      <span className="text-2xl font-bold text-white/80">{priceMatch[1]}</span>
+                      <span className="text-5xl font-extrabold">{priceMatch[2]}</span>
+                      <span className="text-lg font-medium text-zinc-400">{priceMatch[3]}</span>
+                    </div>
+                  ) : (
+                    <div className={`text-5xl font-extrabold text-white ${plusJakarta.className}`}>
+                      {displayPrice}
+                    </div>
+                  )}
                 </div>
                 
                 <p className="text-zinc-400 mb-8 h-10">{plan.subtitle}</p>
