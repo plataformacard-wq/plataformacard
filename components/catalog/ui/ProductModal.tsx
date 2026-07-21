@@ -188,12 +188,39 @@ export const ProductModal = ({
                   </div>
 
                   {selectedProduct.show_colors && selectedProduct.colors && selectedProduct.colors.length > 0 && (
-                    <div className="flex items-center gap-3 bg-[var(--public-bg)] px-3 py-1.5 rounded-lg border border-[var(--public-card-border)]">
-                      <span className="text-[9px] font-black text-[var(--public-text-dim)] uppercase tracking-widest">Cores disponíveis</span>
-                      <div className="flex items-center gap-1.5">
-                        {selectedProduct.colors.map((color: string, i: number) => (
-                          <div key={i} className="h-4 w-4 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125" style={{ backgroundColor: color }} title="Cor disponível" />
-                        ))}
+                    <div className="flex flex-col gap-1.5 bg-[var(--public-bg)] px-3.5 py-2 rounded-xl border border-[var(--public-card-border)]">
+                      <span className="text-[9px] font-black text-[var(--public-text-dim)] uppercase tracking-widest">Opções de Cores</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {selectedProduct.colors.map((c: any, i: number) => {
+                          const name = typeof c === "string" ? `Cor ${i + 1}` : c.name;
+                          const hex = typeof c === "string" ? c : c.hex || "#71717A";
+                          const isOutOfStock = typeof c === "object" && (c.stock_quantity === 0 || c.is_in_stock === false);
+
+                          return (
+                            <div
+                              key={i}
+                              className={`relative flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-bold transition-all ${
+                                isOutOfStock
+                                  ? "opacity-40 border-rose-500/30 bg-rose-500/5 cursor-not-allowed"
+                                  : "border-[var(--public-card-border)] bg-[var(--public-card-bg)] hover:scale-105"
+                              }`}
+                              title={isOutOfStock ? `${name} (Esgotado)` : `${name} (Disponível)`}
+                            >
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                                style={{ backgroundColor: hex }}
+                              />
+                              <span className="text-[10px] text-[var(--public-text-main)] font-semibold">
+                                {name}
+                              </span>
+                              {isOutOfStock && (
+                                <span className="text-[8px] uppercase tracking-tighter text-rose-500 font-bold ml-0.5">
+                                  [Esgotado]
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

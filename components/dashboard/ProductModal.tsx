@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
+import ProductColorStockSection from "./product-modal/ProductColorStockSection";
 import { Spec, Product } from "@/types";
 import { 
   X as XIcon, 
@@ -142,7 +143,7 @@ export default function ProductModal({
   const [showSpecs, setShowSpecs] = useState<boolean | null>(null);
   const [showColors, setShowColors] = useState<boolean | null>(null);
   const [specsTitle, setSpecsTitle] = useState("");
-  const [productColors, setProductColors] = useState<string[]>([]);
+  const [productColors, setProductColors] = useState<any[]>([]);
   const [productHighlightText, setProductHighlightText] = useState("");
   const [showHighlight, setShowHighlight] = useState(false);
   const [lastSavedData, setLastSavedData] = useState<{ description: string; specs: Spec[] } | null>(null);
@@ -1085,56 +1086,17 @@ export default function ProductModal({
               </div>
 
               {effectiveShowColors && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-8 rounded-lg border-2 space-y-6"
-                  style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
-                >
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--dash-text-muted)" }}>Paleta de Cores</h4>
-                    <span className="text-[10px] font-bold" style={{ color: "var(--dash-text-muted)" }}>{productColors.length}/4 cores</span>
-                  </div>
-                  <div className="flex flex-wrap gap-4">
-                    {productColors.map((c, i) => (
-                      <div key={i} className="group relative">
-                        <div className="h-14 w-14 rounded-lg border-4 shadow-xl cursor-pointer transition-transform hover:scale-110" style={{ backgroundColor: c, borderColor: "var(--dash-surface)" }} onClick={() => removeColor(i)} />
-                        <div className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                          <XIcon size={10} />
-                        </div>
-                      </div>
-                    ))}
-                    {productColors.length < 4 && (
-                      <button 
-                        type="button" 
-                        onClick={() => setIsPickerOpen(!isPickerOpen)} 
-                        className="h-14 w-14 rounded-lg border-2 border-dashed flex items-center justify-center text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 transition-all"
-                        style={{ borderColor: "var(--dash-border)" }}
-                      >
-                        <Plus size={24} />
-                      </button>
-                    )}
-                  </div>
-                  <AnimatePresence>
-                    {isPickerOpen && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="flex flex-col items-center gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-800"
-                      >
-                        <HexColorPicker color={colorPickerValue} onChange={setColorPickerValue} />
-                        <button 
-                          type="button"
-                          onClick={() => { addColor(colorPickerValue); setIsPickerOpen(false); }}
-                          className="px-6 py-2 bg-zinc-900 text-white rounded-lg text-xs font-black uppercase tracking-widest"
-                        >
-                          Confirmar Cor
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                <ProductColorStockSection
+                  colors={productColors}
+                  onChange={(updatedColors) => {
+                    setProductColors(updatedColors);
+                    const totalQty = updatedColors.reduce((sum, col) => sum + (col.stock_quantity || 0), 0);
+                    if (updatedColors.length > 0 && totalQty > 0) {
+                      setStockQuantity(String(totalQty));
+                      setIsInStock(true);
+                    }
+                  }}
+                />
               )}
 
               {effectiveShowSpecs && (

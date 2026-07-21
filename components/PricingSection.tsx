@@ -170,7 +170,10 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     )}
                   </a>
                 ) : (
-                  <Link href={plan.button_url} className={`mt-auto flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
+                  <Link 
+                    href={`/checkout?plan=${(plan.name || 'pro').toLowerCase().replace(/\s+/g, '_')}&cycle=${isAnnual ? 'annual' : 'monthly'}`} 
+                    className={`mt-auto flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}
+                  >
                     <span>{plan.button_text}</span>
                     {plan.theme === 'green' && isAnnual && (
                       <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Grátis Incluso!</span>

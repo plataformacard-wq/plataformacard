@@ -400,16 +400,6 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                   </React.Fragment>
                 );
               })
-                            ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                            : "bg-red-500/10 text-red-500 border border-red-500/20"
-                        }`}
-                      >
-                        {p.is_in_stock ? "Em Estoque" : "Esgotado"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })
             ) : (
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center text-[var(--dash-text-muted)]">

@@ -1,0 +1,73 @@
+export type FeatureKey =
+  | "ai_seo"
+  | "bling_sync"
+  | "custom_domain"
+  | "sales_team"
+  | "caas_master";
+
+export type PlanSlug = "starter" | "pro" | "sales_team";
+
+export interface PlanDefinition {
+  slug: PlanSlug;
+  name: string;
+  badgeText?: string;
+  monthlyAnchor: number; // Preço original riscado (Ex: 89.90)
+  monthlyPrice: number;  // Preço normal mensal (Ex: 59.90)
+  annualPrice: number;   // Preço com desconto anual por mês (Ex: 39.90)
+  annualDiscountValue: number; // Desconto OFF/mês no anual (Ex: 20.00)
+  allowedFeatures: FeatureKey[];
+  maxProducts: number;
+  maxUsers: number;
+}
+
+export const PLANS: Record<PlanSlug, PlanDefinition> = {
+  starter: {
+    slug: "starter",
+    name: "Starter",
+    monthlyAnchor: 89.90,
+    monthlyPrice: 59.90,
+    annualPrice: 39.90,
+    annualDiscountValue: 20.00,
+    allowedFeatures: [],
+    maxProducts: 100,
+    maxUsers: 1,
+  },
+  pro: {
+    slug: "pro",
+    name: "PRO",
+    badgeText: "Recomendado",
+    monthlyAnchor: 229.90,
+    monthlyPrice: 149.90,
+    annualPrice: 99.90,
+    annualDiscountValue: 50.00,
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain"],
+    maxProducts: 1000,
+    maxUsers: 3,
+  },
+  sales_team: {
+    slug: "sales_team",
+    name: "Sales Team",
+    badgeText: "Corporativo",
+    monthlyAnchor: 449.90,
+    monthlyPrice: 299.90,
+    annualPrice: 199.90,
+    annualDiscountValue: 100.00,
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "caas_master"],
+    maxProducts: 5000,
+    maxUsers: 10,
+  },
+};
+
+export function isFeatureAllowed(planSlug: string | null | undefined, feature: FeatureKey): boolean {
+  if (!planSlug) return false;
+  const normalized = planSlug.toLowerCase().trim().replace(/[^a-z_]/g, "") as PlanSlug;
+  const plan = PLANS[normalized];
+  if (!plan) return false;
+  return plan.allowedFeatures.includes(feature);
+}
+
+export function getPlanDefinition(planSlug: string | null | undefined): PlanDefinition {
+  if (!planSlug) return PLANS.starter;
+  const normalized = planSlug.toLowerCase().trim().replace(/[^a-z_]/g, "") as PlanSlug;
+  return PLANS[normalized] || PLANS.starter;
+}
