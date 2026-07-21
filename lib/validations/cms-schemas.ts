@@ -44,7 +44,10 @@ export const upsertFaqSchema = z.object({
 export const upsertPlanSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(2, "Nome curto").max(100, "Nome longo"),
-  price_text: z.string().min(1, "Preço obrigatório").max(50, "Preço longo"),
+  price_text: z.string().max(50, "Preço longo").nullable().optional(),
+  price_monthly: z.string().max(50, "Preço mensal longo").nullable().optional(),
+  price_annual: z.string().max(50, "Preço anual longo").nullable().optional(),
+  original_price: z.string().max(50, "Preço original longo").nullable().optional(),
   subtitle: z.string().min(5, "Subtítulo curto").max(200, "Subtítulo longo"),
   badge_text: z.string().max(100).nullable().optional(),
   theme: z.enum(["dark", "green"]),

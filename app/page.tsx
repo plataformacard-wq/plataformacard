@@ -6,6 +6,7 @@ import { CompanyLogos } from "@/components/CompanyLogos";
 import { HowItWorks } from "@/components/HowItWorks";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { Testimonials } from "@/components/Testimonials";
+import { PricingSection } from "@/components/PricingSection";
 import { Faq } from "@/components/Faq";
 import { CtaSection } from "@/components/CtaSection";
 import { Footer } from "@/components/Footer";
@@ -178,65 +179,8 @@ export default async function HomePage() {
       {/* Prova Social / Depoimentos Animados */}
       <Testimonials testimonials={testimonials || []} baseUsers={finalSettings.base_users} baseCatalogs={finalSettings.base_catalogs} />
 
-      {/* Pricing */}
-      <section id="planos" className="py-24 bg-transparent">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className={`text-3xl md:text-4xl font-extrabold text-white mb-4 ${plusJakarta.className}`}>
-              Planos desenhados para o seu tamanho
-            </h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              Você não precisa ser uma corporação gigante para usar tecnologia inteligente.
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {(plans || []).map((plan: any) => (
-              <div 
-                key={plan.id} 
-                className={`relative flex flex-col h-full ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md'}`}
-              >
-                {plan.badge_text && (
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-xs font-bold ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-white text-black'}`}>
-                    {plan.badge_text}
-                  </div>
-                )}
-                <div className={`text-xl font-bold mb-2 ${plan.theme === 'green' ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>{plan.name}</div>
-                <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>{plan.price_text}</div>
-                <p className="text-zinc-400 mb-8 h-10">{plan.subtitle}</p>
-                
-                <ul className="space-y-4 mb-10 flex-1">
-                  {plan.features.map((feat: string, i: number) => (
-                    <li key={i} className="flex items-center gap-3 text-zinc-300">
-                      <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-                
-                {plan.button_url.startsWith("http") ? (
-                  <a href={plan.button_url} target="_blank" rel="noopener noreferrer" className={`flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
-                    <div className="flex items-center gap-2">
-                      {plan.button_url.includes("wa.me") && <WhatsAppIcon size={20} />}
-                      {plan.button_text}
-                    </div>
-                    {plan.theme === 'green' && (
-                      <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Anual ou Setup exigido p/ Cartão Grátis</span>
-                    )}
-                  </a>
-                ) : (
-                  <Link href={plan.button_url} className={`flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
-                    <span>{plan.button_text}</span>
-                    {plan.theme === 'green' && (
-                      <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Anual ou Setup exigido p/ Cartão Grátis</span>
-                    )}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Pricing - Agora é um Client Component Interativo */}
+      <PricingSection plans={plans || []} />
 
       {/* FAQ */}
       <Faq faqs={faqs || []} />

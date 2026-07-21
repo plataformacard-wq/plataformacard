@@ -7,7 +7,10 @@ import { deletePlan, upsertPlan } from "./actions";
 type Plan = {
   id?: string;
   name: string;
-  price_text: string;
+  price_text?: string;
+  price_monthly?: string;
+  price_annual?: string;
+  original_price?: string;
   subtitle: string;
   badge_text: string;
   theme: string;
@@ -25,9 +28,12 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const defaultForm = { 
+  const defaultForm: Plan = { 
     name: "", 
     price_text: "", 
+    price_monthly: "",
+    price_annual: "",
+    original_price: "",
     subtitle: "", 
     badge_text: "", 
     theme: "dark", 
@@ -173,10 +179,37 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço (Texto)</label>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Antigo / Fallback</label>
                   <input 
-                    type="text" value={form.price_text} onChange={e => setForm({...form, price_text: e.target.value})}
-                    placeholder="Ex: Grátis, R$ 49/mês..."
+                    type="text" value={form.price_text || ""} onChange={e => setForm({...form, price_text: e.target.value})}
+                    placeholder="Ex: R$ 49/mês..."
+                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Mensal</label>
+                  <input 
+                    type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
+                    placeholder="Ex: R$ 59,90/mês"
+                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Anual</label>
+                  <input 
+                    type="text" value={form.price_annual || ""} onChange={e => setForm({...form, price_annual: e.target.value})}
+                    placeholder="Ex: R$ 39,90/mês"
+                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Original (Riscado)</label>
+                  <input 
+                    type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
+                    placeholder="Ex: R$ 89,90"
                     className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
                   />
                 </div>
