@@ -16,6 +16,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
+import SecurityBadges from "./SecurityBadges";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -382,14 +383,8 @@ export default function CheckoutClient() {
                 </button>
               </form>
 
-              {/* Informações de Segurança */}
-              <div className="pt-4 flex items-center justify-between text-[11px] text-zinc-500 border-t border-white/5">
-                <div className="flex items-center gap-1.5">
-                  <Lock size={12} className="text-[#2CCB68]" />
-                  <span>Ambiente Criptografado de Alta Segurança</span>
-                </div>
-                <span>Processado por Kiwify</span>
-              </div>
+              {/* Selos de Segurança e Formas de Pagamento */}
+              <SecurityBadges />
             </div>
           </div>
 
