@@ -194,7 +194,7 @@ export default async function HomePage() {
             {(plans || []).map((plan: any) => (
               <div 
                 key={plan.id} 
-                className={`relative ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md'}`}
+                className={`relative flex flex-col h-full ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md'}`}
               >
                 {plan.badge_text && (
                   <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-xs font-bold ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-white text-black'}`}>
@@ -205,7 +205,7 @@ export default async function HomePage() {
                 <div className={`text-5xl font-extrabold text-white mb-2 ${plusJakarta.className}`}>{plan.price_text}</div>
                 <p className="text-zinc-400 mb-8 h-10">{plan.subtitle}</p>
                 
-                <ul className="space-y-4 mb-10">
+                <ul className="space-y-4 mb-10 flex-1">
                   {plan.features.map((feat: string, i: number) => (
                     <li key={i} className="flex items-center gap-3 text-zinc-300">
                       <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
