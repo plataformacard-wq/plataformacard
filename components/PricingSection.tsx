@@ -63,33 +63,32 @@ export function PricingSection({ plans }: { plans: any[] }) {
               return parseFloat(numericStr) || 0;
             };
 
-            const originalPriceValue = parsePrice(plan.original_price);
-            const monthlyPriceValue = parsePrice(plan.price_monthly || plan.price_text);
+            const basePrice = parsePrice(plan.price_monthly || plan.price_text);
             
-            // Calcula o Preço Anual dinamicamente com base nas regras do CMS
+            // Calcula o Preço Anual dinamicamente com base nas regras do CMS sobre o Preço Base (Mensal)
             let calculatedAnnualPriceValue = 0;
             const discountType = plan.annual_discount_type || 'fixed';
             const discountValue = Number(plan.annual_discount_value) || 0;
 
             if (discountType === 'percentage') {
-              calculatedAnnualPriceValue = originalPriceValue * (1 - (discountValue / 100));
+              calculatedAnnualPriceValue = basePrice * (1 - (discountValue / 100));
             } else {
-              calculatedAnnualPriceValue = originalPriceValue - discountValue;
+              calculatedAnnualPriceValue = basePrice - discountValue;
             }
-            if (calculatedAnnualPriceValue <= 0 && monthlyPriceValue > 0) {
-              calculatedAnnualPriceValue = monthlyPriceValue; // fallback
+            if (calculatedAnnualPriceValue <= 0 && basePrice > 0) {
+              calculatedAnnualPriceValue = basePrice; // fallback
             }
 
-            // Decide qual preço está ativo
-            const currentActivePriceValue = isAnnual ? calculatedAnnualPriceValue : monthlyPriceValue;
+            // Decide qual preço está ativo (Gigante)
+            const currentActivePriceValue = isAnnual ? calculatedAnnualPriceValue : basePrice;
             const displayPriceStr = currentActivePriceValue > 0 ? `R$ ${currentActivePriceValue.toFixed(2).replace('.', ',')}/mês` : plan.price_text;
             
-            // Âncora Riscada sempre aparece (até no mensal!)
-            const displayOriginal = plan.original_price; 
+            // Preço Riscado: Apenas no modo Anual, e o valor é o Preço Base
+            const displayOriginal = (isAnnual && basePrice > calculatedAnnualPriceValue) ? `R$ ${basePrice.toFixed(2).replace('.', ',')}` : null; 
 
-            // Calcula o valor exato do desconto para o Sticker (Âncora - Ativo)
-            const activeDiscountValue = originalPriceValue - currentActivePriceValue;
-            const formattedDiscountSticker = activeDiscountValue > 0 ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF` : null;
+            // Calcula o valor exato do desconto para o Sticker (Apenas no Anual)
+            const activeDiscountValue = basePrice - currentActivePriceValue;
+            const formattedDiscountSticker = (isAnnual && activeDiscountValue > 0) ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF` : null;
 
             // Formata: "R$ 39,90/mês" -> currency: "R$", value: "39,90", suffix: "/mês"
             const priceMatch = typeof displayPriceStr === 'string' ? displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/) : null;
@@ -168,9 +167,9 @@ export function PricingSection({ plans }: { plans: any[] }) {
                   </Link>
                 )}
 
-                {isAnnual && calculatedAnnualPriceValue > 0 && (
+                {isAnnual && calculatedAnnualPriceValue > 0 && basePrice > calculatedAnnualPriceValue && (
                   <div className="text-xs text-zinc-500 mt-5 text-center leading-relaxed">
-                    12 meses por apenas <strong className="text-zinc-300">R$ {(calculatedAnnualPriceValue * 12).toFixed(2).replace('.', ',')}</strong> (preço normal R$ {(originalPriceValue * 12).toFixed(2).replace('.', ',')}). Renovação por R$ {monthlyPriceValue.toFixed(2).replace('.', ',')}/mês.
+                    12 meses por apenas <strong className="text-zinc-300">R$ {(calculatedAnnualPriceValue * 12).toFixed(2).replace('.', ',')}</strong> (preço normal R$ {(basePrice * 12).toFixed(2).replace('.', ',')}). Renovação por R$ {basePrice.toFixed(2).replace('.', ',')}/mês.
                   </div>
                 )}
               </div>

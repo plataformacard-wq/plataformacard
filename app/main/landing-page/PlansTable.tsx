@@ -189,20 +189,12 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Mensal</label>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Mensal (Base)</label>
                   <input 
                     type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
                     placeholder="Ex: R$ 59,90/mês"
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Original (Riscado)</label>
-                  <input 
-                    type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
-                    placeholder="Ex: R$ 89,90"
                     className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
                   />
                 </div>
