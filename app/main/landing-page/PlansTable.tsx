@@ -148,15 +148,12 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
             <div className="text-3xl font-bold text-[var(--dash-text-primary)] mt-2">{item.price_text}</div>
             <p className="text-[var(--dash-text-secondary)] mt-2 text-sm h-10">{item.subtitle}</p>
 
-            <ul className="mt-6 space-y-3 flex-1">
-              {item.features.slice(0, 4).map((feat: string, idx: number) => (
+            <ul className="mt-6 space-y-3 flex-1 pb-4">
+              {item.features.map((feat: string, idx: number) => (
                 <li key={idx} className="flex items-center gap-2 text-sm text-[var(--dash-text-primary)]">
                   <span className="text-emerald-500">✓</span> {feat}
                 </li>
               ))}
-              {item.features.length > 4 && (
-                <li className="text-sm text-zinc-500 italic">...e mais {item.features.length - 4} itens</li>
-              )}
             </ul>
           </div>
         ))}
