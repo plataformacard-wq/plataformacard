@@ -9,8 +9,9 @@ type Plan = {
   name: string;
   price_text?: string;
   price_monthly?: string;
-  price_annual?: string;
   original_price?: string;
+  annual_discount_type?: "fixed" | "percentage";
+  annual_discount_value?: number;
   subtitle: string;
   badge_text: string;
   theme: string;
@@ -32,8 +33,9 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     name: "", 
     price_text: "", 
     price_monthly: "",
-    price_annual: "",
     original_price: "",
+    annual_discount_type: "fixed",
+    annual_discount_value: 0,
     subtitle: "", 
     badge_text: "", 
     theme: "dark", 
@@ -198,18 +200,34 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Anual</label>
-                  <input 
-                    type="text" value={form.price_annual || ""} onChange={e => setForm({...form, price_annual: e.target.value})}
-                    placeholder="Ex: R$ 39,90/mês"
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
                   <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Original (Riscado)</label>
                   <input 
                     type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
                     placeholder="Ex: R$ 89,90"
+                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] uppercase">Tipo de Desconto Anual</label>
+                  <select
+                    value={form.annual_discount_type || "fixed"}
+                    onChange={e => setForm({...form, annual_discount_type: e.target.value as any})}
+                    className="dash-select w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
+                  >
+                    <option value="fixed" className="bg-[#1c1c1e]">Fixo (Desconto em R$)</option>
+                    <option value="percentage" className="bg-[#1c1c1e]">Porcentagem (Desconto em %)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">
+                    Valor do Desconto Anual {form.annual_discount_type === 'percentage' ? '(%)' : '(R$)'}
+                  </label>
+                  <input 
+                    type="number" step="0.01" value={form.annual_discount_value || 0} onChange={e => setForm({...form, annual_discount_value: Number(e.target.value)})}
+                    placeholder={form.annual_discount_type === 'percentage' ? "Ex: 20 (para 20%)" : "Ex: 50.00 (para R$ 50 OFF)"}
                     className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
                   />
                 </div>

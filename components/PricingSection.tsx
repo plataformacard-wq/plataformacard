@@ -56,16 +56,43 @@ export function PricingSection({ plans }: { plans: any[] }) {
 
         <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {(plans || []).map((plan: any) => {
-            // Logic to determine which price to show based on toggle
-            // If the new columns are populated, use them. Otherwise fallback to old price_text
-            const displayPrice = isAnnual 
-              ? (plan.price_annual || plan.price_text) 
-              : (plan.price_monthly || plan.price_text);
+            // Extrai valor numérico de strings formatadas (ex: "R$ 89,90" -> 89.90)
+            const parsePrice = (str: string | undefined | null) => {
+              if (!str) return 0;
+              const numericStr = str.replace(/[^\d,]/g, '').replace(',', '.');
+              return parseFloat(numericStr) || 0;
+            };
+
+            const originalPriceValue = parsePrice(plan.original_price);
+            const monthlyPriceValue = parsePrice(plan.price_monthly || plan.price_text);
             
-            const displayOriginal = isAnnual ? plan.original_price : null;
+            // Calcula o Preço Anual dinamicamente com base nas regras do CMS
+            let calculatedAnnualPriceValue = 0;
+            const discountType = plan.annual_discount_type || 'fixed';
+            const discountValue = Number(plan.annual_discount_value) || 0;
+
+            if (discountType === 'percentage') {
+              calculatedAnnualPriceValue = originalPriceValue * (1 - (discountValue / 100));
+            } else {
+              calculatedAnnualPriceValue = originalPriceValue - discountValue;
+            }
+            if (calculatedAnnualPriceValue <= 0 && monthlyPriceValue > 0) {
+              calculatedAnnualPriceValue = monthlyPriceValue; // fallback
+            }
+
+            // Decide qual preço está ativo
+            const currentActivePriceValue = isAnnual ? calculatedAnnualPriceValue : monthlyPriceValue;
+            const displayPriceStr = currentActivePriceValue > 0 ? `R$ ${currentActivePriceValue.toFixed(2).replace('.', ',')}/mês` : plan.price_text;
+            
+            // Âncora Riscada sempre aparece (até no mensal!)
+            const displayOriginal = plan.original_price; 
+
+            // Calcula o valor exato do desconto para o Sticker (Âncora - Ativo)
+            const activeDiscountValue = originalPriceValue - currentActivePriceValue;
+            const formattedDiscountSticker = activeDiscountValue > 0 ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF` : null;
 
             // Formata: "R$ 39,90/mês" -> currency: "R$", value: "39,90", suffix: "/mês"
-            const priceMatch = typeof displayPrice === 'string' ? displayPrice.match(/(R\$)\s*([\d,]+)(.*)/) : null;
+            const priceMatch = typeof displayPriceStr === 'string' ? displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/) : null;
 
             return (
               <div 
@@ -83,9 +110,9 @@ export function PricingSection({ plans }: { plans: any[] }) {
                   <div className={`text-xl font-bold ${plan.theme === 'green' ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>{plan.name}</div>
                   
                   {/* Badge Desconto (Abaixo do Nome) */}
-                  {isAnnual && (
+                  {formattedDiscountSticker && (
                     <div className="px-2.5 py-1 rounded-md text-[11px] uppercase font-bold bg-[#FFB800] text-black shadow-sm">
-                      Economize 50%
+                      {formattedDiscountSticker}
                     </div>
                   )}
                 </div>
@@ -105,7 +132,14 @@ export function PricingSection({ plans }: { plans: any[] }) {
                     </div>
                   ) : (
                     <div className={`text-5xl font-extrabold text-white ${plusJakarta.className}`}>
-                      {displayPrice}
+                      {displayPriceStr}
+                    </div>
+                  )}
+
+                  {/* Preço Total Faturado no Ano */}
+                  {isAnnual && calculatedAnnualPriceValue > 0 && (
+                    <div className="text-sm font-medium text-zinc-400 mt-2">
+                      Faturado R$ {(calculatedAnnualPriceValue * 12).toFixed(2).replace('.', ',')} por ano
                     </div>
                   )}
                 </div>

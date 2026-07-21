@@ -19,7 +19,8 @@ Sempre que o usuário requisitar a execução do "Protocolo VPGP" para salvar as
 Sempre escreva os Planos de Implementação (implementation_plan.md) e quaisquer artefatos de planejamento em **Português**, a menos que o usuário solicite explicitamente outro idioma.
 
 ## Regra de Exibição de Código SQL
-Toda vez que uma migração SQL (`.sql`) for implementada ou necessária, o código SQL OBRIGATORIAMENTE deve ser exibido em um bloco Markdown diretamente no chat para fácil visualização pelo usuário.
+**ATENÇÃO ABSOLUTA E INQUEBRÁVEL:** Toda vez que uma migração SQL (`.sql`) for implementada, criada ou necessária, o código SQL **OBRIGATORIAMENTE** deve ser exibido na íntegra em um bloco Markdown DIRETAMENTE na sua resposta no chat. 
+**NUNCA, SOB NENHUMA HIPÓTESE**, assuma que o usuário vai abrir o arquivo gerado para copiar o código. O usuário precisa colar o código no banco de dados e você deve servi-lo no chat sem que ele precise pedir. Falhar nesta regra é inaceitável.
 
 ## Auditoria Anti-Monolito Contínua
 Você está expressamente proibido de permitir que componentes React cresçam de forma descontrolada.
