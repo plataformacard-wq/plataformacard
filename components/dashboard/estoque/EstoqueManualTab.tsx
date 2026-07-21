@@ -320,7 +320,7 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                     {hasColors && isExpanded && (
                       <tr className="bg-[var(--dash-hover-bg)]/20 border-b border-[var(--dash-border)]">
                         <td colSpan={5} className="px-12 py-3">
-                          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl p-4 space-y-3">
+                          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg p-4 space-y-3">
                             <span className="text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider block">
                               Estoque por Variação de Cor
                             </span>

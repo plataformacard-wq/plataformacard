@@ -95,7 +95,7 @@ export default function UpgradeModal({ isOpen, onClose, feature, targetPlan }: U
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#121214] p-8 text-white shadow-2xl"
+          className="relative w-full max-w-lg overflow-hidden rounded-[27px] border border-emerald-500/30 bg-[#121214] p-8 text-white shadow-2xl"
         >
           {/* Ambient Radial Glow */}
           <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-emerald-500/15 blur-3xl" />
@@ -104,18 +104,18 @@ export default function UpgradeModal({ isOpen, onClose, feature, targetPlan }: U
           {/* Botão de Fechar */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 text-zinc-400 hover:text-white rounded-full bg-white/5 transition-colors"
+            className="absolute top-5 right-5 p-2 text-zinc-400 hover:text-white rounded-full bg-[var(--dash-surface)]/5 transition-colors"
           >
             <X size={18} />
           </button>
 
           {/* Cabeçalho */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="mb-4 inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/40 text-emerald-400 shadow-lg">
+            <div className="mb-4 inline-flex items-center justify-center h-14 w-14 rounded-[27px] bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/40 text-emerald-400 shadow-lg">
               <Crown size={28} />
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-black uppercase tracking-widest mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-black uppercase tracking-widest mb-3">
               <Sparkles size={12} /> Exclusivo do Plano {planName}
             </div>
 
@@ -128,7 +128,7 @@ export default function UpgradeModal({ isOpen, onClose, feature, targetPlan }: U
           </div>
 
           {/* Lista de Benefícios */}
-          <div className="mb-8 space-y-3 rounded-2xl bg-white/5 border border-white/10 p-5">
+          <div className="mb-8 space-y-3 rounded-[27px] bg-[var(--dash-surface)]/5 border border-white/10 p-5">
             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1">
               O que você ganha no Plano {planName}:
             </span>
@@ -145,7 +145,7 @@ export default function UpgradeModal({ isOpen, onClose, feature, targetPlan }: U
             <Link
               href={`/checkout?plan=${planSlug}&cycle=annual`}
               onClick={onClose}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-black font-extrabold text-sm uppercase tracking-wider text-center shadow-[0_0_25px_rgba(44,203,104,0.3)] hover:shadow-[0_0_35px_rgba(44,203,104,0.5)] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-lg bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-[var(--dash-text-primary)] font-extrabold text-sm uppercase tracking-wider text-center shadow-[0_0_25px_rgba(44,203,104,0.3)] hover:shadow-[0_0_35px_rgba(44,203,104,0.5)] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <Zap size={18} fill="currentColor" />
               Fazer Upgrade para o Plano {planName}

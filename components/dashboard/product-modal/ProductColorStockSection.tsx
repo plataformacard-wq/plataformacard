@@ -88,7 +88,7 @@ export default function ProductColorStockSection({ colors, onChange }: ProductCo
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 rounded-[20px] border-2 space-y-6"
+      className="p-6 rounded-[27px] border-2 space-y-6"
       style={{ background: "var(--dash-surface-secondary)", borderColor: "var(--dash-border)" }}
     >
       <div className="flex items-center justify-between">
@@ -109,7 +109,7 @@ export default function ProductColorStockSection({ colors, onChange }: ProductCo
           {normalizedColors.map((item, idx) => (
             <div
               key={idx}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] gap-3 shadow-sm"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] gap-3 shadow-sm"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span
@@ -166,13 +166,13 @@ export default function ProductColorStockSection({ colors, onChange }: ProductCo
           <button
             type="button"
             onClick={() => setIsPickerOpen(true)}
-            className="w-full py-3 border-2 border-dashed border-[var(--dash-border)] rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] hover:border-emerald-500 hover:text-emerald-500 transition-all"
+            className="w-full py-3 border-2 border-dashed border-[var(--dash-border)] rounded-lg flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--dash-text-muted)] hover:border-emerald-500 hover:text-emerald-500 transition-all"
           >
             <Plus size={16} />
             Adicionar Nova Cor
           </button>
         ) : (
-          <div className="p-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] space-y-4">
+          <div className="p-4 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[var(--dash-text-primary)] uppercase tracking-wider">
                 Nova Variação de Cor
