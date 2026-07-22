@@ -224,13 +224,13 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
             )}
           </div>
 
-          {/* Especificação Exata de Dimensões (Padrão do App) */}
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-              <Maximize2 size={14} className="shrink-0" />
+          {/* Especificação Exata de Dimensões (Alto Contraste) */}
+          <div className="bg-[#0A0A0A] border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between text-xs shadow-md">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold">
+              <Maximize2 size={14} className="shrink-0 text-emerald-400" />
               <span>Resolução Recomendada:</span>
             </div>
-            <span className="font-extrabold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+            <span className="font-black text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-lg border border-emerald-500/50 text-xs tracking-wide shadow-sm">
               1200 x 900 px
             </span>
           </div>
