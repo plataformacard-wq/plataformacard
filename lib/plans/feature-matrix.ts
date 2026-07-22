@@ -18,6 +18,10 @@ export interface PlanDefinition {
   allowedFeatures: FeatureKey[];
   maxProducts: number;
   maxUsers: number;
+  checkoutUrls?: {
+    monthly: string;
+    annual: string;
+  };
 }
 
 export const PLANS: Record<PlanSlug, PlanDefinition> = {
@@ -31,6 +35,10 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     allowedFeatures: [],
     maxProducts: 100,
     maxUsers: 1,
+    checkoutUrls: {
+      monthly: "https://pay.kiwify.com.br/o58QqJP",
+      annual: "https://pay.kiwify.com.br/JYPy0Ec",
+    },
   },
   pro: {
     slug: "pro",
@@ -43,6 +51,10 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     allowedFeatures: ["ai_seo", "bling_sync", "custom_domain"],
     maxProducts: 1000,
     maxUsers: 3,
+    checkoutUrls: {
+      monthly: "https://pay.kiwify.com.br/exQ3L5T",
+      annual: "https://pay.kiwify.com.br/H8G4uuU",
+    },
   },
   sales_team: {
     slug: "sales_team",
@@ -55,6 +67,10 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "caas_master"],
     maxProducts: 5000,
     maxUsers: 10,
+    checkoutUrls: {
+      monthly: "https://pay.kiwify.com.br/LkBViNa",
+      annual: "https://pay.kiwify.com.br/DcSyq23",
+    },
   },
 };
 

@@ -66,26 +66,23 @@ export default function CheckoutClient() {
 
     // Em produção com a Kiwify: Redirecionar para a URL do Checkout Kiwify com parâmetros de identificação do lojista
     // Exemplo: https://pay.kiwify.com.br/ABCDEF?email=...&name=...
-    const kiwifyBaseUrl = process.env.NEXT_PUBLIC_KIWIFY_CHECKOUT_URL || "https://pay.kiwify.com.br";
+    const kiwifyBaseUrl = activePlan.checkoutUrls?.[cycle] || process.env.NEXT_PUBLIC_KIWIFY_CHECKOUT_URL;
     
-    // Simulação ou redirecionamento seguro
+    // Parâmetros de identificação e pré-preenchimento do cliente na Kiwify
     const params = new URLSearchParams({
       name: fullName,
       email: email,
       doc: document,
       phone: whatsapp,
-      plan: activePlan.slug,
-      cycle: cycle
     });
 
     setTimeout(() => {
-      // Se tivermos a URL da Kiwify configurada, vai direto para lá; senão redireciona para cadastro com plano
-      if (process.env.NEXT_PUBLIC_KIWIFY_CHECKOUT_URL) {
+      if (kiwifyBaseUrl) {
         window.location.href = `${kiwifyBaseUrl}?${params.toString()}`;
       } else {
         router.push(`/cadastro?plan=${activePlan.slug}&cycle=${cycle}&email=${encodeURIComponent(email)}`);
       }
-    }, 1000);
+    }, 800);
   };
 
   return (
