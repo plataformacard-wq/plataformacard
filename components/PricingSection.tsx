@@ -7,6 +7,8 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
 
+import { PricingCard } from "@/components/landing-page/PricingCard";
+
 const plusJakarta = Plus_Jakarta_Sans({ 
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"]
@@ -78,136 +80,10 @@ export function PricingSection({ plans }: { plans: any[] }) {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {displayPlans.map((plan: any) => {
-            // Mapeia o slug do plano para a definição oficial com preços Kiwify e Ancoragem
-            const slugNormalized = (plan.slug || plan.name || 'pro').toLowerCase().trim().replace(/[^a-z_]/g, '') as PlanSlug;
-            const officialPlan = PLANS[slugNormalized] || PLANS.pro;
-
-            // 🟢 PREÇOS REAIS DA KIWIFY (Imutáveis)
-            const realMonthlyPrice = officialPlan.monthlyPrice; // ex: 59.90, 149.90, 299.90
-            const realAnnualPrice = officialPlan.annualPrice;   // ex: 39.90, 99.90, 199.90
-
-            // 🎯 ANCORAGEM PERSONALIZADA INDEPENDENTE (Mensal vs Anual)
-            const parsePriceNum = (str: any) => {
-              if (!str) return 0;
-              const numericStr = String(str).replace(/[^0-9,]/g, '').replace(',', '.');
-              return parseFloat(numericStr) || 0;
-            };
-
-            const monthlyAnchor = parsePriceNum(plan.price_monthly) || officialPlan.monthlyAnchor;
-            const annualAnchor = parsePriceNum(plan.original_price) || officialPlan.monthlyPrice || officialPlan.monthlyAnchor;
-
-            // Decide qual preço cobrado e qual âncora estão ativos
-            const currentActivePriceValue = isAnnual ? realAnnualPrice : realMonthlyPrice;
-            const currentAnchorValue = isAnnual ? annualAnchor : monthlyAnchor;
-            const displayPriceStr = `R$ ${currentActivePriceValue.toFixed(2).replace('.', ',')}/mês`;
-
-            // Preço Riscado de Ancoragem para o ciclo ativo
-            const displayOriginal = currentAnchorValue > currentActivePriceValue ? `R$ ${currentAnchorValue.toFixed(2).replace('.', ',')}` : null; 
-
-            // Desconto mensal acumulado comparado à âncora ativa
-            const activeDiscountValue = currentAnchorValue - currentActivePriceValue;
-            const formattedDiscountSticker = activeDiscountValue > 0 ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF/mês` : null;
-
-            const priceMatch = displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/);
-
-            return (
-              <div 
-                key={plan.id} 
-                className={`relative flex flex-col h-full ${plan.theme === 'green' ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-10 backdrop-blur-md mt-6 lg:mt-0' : 'bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md mt-6 lg:mt-0'}`}
-              >
-                {/* Badge Recomendado (Centro) */}
-                {plan.badge_text && (
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-xs font-bold ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-white text-black'}`}>
-                    {plan.badge_text}
-                  </div>
-                )}
-                
-                <div className="flex flex-col items-start gap-2 mb-4">
-                  <div className={`text-xl font-bold ${plan.theme === 'green' ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>{plan.name}</div>
-                  
-                  {/* Badge Desconto (Abaixo do Nome) */}
-                  {formattedDiscountSticker && (
-                    <div className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#FFB800] text-black shadow-sm">
-                      {formattedDiscountSticker}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="min-h-[96px] mb-2 flex flex-col justify-end">
-                  {displayOriginal && (
-                    <div className="text-zinc-500 line-through text-lg mb-1 font-bold">
-                      {displayOriginal}
-                    </div>
-                  )}
-                  
-                  {priceMatch ? (
-                    <div className={`flex items-baseline gap-1 text-white ${plusJakarta.className}`}>
-                      <span className="text-2xl font-bold text-white/80">{priceMatch[1]}</span>
-                      <span className="text-5xl font-extrabold">{priceMatch[2]}</span>
-                      <span className="text-lg font-medium text-zinc-400">{priceMatch[3]}</span>
-                    </div>
-                  ) : (
-                    <div className={`text-5xl font-extrabold text-white ${plusJakarta.className}`}>
-                      {displayPriceStr}
-                    </div>
-                  )}
-
-                  {!isAnnual && currentActivePriceValue > 0 && (
-                     <div className="text-[13px] text-zinc-400 mt-2 font-medium tracking-wide">
-                       Total de <strong className="text-zinc-200">R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}</strong> por ano.
-                     </div>
-                  )}
-                  {isAnnual && activeDiscountValue > 0 && (
-                     <div className="text-[10px] font-bold text-[#2CCB68] mt-2 inline-flex items-center bg-[#2CCB68]/10 px-2.5 py-1 rounded-md w-fit uppercase tracking-wider">
-                       economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano.
-                     </div>
-                  )}
-
-                </div>
-                
-                <p className="text-zinc-400 mb-8 h-10">{plan.subtitle}</p>
-                
-                <ul className="space-y-4 mb-10 flex-1">
-                  {plan.features.map((feat: string, i: number) => (
-                    <li key={i} className="flex items-center gap-3 text-zinc-300">
-                      <div className="text-[#2CCB68]"><CheckIcon size={18} /></div>
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-                
-                {plan.button_url.startsWith("http") ? (
-                  <a href={plan.button_url} target="_blank" rel="noopener noreferrer" className={`mt-auto flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}>
-                    <div className="flex items-center gap-2">
-                      {plan.button_url.includes("wa.me") && <WhatsAppIcon size={20} />}
-                      {plan.button_text}
-                    </div>
-                    {plan.theme === 'green' && isAnnual && (
-                      <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Grátis Incluso!</span>
-                    )}
-                  </a>
-                ) : (
-                  <Link 
-                    href={`/checkout?plan=${(plan.name || 'pro').toLowerCase().replace(/\s+/g, '_')}&cycle=${isAnnual ? 'annual' : 'monthly'}`} 
-                    className={`mt-auto flex flex-col items-center justify-center gap-1 w-full py-4 rounded-xl font-bold transition-colors ${plan.theme === 'green' ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}
-                  >
-                    <span>{plan.button_text}</span>
-                    {plan.theme === 'green' && isAnnual && (
-                      <span className="text-[10px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Grátis Incluso!</span>
-                    )}
-                  </Link>
-                )}
-
-                {isAnnual && realAnnualPrice > 0 && (
-                  <div className="text-xs text-zinc-500 mt-5 text-center leading-relaxed">
-                    12 meses por apenas <strong className="text-zinc-300">R$ {(realAnnualPrice * 12).toFixed(2).replace('.', ',')}</strong> {annualAnchor > realAnnualPrice && <>(preço de referência R$ {(annualAnchor * 12).toFixed(2).replace('.', ',')})</>}. Renovação anual garantida.
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto items-stretch">
+          {displayPlans.map((plan: any) => (
+            <PricingCard key={plan.id || plan.slug} plan={plan} isAnnual={isAnnual} />
+          ))}
         </div>
       </div>
     </section>

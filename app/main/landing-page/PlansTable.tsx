@@ -5,6 +5,8 @@ import { Plus, Edit2, Trash2, Loader2, X } from "lucide-react";
 import { deletePlan, upsertPlan } from "./actions";
 import { PLANS } from "@/lib/plans/feature-matrix";
 
+import { PricingCard } from "@/components/landing-page/PricingCard";
+
 type Plan = {
   id?: string;
   name: string;
@@ -107,13 +109,6 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     setForm({ ...form, features: newFeatures });
   }
 
-  // Preview Math for Realtime Modal
-  const parsePricePreview = (str: string | undefined | null) => {
-    if (!str) return 0;
-    const numericStr = str.replace(/[^0-9,]/g, '').replace(',', '.');
-    return parseFloat(numericStr) || 0;
-  };
-
   // Identifica o plano oficial (Starter, PRO ou Sales Team) dinamicamente pelo nome ou id
   const normFormName = (form.name || '').toLowerCase();
   const formOfficialPlan = normFormName.includes('pro') 
@@ -122,11 +117,8 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
       ? PLANS.sales_team 
       : PLANS.starter;
 
-  const previewAnchorPrice = parsePricePreview(form.price_monthly || form.price_text) || formOfficialPlan.monthlyAnchor;
   const realMonthly = formOfficialPlan.monthlyPrice;
   const realAnnual = formOfficialPlan.annualPrice;
-  const monthlySavingsVsAnchor = previewAnchorPrice > realMonthly ? previewAnchorPrice - realMonthly : 0;
-  const annualSavingsVsAnchor = previewAnchorPrice > realAnnual ? previewAnchorPrice - realAnnual : 0;
 
   return (
     <div>
@@ -134,7 +126,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
         <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Planos</h2>
         <button 
           onClick={openNew}
-          className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors"
+          className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors shadow-md active:scale-95"
         >
           <Plus size={16} /> Adicionar Plano
         </button>
@@ -142,18 +134,18 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.map((item) => (
-          <div key={item.id} className="bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-2xl p-6 relative flex flex-col">
+          <div key={item.id} className="bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-2xl p-6 relative flex flex-col shadow-sm hover:border-emerald-500/30 transition-all">
             <div className="absolute top-4 right-4 flex gap-2">
-              <button onClick={() => openEdit(item)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg">
+              <button onClick={() => openEdit(item)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors">
                 <Edit2 size={16} />
               </button>
-              <button onClick={() => item.id && handleDelete(item.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg">
+              <button onClick={() => item.id && handleDelete(item.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
                 {deletingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
               </button>
             </div>
             
             {!item.is_active && (
-              <span className="absolute top-4 left-4 px-2 py-1 bg-red-500/10 text-red-500 text-xs font-bold rounded-full">Inativo</span>
+              <span className="absolute top-4 left-4 px-2.5 py-1 bg-red-500/10 text-red-500 text-xs font-bold rounded-full border border-red-500/20">Inativo</span>
             )}
             
             <div className="h-7 mt-8 mb-2">
@@ -185,216 +177,231 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--dash-border)] shrink-0">
-              <h3 className="font-bold text-[var(--dash-text-primary)]">{editingItem ? "Editar Plano" : "Novo Plano"}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[var(--dash-text-secondary)] hover:text-white"><X size={20} /></button>
-            </div>
-            <div className="p-6 space-y-6 overflow-y-auto">
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Nome do Plano</label>
-                  <input 
-                    type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-center">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🔒 Cobrança Real Protegida Kiwify</span>
-                  <span className="text-xs font-black text-white mt-0.5">
-                    Mensal: R$ {realMonthly.toFixed(2).replace('.', ',')}/mês | Anual: R$ {realAnnual.toFixed(2).replace('.', ',')}/mês
-                  </span>
-                </div>
-              </div>
-
-              {/* 🎯 Campos de Ancoragem Riscada para os 2 Ciclos */}
-              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">🎯 Gatilhos de Ancoragem (Preços Riscados no Site)</span>
-                  <span className="text-[10px] text-amber-300/80">Valores de referência para destacar o desconto</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA DO CICLO MENSAL (R$)</label>
-                    <input 
-                      type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
-                      placeholder={`Ex: R$ ${formOfficialPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`}
-                      className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400"
-                    />
-                    <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Mensal</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA DO CICLO ANUAL (R$)</label>
-                    <input 
-                      type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
-                      placeholder={`Ex: R$ ${formOfficialPlan.monthlyPrice.toFixed(2).replace('.', ',')}`}
-                      className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400"
-                    />
-                    <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Anual</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Subtítulo</label>
-                <input 
-                  type="text" value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})}
-                  className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Badge (Opcional)</label>
-                  <input 
-                    type="text" value={form.badge_text || ""} onChange={e => setForm({...form, badge_text: e.target.value})}
-                    placeholder="Ex: Mais Popular"
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] w-full max-w-[95vw] xl:max-w-[1400px] overflow-hidden flex flex-col max-h-[92vh] shadow-2xl transition-all">
+            
+            {/* Header do Studio Modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--dash-border)] shrink-0 bg-[var(--dash-surface)]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center font-bold">
+                  ⚡
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Tema Visual</label>
-                  <select 
-                    value={form.theme} onChange={e => setForm({...form, theme: e.target.value})}
-                    className="dash-select w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  >
-                    <option value="dark" className="bg-[#1c1c1e]">Dark (Padrão)</option>
-                    <option value="green" className="bg-[#1c1c1e]">Green (Destaque)</option>
-                  </select>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--dash-text-primary)]">
+                    Studio de Planos: {editingItem ? `Editar "${editingItem.name}"` : "Criar Novo Plano"}
+                  </h3>
+                  <p className="text-xs text-[var(--dash-text-secondary)]">Edite as informações na esquerda e acompanhe a renderização exata da Landing Page ao vivo nas colunas de preview.</p>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Texto do Botão</label>
-                  <input 
-                    type="text" value={form.button_text} onChange={e => setForm({...form, button_text: e.target.value})}
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Link do Botão</label>
-                  <input 
-                    type="text" value={form.button_url} onChange={e => setForm({...form, button_url: e.target.value})}
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <hr className="border-[var(--dash-border)]" />
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] uppercase">Funcionalidades (Features)</label>
-                  <button onClick={addFeature} className="text-xs text-emerald-500 hover:text-emerald-400 font-bold flex items-center gap-1">
-                    <Plus size={12} /> Adicionar
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {form.features.map((feat, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <input 
-                        type="text" value={feat} onChange={e => updateFeature(idx, e.target.value)}
-                        placeholder={`Feature ${idx + 1}`}
-                        className="flex-1 bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                      />
-                      <button onClick={() => removeFeature(idx)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg shrink-0">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  {form.features.length === 0 && (
-                    <p className="text-sm text-zinc-500 italic text-center py-2">Nenhuma funcionalidade adicionada.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 border-t border-[var(--dash-border)] pt-4 mt-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Ordem de Exibição</label>
-                  <input 
-                    type="number" value={form.display_order} onChange={e => setForm({...form, display_order: Number(e.target.value)})}
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div className="flex items-center mt-6 gap-2">
-                  <input 
-                    type="checkbox" checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})}
-                    className="w-4 h-4 rounded border-[var(--dash-border)] text-emerald-500 focus:ring-emerald-500 bg-transparent"
-                  />
-                  <label className="text-sm text-[var(--dash-text-primary)]">Ativo (Visível na página)</label>
-                </div>
-              </div>
-
-              <div className="mt-6 border border-[var(--dash-border)] rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden">
-                <div className="bg-black/10 dark:bg-white/10 px-4 py-2 text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider flex items-center justify-between">
-                  <span>Preview Matemático & Gatilho de Ancoragem</span>
-                  <span className="text-[10px] text-emerald-400 font-normal">Cobrança Real Kiwify Protegida</span>
-                </div>
-                <div className="p-4 grid grid-cols-2 gap-6 divide-x divide-[var(--dash-border)]">
-                  {/* Mensal */}
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-zinc-500 mb-2 uppercase">Cliente Vê (Modo Mensal)</span>
-                    {previewAnchorPrice > realMonthly && (
-                      <div className="text-xs font-bold text-zinc-500 line-through">
-                        R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}
-                      </div>
-                    )}
-                    <div className="text-2xl font-black text-[var(--dash-text-primary)]">
-                      R$ {realMonthly.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-500 mt-1">
-                      Total de <strong className="text-[var(--dash-text-primary)]">R$ {(realMonthly * 12).toFixed(2).replace('.', ',')}</strong> por ano.
-                    </div>
-                    {previewAnchorPrice > realMonthly && (
-                      <div className="text-[10px] text-amber-400/90 font-medium mt-1">Ancorado sobre R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}</div>
-                    )}
-                  </div>
-                  {/* Anual */}
-                  <div className="flex flex-col pl-6 relative">
-                    <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
-                    {annualSavingsVsAnchor > 0 && (
-                       <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFB800] text-black shadow-sm">
-                         R$ {monthlySavingsVsAnchor.toFixed(2).replace('.', ',')} OFF/mês
-                       </div>
-                    )}
-                    {parsePricePreview(form.original_price) > realAnnual && (
-                      <div className="text-xs font-bold text-zinc-500 line-through">
-                        R$ {parsePricePreview(form.original_price).toFixed(2).replace('.', ',')}
-                      </div>
-                    )}
-                    <div className="text-2xl font-black text-emerald-400">
-                      R$ {realAnnual.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
-                    </div>
-                    {annualSavingsVsAnchor > 0 && (
-                      <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
-                        economize R$ {(annualSavingsVsAnchor * 12).toFixed(2).replace('.', ',')} por ano.
-                      </div>
-                    )}
-                    <div className="text-[10px] text-zinc-500 mt-2 leading-tight">
-                      Fatura Kiwify: R$ {(realAnnual * 12).toFixed(2).replace('.', ',')}/ano.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <div className="p-4 border-t border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] flex justify-end shrink-0">
-              <button 
-                onClick={handleSave} disabled={loading}
-                className="bg-emerald-500 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center min-w-[120px]"
-              >
-                {loading ? <Loader2 size={16} className="animate-spin" /> : "Salvar Plano"}
+              <button onClick={() => setIsModalOpen(false)} className="text-[var(--dash-text-secondary)] hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors">
+                <X size={20} />
               </button>
             </div>
+
+            {/* Conteúdo em 3 Colunas */}
+            <div className="p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* 📝 COLUNA 1: FORMULÁRIO DE EDIÇÃO (42% de largura - 5 cols) */}
+              <div className="lg:col-span-5 space-y-5 pr-2 lg:border-r border-[var(--dash-border)]">
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Nome do Plano</label>
+                    <input 
+                      type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                      placeholder="Ex: PRO"
+                    />
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-center">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🔒 Cobrança Kiwify Protegida</span>
+                    <span className="text-xs font-black text-white mt-0.5">
+                      Mensal: R$ {realMonthly.toFixed(2).replace('.', ',')} | Anual: R$ {realAnnual.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 🎯 Campos de Ancoragem Riscada para os 2 Ciclos */}
+                <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                      🎯 Preços Riscados de Ancoragem
+                    </span>
+                    <span className="text-[10px] text-amber-300/80">Site exibe o desconto em cima destes valores</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA CICLO MENSAL (R$)</label>
+                      <input 
+                        type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
+                        placeholder={`Ex: R$ ${formOfficialPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`}
+                        className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400 font-bold"
+                      />
+                      <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Mensal</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA CICLO ANUAL (R$)</label>
+                      <input 
+                        type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
+                        placeholder={`Ex: R$ ${formOfficialPlan.monthlyPrice.toFixed(2).replace('.', ',')}`}
+                        className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400 font-bold"
+                      />
+                      <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Anual</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Subtítulo</label>
+                  <input 
+                    type="text" value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})}
+                    placeholder="Ex: O plano mais completo para acelerar vendas"
+                    className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Badge (Opcional)</label>
+                    <input 
+                      type="text" value={form.badge_text || ""} onChange={e => setForm({...form, badge_text: e.target.value})}
+                      placeholder="Ex: Recomendado"
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Tema Visual</label>
+                    <select 
+                      value={form.theme} onChange={e => setForm({...form, theme: e.target.value})}
+                      className="dash-select w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl pl-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                    >
+                      <option value="dark" className="bg-[#1c1c1e]">Dark (Padrão)</option>
+                      <option value="green" className="bg-[#1c1c1e]">Green (Destaque Verde)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Texto do Botão</label>
+                    <input 
+                      type="text" value={form.button_text} onChange={e => setForm({...form, button_text: e.target.value})}
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Link do Botão</label>
+                    <input 
+                      type="text" value={form.button_url} onChange={e => setForm({...form, button_url: e.target.value})}
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-[var(--dash-border)]" />
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider">Funcionalidades (Features)</label>
+                    <button onClick={addFeature} className="text-xs text-emerald-500 hover:text-emerald-400 font-bold flex items-center gap-1">
+                      <Plus size={14} /> Adicionar
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {form.features.map((feat, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <input 
+                          type="text" value={feat} onChange={e => updateFeature(idx, e.target.value)}
+                          placeholder={`Feature ${idx + 1}`}
+                          className="flex-1 bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                        />
+                        <button onClick={() => removeFeature(idx)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg shrink-0 transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    {form.features.length === 0 && (
+                      <p className="text-sm text-zinc-500 italic text-center py-2">Nenhuma funcionalidade adicionada.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 border-t border-[var(--dash-border)] pt-4 mt-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Ordem de Exibição</label>
+                    <input 
+                      type="number" value={form.display_order} onChange={e => setForm({...form, display_order: Number(e.target.value)})}
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center mt-6 gap-2">
+                    <input 
+                      type="checkbox" checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})}
+                      className="w-4 h-4 rounded border-[var(--dash-border)] text-emerald-500 focus:ring-emerald-500 bg-transparent"
+                    />
+                    <label className="text-sm font-medium text-[var(--dash-text-primary)]">Ativo no site</label>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 📅 COLUNA 2: PREVIEW MENSAL AO VIVO (29% de largura - 3.5 cols) */}
+              <div className="lg:col-span-[3.5] flex flex-col h-full space-y-3">
+                <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700/50">
+                  <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> 📅 Preview Ciclo Mensal
+                  </span>
+                  <span className="text-[10px] font-extrabold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">SITE AO VIVO</span>
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <PricingCard plan={form} isAnnual={false} isInteractive={false} />
+                </div>
+              </div>
+
+              {/* 🚀 COLUNA 3: PREVIEW ANUAL AO VIVO (29% de largura - 3.5 cols) */}
+              <div className="lg:col-span-[3.5] flex flex-col h-full space-y-3">
+                <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-emerald-950/60 border border-emerald-800/40">
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 🚀 Preview Ciclo Anual
+                  </span>
+                  <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">SITE AO VIVO</span>
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <PricingCard plan={form} isAnnual={true} isInteractive={false} />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer do Modal */}
+            <div className="p-4 border-t border-[var(--dash-border)] bg-[var(--dash-surface-secondary)] flex items-center justify-between shrink-0">
+              <span className="text-xs text-[var(--dash-text-muted)] font-medium hidden sm:inline">
+                💡 Qualquer alteração no formulário é refletida instantaneamente nos previews mensal e anual.
+              </span>
+              <div className="flex items-center gap-3 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-[var(--dash-text-secondary)] hover:bg-white/5 border border-[var(--dash-border)] transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleSave} disabled={loading}
+                  className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all shadow-md active:scale-95 flex items-center justify-center min-w-[130px] disabled:opacity-60"
+                >
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : "Salvar Plano"}
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
     </div>
   );
 }
+
