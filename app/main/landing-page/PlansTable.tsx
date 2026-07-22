@@ -199,10 +199,10 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
             </div>
 
             {/* Conteúdo em 3 Colunas */}
-            <div className="p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
-              {/* 📝 COLUNA 1: FORMULÁRIO DE EDIÇÃO (42% de largura - 5 cols) */}
-              <div className="lg:col-span-5 space-y-5 pr-2 lg:border-r border-[var(--dash-border)]">
+              {/* 📝 COLUNA 1: FORMULÁRIO DE EDIÇÃO (4/12 de largura) */}
+              <div className="lg:col-span-4 space-y-5 pr-2 lg:border-r border-[var(--dash-border)]">
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -215,7 +215,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   </div>
                   <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-center">
                     <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🔒 Cobrança Kiwify Protegida</span>
-                    <span className="text-xs font-black text-white mt-0.5">
+                    <span className="text-xs font-black text-[var(--dash-text-primary)] mt-0.5">
                       Mensal: R$ {realMonthly.toFixed(2).replace('.', ',')} | Anual: R$ {realAnnual.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
@@ -227,28 +227,28 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                       🎯 Preços Riscados de Ancoragem
                     </span>
-                    <span className="text-[10px] text-amber-300/80">Site exibe o desconto em cima destes valores</span>
+                    <span className="text-[10px] text-amber-300/80">Valores de referência no site</span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA CICLO MENSAL (R$)</label>
+                      <label className="block text-[11px] font-bold text-[var(--dash-text-primary)] mb-1">ÂNCORA MENSAL (R$)</label>
                       <input 
                         type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
                         placeholder={`Ex: R$ ${formOfficialPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`}
                         className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400 font-bold"
                       />
-                      <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Mensal</span>
+                      <span className="text-[10px] text-[var(--dash-text-muted)] mt-1 block">Riscado no Mensal</span>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA CICLO ANUAL (R$)</label>
+                      <label className="block text-[11px] font-bold text-[var(--dash-text-primary)] mb-1">ÂNCORA ANUAL (R$)</label>
                       <input 
                         type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
                         placeholder={`Ex: R$ ${formOfficialPlan.monthlyPrice.toFixed(2).replace('.', ',')}`}
                         className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400 font-bold"
                       />
-                      <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Anual</span>
+                      <span className="text-[10px] text-[var(--dash-text-muted)] mt-1 block">Riscado no Anual</span>
                     </div>
                   </div>
                 </div>
@@ -277,8 +277,8 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                       value={form.theme} onChange={e => setForm({...form, theme: e.target.value})}
                       className="dash-select w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl pl-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
                     >
-                      <option value="dark" className="bg-[#1c1c1e]">Dark (Padrão)</option>
-                      <option value="green" className="bg-[#1c1c1e]">Green (Destaque Verde)</option>
+                      <option value="dark" className="bg-[#1c1c1e] text-white">Dark (Padrão)</option>
+                      <option value="green" className="bg-[#1c1c1e] text-white">Green (Destaque Verde)</option>
                     </select>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                       <Plus size={14} /> Adicionar
                     </button>
                   </div>
-                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.features.map((feat, idx) => (
                       <div key={idx} className="flex gap-2">
                         <input 
@@ -347,28 +347,28 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
 
               </div>
 
-              {/* 📅 COLUNA 2: PREVIEW MENSAL AO VIVO (29% de largura - 3.5 cols) */}
-              <div className="lg:col-span-[3.5] flex flex-col h-full space-y-3">
-                <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700/50">
-                  <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+              {/* 📅 COLUNA 2: PREVIEW MENSAL AO VIVO (4/12 de largura) */}
+              <div className="lg:col-span-4 flex flex-col h-full space-y-3">
+                <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                  <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> 📅 Preview Ciclo Mensal
                   </span>
-                  <span className="text-[10px] font-extrabold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">SITE AO VIVO</span>
+                  <span className="text-[10px] font-extrabold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">AO VIVO</span>
                 </div>
-                <div className="flex-1 flex justify-center">
+                <div className="p-4 sm:p-5 rounded-[24px] bg-[#0A0A0A] border border-zinc-800 shadow-2xl flex-1 flex justify-center items-start">
                   <PricingCard plan={form} isAnnual={false} isInteractive={false} />
                 </div>
               </div>
 
-              {/* 🚀 COLUNA 3: PREVIEW ANUAL AO VIVO (29% de largura - 3.5 cols) */}
-              <div className="lg:col-span-[3.5] flex flex-col h-full space-y-3">
-                <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-emerald-950/60 border border-emerald-800/40">
-                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+              {/* 🚀 COLUNA 3: PREVIEW ANUAL AO VIVO (4/12 de largura) */}
+              <div className="lg:col-span-4 flex flex-col h-full space-y-3">
+                <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 🚀 Preview Ciclo Anual
                   </span>
-                  <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">SITE AO VIVO</span>
+                  <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AO VIVO</span>
                 </div>
-                <div className="flex-1 flex justify-center">
+                <div className="p-4 sm:p-5 rounded-[24px] bg-[#0A0A0A] border border-zinc-800 shadow-2xl flex-1 flex justify-center items-start">
                   <PricingCard plan={form} isAnnual={true} isInteractive={false} />
                 </div>
               </div>
