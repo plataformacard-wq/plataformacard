@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit2, Trash2, Loader2, X } from "lucide-react";
+import { Plus, Edit2, Trash2, Loader2, X, GripVertical } from "lucide-react";
+import { Reorder, AnimatePresence } from "framer-motion";
 import { deletePlan, upsertPlan } from "./actions";
 import { PLANS } from "@/lib/plans/feature-matrix";
 
@@ -293,28 +294,56 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider">Funcionalidades (Features)</label>
-                    <button onClick={addFeature} className="text-xs text-emerald-500 hover:text-emerald-400 font-bold flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
+                      Funcionalidades (Features)
+                      <span className="text-[10px] text-[var(--dash-text-muted)] font-normal">(Arraste para reordenar)</span>
+                    </label>
+                    <button type="button" onClick={addFeature} className="text-xs text-emerald-500 hover:text-emerald-400 font-bold flex items-center gap-1">
                       <Plus size={14} /> Adicionar
                     </button>
                   </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    {form.features.map((feat, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <input 
-                          type="text" value={feat} onChange={e => updateFeature(idx, e.target.value)}
-                          placeholder={`Feature ${idx + 1}`}
-                          className="flex-1 bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
-                        />
-                        <button onClick={() => removeFeature(idx)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg shrink-0 transition-colors">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
-                    {form.features.length === 0 && (
-                      <p className="text-sm text-zinc-500 italic text-center py-2">Nenhuma funcionalidade adicionada.</p>
-                    )}
-                  </div>
+                  
+                  <Reorder.Group 
+                    axis="y" 
+                    values={form.features} 
+                    onReorder={(newFeatures) => setForm({ ...form, features: newFeatures })}
+                    className="space-y-2 max-h-56 overflow-y-auto pr-1"
+                  >
+                    <AnimatePresence>
+                      {form.features.map((feat, idx) => (
+                        <Reorder.Item
+                          key={`feat-${idx}-${feat.slice(0, 10)}`}
+                          value={feat}
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          className="flex items-center gap-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-xl p-1.5 group cursor-grab active:cursor-grabbing hover:border-emerald-500/50 transition-colors shadow-sm"
+                        >
+                          <div className="text-[var(--dash-text-muted)] group-hover:text-emerald-500 transition-colors pl-1 shrink-0">
+                            <GripVertical size={16} />
+                          </div>
+                          <input 
+                            type="text" 
+                            value={feat} 
+                            onChange={e => updateFeature(idx, e.target.value)}
+                            placeholder={`Feature ${idx + 1}`}
+                            className="flex-1 bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => removeFeature(idx)} 
+                            className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg shrink-0 transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </Reorder.Item>
+                      ))}
+                    </AnimatePresence>
+                  </Reorder.Group>
+
+                  {form.features.length === 0 && (
+                    <p className="text-sm text-zinc-500 italic text-center py-2">Nenhuma funcionalidade adicionada.</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-[var(--dash-border)] pt-4 mt-4">
