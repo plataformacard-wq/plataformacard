@@ -10,6 +10,7 @@ import { PricingCard } from "@/components/landing-page/PricingCard";
 
 type Plan = {
   id?: string;
+  slug?: string;
   name: string;
   price_text?: string;
   price_monthly?: string;
@@ -110,12 +111,15 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     setForm({ ...form, features: newFeatures });
   }
 
-  // Identifica o plano oficial (Starter, PRO ou Sales Team) dinamicamente pelo nome ou id
+  // Identifica o plano oficial (Starter, PRO ou Sales Team) dinamicamente pelo slug, id ou nome
+  const normFormSlug = (form.slug || form.id || '').toLowerCase();
   const normFormName = (form.name || '').toLowerCase();
-  const formOfficialPlan = normFormName.includes('pro') 
-    ? PLANS.pro 
-    : (normFormName.includes('sales') || normFormName.includes('premium') || normFormName.includes('team')) 
-      ? PLANS.sales_team 
+  const combinedForm = `${normFormSlug} ${normFormName}`;
+
+  const formOfficialPlan = (combinedForm.includes('sales') || combinedForm.includes('team') || combinedForm.includes('premium') || combinedForm.includes('corporativo'))
+    ? PLANS.sales_team 
+    : combinedForm.includes('pro') 
+      ? PLANS.pro 
       : PLANS.starter;
 
   const realMonthly = formOfficialPlan.monthlyPrice;
@@ -374,7 +378,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   <span className="text-[10px] font-extrabold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">AO VIVO</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-[24px] bg-[#0A0A0A] border border-zinc-800 shadow-2xl flex-1 flex justify-center items-start">
-                  <PricingCard plan={form} isAnnual={false} isInteractive={false} />
+                  <PricingCard plan={form} isAnnual={false} isInteractive={false} officialPlan={formOfficialPlan} />
                 </div>
               </div>
 
@@ -387,7 +391,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AO VIVO</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-[24px] bg-[#0A0A0A] border border-zinc-800 shadow-2xl flex-1 flex justify-center items-start">
-                  <PricingCard plan={form} isAnnual={true} isInteractive={false} />
+                  <PricingCard plan={form} isAnnual={true} isInteractive={false} officialPlan={formOfficialPlan} />
                 </div>
               </div>
 

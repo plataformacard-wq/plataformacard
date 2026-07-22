@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
+import { PLANS, PlanSlug, PlanDefinition } from "@/lib/plans/feature-matrix";
 
 const plusJakarta = Plus_Jakarta_Sans({ 
   subsets: ["latin"],
@@ -23,13 +23,25 @@ export type PricingCardProps = {
   plan: any;
   isAnnual: boolean;
   isInteractive?: boolean;
+  officialPlan?: PlanDefinition;
 };
 
-export function PricingCard({ plan, isAnnual, isInteractive = true }: PricingCardProps) {
+export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan: propOfficialPlan }: PricingCardProps) {
   // Mapeia o slug do plano para a definição oficial com preços Kiwify e Ancoragem
-  const rawName = plan?.name || plan?.slug || 'pro';
-  const slugNormalized = (plan?.slug || rawName).toLowerCase().trim().replace(/[^a-z_]/g, '') as PlanSlug;
-  const officialPlan = PLANS[slugNormalized] || (rawName.toLowerCase().includes('pro') ? PLANS.pro : rawName.toLowerCase().includes('sales') || rawName.toLowerCase().includes('team') ? PLANS.sales_team : PLANS.starter);
+  const rawSlug = (plan?.slug || plan?.id || '').toLowerCase().trim();
+  const rawName = (plan?.name || '').toLowerCase().trim();
+  const slugNorm = rawSlug.replace(/[^a-z_]/g, '') as PlanSlug;
+  const combined = `${rawSlug} ${rawName}`;
+
+  const detectedOfficialPlan = PLANS[slugNorm] || (
+    combined.includes('sales') || combined.includes('team') || combined.includes('premium') || combined.includes('corporativo')
+      ? PLANS.sales_team
+      : combined.includes('pro')
+        ? PLANS.pro
+        : PLANS.starter
+  );
+
+  const officialPlan = propOfficialPlan || detectedOfficialPlan;
 
   // 🟢 PREÇOS REAIS DA KIWIFY (Imutáveis)
   const realMonthlyPrice = officialPlan.monthlyPrice; 
