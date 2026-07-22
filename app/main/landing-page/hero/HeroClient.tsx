@@ -83,7 +83,7 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
     }
   }
 
-  const currentMockupUrl = form.hero_mockup_url || "/mockup_landing_hero.png";
+  const currentMockupUrl = form.hero_mockup_url || "/hero_mockup.png";
 
   return (
     <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6 sm:p-8 shadow-sm">
@@ -242,7 +242,7 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
                 alt="Mockup Hero"
                 className="max-h-48 w-auto object-contain drop-shadow-2xl transition-all hover:scale-105"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/mockup_landing_hero.png";
+                  (e.target as HTMLImageElement).src = "/hero_mockup.png";
                 }}
               />
             </div>
