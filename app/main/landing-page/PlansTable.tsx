@@ -202,12 +202,15 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">Preço Mensal (Base)</label>
+                  <label className="block text-xs font-bold text-amber-400 mb-1 uppercase">Preço de Ancoragem / Riscado (R$)</label>
                   <input 
                     type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
-                    placeholder="Ex: R$ 59,90/mês"
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
+                    placeholder="Ex: R$ 89,90/mês"
+                    className="w-full bg-transparent border border-amber-500/30 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-500"
                   />
+                  <span className="text-[10px] text-zinc-400 mt-1 block">
+                    🔒 Preço Real Cobrado Kiwify: <strong className="text-emerald-400">R$ 59,90 (Mensal) / R$ 39,90 (Anual)</strong>
+                  </span>
                 </div>
               </div>
 
@@ -327,42 +330,48 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
               </div>
 
               <div className="mt-6 border border-[var(--dash-border)] rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden">
-                <div className="bg-black/10 dark:bg-white/10 px-4 py-2 text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider">
-                  Preview Matemático (Tempo Real)
+                <div className="bg-black/10 dark:bg-white/10 px-4 py-2 text-xs font-bold text-[var(--dash-text-secondary)] uppercase tracking-wider flex items-center justify-between">
+                  <span>Preview Matemático & Gatilho de Ancoragem</span>
+                  <span className="text-[10px] text-emerald-400 font-normal">Cobrança Real Kiwify Protegida</span>
                 </div>
                 <div className="p-4 grid grid-cols-2 gap-6 divide-x divide-[var(--dash-border)]">
                   {/* Mensal */}
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-zinc-500 mb-2 uppercase">Cliente Vê (Modo Mensal)</span>
+                    {previewBasePrice > 59.90 && (
+                      <div className="text-xs font-bold text-zinc-500 line-through">
+                        R$ {previewBasePrice.toFixed(2).replace('.', ',')}
+                      </div>
+                    )}
                     <div className="text-2xl font-black text-[var(--dash-text-primary)]">
-                      R$ {previewBasePrice.toFixed(2).replace('.', ',')}/mês
+                      R$ 59,90<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
                     <div className="text-[10px] text-zinc-500 mt-1">
-                      Total de <strong className="text-[var(--dash-text-primary)]">R$ {(previewBasePrice * 12).toFixed(2).replace('.', ',')}</strong> por ano.
+                      Total de <strong className="text-[var(--dash-text-primary)]">R$ 718,80</strong> por ano.
                     </div>
-                    <div className="text-[10px] text-zinc-600 mt-1">Preço puro. Sem ancoragem.</div>
+                    <div className="text-[10px] text-amber-400/90 font-medium mt-1">Ancorado sobre R$ {previewBasePrice.toFixed(2).replace('.', ',')}</div>
                   </div>
                   {/* Anual */}
                   <div className="flex flex-col pl-6 relative">
                     <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
-                    {previewActiveDiscount > 0 && (
+                    {previewBasePrice > 39.90 && (
                        <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFB800] text-black shadow-sm">
-                         R$ {previewActiveDiscount.toFixed(2).replace('.', ',')} OFF/mês
+                         R$ {(previewBasePrice - 39.90).toFixed(2).replace('.', ',')} OFF/mês
                        </div>
                     )}
                     <div className="text-xs font-bold text-zinc-500 line-through">
                       R$ {previewBasePrice.toFixed(2).replace('.', ',')}
                     </div>
-                    <div className="text-2xl font-black text-[var(--dash-text-primary)]">
-                      R$ {previewAnnualPrice.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
+                    <div className="text-2xl font-black text-emerald-400">
+                      R$ 39,90<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
-                    {previewActiveDiscount > 0 && (
+                    {previewBasePrice > 39.90 && (
                       <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
-                        economize R$ {(previewActiveDiscount * 12).toFixed(2).replace('.', ',')} por ano.
+                        economize R$ {((previewBasePrice - 39.90) * 12).toFixed(2).replace('.', ',')} por ano.
                       </div>
                     )}
                     <div className="text-[10px] text-zinc-500 mt-2 leading-tight">
-                      Fatura total: R$ {(previewAnnualPrice * 12).toFixed(2).replace('.', ',')}/ano.
+                      Fatura Kiwify: R$ 478,80/ano.
                     </div>
                   </div>
                 </div>
