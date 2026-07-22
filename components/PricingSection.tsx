@@ -5,6 +5,8 @@ import Link from "next/link";
 import { CheckIcon, LucideIcon } from "lucide-react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
+import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
+
 const plusJakarta = Plus_Jakarta_Sans({ 
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"]
@@ -20,6 +22,28 @@ function WhatsAppIcon({ size = 24 }: { size?: number }) {
 
 export function PricingSection({ plans }: { plans: any[] }) {
   const [isAnnual, setIsAnnual] = useState(true);
+
+  // Lista padrão de planos se não vier do banco ou para unificar com Kiwify
+  const defaultPlanKeys: PlanSlug[] = ["starter", "pro", "sales_team"];
+  
+  const displayPlans = plans && plans.length > 0 ? plans : defaultPlanKeys.map(key => {
+    const p = PLANS[key];
+    return {
+      id: p.slug,
+      name: p.name,
+      slug: p.slug,
+      badge_text: p.badgeText,
+      theme: p.slug === "pro" ? "green" : "dark",
+      subtitle: p.slug === "starter" ? "Para autônomos e pequenos negócios" : p.slug === "pro" ? "O plano mais completo para acelerar vendas" : "Para equipes e médias empresas",
+      features: p.slug === "starter" 
+        ? ["Catálogo Digital Ilimitado", "Taxa 0% nas Vendas", "Até 100 Produtos", "Atendimento via WhatsApp"] 
+        : p.slug === "pro"
+        ? ["Tudo do Starter", "Até 1.000 Produtos", "Assistente de IA para SEO", "Estoque Sincronizado Bling V3", "Domínio Próprio SSL"]
+        : ["Tudo do PRO", "Até 5.000 Produtos", "Até 10 Vendedores/Usuários", "Gestão Multi-Vendedor B2B", "Suporte Prioritário VIP"],
+      button_text: "Assinar Agora",
+      button_url: `/checkout?plan=${p.slug}`
+    };
+  });
 
   return (
     <section id="planos" className="py-24 bg-transparent">
@@ -55,43 +79,31 @@ export function PricingSection({ plans }: { plans: any[] }) {
         </div>
 
         <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {(plans || []).map((plan: any) => {
-            // Extrai valor numérico de strings formatadas (ex: "R$ 89,90" -> 89.90)
-            const parsePrice = (str: string | undefined | null) => {
-              if (!str) return 0;
-              const numericStr = str.replace(/[^0-9,]/g, '').replace(',', '.');
-              return parseFloat(numericStr) || 0;
-            };
+          {displayPlans.map((plan: any) => {
+            // Mapeia o slug do plano para a definição oficial com preços Kiwify e Ancoragem
+            const slugNormalized = (plan.slug || plan.name || 'pro').toLowerCase().trim().replace(/[^a-z_]/g, '') as PlanSlug;
+            const officialPlan = PLANS[slugNormalized] || PLANS.pro;
 
-            const basePrice = parsePrice(plan.price_monthly || plan.price_text);
-            
-            // Calcula o Preço Anual dinamicamente com base nas regras do CMS sobre o Preço Base (Mensal)
-            let calculatedAnnualPriceValue = 0;
-            const discountType = plan.annual_discount_type || 'fixed';
-            const discountValue = Number(plan.annual_discount_value) || 0;
+            // 🟢 PREÇOS REAIS DA KIWIFY (Imutáveis)
+            const realMonthlyPrice = officialPlan.monthlyPrice; // ex: 59.90, 149.90, 299.90
+            const realAnnualPrice = officialPlan.annualPrice;   // ex: 39.90, 99.90, 199.90
 
-            if (discountType === 'percentage') {
-              calculatedAnnualPriceValue = basePrice * (1 - (discountValue / 100));
-            } else {
-              calculatedAnnualPriceValue = basePrice - discountValue;
-            }
-            if (calculatedAnnualPriceValue <= 0 && basePrice > 0) {
-              calculatedAnnualPriceValue = basePrice; // fallback
-            }
+            // 🎯 ANCORAGEM PERSONALIZADA (Preço Riscado de Referência)
+            // Se o CMS fornecer um anchor_price usa ele, senão usa o monthlyAnchor oficial (ex: 89.90, 229.90, 449.90)
+            const anchorPrice = Number(plan.anchor_price) || officialPlan.monthlyAnchor;
 
-            // Decide qual preço está ativo (Gigante)
-            const currentActivePriceValue = isAnnual ? calculatedAnnualPriceValue : basePrice;
-            const displayPriceStr = currentActivePriceValue > 0 ? `R$ ${currentActivePriceValue.toFixed(2).replace('.', ',')}/mês` : plan.price_text;
-            
-            // Preço Riscado: Apenas no modo Anual, e o valor é o Preço Base
-            const displayOriginal = (isAnnual && basePrice > calculatedAnnualPriceValue) ? `R$ ${basePrice.toFixed(2).replace('.', ',')}` : null; 
+            // Decide qual preço cobrado está ativo na exibição gigante
+            const currentActivePriceValue = isAnnual ? realAnnualPrice : realMonthlyPrice;
+            const displayPriceStr = `R$ ${currentActivePriceValue.toFixed(2).replace('.', ',')}/mês`;
 
-            // Calcula o valor exato do desconto para o Sticker (Apenas no Anual)
-            const activeDiscountValue = basePrice - currentActivePriceValue;
-            const formattedDiscountSticker = (isAnnual && activeDiscountValue > 0) ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF/mês` : null;
+            // Preço Riscado de Ancoragem: Exibido tanto no mensal quanto no anual para evidenciar a ancoragem
+            const displayOriginal = anchorPrice > currentActivePriceValue ? `R$ ${anchorPrice.toFixed(2).replace('.', ',')}` : null; 
 
-            // Formata: "R$ 39,90/mês" -> currency: "R$", value: "39,90", suffix: "/mês"
-            const priceMatch = typeof displayPriceStr === 'string' ? displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/) : null;
+            // Desconto mensal acumulado comparado à âncora
+            const activeDiscountValue = anchorPrice - currentActivePriceValue;
+            const formattedDiscountSticker = activeDiscountValue > 0 ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF/mês` : null;
+
+            const priceMatch = displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/);
 
             return (
               <div 
@@ -181,9 +193,9 @@ export function PricingSection({ plans }: { plans: any[] }) {
                   </Link>
                 )}
 
-                {isAnnual && calculatedAnnualPriceValue > 0 && basePrice > calculatedAnnualPriceValue && (
+                {isAnnual && realAnnualPrice > 0 && (
                   <div className="text-xs text-zinc-500 mt-5 text-center leading-relaxed">
-                    12 meses por apenas <strong className="text-zinc-300">R$ {(calculatedAnnualPriceValue * 12).toFixed(2).replace('.', ',')}</strong> (preço normal R$ {(basePrice * 12).toFixed(2).replace('.', ',')}). Renovação por R$ {basePrice.toFixed(2).replace('.', ',')}/mês.
+                    12 meses por apenas <strong className="text-zinc-300">R$ {(realAnnualPrice * 12).toFixed(2).replace('.', ',')}</strong> {anchorPrice > realAnnualPrice && <>(preço de referência R$ {(anchorPrice * 12).toFixed(2).replace('.', ',')})</>}. Renovação anual garantida.
                   </div>
                 )}
               </div>
