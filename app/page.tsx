@@ -61,10 +61,88 @@ export default async function HomePage() {
   };
 
   const finalSettings = settings || fallbackSettings;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://plataforma.shop";
+
+  // 🤖 GEO & SEO: Schema JSON-LD Ontológico para Motores de Busca e IAs (ChatGPT, Perplexity, Claude, Gemini)
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PlataformaShop",
+    "url": siteUrl,
+    "logo": `${siteUrl}/logo_fundo_escuro_ps.png`,
+    "description": "Plataforma SaaS para gestão de catálogos B2B transacionais, cartões NFC e força de vendas integrada ao Bling ERP.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": finalSettings.support_email || "suporte@plataformashop.com.br",
+      "telephone": finalSettings.support_phone || "+55-27-99999-9999",
+      "contactType": "customer service",
+      "availableLanguage": ["Portuguese"]
+    },
+    "sameAs": [
+      finalSettings.social_instagram,
+      finalSettings.social_facebook,
+      finalSettings.social_linkedin,
+      finalSettings.social_youtube,
+      finalSettings.social_tiktok,
+      finalSettings.social_x
+    ].filter(Boolean)
+  };
+
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PlataformaShop",
+    "operatingSystem": "Web, iOS, Android",
+    "applicationCategory": "BusinessApplication",
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "BRL",
+      "lowPrice": "59.90",
+      "highPrice": "299.90",
+      "offerCount": plans?.length || 3
+    },
+    "description": "Software SaaS para catálogo digital transacional B2B, cartões de visita NFC e integração em tempo real com Bling ERP. Taxa zero por venda.",
+    "featureList": [
+      "Taxa zero nas vendas",
+      "Sincronização em tempo real com Bling ERP v3",
+      "Cartão de visitas NFC físico e digital",
+      "Incorporação em site via iFrame",
+      "Gestão de força de vendas e múltiplos vendedores",
+      "Checkout nativo e Pix direto na conta"
+    ]
+  };
+
+  const faqSchema = faqs && faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map((faq: any) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  } : null;
 
   return (
     <main className={`relative min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden ${inter.className}`}>
-      
+      {/* 🤖 Script Injetado de Dados Estruturados JSON-LD para IAs e Motores de Busca */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+      />
+      {faqSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
+
       {/* Padrão de Fundo Global (Fixed Grid + Glow) */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div 

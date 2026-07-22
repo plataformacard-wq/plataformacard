@@ -15,9 +15,64 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://plataforma.shop";
+
 export const metadata: Metadata = {
-  title: "PlataformaShop | Gestão de Catálogos e Cartões Digitais",
-  description: "A solução definitiva para gestão de catálogos B2B, cartões digitais pessoais e vitrines CaaS.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "PlataformaShop | Catálogo Digital B2B & Cartão NFC Premium",
+    template: "%s | PlataformaShop"
+  },
+  description: "A plataforma definitiva para criar catálogos digitais transacionais, cartões de visita NFC e força de vendas sincronizada com Bling ERP. Taxa zero por venda.",
+  keywords: [
+    "catálogo digital",
+    "catálogo b2b",
+    "cartão nfc",
+    "força de vendas",
+    "integração bling erp",
+    "vitrine digital",
+    "vendas whatsapp",
+    "plataforma shop"
+  ],
+  authors: [{ name: "PlataformaShop" }],
+  creator: "PlataformaShop",
+  publisher: "PlataformaShop",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1
+    }
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteUrl,
+    title: "PlataformaShop | Catálogo Digital B2B & Cartão NFC Premium",
+    description: "Crie vitrines virtuais transacionais para sua empresa e representantes. Sincronização em tempo real com Bling ERP e Taxa Zero.",
+    siteName: "PlataformaShop",
+    images: [
+      {
+        url: `${siteUrl}/hero_mockup.png`,
+        width: 1200,
+        height: 630,
+        alt: "PlataformaShop - Catálogo Digital B2B e Cartão NFC"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PlataformaShop | Catálogo Digital B2B & Cartão NFC Premium",
+    description: "Venda mais com o catálogo digital transacional integrado ao Bling ERP. Taxa Zero.",
+    images: [`${siteUrl}/hero_mockup.png`]
+  },
+  alternates: {
+    canonical: siteUrl
+  }
 };
 
 export default async function RootLayout({
@@ -57,7 +112,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
