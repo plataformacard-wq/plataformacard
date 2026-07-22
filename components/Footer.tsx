@@ -13,9 +13,19 @@ export function Footer({ settings }: { settings?: any }) {
             <Link href="/" className="flex items-center mb-6">
               <img src="/logo_fundo_escuro_ps.png" alt="Logo PlataformaShop" className="h-8 object-contain opacity-90 hover:opacity-100 transition-opacity" />
             </Link>
-            <p className="text-zinc-500 mb-8 max-w-sm leading-relaxed">
+            <p className="text-zinc-500 mb-4 max-w-sm leading-relaxed">
               Potencialize Suas Vendas B2B. A plataforma definitiva para criar vitrines digitais, abandonar PDFs pesados e fechar negócios em tempo real no WhatsApp.
             </p>
+            {socials.support_email && (
+              <p className="text-xs text-zinc-400 mb-1">
+                <span className="text-zinc-500 font-semibold">Suporte:</span> <a href={`mailto:${socials.support_email}`} className="hover:text-[#2CCB68] transition-colors">{socials.support_email}</a>
+              </p>
+            )}
+            {socials.support_phone && (
+              <p className="text-xs text-zinc-400 mb-6">
+                <span className="text-zinc-500 font-semibold">Atendimento:</span> {socials.support_phone}
+              </p>
+            )}
             
             <div className="flex gap-4 mb-8">
               {socials.social_instagram && (

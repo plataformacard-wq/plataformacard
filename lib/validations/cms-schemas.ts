@@ -13,6 +13,8 @@ export const updateSettingsSchema = z.object({
   social_youtube: z.string().url().nullable().optional().or(z.literal("")),
   social_tiktok: z.string().url().nullable().optional().or(z.literal("")),
   social_x: z.string().url().nullable().optional().or(z.literal("")),
+  support_email: z.string().email("E-mail de suporte inválido").nullable().optional().or(z.literal("")),
+  support_phone: z.string().max(50, "Telefone muito longo").nullable().optional().or(z.literal("")),
 });
 
 export const upsertTestimonialSchema = z.object({
