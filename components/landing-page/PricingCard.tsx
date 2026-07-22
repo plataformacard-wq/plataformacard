@@ -172,7 +172,7 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
         </a>
       ) : (
         <Link 
-          href={`/checkout?plan=${(plan?.name || officialPlan.slug).toLowerCase().replace(/\s+/g, '_')}&cycle=${isAnnual ? 'annual' : 'monthly'}`} 
+          href={`/checkout?plan=${officialPlan.slug}&cycle=${isAnnual ? 'annual' : 'monthly'}`} 
           className={`mt-auto flex flex-col items-center justify-center gap-1 w-full py-3.5 rounded-xl font-bold text-sm transition-colors ${isGreenTheme ? 'bg-[#2CCB68] text-[#0A0A0A] hover:bg-[#23994A] hover:text-white' : 'border border-[#2CCB68] text-[#2CCB68] hover:bg-[#2CCB68]/10'}`}
         >
           <span>{buttonText}</span>
