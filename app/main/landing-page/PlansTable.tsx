@@ -201,40 +201,41 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-amber-400 mb-1 uppercase">Preço de Ancoragem / Riscado (R$)</label>
-                  <input 
-                    type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
-                    placeholder="Ex: R$ 89,90/mês"
-                    className="w-full bg-transparent border border-amber-500/30 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-500"
-                  />
-                  <span className="text-[10px] text-zinc-400 mt-1 block">
-                    🔒 Preço Real Cobrado Kiwify: <strong className="text-emerald-400">R$ {realMonthly.toFixed(2).replace('.', ',')} (Mensal) / R$ {realAnnual.toFixed(2).replace('.', ',')} (Anual)</strong>
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-center">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🔒 Cobrança Real Protegida Kiwify</span>
+                  <span className="text-xs font-black text-white mt-0.5">
+                    Mensal: R$ {realMonthly.toFixed(2).replace('.', ',')}/mês | Anual: R$ {realAnnual.toFixed(2).replace('.', ',')}/mês
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] uppercase">Tipo de Desconto Anual</label>
-                  <select
-                    value={form.annual_discount_type || "fixed"}
-                    onChange={e => setForm({...form, annual_discount_type: e.target.value as any})}
-                    className="dash-select w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  >
-                    <option value="fixed" className="bg-[#1c1c1e]">Fixo (Desconto em R$)</option>
-                    <option value="percentage" className="bg-[#1c1c1e]">Porcentagem (Desconto em %)</option>
-                  </select>
+              {/* 🎯 Campos de Ancoragem Riscada para os 2 Ciclos */}
+              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">🎯 Gatilhos de Ancoragem (Preços Riscados no Site)</span>
+                  <span className="text-[10px] text-amber-300/80">Valores de referência para destacar o desconto</span>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase">
-                    Valor do Desconto mensal {form.annual_discount_type === 'percentage' ? '(%)' : '(R$)'}
-                  </label>
-                  <input 
-                    type="number" step="0.01" value={form.annual_discount_value || 0} onChange={e => setForm({...form, annual_discount_value: Number(e.target.value)})}
-                    placeholder={form.annual_discount_type === 'percentage' ? "Ex: 20 (para 20%)" : "Ex: 50.00 (para R$ 50 OFF)"}
-                    className="w-full bg-transparent border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500"
-                  />
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA DO CICLO MENSAL (R$)</label>
+                    <input 
+                      type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
+                      placeholder={`Ex: R$ ${formOfficialPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`}
+                      className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400"
+                    />
+                    <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Mensal</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-zinc-300 mb-1">ÂNCORA DO CICLO ANUAL (R$)</label>
+                    <input 
+                      type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
+                      placeholder={`Ex: R$ ${formOfficialPlan.monthlyPrice.toFixed(2).replace('.', ',')}`}
+                      className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400"
+                    />
+                    <span className="text-[10px] text-zinc-400 mt-1 block">Riscado no modo Anual</span>
+                  </div>
                 </div>
               </div>
 
@@ -349,25 +350,29 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     <div className="text-[10px] text-zinc-500 mt-1">
                       Total de <strong className="text-[var(--dash-text-primary)]">R$ {(realMonthly * 12).toFixed(2).replace('.', ',')}</strong> por ano.
                     </div>
-                    <div className="text-[10px] text-amber-400/90 font-medium mt-1">Ancorado sobre R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}</div>
+                    {previewAnchorPrice > realMonthly && (
+                      <div className="text-[10px] text-amber-400/90 font-medium mt-1">Ancorado sobre R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}</div>
+                    )}
                   </div>
                   {/* Anual */}
                   <div className="flex flex-col pl-6 relative">
                     <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
-                    {previewAnchorPrice > realAnnual && (
+                    {annualSavingsVsAnchor > 0 && (
                        <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFB800] text-black shadow-sm">
-                         R$ {(previewAnchorPrice - realAnnual).toFixed(2).replace('.', ',')} OFF/mês
+                         R$ {monthlySavingsVsAnchor.toFixed(2).replace('.', ',')} OFF/mês
                        </div>
                     )}
-                    <div className="text-xs font-bold text-zinc-500 line-through">
-                      R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}
-                    </div>
+                    {parsePricePreview(form.original_price) > realAnnual && (
+                      <div className="text-xs font-bold text-zinc-500 line-through">
+                        R$ {parsePricePreview(form.original_price).toFixed(2).replace('.', ',')}
+                      </div>
+                    )}
                     <div className="text-2xl font-black text-emerald-400">
                       R$ {realAnnual.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
-                    {previewAnchorPrice > realAnnual && (
+                    {annualSavingsVsAnchor > 0 && (
                       <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
-                        economize R$ {((previewAnchorPrice - realAnnual) * 12).toFixed(2).replace('.', ',')} por ano.
+                        economize R$ {(annualSavingsVsAnchor * 12).toFixed(2).replace('.', ',')} por ano.
                       </div>
                     )}
                     <div className="text-[10px] text-zinc-500 mt-2 leading-tight">

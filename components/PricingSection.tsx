@@ -88,19 +88,26 @@ export function PricingSection({ plans }: { plans: any[] }) {
             const realMonthlyPrice = officialPlan.monthlyPrice; // ex: 59.90, 149.90, 299.90
             const realAnnualPrice = officialPlan.annualPrice;   // ex: 39.90, 99.90, 199.90
 
-            // 🎯 ANCORAGEM PERSONALIZADA (Preço Riscado de Referência)
-            // Se o CMS fornecer um anchor_price usa ele, senão usa o monthlyAnchor oficial (ex: 89.90, 229.90, 449.90)
-            const anchorPrice = Number(plan.anchor_price) || officialPlan.monthlyAnchor;
+            // 🎯 ANCORAGEM PERSONALIZADA INDEPENDENTE (Mensal vs Anual)
+            const parsePriceNum = (str: any) => {
+              if (!str) return 0;
+              const numericStr = String(str).replace(/[^0-9,]/g, '').replace(',', '.');
+              return parseFloat(numericStr) || 0;
+            };
 
-            // Decide qual preço cobrado está ativo na exibição gigante
+            const monthlyAnchor = parsePriceNum(plan.price_monthly) || officialPlan.monthlyAnchor;
+            const annualAnchor = parsePriceNum(plan.original_price) || officialPlan.monthlyPrice || officialPlan.monthlyAnchor;
+
+            // Decide qual preço cobrado e qual âncora estão ativos
             const currentActivePriceValue = isAnnual ? realAnnualPrice : realMonthlyPrice;
+            const currentAnchorValue = isAnnual ? annualAnchor : monthlyAnchor;
             const displayPriceStr = `R$ ${currentActivePriceValue.toFixed(2).replace('.', ',')}/mês`;
 
-            // Preço Riscado de Ancoragem: Exibido tanto no mensal quanto no anual para evidenciar a ancoragem
-            const displayOriginal = anchorPrice > currentActivePriceValue ? `R$ ${anchorPrice.toFixed(2).replace('.', ',')}` : null; 
+            // Preço Riscado de Ancoragem para o ciclo ativo
+            const displayOriginal = currentAnchorValue > currentActivePriceValue ? `R$ ${currentAnchorValue.toFixed(2).replace('.', ',')}` : null; 
 
-            // Desconto mensal acumulado comparado à âncora
-            const activeDiscountValue = anchorPrice - currentActivePriceValue;
+            // Desconto mensal acumulado comparado à âncora ativa
+            const activeDiscountValue = currentAnchorValue - currentActivePriceValue;
             const formattedDiscountSticker = activeDiscountValue > 0 ? `R$ ${activeDiscountValue.toFixed(2).replace('.', ',')} OFF/mês` : null;
 
             const priceMatch = displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/);
@@ -195,7 +202,7 @@ export function PricingSection({ plans }: { plans: any[] }) {
 
                 {isAnnual && realAnnualPrice > 0 && (
                   <div className="text-xs text-zinc-500 mt-5 text-center leading-relaxed">
-                    12 meses por apenas <strong className="text-zinc-300">R$ {(realAnnualPrice * 12).toFixed(2).replace('.', ',')}</strong> {anchorPrice > realAnnualPrice && <>(preço de referência R$ {(anchorPrice * 12).toFixed(2).replace('.', ',')})</>}. Renovação anual garantida.
+                    12 meses por apenas <strong className="text-zinc-300">R$ {(realAnnualPrice * 12).toFixed(2).replace('.', ',')}</strong> {annualAnchor > realAnnualPrice && <>(preço de referência R$ {(annualAnchor * 12).toFixed(2).replace('.', ',')})</>}. Renovação anual garantida.
                   </div>
                 )}
               </div>
