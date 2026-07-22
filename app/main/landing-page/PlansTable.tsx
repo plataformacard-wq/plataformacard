@@ -221,35 +221,24 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   </div>
                 </div>
 
-                {/* 🎯 Campos de Ancoragem Riscada para os 2 Ciclos */}
-                <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                      🎯 Preços Riscados de Ancoragem
-                    </span>
-                    <span className="text-[10px] text-amber-300/80">Valores de referência no site</span>
+                {/* 🎯 Campos de Ancoragem Riscada (Mensal e Anual) */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Âncora Mensal (R$)</label>
+                    <input 
+                      type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
+                      placeholder={`Ex: R$ ${formOfficialPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`}
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors font-medium"
+                    />
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[11px] font-bold text-[var(--dash-text-primary)] mb-1">ÂNCORA MENSAL (R$)</label>
-                      <input 
-                        type="text" value={form.price_monthly || ""} onChange={e => setForm({...form, price_monthly: e.target.value})}
-                        placeholder={`Ex: R$ ${formOfficialPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`}
-                        className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400 font-bold"
-                      />
-                      <span className="text-[10px] text-[var(--dash-text-muted)] mt-1 block">Riscado no Mensal</span>
-                    </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-[var(--dash-text-primary)] mb-1">ÂNCORA ANUAL (R$)</label>
-                      <input 
-                        type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
-                        placeholder={`Ex: R$ ${formOfficialPlan.monthlyPrice.toFixed(2).replace('.', ',')}`}
-                        className="w-full bg-[#0A0A0A] border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-400 font-bold"
-                      />
-                      <span className="text-[10px] text-[var(--dash-text-muted)] mt-1 block">Riscado no Anual</span>
-                    </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Âncora Anual (R$)</label>
+                    <input 
+                      type="text" value={form.original_price || ""} onChange={e => setForm({...form, original_price: e.target.value})}
+                      placeholder={`Ex: R$ ${formOfficialPlan.monthlyPrice.toFixed(2).replace('.', ',')}`}
+                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors font-medium"
+                    />
                   </div>
                 </div>
 
