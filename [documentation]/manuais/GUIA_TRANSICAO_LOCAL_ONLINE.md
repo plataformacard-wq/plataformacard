@@ -35,6 +35,10 @@ SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_de_producao
 
 # 🟢 Webhook & Integração Kiwify
 KIWIFY_WEBHOOK_SECRET=seu_token_secreto_webhook_kiwify
+
+# 🟢 Integração Bling ERP v3
+BLING_CLIENT_ID=seu_client_id_bling_producao
+BLING_CLIENT_SECRET=seu_client_secret_bling_producao
 ```
 
 ---
@@ -78,11 +82,27 @@ No [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
 
 ---
 
-### Passo 5: Migrações SQL e Banco de Dados
+### Passo 5: Integração ERP Bling v3 (OAuth 2.0 & Webhooks)
+No [Painel do Bling](https://www.bling.com.br) (`Preferências -> Integrações -> API v3 / Aplicativos`):
+
+1. **URL de Redirecionamento (Callback OAuth 2.0):**
+   - Substitua a URL local `http://localhost:3000/api/auth/bling/callback` por:
+   - **URL de Produção:** `https://seudominio.com.br/api/auth/bling/callback`
+
+2. **URL do Webhook de Estoque / Produtos no Bling:**
+   - **URL de Produção:** `https://seudominio.com.br/api/webhooks/bling`
+
+3. **Escopos de Permissão (API v3):**
+   - Garantir acesso de leitura/escrita em **Produtos**, **Estoque**, e **Pedidos de Venda**.
+
+---
+
+### Passo 6: Migrações SQL e Banco de Dados
 Certifique-se de executar as últimas migrações SQL no editor do Supabase de produção:
 
-1. `20260721211000_update_plans_3_tiers.sql`
-2. `20260722_add_mfa_backup_codes.sql`
+1. `20260707174300_add_bling_oauth_fields.sql`
+2. `20260721211000_update_plans_3_tiers.sql`
+3. `20260722_add_mfa_backup_codes.sql`
 
 ---
 
@@ -94,3 +114,4 @@ Após publicar o projeto na Vercel:
 2. ✅ Testar o botão "Assinar Agora" de um plano para validar o redirecionamento para `https://seudominio.com.br/checkout?plan=pro&cycle=annual`.
 3. ✅ Efetuar um login de teste em `https://seudominio.com.br/entrar`.
 4. ✅ Testar a simulação de compra no webhook `/api/webhooks/kiwify`.
+5. ✅ Conectar uma conta do Bling ERP em `/dashboard/estoque` para validar o callback OAuth `https://seudominio.com.br/api/auth/bling/callback`.
