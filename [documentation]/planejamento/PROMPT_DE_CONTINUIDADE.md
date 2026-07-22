@@ -1,52 +1,40 @@
-# 🟩 PROMPT DE CONTINUIDADE: Checkout Kiwify, Feature Gating, Estoque por Cores e Protocolo VPGP
+# 🟩 PROMPT DE CONTINUIDADE: Sincronização Kiwify, Ancoragem Dupla por Ciclo e Selos de Segurança
 
-**Data:** 21/07/2026
+**Data:** 22/07/2026
 
 ---
 
 ## 📌 Contexto da Sessão Concluída:
-Nesta sessão, entregamos uma grande atualização de infraestrutura comercial, UX de vendas e controle de estoque na PlataformaShop:
+Nesta sessão, concluímos a integração comercial com a Kiwify, o desacoplamento de preços e ancoragem no CMS e a segurança do checkout:
 
-1. **Página de Checkout Kiwify (`/checkout`):**
-   - Rota `/checkout` com resumo do pedido dinâmico (cálculo de âncora mensal riscada, valor com desconto anual, economia acumulada e selo em destaque de **"Garantia Incondicional de Reembolso de 7 Dias"**).
-   - Formulário de cadastro de dados do assinante (Nome, E-mail, CPF/CNPJ, WhatsApp) com seleção de Pix ou Cartão de Crédito.
-   - Rota de Webhook em `/api/webhooks/kiwify` para confirmação automática de pagamento (`paid`, `approved`) e liberação imediata do plano no Supabase.
+1. **Selos de Segurança no Checkout (`SecurityBadges.tsx`):**
+   - Criado componente com badges de Criptografia SSL 256-Bit, PCI-DSS Level 1, Garantia de Reembolso de 7 Dias e Acesso Imediato.
+   - Ícones visuais para Pix Instantâneo, cartões Visa/Mastercard/Elo e homologação Kiwify.
 
-2. **Feature Gating (Restrição de Recursos) & Modais de Upsell:**
-   - Mapeamento centralizado de permissões por plano (`lib/plans/feature-matrix.ts`).
-   - Hook `useFeatureGate()` para interceptação de ações restritas.
-   - Modal premium Dark Mode (`UpgradeModal.tsx`) acionado quando o lojista no plano Starter tenta utilizar **IA de SEO**, **Integração Bling V3** ou **Domínio Próprio**.
+2. **Mapeamento de Checkouts Reais da Kiwify (`lib/plans/feature-matrix.ts`):**
+   - Mapeados os 6 links oficiais da Kiwify para todos os planos e ciclos:
+     - Starter Mensal (`o58QqJP`) / Starter Anual (`JYPy0Ec`)
+     - PRO Mensal (`exQ3L5T`) / PRO Anual (`H8G4uuU`)
+     - Sales Team Mensal (`LkBViNa`) / Sales Team Anual (`DcSyq23`)
+   - Redirecionamento automático com pré-preenchimento dos dados do comprador.
 
-3. **Controle de Estoque por Cores & Sincronização Bling (Variações Pai/Filhos):**
-   - Estrutura JSONB `colors` estendida com suporte a estoque por cor e SKU individual.
-   - Sincronização automática com a API V3 do Bling (`app/dashboard/catalogo/actions/bling.ts`) para variações Pai/Filhos.
-   - Sub-componente `ProductColorStockSection.tsx` (respeitando o Protocolo PRM sem inchar o arquivo blindado `ProductModal.tsx`).
-   - Tabela de Estoque (`/dashboard/estoque`) com linha expansível (**Accordion**) para ajuste rápido por cor.
-   - Catálogo Público exibindo cores esgotadas como opacas/desabilitadas com o badge `[Esgotado]`.
+3. **Desacoplamento de Preço de Cobrança vs. Ancoragem Riscada (CMS):**
+   - Preço cobrado Kiwify blindado na matriz oficial (`monthlyPrice` / `annualPrice`).
+   - Dois campos de ancoragem riscada independentes no modal do CMS: **ÂNCORA DO CICLO MENSAL** e **ÂNCORA DO CICLO ANUAL**.
+   - Preview Matemático & Gatilho de Ancoragem dinâmico no modal do CMS com cálculo instantâneo de desconto mensal (`OFF/mês`) e economia anual acumulada.
 
-4. **Documentação & Protocolo VPGP:**
-   - Registrada a pendência de 2FA em `PENDENCIAS.md` como **Bloqueador de Lançamento Online**, com migração `20260721230000_add_2fa_backup_codes.sql` criada no repositório e já executada no banco.
-   - Executado o **Protocolo VPGP (Verify, Push, Github, Push)** com compilação 100% aprovada (`npm run build` Turbopack e `npx tsc --noEmit` com 0 erros), e commit/push para a branch `main`.
+4. **Protocolo VPGP e Auditoria UX/UI:**
+   - Varredura de UX/UI com 232 correções automáticas aplicadas.
+   - `npx tsc --noEmit` validado com 0 erros.
+   - Staging, commit e push executados com sucesso para a branch `main`.
 
 ---
 
-## 🔗 Links de Teste para a Próxima Sessão (Servidor Dev `http://localhost:3000`):
-
-### 🛒 Checkout & Vendas:
-- **Landing Page (Seção de Planos):** [http://localhost:3000/#planos](http://localhost:3000/#planos)
-- **Checkout PRO Anual:** [http://localhost:3000/checkout?plan=pro&cycle=annual](http://localhost:3000/checkout?plan=pro&cycle=annual)
-- **Checkout Starter Mensal:** [http://localhost:3000/checkout?plan=starter&cycle=monthly](http://localhost:3000/checkout?plan=starter&cycle=monthly)
-- **Checkout Sales Team Anual:** [http://localhost:3000/checkout?plan=sales_team&cycle=annual](http://localhost:3000/checkout?plan=sales_team&cycle=annual)
-
-### 📊 Dashboard & Feature Gating (Testes de Upsell):
-- **Painel Principal:** [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-- **Gestão de Estoque (Accordion por Cor):** [http://localhost:3000/dashboard/estoque](http://localhost:3000/dashboard/estoque)
-- **Gerador de IA SEO (Teste Gating Starter):** [http://localhost:3000/dashboard/empresa/seo](http://localhost:3000/dashboard/empresa/seo)
-- **Domínio Próprio (Teste Gating Starter):** [http://localhost:3000/dashboard/perfil/dominio](http://localhost:3000/dashboard/perfil/dominio)
-
-### 👑 Portal Main Admin:
-- **Login Main:** [http://localhost:3000/main-login](http://localhost:3000/main-login)
-- **Dashboard Main:** [http://localhost:3000/main](http://localhost:3000/main)
+## 🔗 Links para Testes (`http://localhost:3000`):
+- **Landing Page (Tabela de Preços & Ancoragem):** http://localhost:3000/#planos
+- **Checkout PRO Anual Kiwify:** http://localhost:3000/checkout?plan=pro&cycle=annual
+- **Checkout Starter Mensal Kiwify:** http://localhost:3000/checkout?plan=starter&cycle=monthly
+- **Painel CMS Admin (Gestão de Planos & Ancoragem):** http://localhost:3000/main/landing-page
 
 ---
 
@@ -54,31 +42,22 @@ Nesta sessão, entregamos uma grande atualização de infraestrutura comercial, 
 
 ```markdown
 <CONTEXTO_DE_CONTINUIDADE>
-Nós concluímos com sucesso a implementação da Página de Checkout Kiwify, a arquitetura de Feature Gating (Restrição de Recursos por Plano), o Controle de Estoque por Cores com sincronização Bling V3 e o Protocolo VPGP.
+Concluímos a integração comercial da Kiwify, o desacoplamento de preços e o sistema de ancoragem dupla por ciclo no CMS da PlataformaShop.
 
-*Resumo das Entregas Ativas no Código:*
-1. **Página de Checkout Kiwify (`/checkout`):**
-   - Rota `/checkout` funcional com resumo de preços ancorados, calculador de ciclo (anual vs mensal) e selo de Garantia de Reembolso de 7 Dias.
-   - Rota de Webhook em `/api/webhooks/kiwify` ativando o plano no Supabase.
-2. **Feature Gating & Modais de Upsell:**
-   - Matriz em `lib/plans/feature-matrix.ts`, hook `useFeatureGate.ts` e modal `UpgradeModal.tsx`.
-   - Bloqueio de IA SEO, Bling Sync e Domínio Próprio para o plano Starter.
-3. **Controle de Estoque por Cores & Bling V3:**
-   - Mapeamento de variações Pai/Filho no Bling (`syncBlingStock`).
-   - Accordion de gestão por cor em `/dashboard/estoque` e sub-componente `ProductColorStockSection.tsx`.
-   - Badge visual de `[Esgotado]` para cores sem estoque no catálogo público.
-4. **Segurança e VPGP:**
-   - Migração `20260721230000_add_2fa_backup_codes.sql` registrada em `PENDENCIAS.md`.
-   - Build `npm run build` e `npx tsc --noEmit` (0 erros) commitados e enviados (`git push origin main`).
-
-*Links para Testes:*
-- Landing Page: http://localhost:3000/#planos
-- Checkout PRO Anual: http://localhost:3000/checkout?plan=pro&cycle=annual
-- Checkout Starter Mensal: http://localhost:3000/checkout?plan=starter&cycle=monthly
-- Dashboard Estoque (Accordion): http://localhost:3000/dashboard/estoque
-- Teste Gating IA SEO: http://localhost:3000/dashboard/empresa/seo
+*Resumo das Entregas Ativas:*
+1. **Sincronização Kiwify & Checkouts:**
+   - 6 links reais da Kiwify mapeados em `lib/plans/feature-matrix.ts` com redirecionamento e pré-preenchimento dos dados do assinante.
+   - Webhook `/api/webhooks/kiwify` configurado para liberação automática.
+2. **Selos de Segurança (`SecurityBadges.tsx`):**
+   - Badges de SSL 256-bit, PCI-DSS Level 1, Garantia de 7 Dias e selos de pagamento integrados ao `/checkout`.
+3. **Ancoragem Dupla por Ciclo & Blindagem Kiwify (CMS):**
+   - Preços de cobrança Kiwify trancados e protegidos contra divergências.
+   - Campos de ancoragem riscada independentes para Ciclo Mensal e Ciclo Anual no modal "Editar Plano" (`PlansTable.tsx`).
+   - Preview Matemático dinâmico recalculando descontos em tempo real.
+4. **VPGP & Build:**
+   - Compilação TypeScript `npx tsc --noEmit` com 0 erros, código enviado para o GitHub (`git push origin main`).
 
 *Objetivo da Nova Sessão:*
-Iniciar a execução do Protocolo Start (git sync check, dev server lsof :3000 e varredura de auditoria UX/UI), realizar os testes visuais de checkout/gating e definir o próximo passo de desenvolvimento.
+Executar o Protocolo Start, realizar a auditoria completa do sistema de ancoragem e preços Kiwify na Landing Page/CMS e avançar para o plano de Autenticação de Dois Fatores (2FA/MFA via TOTP).
 </CONTEXTO_DE_CONTINUIDADE>
 ```
