@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Edit2, Trash2, Loader2, X } from "lucide-react";
 import { deletePlan, upsertPlan } from "./actions";
+import { PLANS } from "@/lib/plans/feature-matrix";
 
 type Plan = {
   id?: string;
@@ -113,20 +114,19 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     return parseFloat(numericStr) || 0;
   };
 
-  const previewBasePrice = parsePricePreview(form.price_monthly || form.price_text);
-  let previewAnnualPrice = 0;
-  const discountType = form.annual_discount_type || 'fixed';
-  const discountValue = Number(form.annual_discount_value) || 0;
+  // Identifica o plano oficial (Starter, PRO ou Sales Team) dinamicamente pelo nome ou id
+  const normFormName = (form.name || '').toLowerCase();
+  const formOfficialPlan = normFormName.includes('pro') 
+    ? PLANS.pro 
+    : (normFormName.includes('sales') || normFormName.includes('premium') || normFormName.includes('team')) 
+      ? PLANS.sales_team 
+      : PLANS.starter;
 
-  if (discountType === 'percentage') {
-    previewAnnualPrice = previewBasePrice * (1 - (discountValue / 100));
-  } else {
-    previewAnnualPrice = previewBasePrice - discountValue;
-  }
-  if (previewAnnualPrice <= 0 && previewBasePrice > 0) {
-    previewAnnualPrice = previewBasePrice;
-  }
-  const previewActiveDiscount = previewBasePrice - previewAnnualPrice;
+  const previewAnchorPrice = parsePricePreview(form.price_monthly || form.price_text) || formOfficialPlan.monthlyAnchor;
+  const realMonthly = formOfficialPlan.monthlyPrice;
+  const realAnnual = formOfficialPlan.annualPrice;
+  const monthlySavingsVsAnchor = previewAnchorPrice > realMonthly ? previewAnchorPrice - realMonthly : 0;
+  const annualSavingsVsAnchor = previewAnchorPrice > realAnnual ? previewAnchorPrice - realAnnual : 0;
 
   return (
     <div>
@@ -209,7 +209,7 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                     className="w-full bg-transparent border border-amber-500/30 rounded-xl px-3 py-2 text-sm text-amber-300 outline-none focus:border-amber-500"
                   />
                   <span className="text-[10px] text-zinc-400 mt-1 block">
-                    🔒 Preço Real Cobrado Kiwify: <strong className="text-emerald-400">R$ 59,90 (Mensal) / R$ 39,90 (Anual)</strong>
+                    🔒 Preço Real Cobrado Kiwify: <strong className="text-emerald-400">R$ {realMonthly.toFixed(2).replace('.', ',')} (Mensal) / R$ {realAnnual.toFixed(2).replace('.', ',')} (Anual)</strong>
                   </span>
                 </div>
               </div>
@@ -338,40 +338,40 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
                   {/* Mensal */}
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-zinc-500 mb-2 uppercase">Cliente Vê (Modo Mensal)</span>
-                    {previewBasePrice > 59.90 && (
+                    {previewAnchorPrice > realMonthly && (
                       <div className="text-xs font-bold text-zinc-500 line-through">
-                        R$ {previewBasePrice.toFixed(2).replace('.', ',')}
+                        R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}
                       </div>
                     )}
                     <div className="text-2xl font-black text-[var(--dash-text-primary)]">
-                      R$ 59,90<span className="text-sm font-normal text-zinc-400">/mês</span>
+                      R$ {realMonthly.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
                     <div className="text-[10px] text-zinc-500 mt-1">
-                      Total de <strong className="text-[var(--dash-text-primary)]">R$ 718,80</strong> por ano.
+                      Total de <strong className="text-[var(--dash-text-primary)]">R$ {(realMonthly * 12).toFixed(2).replace('.', ',')}</strong> por ano.
                     </div>
-                    <div className="text-[10px] text-amber-400/90 font-medium mt-1">Ancorado sobre R$ {previewBasePrice.toFixed(2).replace('.', ',')}</div>
+                    <div className="text-[10px] text-amber-400/90 font-medium mt-1">Ancorado sobre R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}</div>
                   </div>
                   {/* Anual */}
                   <div className="flex flex-col pl-6 relative">
                     <span className="text-[10px] font-bold text-emerald-500 mb-2 uppercase">Cliente Vê (Modo Anual)</span>
-                    {previewBasePrice > 39.90 && (
+                    {previewAnchorPrice > realAnnual && (
                        <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFB800] text-black shadow-sm">
-                         R$ {(previewBasePrice - 39.90).toFixed(2).replace('.', ',')} OFF/mês
+                         R$ {(previewAnchorPrice - realAnnual).toFixed(2).replace('.', ',')} OFF/mês
                        </div>
                     )}
                     <div className="text-xs font-bold text-zinc-500 line-through">
-                      R$ {previewBasePrice.toFixed(2).replace('.', ',')}
+                      R$ {previewAnchorPrice.toFixed(2).replace('.', ',')}
                     </div>
                     <div className="text-2xl font-black text-emerald-400">
-                      R$ 39,90<span className="text-sm font-normal text-zinc-400">/mês</span>
+                      R$ {realAnnual.toFixed(2).replace('.', ',')}<span className="text-sm font-normal text-zinc-400">/mês</span>
                     </div>
-                    {previewBasePrice > 39.90 && (
+                    {previewAnchorPrice > realAnnual && (
                       <div className="text-[9px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
-                        economize R$ {((previewBasePrice - 39.90) * 12).toFixed(2).replace('.', ',')} por ano.
+                        economize R$ {((previewAnchorPrice - realAnnual) * 12).toFixed(2).replace('.', ',')} por ano.
                       </div>
                     )}
                     <div className="text-[10px] text-zinc-500 mt-2 leading-tight">
-                      Fatura Kiwify: R$ 478,80/ano.
+                      Fatura Kiwify: R$ {(realAnnual * 12).toFixed(2).replace('.', ',')}/ano.
                     </div>
                   </div>
                 </div>
