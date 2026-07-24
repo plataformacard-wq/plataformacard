@@ -107,7 +107,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         label: "CMS (Site Externo)", 
         icon: LayoutDashboard,
         subItems: [
-          { href: "/main/landing-page/hero", label: "Hero & SEO", icon: Sparkles },
+          { href: "/main/landing-page/hero", label: "Header, Hero & SEO", icon: Sparkles },
           { href: "/main/landing-page/marcas", label: "Marcas Parceiras", icon: Users },
           { href: "/main/landing-page/depoimentos", label: "Depoimentos & Métricas", icon: BarChart3 },
           { href: "/main/landing-page/planos", label: "Planos & Preços", icon: BadgeDollarSign },

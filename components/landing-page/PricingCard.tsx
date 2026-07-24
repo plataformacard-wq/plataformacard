@@ -34,11 +34,13 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
   const combined = `${rawSlug} ${rawName}`;
 
   const detectedOfficialPlan = PLANS[slugNorm] || (
-    combined.includes('sales') || combined.includes('team') || combined.includes('premium') || combined.includes('corporativo')
-      ? PLANS.sales_team
-      : combined.includes('pro')
-        ? PLANS.pro
-        : PLANS.starter
+    (combined.includes('franqueador') || combined.includes('all_service') || combined.includes('hibrida') || combined.includes('enterprise'))
+      ? PLANS.all_service
+      : (combined.includes('sales') || combined.includes('team') || combined.includes('premium') || combined.includes('corporativo'))
+        ? PLANS.sales_team
+        : combined.includes('pro')
+          ? PLANS.pro
+          : PLANS.starter
   );
 
   const officialPlan = propOfficialPlan || detectedOfficialPlan;
@@ -88,70 +90,86 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
 
   return (
     <div 
-      className={`relative flex flex-col h-full w-full ${!isInteractive ? 'pointer-events-none select-none' : ''} ${isGreenTheme ? 'bg-[#2CCB68]/5 border border-[#2CCB68] rounded-3xl p-6 sm:p-8 backdrop-blur-md' : 'bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-md'}`}
+      className={`relative flex flex-col h-full w-full transition-all ${!isInteractive ? 'pointer-events-none select-none' : ''} ${
+        isGreenTheme 
+          ? 'bg-emerald-500/5 dark:bg-[#2CCB68]/5 border-2 border-[#2CCB68] rounded-3xl p-5 xl:p-6 sm:p-7 backdrop-blur-md shadow-lg dark:shadow-none' 
+          : 'bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-3xl p-5 xl:p-6 sm:p-7 backdrop-blur-md shadow-md dark:shadow-none'
+      }`}
     >
       {/* Badge Recomendado (Centro) */}
       {plan?.badge_text && (
-        <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-[11px] font-bold tracking-wider z-20 ${isGreenTheme ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-white text-black'}`}>
+        <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-[11px] font-bold tracking-wider z-20 whitespace-nowrap shadow-md ${isGreenTheme ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-zinc-900 text-white dark:bg-white dark:text-black'}`}>
           {plan.badge_text}
         </div>
       )}
       
-      <div className="flex flex-col items-start gap-2 mb-4">
-        <div className={`text-xl font-bold ${isGreenTheme ? 'text-[#2CCB68]' : 'text-zinc-300'}`}>
+      <div className="flex flex-col items-start gap-1.5 mb-2 min-h-[56px]">
+        <div className={`text-xl font-bold ${isGreenTheme ? 'text-[#2CCB68]' : 'text-zinc-800 dark:text-zinc-300'}`}>
           {plan?.name || officialPlan.name}
         </div>
         
-        {/* Badge Desconto (Abaixo do Nome) */}
-        {formattedDiscountSticker && (
-          <div className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#FFB800] text-black shadow-sm">
-            {formattedDiscountSticker}
-          </div>
-        )}
+        {/* Badge Desconto (Slot Fixo) */}
+        <div className="h-6 flex items-center">
+          {formattedDiscountSticker ? (
+            <div className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#FFB800] text-black shadow-sm whitespace-nowrap">
+              {formattedDiscountSticker}
+            </div>
+          ) : null}
+        </div>
       </div>
       
-      <div className="min-h-[88px] mb-2 flex flex-col justify-end">
-        {displayOriginal && (
-          <div className="text-zinc-500 line-through text-base sm:text-lg mb-1 font-bold">
-            {displayOriginal}
-          </div>
-        )}
+      {/* Container de Precificação Alinhado */}
+      <div className="flex flex-col justify-end mb-3">
+        {/* Slot de Preço Riscado (Altura Fixa de Alinhamento) */}
+        <div className="h-6 flex items-center mb-0.5">
+          {displayOriginal ? (
+            <div className="text-zinc-400 dark:text-zinc-500 line-through text-xs sm:text-sm font-bold whitespace-nowrap">
+              {displayOriginal}
+            </div>
+          ) : null}
+        </div>
         
-        {priceMatch ? (
-          <div className={`flex items-baseline gap-1 text-white ${plusJakarta.className}`}>
-            <span className="text-xl sm:text-2xl font-bold text-white/80">{priceMatch[1]}</span>
-            <span className="text-4xl sm:text-5xl font-extrabold">{priceMatch[2]}</span>
-            <span className="text-base sm:text-lg font-medium text-zinc-400">{priceMatch[3]}</span>
-          </div>
-        ) : (
-          <div className={`text-4xl sm:text-5xl font-extrabold text-white ${plusJakarta.className}`}>
-            {displayPriceStr}
-          </div>
-        )}
+        {/* Preço Principal (Fonte Ajustada sem Quebra de UX) */}
+        <div className="min-h-[44px] flex items-baseline">
+          {priceMatch ? (
+            <div className={`flex items-baseline gap-0.5 text-zinc-900 dark:text-white whitespace-nowrap ${plusJakarta.className}`}>
+              <span className="text-base sm:text-lg font-bold text-zinc-600 dark:text-white/80 shrink-0">{priceMatch[1]}</span>
+              <span className="text-3xl sm:text-[32px] xl:text-[38px] font-extrabold text-zinc-900 dark:text-white tracking-tight shrink-0">{priceMatch[2]}</span>
+              <span className="text-xs sm:text-sm font-semibold text-zinc-500 dark:text-zinc-400 shrink-0">{priceMatch[3]}</span>
+            </div>
+          ) : (
+            <div className={`text-3xl sm:text-[32px] xl:text-[38px] font-extrabold text-zinc-900 dark:text-white whitespace-nowrap ${plusJakarta.className}`}>
+              {displayPriceStr}
+            </div>
+          )}
+        </div>
 
-        {!isAnnual && currentActivePriceValue > 0 && (
-           <div className="text-[12px] sm:text-[13px] text-zinc-400 mt-2 font-medium tracking-wide">
-             Total de <strong className="text-zinc-200">R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}</strong> por ano.
-           </div>
-        )}
-        {isAnnual && activeDiscountValue > 0 && (
-           <div className="text-[10px] font-bold text-[#2CCB68] mt-2 inline-flex items-center bg-[#2CCB68]/10 px-2.5 py-1 rounded-md w-fit uppercase tracking-wider">
-             economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano.
-           </div>
-        )}
+        {/* Slot Subtexto de Economia (Altura Fixa de Alinhamento) */}
+        <div className="min-h-[30px] mt-1.5 flex items-center">
+          {!isAnnual && currentActivePriceValue > 0 && (
+             <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium tracking-wide whitespace-nowrap">
+               Total de <strong className="text-zinc-800 dark:text-zinc-200">R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}</strong> por ano.
+             </div>
+          )}
+          {isAnnual && activeDiscountValue > 0 && (
+             <div className="text-[10px] font-bold text-[#2CCB68] bg-[#2CCB68]/10 px-2.5 py-0.5 rounded-md uppercase tracking-wider whitespace-nowrap">
+               economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano.
+             </div>
+          )}
+        </div>
       </div>
       
-      <p className="text-zinc-400 text-sm mb-6 min-h-[40px] leading-snug">{plan?.subtitle || "Sem descrição definida."}</p>
+      <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-6 min-h-[40px] leading-snug">{plan?.subtitle || "Sem descrição definida."}</p>
       
       <ul className="space-y-3 mb-8 flex-1">
         {featuresList.map((feat: string, i: number) => (
-          <li key={i} className="flex items-center gap-2.5 text-xs sm:text-sm text-zinc-300">
+          <li key={i} className="flex items-center gap-2.5 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
             <div className="text-[#2CCB68] shrink-0"><CheckIcon size={16} /></div>
             <span className="line-clamp-2">{feat}</span>
           </li>
         ))}
         {featuresList.length === 0 && (
-          <li className="text-xs text-zinc-600 italic">Nenhuma funcionalidade adicionada.</li>
+          <li className="text-xs text-zinc-400 dark:text-zinc-600 italic">Nenhuma funcionalidade adicionada.</li>
         )}
       </ul>
       
@@ -183,8 +201,8 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
       )}
 
       {isAnnual && realAnnualPrice > 0 && (
-        <div className="text-[11px] text-zinc-500 mt-4 text-center leading-relaxed">
-          12 meses por apenas <strong className="text-zinc-300">R$ {(realAnnualPrice * 12).toFixed(2).replace('.', ',')}</strong> {hasValidAnchor && annualAnchor > realAnnualPrice && <>(preço de referência R$ {(annualAnchor * 12).toFixed(2).replace('.', ',')})</>}. Renovação anual garantida.
+        <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-4 text-center leading-relaxed">
+          12 meses por apenas <strong className="text-zinc-700 dark:text-zinc-300">R$ {(realAnnualPrice * 12).toFixed(2).replace('.', ',')}</strong> {hasValidAnchor && annualAnchor > realAnnualPrice && <>(preço de referência R$ {(annualAnchor * 12).toFixed(2).replace('.', ',')})</>}. Renovação anual garantida.
         </div>
       )}
     </div>

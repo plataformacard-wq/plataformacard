@@ -5,7 +5,7 @@ export type FeatureKey =
   | "sales_team"
   | "caas_master";
 
-export type PlanSlug = "starter" | "pro" | "sales_team";
+export type PlanSlug = "starter" | "pro" | "sales_team" | "all_service";
 
 export interface PlanDefinition {
   slug: PlanSlug;
@@ -67,6 +67,22 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "caas_master"],
     maxProducts: 5000,
     maxUsers: 10,
+    checkoutUrls: {
+      monthly: "https://pay.kiwify.com.br/LkBViNa",
+      annual: "https://pay.kiwify.com.br/DcSyq23",
+    },
+  },
+  all_service: {
+    slug: "all_service",
+    name: "Franqueador",
+    badgeText: "Enterprise",
+    monthlyAnchor: 699.90,
+    monthlyPrice: 499.90,
+    annualPrice: 349.90,
+    annualDiscountValue: 150.00,
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "caas_master"],
+    maxProducts: 99999,
+    maxUsers: 99,
     checkoutUrls: {
       monthly: "https://pay.kiwify.com.br/LkBViNa",
       annual: "https://pay.kiwify.com.br/DcSyq23",

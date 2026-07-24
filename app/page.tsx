@@ -126,7 +126,7 @@ export default async function HomePage() {
   } : null;
 
   return (
-    <main className={`relative min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden ${inter.className}`}>
+    <main className={`relative min-h-screen bg-zinc-50 dark:bg-[#0a0a0a] text-zinc-900 dark:text-white transition-colors duration-300 overflow-x-hidden ${inter.className}`}>
       {/* 🤖 Script Injetado de Dados Estruturados JSON-LD para IAs e Motores de Busca */}
       <script
         type="application/ld+json"
@@ -145,15 +145,7 @@ export default async function HomePage() {
 
       {/* Padrão de Fundo Global (Fixed Grid + Glow) */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div 
-          className="absolute inset-0 opacity-50" 
-          style={{
-            backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px',
-            maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%)',
-            WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%)'
-          }}
-        />
+        <div className="absolute inset-0 opacity-70 bg-grid-pattern" />
         <div 
           className="absolute inset-0"
           style={{
@@ -164,7 +156,7 @@ export default async function HomePage() {
 
       <div className="relative z-10">
         <AuthRedirectHandler />
-        <Header />
+        <Header settings={finalSettings} />
         <HeroSection settings={finalSettings} />
 
         {/* Social Proof Logos */}
@@ -190,10 +182,10 @@ export default async function HomePage() {
               icon: "👁️‍🗨️",
             },
           ].map((card, i) => (
-            <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div key={i} className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-md dark:shadow-none hover:border-zinc-300 dark:hover:bg-white/10 transition-all">
               <div className="text-4xl mb-4">{card.icon}</div>
-              <h3 className={`text-lg font-bold text-zinc-200 mb-3 ${plusJakarta.className}`}>{card.title}</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">{card.body}</p>
+              <h3 className={`text-lg font-bold text-zinc-900 dark:text-zinc-200 mb-3 ${plusJakarta.className}`}>{card.title}</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">{card.body}</p>
             </div>
           ))}
         </div>
@@ -209,10 +201,10 @@ export default async function HomePage() {
       <section id="recursos" className="py-24 bg-transparent">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className={`text-3xl md:text-4xl font-extrabold text-white mb-4 ${plusJakarta.className}`}>
+            <h2 className={`text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-white mb-4 ${plusJakarta.className}`}>
               A tecnologia que conecta empresas e vendedores
             </h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-2xl mx-auto">
               Elimine a fricção entre a sua diretoria comercial e quem está na ponta vendendo.
             </p>
           </div>
@@ -242,10 +234,10 @@ export default async function HomePage() {
             ].map((feat, idx) => (
               <div key={idx} className={`flex flex-col md:flex-row gap-8 items-center ${idx % 2 !== 0 ? "md:flex-row-reverse" : ""}`}>
                 <div className="flex-1">
-                  <h3 className={`text-2xl font-bold text-white mb-4 ${plusJakarta.className}`}>{feat.title}</h3>
-                  <p className="text-zinc-400 leading-relaxed">{feat.desc}</p>
+                  <h3 className={`text-2xl font-bold text-zinc-900 dark:text-white mb-4 ${plusJakarta.className}`}>{feat.title}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
                 </div>
-                <div className={`flex-1 h-64 w-full rounded-3xl flex items-center justify-center border backdrop-blur-md ${feat.green ? "bg-[#2CCB68]/5 border-[#2CCB68]/20" : "bg-white/5 border-white/5"}`}>
+                <div className={`flex-1 h-64 w-full rounded-3xl flex items-center justify-center border backdrop-blur-md ${feat.green ? "bg-[#2CCB68]/5 border-[#2CCB68]/20" : "bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 shadow-sm"}`}>
                    <span className={`text-sm font-semibold ${feat.green ? "text-[#2CCB68]" : "text-zinc-500"}`}>Ilustração da Interface</span>
                 </div>
               </div>

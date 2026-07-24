@@ -52,10 +52,10 @@ export function WhyChooseUs() {
             <span className="w-1.5 h-1.5 rounded-full bg-[#2CCB68]" />
             Por Que PlataformaShop
           </div>
-          <h2 className={`text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4 ${plusJakarta.className}`}>
+          <h2 className={`text-3xl md:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight mb-4 ${plusJakarta.className}`}>
             Por Que Escolher a Plataforma<span className="text-[#2CCB68]">Shop?</span>
           </h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+          <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-2xl mx-auto">
             Tudo o que você precisa para revolucionar suas vendas B2B e o seu networking profissional.
           </p>
         </div>
@@ -63,7 +63,7 @@ export function WhyChooseUs() {
         {/* Stats Row */}
         <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-20">
           {stats.map((stat, i) => (
-            <div key={i} className="flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0a0a0a] border border-white/5 shadow-xl min-w-[160px] md:min-w-[200px] hover:border-white/10 transition-colors group cursor-default">
+            <div key={i} className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/5 shadow-md dark:shadow-xl min-w-[160px] md:min-w-[200px] hover:border-zinc-300 dark:hover:border-white/10 transition-colors group cursor-default">
               <span className={`text-3xl md:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r ${stat.gradient} group-hover:scale-105 transition-transform duration-300 ${plusJakarta.className}`}>
                 {stat.value}
               </span>
@@ -79,12 +79,12 @@ export function WhyChooseUs() {
           {features.map((feat, i) => {
             const Icon = feat.icon;
             return (
-              <div key={i} className="group relative bg-[#0a0a0a] border border-white/5 rounded-3xl p-8 hover:border-white/10 transition-all duration-300 overflow-hidden cursor-default">
+              <div key={i} className="group relative bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/5 rounded-3xl p-8 shadow-md dark:shadow-none hover:border-zinc-300 dark:hover:border-white/10 transition-all duration-300 overflow-hidden cursor-default">
                 {/* Hover Glow Effect */}
                 <div className={`absolute top-0 right-0 w-64 h-64 opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-3xl pointer-events-none rounded-full ${feat.color}`} />
                 
                 {/* Corner Decorative Icon (faint) */}
-                <div className="absolute top-6 right-6 text-zinc-800 group-hover:text-zinc-700 transition-colors duration-300">
+                <div className="absolute top-6 right-6 text-zinc-300 dark:text-zinc-800 group-hover:text-zinc-400 dark:group-hover:text-zinc-700 transition-colors duration-300">
                   <Sparkles size={24} strokeWidth={1} />
                 </div>
 
@@ -95,10 +95,10 @@ export function WhyChooseUs() {
                   </div>
                   
                   {/* Text Content */}
-                  <h3 className={`text-2xl font-bold text-white mb-4 ${plusJakarta.className}`}>
+                  <h3 className={`text-2xl font-bold text-zinc-900 dark:text-white mb-4 ${plusJakarta.className}`}>
                     {feat.title}
                   </h3>
-                  <p className="text-zinc-400 leading-relaxed text-sm">
+                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-sm">
                     {feat.desc}
                   </p>
                 </div>

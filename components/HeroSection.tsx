@@ -12,25 +12,25 @@ export function HeroSection({ settings }: { settings?: any }) {
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
         {/* Left Column */}
         <div className="flex flex-col gap-6 z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm w-fit text-xs font-semibold text-zinc-300 tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-300 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-sm w-fit text-xs font-semibold text-zinc-700 dark:text-zinc-300 tracking-wide uppercase shadow-sm">
             <span className="w-2 h-2 rounded-full bg-[#2CCB68] animate-pulse" />
             O Híbrido Perfeito (NFC + Catálogo)
           </div>
           
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1]" dangerouslySetInnerHTML={{ __html: headline }}></h1>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-zinc-900 dark:text-white tracking-tight leading-[1.1]" dangerouslySetInnerHTML={{ __html: headline }}></h1>
           
-          <p className="text-lg md:text-xl text-zinc-400 max-w-lg leading-relaxed">
+          <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-lg leading-relaxed">
             {subtitle}
           </p>
           
           {/* Link Simulator */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 p-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md max-w-xl shadow-2xl focus-within:border-[#2CCB68] transition-colors">
+          <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 p-2 rounded-2xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 backdrop-blur-md max-w-xl shadow-lg dark:shadow-2xl focus-within:border-[#2CCB68] transition-colors">
             <div className="flex items-center px-4 flex-1 w-full sm:w-auto">
               <span className="text-zinc-500 font-medium">plataforma.shop/</span>
               <input 
                 type="text" 
                 placeholder="suamarca" 
-                className="bg-transparent border-none outline-none text-white font-medium w-full ml-1 placeholder:text-zinc-600 focus:ring-0"
+                className="bg-transparent border-none outline-none text-zinc-900 dark:text-white font-medium w-full ml-1 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:ring-0"
               />
             </div>
             <button className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-white font-semibold shadow-lg shadow-[#2CCB68]/20 hover:shadow-[#2CCB68]/40 hover:-translate-y-0.5 transition-all">

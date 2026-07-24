@@ -92,6 +92,41 @@ export async function uploadHeroMockup(formData: FormData) {
   return { success: true, publicUrl };
 }
 
+export async function uploadHeaderLogo(formData: FormData, themeType: 'dark' | 'light') {
+  await verifySuperAdmin();
+  const file = formData.get("file") as File;
+  if (!file) {
+    return { success: false, error: "Nenhum arquivo selecionado" };
+  }
+
+  const supabase = createAdminClient();
+  const fileExt = file.name.split('.').pop() || 'png';
+  const fileName = `logo_${themeType}_${Date.now()}.${fileExt}`;
+  const filePath = `landing-page/${fileName}`;
+
+  let bucketName = "catalogs";
+  let { error } = await supabase.storage
+    .from(bucketName)
+    .upload(filePath, file, { upsert: true, contentType: file.type });
+
+  if (error) {
+    bucketName = "public-assets";
+    const res = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, { upsert: true, contentType: file.type });
+    if (res.error) {
+      console.error("Storage upload error:", res.error);
+      return { success: false, error: "Erro ao salvar imagem no servidor de arquivos." };
+    }
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(bucketName)
+    .getPublicUrl(filePath);
+
+  return { success: true, publicUrl };
+}
+
 // --- TESTIMONIALS ---
 export async function getTestimonials() {
   await verifySuperAdmin();
@@ -363,6 +398,23 @@ export async function deletePlan(id: string) {
 
   if (error) {
     return { success: false, error: "Erro ao deletar Plano" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/main/landing-page");
+  return { success: true };
+}
+
+export async function reorderPlans(orderedIds: string[]) {
+  await verifySuperAdmin();
+  const supabase = createAdminClient();
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    const id = orderedIds[i];
+    await supabase
+      .from("landing_page_plans")
+      .update({ display_order: i + 1, updated_at: new Date().toISOString() })
+      .eq("id", id);
   }
 
   revalidatePath("/");

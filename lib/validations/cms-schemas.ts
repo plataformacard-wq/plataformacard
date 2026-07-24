@@ -7,6 +7,8 @@ export const updateSettingsSchema = z.object({
   base_users: z.number().int().nonnegative("Número deve ser positivo"),
   base_catalogs: z.number().int().nonnegative("Número deve ser positivo"),
   hero_mockup_url: z.string().url().nullable().optional().or(z.literal("")),
+  logo_url_dark: z.string().url().nullable().optional().or(z.literal("")),
+  logo_url_light: z.string().url().nullable().optional().or(z.literal("")),
   social_instagram: z.string().url().nullable().optional().or(z.literal("")),
   social_facebook: z.string().url().nullable().optional().or(z.literal("")),
   social_linkedin: z.string().url().nullable().optional().or(z.literal("")),

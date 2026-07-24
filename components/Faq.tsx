@@ -46,10 +46,10 @@ export function Faq({ faqs }: { faqs?: any[] }) {
           <div className="text-[#2CCB68] text-sm font-bold uppercase tracking-widest mb-4">
             FAQ
           </div>
-          <h2 className={`text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4 ${plusJakarta.className}`}>
+          <h2 className={`text-3xl md:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight mb-4 ${plusJakarta.className}`}>
             Perguntas Frequentes
           </h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+          <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-2xl mx-auto">
             Encontre respostas para as dúvidas comuns sobre vitrines digitais, NFC e o funcionamento da PlataformaShop.
           </p>
         </div>
@@ -65,19 +65,19 @@ export function Faq({ faqs }: { faqs?: any[] }) {
                 className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
                   isOpen 
                     ? "bg-[#2CCB68]/5 border-[#2CCB68]/30 shadow-lg shadow-[#2CCB68]/5" 
-                    : "bg-white/5 border-white/5 hover:border-white/10"
+                    : "bg-white dark:bg-white/5 border-zinc-200 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10 shadow-sm dark:shadow-none"
                 }`}
               >
                 <button
                   onClick={() => toggleAccordion(index)}
                   className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
                 >
-                  <span className={`text-lg font-bold transition-colors ${isOpen ? "text-[#2CCB68]" : "text-white"}`}>
+                  <span className={`text-lg font-bold transition-colors ${isOpen ? "text-[#2CCB68]" : "text-zinc-900 dark:text-white"}`}>
                     {item.question}
                   </span>
                   <div 
                     className={`flex-shrink-0 ml-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                      isOpen ? "bg-[#2CCB68] text-black" : "bg-white/10 text-zinc-400"
+                      isOpen ? "bg-[#2CCB68] text-black" : "bg-zinc-100 dark:bg-white/10 text-zinc-600 dark:text-zinc-400"
                     }`}
                   >
                     {isOpen ? <ChevronUp size={20} strokeWidth={3} /> : <ChevronDown size={20} strokeWidth={2.5} />}
@@ -92,7 +92,7 @@ export function Faq({ faqs }: { faqs?: any[] }) {
                   style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                 >
                   <div className="overflow-hidden">
-                    <div className="p-6 pt-0 text-zinc-400 leading-relaxed border-t border-white/5 mt-2">
+                    <div className="p-6 pt-0 text-zinc-600 dark:text-zinc-400 leading-relaxed border-t border-zinc-200 dark:border-white/5 mt-2">
                       <div className="pt-4">
                         {item.answer}
                       </div>

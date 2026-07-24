@@ -56,7 +56,7 @@ const REVIEWS = [
 ];
 
 const ReviewCard = ({ review }: { review: any }) => (
-  <div className="bg-[#121212]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 mb-6 hover:bg-[#1a1a1a]/80 transition-colors w-full flex flex-col">
+  <div className="public-card backdrop-blur-md rounded-3xl p-6 mb-6 hover:bg-zinc-100 dark:hover:bg-[#1a1a1a]/80 transition-all w-full flex flex-col">
     {review.image_url ? (
       <div className="w-full h-auto rounded-xl overflow-hidden mb-4">
         <img src={review.image_url} alt={`Depoimento de ${review.name}`} className="w-full object-cover" />
@@ -68,7 +68,7 @@ const ReviewCard = ({ review }: { review: any }) => (
             <Star key={i} size={14} className="fill-amber-500 text-amber-500" />
           ))}
         </div>
-        <p className="text-zinc-300 text-sm leading-relaxed mb-6 font-medium">
+        <p className="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed mb-6 font-medium">
           "{review.text}"
         </p>
       </>
@@ -79,8 +79,8 @@ const ReviewCard = ({ review }: { review: any }) => (
         {review.initials}
       </div>
       <div>
-        <div className="text-white font-bold text-sm">{review.name}</div>
-        <div className="text-zinc-500 text-xs flex items-center gap-1 mt-0.5">
+        <div className="text-zinc-900 dark:text-white font-bold text-sm">{review.name}</div>
+        <div className="text-zinc-500 dark:text-zinc-400 text-xs flex items-center gap-1 mt-0.5">
           <svg className="w-3 h-3 text-[#2CCB68]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
           </svg>
@@ -116,27 +116,27 @@ export function Testimonials({ testimonials, baseUsers = 1500, baseCatalogs = 32
         
         {/* Cabeçalho */}
         <div className="flex flex-col items-center text-center mb-16">
-          <h2 className={`text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4 ${plusJakarta.className}`}>
+          <h2 className={`text-3xl md:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight mb-4 ${plusJakarta.className}`}>
             Amado por equipes comerciais
           </h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-10">
+          <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-2xl mx-auto mb-10">
             Veja por que centenas de profissionais confiam na PlataformaShop para centralizar seu catálogo e fechar vendas no WhatsApp.
           </p>
 
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
             <div className="text-center">
-              <div className={`text-3xl font-extrabold text-white ${plusJakarta.className}`}>{(baseUsers / 1000).toFixed(0)}K+</div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Lojas Virtuais</div>
+              <div className={`text-3xl font-extrabold text-zinc-900 dark:text-white ${plusJakarta.className}`}>{(baseUsers / 1000).toFixed(0)}K+</div>
+              <div className="text-xs text-zinc-600 dark:text-zinc-400 uppercase tracking-widest mt-1">Lojas Virtuais</div>
             </div>
             <div className="text-center">
-              <div className={`text-3xl font-extrabold text-white ${plusJakarta.className}`}>{baseCatalogs}+</div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Catálogos</div>
+              <div className={`text-3xl font-extrabold text-zinc-900 dark:text-white ${plusJakarta.className}`}>{baseCatalogs}+</div>
+              <div className="text-xs text-zinc-600 dark:text-zinc-400 uppercase tracking-widest mt-1">Catálogos</div>
             </div>
             <div className="text-center">
-              <div className={`text-3xl font-extrabold text-white flex items-center gap-2 justify-center ${plusJakarta.className}`}>
+              <div className={`text-3xl font-extrabold text-zinc-900 dark:text-white flex items-center gap-2 justify-center ${plusJakarta.className}`}>
                 4.8 <Star className="fill-amber-500 text-amber-500 w-6 h-6" />
               </div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Avaliação Média</div>
+              <div className="text-xs text-zinc-600 dark:text-zinc-400 uppercase tracking-widest mt-1">Avaliação Média</div>
             </div>
           </div>
         </div>

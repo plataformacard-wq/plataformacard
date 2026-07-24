@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckIcon, LucideIcon } from "lucide-react";
+import { CheckIcon, ChevronDown, ChevronUp, Table } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
-
 import { PricingCard } from "@/components/landing-page/PricingCard";
+import { PlanComparisonTable } from "@/components/landing-page/PlanComparisonTable";
 
 const plusJakarta = Plus_Jakarta_Sans({ 
   subsets: ["latin"],
@@ -24,9 +25,10 @@ function WhatsAppIcon({ size = 24 }: { size?: number }) {
 
 export function PricingSection({ plans }: { plans: any[] }) {
   const [isAnnual, setIsAnnual] = useState(true);
+  const [isTableOpen, setIsTableOpen] = useState(false);
 
-  // Lista padrão de planos se não vier do banco ou para unificar com Kiwify
-  const defaultPlanKeys: PlanSlug[] = ["starter", "pro", "sales_team"];
+  // Lista padrão de 4 planos para renderizar perfeitamente em 1 linha no desktop
+  const defaultPlanKeys: PlanSlug[] = ["starter", "pro", "sales_team", "all_service"];
   
   const displayPlans = plans && plans.length > 0 ? plans : defaultPlanKeys.map(key => {
     const p = PLANS[key];
@@ -36,43 +38,51 @@ export function PricingSection({ plans }: { plans: any[] }) {
       slug: p.slug,
       badge_text: p.badgeText,
       theme: p.slug === "pro" ? "green" : "dark",
-      subtitle: p.slug === "starter" ? "Para autônomos e pequenos negócios" : p.slug === "pro" ? "O plano mais completo para acelerar vendas" : "Para equipes e médias empresas",
+      subtitle: p.slug === "starter" 
+        ? "Para autônomos que estão começando." 
+        : p.slug === "pro" 
+        ? "Para lojistas que buscam automação." 
+        : p.slug === "sales_team"
+        ? "Para equipes e médias empresas."
+        : "Para marcas, redes de franquias e catálogos matriz",
       features: p.slug === "starter" 
-        ? ["Catálogo Digital Ilimitado", "Taxa 0% nas Vendas", "Até 100 Produtos", "Atendimento via WhatsApp"] 
+        ? ["Catálogo online sempre atualizado", "Taxa 0% em qualquer venda", "Status da conversa (CRM)", "Atualização de estoque a cada venda"] 
         : p.slug === "pro"
-        ? ["Tudo do Starter", "Até 1.000 Produtos", "Assistente de IA para SEO", "Estoque Sincronizado Bling V3", "Domínio Próprio SSL"]
-        : ["Tudo do PRO", "Até 5.000 Produtos", "Até 10 Vendedores/Usuários", "Gestão Multi-Vendedor B2B", "Suporte Prioritário VIP"],
-      button_text: "Assinar Agora",
+        ? ["Tudo do Starter", "Assistente de IA para Produtos e SEO", "Estoque Automatizado via Bling V3", "Domínio Próprio e Catálogo no seu Site"]
+        : p.slug === "sales_team"
+        ? ["Tudo do PRO", "Até 5.000 Produtos", "Até 10 Vendedores/Usuários", "Gestão Multi-Vendedor B2B", "Suporte Prioritário VIP"]
+        : ["Tudo do PRO e Premium", "Painel de Gestão de Franquias", "Criação de Catálogos Matriz", "Produtos e Usuários Ilimitados", "Vendas no Varejo, Atacado e Franquias", "Gerente de Contas & Suporte VIP"],
+      button_text: p.slug === "pro" ? "Assinar PRO" : "Assinar",
       button_url: `/checkout?plan=${p.slug}`
     };
   });
 
   return (
-    <section id="planos" className="py-24 bg-transparent">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="planos" className="py-24 bg-transparent overflow-hidden">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
         <div className="text-center mb-10">
-          <h2 className={`text-3xl md:text-4xl font-extrabold text-white mb-4 ${plusJakarta.className}`}>
+          <h2 className={`text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-white mb-4 ${plusJakarta.className}`}>
             Planos desenhados para o seu tamanho
           </h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-8">
+          <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-2xl mx-auto mb-8">
             Você não precisa ser uma corporação gigante para usar tecnologia inteligente.
           </p>
 
           {/* Toggle Switch */}
           <div className="flex flex-col items-center justify-center gap-4">
-            <div className="inline-flex items-center bg-[#1c1c1e] border border-white/10 rounded-full p-1 relative">
+            <div className="inline-flex items-center bg-zinc-200/80 dark:bg-[#1c1c1e] border border-zinc-300 dark:border-white/10 rounded-full p-1 relative shadow-inner">
               <div 
                 className={`absolute top-1 bottom-1 w-1/2 bg-[#2CCB68] rounded-full transition-transform duration-300 ease-in-out ${isAnnual ? 'translate-x-[96%]' : 'translate-x-1'}`}
               ></div>
               <button
                 onClick={() => setIsAnnual(false)}
-                className={`relative z-10 px-8 py-3 text-sm font-bold rounded-full transition-colors ${!isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-400 hover:text-white'}`}
+                className={`relative z-10 px-8 py-3 text-sm font-bold rounded-full transition-colors ${!isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
               >
                 Mensal
               </button>
               <button
                 onClick={() => setIsAnnual(true)}
-                className={`relative z-10 px-8 py-3 text-sm font-bold rounded-full transition-colors ${isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-400 hover:text-white'}`}
+                className={`relative z-10 px-8 py-3 text-sm font-bold rounded-full transition-colors ${isAnnual ? 'text-[#0A0A0A]' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
               >
                 Anual
               </button>
@@ -80,10 +90,46 @@ export function PricingSection({ plans }: { plans: any[] }) {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto items-stretch">
+        {/* 📊 GRID EM 1 LINHA NO DESKTOP (4 COLUNAS) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 items-stretch max-w-[1550px] mx-auto">
           {displayPlans.map((plan: any) => (
             <PricingCard key={plan.id || plan.slug} plan={plan} isAnnual={isAnnual} />
           ))}
+        </div>
+
+        {/* 🔻 SANFONA EXPANSÍVEL: TABELA COMPARATIVA DE RECURSOS */}
+        <div className="mt-12 text-center flex flex-col items-center max-w-[1550px] mx-auto">
+          <button
+            type="button"
+            onClick={() => setIsTableOpen(!isTableOpen)}
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-zinc-900 dark:text-white font-bold text-sm sm:text-base transition-all shadow-md dark:shadow-lg active:scale-95 group"
+          >
+            <Table className="w-5 h-5 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span>
+              {isTableOpen
+                ? "Ocultar matriz comparativa de recursos"
+                : "Comparar todas as funcionalidades e limites em detalhes"}
+            </span>
+            {isTableOpen ? (
+              <ChevronUp className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {isTableOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="w-full"
+              >
+                <PlanComparisonTable isAnnual={isAnnual} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Edit2, Trash2, Loader2, X, GripVertical } from "lucide-react";
 import { Reorder, AnimatePresence } from "framer-motion";
-import { deletePlan, upsertPlan } from "./actions";
+import { deletePlan, upsertPlan, reorderPlans } from "./actions";
 import { PLANS } from "@/lib/plans/feature-matrix";
 
 import { PricingCard } from "@/components/landing-page/PricingCard";
@@ -28,11 +28,13 @@ type Plan = {
 };
 
 export function PlansTable({ initialData }: { initialData: any[] }) {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState<Plan[]>(initialData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
+  const [isAnnualView, setIsAnnualView] = useState(true);
 
   const defaultForm: Plan = { 
     name: "", 
@@ -51,6 +53,16 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     is_active: true 
   };
   const [form, setForm] = useState<Plan>(defaultForm);
+
+  async function handleReorder(newOrder: Plan[]) {
+    setData(newOrder);
+    setIsReordering(true);
+    const validIds = newOrder.map(item => item.id).filter(Boolean) as string[];
+    if (validIds.length > 0) {
+      await reorderPlans(validIds);
+    }
+    setIsReordering(false);
+  }
 
   function openNew() {
     setEditingItem(null);
@@ -111,74 +123,116 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     setForm({ ...form, features: newFeatures });
   }
 
-  // Identifica o plano oficial (Starter, PRO ou Sales Team) dinamicamente pelo slug, id ou nome
+  // Identifica o plano oficial (Starter, PRO, Sales Team ou Franqueador/All Service) dinamicamente pelo slug, id ou nome
   const normFormSlug = (form.slug || form.id || '').toLowerCase();
   const normFormName = (form.name || '').toLowerCase();
   const combinedForm = `${normFormSlug} ${normFormName}`;
 
-  const formOfficialPlan = (combinedForm.includes('sales') || combinedForm.includes('team') || combinedForm.includes('premium') || combinedForm.includes('corporativo'))
-    ? PLANS.sales_team 
-    : combinedForm.includes('pro') 
-      ? PLANS.pro 
-      : PLANS.starter;
+  const formOfficialPlan = (combinedForm.includes('franqueador') || combinedForm.includes('all_service') || combinedForm.includes('hibrida') || combinedForm.includes('enterprise'))
+    ? PLANS.all_service
+    : (combinedForm.includes('sales') || combinedForm.includes('team') || combinedForm.includes('premium') || combinedForm.includes('corporativo'))
+      ? PLANS.sales_team 
+      : combinedForm.includes('pro') 
+        ? PLANS.pro 
+        : PLANS.starter;
 
   const realMonthly = formOfficialPlan.monthlyPrice;
   const realAnnual = formOfficialPlan.annualPrice;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Planos</h2>
+      {/* 🔝 CABEÇALHO DO CMS COM CONTROLE DE CICLO (MENSAL/ANUAL) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">Planos</h2>
+          <p className="text-xs text-[var(--dash-text-secondary)] mt-0.5 flex items-center gap-1.5 font-medium">
+            <span>✋</span> Arraste os cards para alterar a ordem na Landing Page em tempo real.
+            {isReordering && <span className="text-emerald-400 font-bold animate-pulse">(Salvando ordem...)</span>}
+          </p>
+        </div>
+
+        {/* 🔄 Suíte de Alternância de Ciclo no CMS (Mensal vs Anual) */}
+        <div className="flex items-center gap-2 bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] p-1 rounded-full shadow-sm">
+          <button
+            type="button"
+            onClick={() => setIsAnnualView(false)}
+            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${!isAnnualView ? 'bg-emerald-500 text-white shadow-md' : 'text-[var(--dash-text-secondary)] hover:text-white'}`}
+          >
+            📅 Mensal
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAnnualView(true)}
+            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${isAnnualView ? 'bg-emerald-500 text-white shadow-md' : 'text-[var(--dash-text-secondary)] hover:text-white'}`}
+          >
+            🚀 Anual
+          </button>
+        </div>
+
         <button 
           onClick={openNew}
-          className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors shadow-md active:scale-95"
+          className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors shadow-md active:scale-95 shrink-0"
         >
           <Plus size={16} /> Adicionar Plano
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data.map((item) => (
-          <div key={item.id} className="bg-[var(--dash-surface-secondary)] border border-[var(--dash-border)] rounded-2xl p-6 relative flex flex-col shadow-sm hover:border-emerald-500/30 transition-all">
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button onClick={() => openEdit(item)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors">
-                <Edit2 size={16} />
-              </button>
-              <button onClick={() => item.id && handleDelete(item.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
-                {deletingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-              </button>
-            </div>
-            
-            {!item.is_active && (
-              <span className="absolute top-4 left-4 px-2.5 py-1 bg-red-500/10 text-red-500 text-xs font-bold rounded-full border border-red-500/20">Inativo</span>
-            )}
-            
-            <div className="h-7 mt-8 mb-2">
-              {item.badge_text && (
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${item.theme === 'green' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-black/10 dark:bg-white/10 text-zinc-600 dark:text-zinc-300'}`}>
-                  {item.badge_text}
-                </span>
-              )}
-            </div>
+      {/* 📊 CANVAS ESCURO DO SITE (#0a0a0a) PARA RENDERIZAÇÃO AUTÊNTICA DOS CARDS */}
+      <div className="p-6 sm:p-8 rounded-[28px] bg-[#0a0a0a] border border-zinc-800 shadow-2xl overflow-x-auto text-white">
+        <Reorder.Group 
+          axis="x" 
+          values={data} 
+          onReorder={handleReorder}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-[1600px] min-w-[1000px] xl:min-w-0"
+        >
+          {data.map((item) => (
+            <Reorder.Item
+              key={item.id || item.name}
+              value={item}
+              className="relative flex flex-col h-full cursor-grab active:cursor-grabbing select-none group"
+            >
+              {/* 🛠️ Barra de Ações Superior do CMS (Arraste + Editar + Deletar) */}
+              <div className="flex items-center justify-between px-4 py-2 bg-[#1c1c1e] border border-zinc-700/60 rounded-2xl mb-3 shadow-lg z-20 transition-all group-hover:border-emerald-500/50">
+                <div className="flex items-center gap-1.5 text-zinc-300 group-hover:text-emerald-400 transition-colors">
+                  <GripVertical size={16} />
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-300 group-hover:text-emerald-400">Arraste</span>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  {!item.is_active && (
+                    <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 mr-1">
+                      Inativo
+                    </span>
+                  )}
+                  <button 
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); openEdit(item); }} 
+                    className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                    title="Editar Plano"
+                  >
+                    <Edit2 size={15} />
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); item.id && handleDelete(item.id); }} 
+                    className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                    title="Excluir Plano"
+                  >
+                    {deletingId === item.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  </button>
+                </div>
+              </div>
 
-            <h3 className={`text-2xl font-bold ${item.theme === 'green' ? 'text-emerald-500' : 'text-[var(--dash-text-primary)]'}`}>
-              {item.name}
-            </h3>
-            <div className="text-3xl font-bold text-[var(--dash-text-primary)] mt-2">{item.price_text}</div>
-            <p className="text-[var(--dash-text-secondary)] mt-2 text-sm h-10">{item.subtitle}</p>
-
-            <ul className="mt-6 space-y-3 flex-1 pb-4">
-              {item.features.map((feat: string, idx: number) => (
-                <li key={idx} className="flex items-center gap-2 text-sm text-[var(--dash-text-primary)]">
-                  <span className="text-emerald-500">✓</span> {feat}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-        {data.length === 0 && (
-          <div className="col-span-full text-center py-8 text-zinc-500">Nenhum plano cadastrado.</div>
-        )}
+              {/* 💎 Card Renderizado Exatamente Igual ao Site no Canvas Escuro #0a0a0a */}
+              <div className="flex-1 flex flex-col">
+                <PricingCard plan={item} isAnnual={isAnnualView} isInteractive={false} />
+              </div>
+            </Reorder.Item>
+          ))}
+          {data.length === 0 && (
+            <div className="col-span-full text-center py-8 text-zinc-500">Nenhum plano cadastrado.</div>
+          )}
+        </Reorder.Group>
       </div>
 
       {isModalOpen && (
@@ -209,20 +263,59 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
               {/* 📝 COLUNA 1: FORMULÁRIO DE EDIÇÃO (4/12 de largura) */}
               <div className="lg:col-span-4 space-y-5 pr-2 lg:border-r border-[var(--dash-border)]">
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Nome do Plano</label>
-                    <input 
-                      type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                      className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
-                      placeholder="Ex: PRO"
-                    />
+                    <label className="block text-xs font-bold text-emerald-400 mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>⚡</span> Vincular Produto Kiwify
+                    </label>
+                    <select
+                      value={form.slug || formOfficialPlan.slug}
+                      onChange={(e) => {
+                        const selectedSlug = e.target.value as keyof typeof PLANS;
+                        const selectedPlan = PLANS[selectedSlug];
+                        if (selectedPlan) {
+                          setForm({
+                            ...form,
+                            slug: selectedPlan.slug,
+                            name: selectedPlan.name,
+                            badge_text: selectedPlan.badgeText || "",
+                            price_monthly: `R$ ${selectedPlan.monthlyAnchor.toFixed(2).replace('.', ',')}`,
+                            original_price: `R$ ${selectedPlan.monthlyPrice.toFixed(2).replace('.', ',')}`,
+                            button_url: `/checkout?plan=${selectedPlan.slug}`,
+                            subtitle: selectedPlan.slug === "starter"
+                              ? "Para autônomos e pequenos negócios"
+                              : selectedPlan.slug === "pro"
+                              ? "O plano mais completo para acelerar vendas"
+                              : selectedPlan.slug === "sales_team"
+                              ? "Para equipes e médias empresas"
+                              : "Para marcas, redes de franquias e catálogos matriz",
+                          });
+                        }
+                      }}
+                      className="dash-select w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl pl-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors font-medium"
+                    >
+                      <option value="starter" className="bg-[#1c1c1e] text-white">📦 Starter (Kiwify: R$ 59,90 | Anual R$ 39,90)</option>
+                      <option value="pro" className="bg-[#1c1c1e] text-white">🚀 PRO (Kiwify: R$ 149,90 | Anual R$ 99,90)</option>
+                      <option value="sales_team" className="bg-[#1c1c1e] text-white">💎 Sales Team / Premium (Kiwify: R$ 299,90 | Anual R$ 199,90)</option>
+                      <option value="all_service" className="bg-[#1c1c1e] text-white">🏢 Franqueador / All Service (Kiwify: R$ 499,90 | Anual R$ 349,90)</option>
+                    </select>
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-center">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🔒 Cobrança Kiwify Protegida</span>
-                    <span className="text-xs font-black text-[var(--dash-text-primary)] mt-0.5">
-                      Mensal: R$ {realMonthly.toFixed(2).replace('.', ',')} | Anual: R$ {realAnnual.toFixed(2).replace('.', ',')}
-                    </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-1 uppercase tracking-wider">Nome Exibido no Site</label>
+                      <input 
+                        type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
+                        className="w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-sm text-[var(--dash-text-primary)] outline-none focus:border-emerald-500 transition-colors"
+                        placeholder="Ex: Franqueador"
+                      />
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-center">
+                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🔒 Kiwify Protegido</span>
+                      <span className="text-xs font-black text-[var(--dash-text-primary)] mt-0.5">
+                        Mensal: R$ {realMonthly.toFixed(2).replace('.', ',')} | Anual: R$ {realAnnual.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
