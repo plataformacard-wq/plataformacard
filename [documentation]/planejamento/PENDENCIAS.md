@@ -16,7 +16,12 @@ graph TD
 ```
 
 ### 🚨 Bloqueadores de Lançamento Online (Go-Live)
-*Lógica: Pendências de negócio essenciais para que a plataforma opere legal e financeiramente como um SaaS na internet pública.*
+*Lógica: Pendências de negócio, infraestrutura e autoridade visual essenciais para que a plataforma opere legal, financeiramente e esteticamente como um SaaS na internet pública.*
+- [ ] **Assets Visuais & Mockups Oficiais da Landing Page (LP):** A Landing Page possui pendências de imagens em alta definição que afetam diretamente a conversão e a autoridade da marca no lançamento online:
+  1. *Hero Mockup 3D Dark & Light (1200x900px WebP):* Mockups oficiais do aplicativo e cartão NFC físico em ambos os temas.
+  2. *Logos Transparentes do Header (Dark & Light):* Logos oficiais vetorizadas em formato WebP para modo claro e escuro.
+  3. *Ilustrações dos Blocos de Recursos B2B (4 cards):* Substituição das legendas de placeholder por gráficos/prints reais de Taxa Zero, Sincronização Bling ERP V3, NFC Híbrido e iFrame Embed.
+  4. *Logos de Clientes/Parceiros Reais (6+ marcas):* Upload de 6+ empresas reais no CMS para ativação automática do carrossel marquee infinito.
 - [ ] **Autenticação de Dois Fatores (2FA / MFA via TOTP):** Implementar obrigatoriedade de 2FA via App Autenticador (Google Authenticator, Authy, 1Password) no Portal Main (Main Admin) para o lançamento 100% online, além de disponibilizar 2FA opcional para lojistas no Dashboard (com trava de segurança na alteração do WhatsApp de atendimento e alerta educativo no Dashboard sobre proteção dos dados de pagamento). *(Nota: O SQL da tabela `user_2fa_backup_codes` já foi executado no banco de dados e a migration `20260721230000_add_2fa_backup_codes.sql` foi salva no repositório. Ver plano em `implementation_plan.md`).*
 - [ ] **Gateway de Pagamento (Checkout):** Integração com Stripe ou MercadoPago para vendas automatizadas (planos e limites). Atualmente os acessos são manuais (High Touch).
 - [ ] **Infraestrutura de Identidade (E-mail e Domínio):** Configurar um domínio próprio na Vercel e registrar um provedor SMTP (ex: Resend) no Supabase. Sem isso, e-mails de recuperação de senha cairão no SPAM e o sistema sofrerá rate-limit após 50 disparos.

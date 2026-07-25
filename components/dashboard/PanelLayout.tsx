@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import GlobalAlert from "@/components/dashboard/GlobalAlert";
 import PlanOverageAlert from "@/components/dashboard/PlanOverageAlert";
+import { MobileBottomNav } from "@/components/dashboard/mobile/MobileBottomNav";
+import { MobileFabButton } from "@/components/dashboard/mobile/MobileFabButton";
 import { getMyProfile, getOrganizationById, getOrganizationStats } from "@/lib/admin-actions";
 import { detectOverage, getPlanName } from "@/lib/plans";
 
@@ -480,6 +482,10 @@ export function PanelLayout({ children }: PanelLayoutProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Componentes de UX Mobile (Navegacao por polegar & FAB) */}
+      <MobileFabButton />
+      <MobileBottomNav />
 
     </div>
   );

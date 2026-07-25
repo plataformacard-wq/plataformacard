@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
 import { Header } from "@/components/Header";
@@ -155,7 +156,9 @@ export default async function HomePage() {
       </div>
 
       <div className="relative z-10">
-        <AuthRedirectHandler />
+        <Suspense fallback={null}>
+          <AuthRedirectHandler />
+        </Suspense>
         <Header settings={finalSettings} />
         <HeroSection settings={finalSettings} />
 

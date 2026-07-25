@@ -30,8 +30,17 @@ export async function getLandingSettings() {
 }
 
 export async function updateLandingSettings(payload: any) {
-  const parsed = updateSettingsSchema.safeParse(payload);
+  // Limpar strings vazias para null para evitar erros de validação Zod e no banco
+  const sanitizedPayload = { ...payload };
+  Object.keys(sanitizedPayload).forEach(key => {
+    if (sanitizedPayload[key] === "") {
+      sanitizedPayload[key] = null;
+    }
+  });
+
+  const parsed = updateSettingsSchema.safeParse(sanitizedPayload);
   if (!parsed.success) {
+    console.error("Validation error updating settings:", parsed.error.issues);
     return { success: false, error: parsed.error.issues[0].message };
   }
 
@@ -47,8 +56,8 @@ export async function updateLandingSettings(payload: any) {
     }, { onConflict: 'is_singleton' });
 
   if (error) {
-    console.error("Error updating settings:", error);
-    return { success: false, error: "Erro ao salvar configurações" };
+    console.error("Error updating settings in DB:", error);
+    return { success: false, error: `Erro no banco de dados: ${error.message}` };
   }
 
   revalidatePath("/");
@@ -56,40 +65,64 @@ export async function updateLandingSettings(payload: any) {
   return { success: true };
 }
 
-export async function uploadHeroMockup(formData: FormData) {
+async function uploadToStorageHelper(filePath: string, file: File): Promise<{ success: boolean; publicUrl?: string; error?: string }> {
+  const supabase = createAdminClient();
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  const bucketsToTry = ["catalogs", "public-assets", "products", "banners"];
+  let lastErrorMsg = "";
+
+  for (const bucketName of bucketsToTry) {
+    // 1. Tenta upload direto com Buffer
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, buffer, { upsert: true, contentType: file.type || "image/png" });
+
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+      return { success: true, publicUrl };
+    }
+
+    lastErrorMsg = error.message;
+
+    // 2. Se o erro for de bucket inexistente, tenta criar o bucket público automaticamente
+    try {
+      await supabase.storage.createBucket(bucketName, { public: true });
+      const retry = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, buffer, { upsert: true, contentType: file.type || "image/png" });
+
+      if (!retry.error) {
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+        return { success: true, publicUrl };
+      }
+      lastErrorMsg = retry.error.message;
+    } catch (err: any) {
+      console.error(`Erro ao tentar auto-criar bucket ${bucketName}:`, err);
+    }
+  }
+
+  console.error("Storage upload error final:", lastErrorMsg);
+  return { success: false, error: `Erro no servidor de arquivos: ${lastErrorMsg || 'Falha ao salvar no storage'}` };
+}
+
+export async function uploadHeroMockup(formData: FormData, themeType: 'dark' | 'light' = 'dark') {
   await verifySuperAdmin();
   const file = formData.get("file") as File;
   if (!file) {
     return { success: false, error: "Nenhum arquivo selecionado" };
   }
 
-  const supabase = createAdminClient();
   const fileExt = file.name.split('.').pop() || 'png';
-  const fileName = `hero_mockup_${Date.now()}.${fileExt}`;
+  const fileName = `hero_mockup_${themeType}_${Date.now()}.${fileExt}`;
   const filePath = `landing-page/${fileName}`;
 
-  // Tenta upload no bucket 'catalogs' (ou 'public-assets')
-  let bucketName = "catalogs";
-  let { error } = await supabase.storage
-    .from(bucketName)
-    .upload(filePath, file, { upsert: true, contentType: file.type });
-
-  if (error) {
-    bucketName = "public-assets";
-    const res = await supabase.storage
-      .from(bucketName)
-      .upload(filePath, file, { upsert: true, contentType: file.type });
-    if (res.error) {
-      console.error("Storage upload error:", res.error);
-      return { success: false, error: "Erro ao salvar imagem no servidor de arquivos." };
-    }
-  }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(filePath);
-
-  return { success: true, publicUrl };
+  return await uploadToStorageHelper(filePath, file);
 }
 
 export async function uploadHeaderLogo(formData: FormData, themeType: 'dark' | 'light') {
@@ -99,32 +132,11 @@ export async function uploadHeaderLogo(formData: FormData, themeType: 'dark' | '
     return { success: false, error: "Nenhum arquivo selecionado" };
   }
 
-  const supabase = createAdminClient();
   const fileExt = file.name.split('.').pop() || 'png';
   const fileName = `logo_${themeType}_${Date.now()}.${fileExt}`;
   const filePath = `landing-page/${fileName}`;
 
-  let bucketName = "catalogs";
-  let { error } = await supabase.storage
-    .from(bucketName)
-    .upload(filePath, file, { upsert: true, contentType: file.type });
-
-  if (error) {
-    bucketName = "public-assets";
-    const res = await supabase.storage
-      .from(bucketName)
-      .upload(filePath, file, { upsert: true, contentType: file.type });
-    if (res.error) {
-      console.error("Storage upload error:", res.error);
-      return { success: false, error: "Erro ao salvar imagem no servidor de arquivos." };
-    }
-  }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(filePath);
-
-  return { success: true, publicUrl };
+  return await uploadToStorageHelper(filePath, file);
 }
 
 // --- TESTIMONIALS ---

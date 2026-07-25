@@ -5,8 +5,10 @@ import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Verifica a preferência salva ou inicia como escuro por padrão
     const savedTheme = (localStorage.getItem("ps_theme") || localStorage.getItem("dash-theme")) as "light" | "dark" | null;
     const initialTheme = savedTheme || "dark";
@@ -35,6 +37,12 @@ export function ThemeToggle() {
     const nextTheme = theme === "light" ? "dark" : "light";
     setTheme(nextTheme);
     applyTheme(nextTheme);
+  }
+
+  if (!mounted) {
+    return (
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-200 dark:bg-white/10 w-24 h-7" />
+    );
   }
 
   return (

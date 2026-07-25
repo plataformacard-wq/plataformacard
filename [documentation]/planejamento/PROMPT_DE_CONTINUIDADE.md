@@ -1,40 +1,39 @@
-# 🟩 PROMPT DE CONTINUIDADE: Sincronização Kiwify, Ancoragem Dupla por Ciclo e Selos de Segurança
+# 🟩 PROMPT DE CONTINUIDADE: Interface Mobile do Dashboard, Upload Duplo de Mockups & Auditoria de Mídias
 
-**Data:** 22/07/2026
+**Data:** 25/07/2026
 
 ---
 
 ## 📌 Contexto da Sessão Concluída:
-Nesta sessão, concluímos a integração comercial com a Kiwify, o desacoplamento de preços e ancoragem no CMS e a segurança do checkout:
+Nesta sessão, desenvolvemos a nova arquitetura do Dashboard Mobile, o sistema duplo de mockups e a auditoria de mídias da Landing Page:
 
-1. **Selos de Segurança no Checkout (`SecurityBadges.tsx`):**
-   - Criado componente com badges de Criptografia SSL 256-Bit, PCI-DSS Level 1, Garantia de Reembolso de 7 Dias e Acesso Imediato.
-   - Ícones visuais para Pix Instantâneo, cartões Visa/Mastercard/Elo e homologação Kiwify.
+1. **Nova Arquitetura UX/UI do Dashboard Mobile:**
+   - Recriado o layout mobile exatamente conforme o protótipo de referência fornecido pelo usuário.
+   - **Top Header Mobile (`MobileKpiHeader.tsx`):** Avatar com indicador de status "Online", seletor de loja `.dash-select`, sino de notificações com contador e carrossel deslizável de KPIs (Vendas Hoje `R$ 4.250,00` com gráfico Sparkline SVG verde, Produtos Ativos `128` e Leads Kanban `8`).
+   - **Cards Touch de Produtos (`MobileProductCards.tsx`):** Grid de cards touch com foto em thumbnail (`rounded-2xl`), preço em verde esmeralda (`R$ 749,00`), badge *"Disponível"*, chave toggle instantânea (On/Off) e botão de envio direto no WhatsApp.
+   - **Floating Action Button (`MobileFabButton.tsx`):** Botão flutuante `+` em verde esmeralda com sombra e popover de ações rápidas (Adicionar Produto, Novo Vendedor, Copiar Link da Loja).
+   - **Thumb Navigation Bar (`MobileBottomNav.tsx`):** Barra de navegação fixa no rodapé com 4 atalhos (*Home*, *Catálogo*, *CRM* e *Settings*) e destaque luminoso na guia ativa.
 
-2. **Mapeamento de Checkouts Reais da Kiwify (`lib/plans/feature-matrix.ts`):**
-   - Mapeados os 6 links oficiais da Kiwify para todos os planos e ciclos:
-     - Starter Mensal (`o58QqJP`) / Starter Anual (`JYPy0Ec`)
-     - PRO Mensal (`exQ3L5T`) / PRO Anual (`H8G4uuU`)
-     - Sales Team Mensal (`LkBViNa`) / Sales Team Anual (`DcSyq23`)
-   - Redirecionamento automático com pré-preenchimento dos dados do comprador.
+2. **Upload Duplo de Mockups & Botões de Download (CMS Admin):**
+   - Suporte a mídias duplas de Mockup do Hero (Tema Escuro e Tema Claro) no CMS Studio (`/main/landing-page`).
+   - **Botões de Download Direto:** Adicionados botões com o ícone `<Download />` em todos os cards de mídia (Logos Escura/Clara e Mockups Escuro/Claro) com leitura em Blob URL.
+   - **Alternância Dinâmica na LP (`HeroSection.tsx`):** Renderização automática do mockup escuro ou claro conforme o tema ativo da página (`hidden dark:block` / `block dark:hidden`).
 
-3. **Desacoplamento de Preço de Cobrança vs. Ancoragem Riscada (CMS):**
-   - Preço cobrado Kiwify blindado na matriz oficial (`monthlyPrice` / `annualPrice`).
-   - Dois campos de ancoragem riscada independentes no modal do CMS: **ÂNCORA DO CICLO MENSAL** e **ÂNCORA DO CICLO ANUAL**.
-   - Preview Matemático & Gatilho de Ancoragem dinâmico no modal do CMS com cálculo instantâneo de desconto mensal (`OFF/mês`) e economia anual acumulada.
+3. **Relatório de Bloqueadores de Lançamento (Go-Live Blockers):**
+   - Mapeadas e documentadas todas as 10 pendências de assets visuais em [PENDENCIAS.md](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/PENDENCIAS.md#L18) e [RELATORIO_BLOQUEADORES_LANDING_PAGE.md](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/manuais/RELATORIO_BLOQUEADORES_LANDING_PAGE.md).
+   - Renderizado e publicado o **Mockup 3D Oficial com a logo PlataformaShop** no caminho `public/hero_mockup.png`.
 
-4. **Protocolo VPGP e Auditoria UX/UI:**
-   - Varredura de UX/UI com 232 correções automáticas aplicadas.
-   - `npx tsc --noEmit` validado com 0 erros.
-   - Staging, commit e push executados com sucesso para a branch `main`.
+4. **Protocolo VPGP & Auditoria UX/UI:**
+   - Varredura com o script de Auditoria UX/UI executada em 118 arquivos com 240 correções de CSS/Tailwind aplicadas.
+   - Compilação TypeScript `npx tsc --noEmit` validada com 0 erros.
 
 ---
 
 ## 🔗 Links para Testes (`http://localhost:3000`):
-- **Landing Page (Tabela de Preços & Ancoragem):** http://localhost:3000/#planos
-- **Checkout PRO Anual Kiwify:** http://localhost:3000/checkout?plan=pro&cycle=annual
-- **Checkout Starter Mensal Kiwify:** http://localhost:3000/checkout?plan=starter&cycle=monthly
-- **Painel CMS Admin (Gestão de Planos & Ancoragem):** http://localhost:3000/main/landing-page
+- **Dashboard Mobile (Nova UX):** http://localhost:3000/dashboard (Redimensionar navegador ou acessar via mobile)
+- **Landing Page (Mockup 3D Oficial):** http://localhost:3000
+- **CMS Admin (Upload & Download de Mídias):** http://localhost:3000/main/landing-page/hero
+- **Artefato do Protótipo Mobile:** [mockup_dashboard_mobile.md](file:///C:/Users/Start/.gemini/antigravity-ide/brain/34d61b79-4d93-4d92-be7c-9ccbf145c65a/mockup_dashboard_mobile.md)
 
 ---
 
@@ -42,22 +41,23 @@ Nesta sessão, concluímos a integração comercial com a Kiwify, o desacoplamen
 
 ```markdown
 <CONTEXTO_DE_CONTINUIDADE>
-Concluímos a integração comercial da Kiwify, o desacoplamento de preços e o sistema de ancoragem dupla por ciclo no CMS da PlataformaShop.
+Concluímos a nova interface do Dashboard Mobile, o sistema duplo de mockups do Hero com download nativo no CMS e a documentação de bloqueadores da Landing Page na PlataformaShop.
 
 *Resumo das Entregas Ativas:*
-1. **Sincronização Kiwify & Checkouts:**
-   - 6 links reais da Kiwify mapeados em `lib/plans/feature-matrix.ts` com redirecionamento e pré-preenchimento dos dados do assinante.
-   - Webhook `/api/webhooks/kiwify` configurado para liberação automática.
-2. **Selos de Segurança (`SecurityBadges.tsx`):**
-   - Badges de SSL 256-bit, PCI-DSS Level 1, Garantia de 7 Dias e selos de pagamento integrados ao `/checkout`.
-3. **Ancoragem Dupla por Ciclo & Blindagem Kiwify (CMS):**
-   - Preços de cobrança Kiwify trancados e protegidos contra divergências.
-   - Campos de ancoragem riscada independentes para Ciclo Mensal e Ciclo Anual no modal "Editar Plano" (`PlansTable.tsx`).
-   - Preview Matemático dinâmico recalculando descontos em tempo real.
+1. **Dashboard Mobile (Thumb Navigation & Touch Cards):**
+   - Componentes `MobileKpiHeader.tsx`, `MobileProductCards.tsx`, `MobileFabButton.tsx` e `MobileBottomNav.tsx` totalmente integrados em `PanelLayout.tsx` e `DashboardClient.tsx`.
+   - Layout tátil com status online, carrossel de KPIs, gráfico Sparkline, botão flutuante `+` e barra de navegação no rodapé.
+2. **Upload Duplo & Download de Mídias (CMS Admin):**
+   - Gerenciamento de Logos e Mockups para Modo Claro e Escuro.
+   - Botão de download em Blob URL integrado a todos os cards de mídia do Studio Admin.
+3. **Hero Mockup 3D & Bloqueadores de Lançamento:**
+   - Artefato e imagem de mockup 3D do smartphone com a logo da PlataformaShop salvos em `public/hero_mockup.png`.
+   - Relatórios `PENDENCIAS.md` e `RELATORIO_BLOQUEADORES_LANDING_PAGE.md` atualizados.
 4. **VPGP & Build:**
-   - Compilação TypeScript `npx tsc --noEmit` com 0 erros, código enviado para o GitHub (`git push origin main`).
+   - Auditoria de UX/UI com 240 correções aplicadas.
+   - Compilação TypeScript `npx tsc --noEmit` validada com 0 erros.
 
 *Objetivo da Nova Sessão:*
-Executar o Protocolo Start, realizar a auditoria completa do sistema de ancoragem e preços Kiwify na Landing Page/CMS e avançar para o plano de Autenticação de Dois Fatores (2FA/MFA via TOTP).
+Executar o Protocolo Start, validar o funcionamento da interface mobile no ambiente de homologação e dar sequência ao plano de integração com o Gateway de Pagamentos e 2FA/MFA.
 </CONTEXTO_DE_CONTINUIDADE>
 ```

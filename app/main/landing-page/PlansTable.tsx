@@ -47,8 +47,8 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
     badge_text: "", 
     theme: "dark", 
     features: [""], 
-    button_text: "Criar Conta", 
-    button_url: "/cadastro", 
+    button_text: "Assinar", 
+    button_url: "/checkout?plan=starter", 
     display_order: 0, 
     is_active: true 
   };
@@ -71,8 +71,23 @@ export function PlansTable({ initialData }: { initialData: any[] }) {
   }
 
   function openEdit(item: any) {
+    const normSlug = (item.slug || item.id || '').toLowerCase().trim();
+    const normName = (item.name || '').toLowerCase().trim();
+    const combined = `${normSlug} ${normName}`;
+    const slug = (combined.includes('franqueador') || combined.includes('all_service') || combined.includes('hibrida') || combined.includes('enterprise'))
+      ? 'all_service'
+      : (combined.includes('sales') || combined.includes('team') || combined.includes('premium') || combined.includes('corporativo'))
+        ? 'sales_team'
+        : combined.includes('pro')
+          ? 'pro'
+          : 'starter';
+
+    const normalizedUrl = (!item.button_url || item.button_url === '/cadastro' || item.button_url.startsWith('/cadastro'))
+      ? `/checkout?plan=${slug}`
+      : item.button_url;
+
     setEditingItem(item);
-    setForm(item);
+    setForm({ ...item, button_url: normalizedUrl });
     setIsModalOpen(true);
   }
 
