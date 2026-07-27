@@ -174,7 +174,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center gap-2">
+          <div className="mb-4 p-3 rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center gap-2">
             <AlertTriangle size={16} className="shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -189,10 +189,10 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
           <AnimatePresence mode="wait">
             {step === "qr" && (
               <motion.div key="qr-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                <div className="p-4 rounded-2xl border bg-black/5 dark:bg-white/5 flex flex-col items-center justify-center text-center" style={{ borderColor: "var(--dash-border)" }}>
+                <div className="p-4 rounded-[27px] border bg-black/5 dark:bg-[var(--dash-surface)]/5 flex flex-col items-center justify-center text-center" style={{ borderColor: "var(--dash-border)" }}>
                   {qrCodeSvg ? (
                     <div
-                      className="p-3 bg-white rounded-xl shadow-md mb-3"
+                      className="p-3 bg-[var(--dash-surface)] rounded-lg shadow-md mb-3"
                       dangerouslySetInnerHTML={{ __html: qrCodeSvg }}
                     />
                   ) : (
@@ -230,7 +230,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                   <button
                     type="button"
                     onClick={() => setStep("verify")}
-                    className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md active:scale-95"
+                    className="w-full py-3 rounded-lg font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md active:scale-95"
                   >
                     Já escaneei! Avançar
                   </button>
@@ -256,7 +256,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                     value={verifyCode}
                     onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="000000"
-                    className="w-full rounded-xl border p-3 text-center text-3xl font-mono tracking-widest outline-none transition-colors"
+                    className="w-full rounded-lg border p-3 text-center text-3xl font-mono tracking-widest outline-none transition-colors"
                     style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   />
                 </div>
@@ -265,7 +265,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                   <button
                     type="button"
                     onClick={() => setStep("qr")}
-                    className="w-1/3 py-3 rounded-xl font-bold text-xs border text-[var(--dash-text-muted)] hover:bg-black/5 transition-all"
+                    className="w-1/3 py-3 rounded-lg font-bold text-xs border text-[var(--dash-text-muted)] hover:bg-black/5 transition-all"
                     style={{ borderColor: "var(--dash-border)" }}
                   >
                     Voltar
@@ -274,7 +274,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                     type="button"
                     onClick={handleVerifyFactor}
                     disabled={loading || verifyCode.length < 6}
-                    className="w-2/3 py-3 rounded-xl font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-2/3 py-3 rounded-lg font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {loading ? <Loader2 size={16} className="animate-spin" /> : "Ativar 2FA Agora"}
                   </button>
@@ -284,12 +284,12 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
 
             {step === "backup" && (
               <motion.div key="backup-step" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
-                <div className="p-4 rounded-2xl border bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+                <div className="p-4 rounded-[27px] border bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
                   <ShieldCheck size={18} className="shrink-0" />
                   <span><strong>2FA Ativado com Sucesso!</strong> Salve seus códigos de recuperação abaixo:</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 p-4 rounded-2xl border bg-black/5 dark:bg-white/5 font-mono text-center text-sm font-bold tracking-wider" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}>
+                <div className="grid grid-cols-2 gap-2 p-4 rounded-[27px] border bg-black/5 dark:bg-[var(--dash-surface)]/5 font-mono text-center text-sm font-bold tracking-wider" style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}>
                   {backupCodes.map((code, idx) => (
                     <div key={idx} className="p-2 rounded-lg border bg-[var(--dash-surface)]" style={{ borderColor: "var(--dash-border)" }}>
                       {code}
@@ -301,7 +301,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                   <button
                     type="button"
                     onClick={handleCopyBackupCodes}
-                    className="w-1/2 py-2.5 rounded-xl font-bold text-xs border flex items-center justify-center gap-1.5 hover:bg-black/5 transition-all"
+                    className="w-1/2 py-2.5 rounded-lg font-bold text-xs border flex items-center justify-center gap-1.5 hover:bg-black/5 transition-all"
                     style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   >
                     {copiedBackup ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
@@ -310,7 +310,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                   <button
                     type="button"
                     onClick={handleDownloadBackupCodes}
-                    className="w-1/2 py-2.5 rounded-xl font-bold text-xs border flex items-center justify-center gap-1.5 hover:bg-black/5 transition-all"
+                    className="w-1/2 py-2.5 rounded-lg font-bold text-xs border flex items-center justify-center gap-1.5 hover:bg-black/5 transition-all"
                     style={{ borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                   >
                     <Download size={14} />
@@ -321,7 +321,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
                 <button
                   type="button"
                   onClick={handleFinish}
-                  className="w-full py-3 rounded-xl font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md active:scale-95 mt-2"
+                  className="w-full py-3 rounded-lg font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md active:scale-95 mt-2"
                 >
                   Concluir e Ir para o Painel
                 </button>

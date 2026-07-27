@@ -200,7 +200,7 @@ export default function MfaChallengeModal({
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center gap-2">
+          <div className="mb-4 p-3 rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center gap-2">
             <AlertTriangle size={16} className="shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -208,7 +208,7 @@ export default function MfaChallengeModal({
 
         <div className="space-y-4">
           {/* Seletor de Métodos */}
-          <div className="flex rounded-xl border p-1 gap-1" style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}>
+          <div className="flex rounded-lg border p-1 gap-1" style={{ borderColor: "var(--dash-border)", background: "var(--dash-input-bg)" }}>
             {passkeyAvailable && (
               <button
                 type="button"
@@ -257,7 +257,7 @@ export default function MfaChallengeModal({
                   type="button"
                   onClick={handleVerifyPasskey}
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-lg font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Fingerprint size={20} />}
                   Confirmar com Digital / Face ID
@@ -276,14 +276,14 @@ export default function MfaChallengeModal({
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   placeholder="000000"
-                  className="w-full rounded-xl border p-3 text-center text-2xl font-mono tracking-widest outline-none"
+                  className="w-full rounded-lg border p-3 text-center text-2xl font-mono tracking-widest outline-none"
                   style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 />
                 <button
                   type="button"
                   onClick={handleVerifyTotp}
                   disabled={loading || code.length < 6}
-                  className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : "Validar Código 2FA"}
                 </button>
@@ -299,7 +299,7 @@ export default function MfaChallengeModal({
                       type="button"
                       onClick={handleSendEmailOtp}
                       disabled={loading}
-                      className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2"
+                      className="w-full py-3 rounded-lg font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2"
                     >
                       {loading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />}
                       Enviar Código por E-mail
@@ -316,14 +316,14 @@ export default function MfaChallengeModal({
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                       placeholder="000000"
-                      className="w-full rounded-xl border p-3 text-center text-2xl font-mono tracking-widest outline-none"
+                      className="w-full rounded-lg border p-3 text-center text-2xl font-mono tracking-widest outline-none"
                       style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                     />
                     <button
                       type="button"
                       onClick={handleVerifyEmailOtp}
                       disabled={loading || code.length < 6}
-                      className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-3 rounded-lg font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {loading ? <Loader2 size={18} className="animate-spin" /> : "Confirmar Código do E-mail"}
                     </button>
@@ -342,14 +342,14 @@ export default function MfaChallengeModal({
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   placeholder="EX: A8K2-9M4L"
-                  className="w-full rounded-xl border p-3 text-center text-lg font-mono tracking-wider outline-none"
+                  className="w-full rounded-lg border p-3 text-center text-lg font-mono tracking-wider outline-none"
                   style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)", color: "var(--dash-text-primary)" }}
                 />
                 <button
                   type="button"
                   onClick={handleVerifyBackup}
                   disabled={loading || !code}
-                  className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg font-bold text-sm bg-primary text-white hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : "Validar Código de Backup"}
                 </button>

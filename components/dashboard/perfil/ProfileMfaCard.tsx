@@ -76,14 +76,14 @@ export default function ProfileMfaCard({ userEmail }: { userEmail: string }) {
         </p>
 
         {loading ? (
-          <div className="mt-6 p-4 rounded-xl border bg-black/5 dark:bg-white/5 animate-pulse text-xs text-[var(--dash-text-muted)] text-center">
+          <div className="mt-6 p-4 rounded-lg border bg-black/5 dark:bg-[var(--dash-surface)]/5 animate-pulse text-xs text-[var(--dash-text-muted)] text-center">
             Verificando status de segurança da conta...
           </div>
         ) : (
           <div className="mt-6 space-y-4">
             {/* Status Geral */}
             <div
-              className={`flex items-center justify-between p-4 rounded-2xl border ${
+              className={`flex items-center justify-between p-4 rounded-[27px] border ${
                 mfaStatus?.isEnabled
                   ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                   : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
@@ -121,10 +121,10 @@ export default function ProfileMfaCard({ userEmail }: { userEmail: string }) {
               <button
                 type="button"
                 onClick={() => setIsEnrollModalOpen(true)}
-                className="p-4 rounded-2xl border text-left hover:border-primary/50 transition-all group flex items-start gap-3"
+                className="p-4 rounded-[27px] border text-left hover:border-primary/50 transition-all group flex items-start gap-3"
                 style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
               >
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <Smartphone size={18} />
                 </div>
                 <div>
@@ -142,10 +142,10 @@ export default function ProfileMfaCard({ userEmail }: { userEmail: string }) {
                 type="button"
                 onClick={() => setIsPasskeyModalOpen(true)}
                 disabled={!passkeySupported}
-                className="p-4 rounded-2xl border text-left hover:border-emerald-500/50 transition-all group flex items-start gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-4 rounded-[27px] border text-left hover:border-emerald-500/50 transition-all group flex items-start gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: "var(--dash-input-bg)", borderColor: "var(--dash-border)" }}
               >
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <Fingerprint size={18} />
                 </div>
                 <div>

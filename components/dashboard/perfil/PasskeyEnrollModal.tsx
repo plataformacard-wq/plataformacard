@@ -72,7 +72,7 @@ export default function PasskeyEnrollModal({ isOpen, onClose, userName, onSucces
         </p>
 
         {errorMsg && (
-          <div className="mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center justify-center gap-2">
+          <div className="mt-4 p-3 rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center justify-center gap-2">
             <AlertTriangle size={16} className="shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -84,7 +84,7 @@ export default function PasskeyEnrollModal({ isOpen, onClose, userName, onSucces
               type="button"
               onClick={handleRegister}
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-lg font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
