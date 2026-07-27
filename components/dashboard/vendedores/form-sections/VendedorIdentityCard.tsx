@@ -95,26 +95,6 @@ export function VendedorIdentityCard(props: any) {
               <p className="text-xs font-bold" style={{ color: "var(--dash-text-primary)" }}>Banner do Cartão</p>
               <p className="text-[10px] text-[var(--dash-text-muted)]">Recomendado: 1200x400 px</p>
             </div>
-            <div className="flex items-center justify-center md:justify-start gap-4 mt-1">
-              <button 
-                onClick={() => { setActiveUploadType("public_banner"); setShowImageEditor(true); }}
-                className="text-xs font-bold text-primary hover:underline"
-              >
-                {formPublicBanner ? "Alterar Banner" : "Enviar Banner"}
-              </button>
-              
-              {formPublicBanner && (
-                <button 
-                  onClick={() => {
-                    setFormPublicBanner(null);
-                    setFormPublicBannerFile(null);
-                  }}
-                  className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
-                >
-                  <X size={12} /> Remover
-                </button>
-              )}
-            </div>
             {!isReadOnly && (
               <div className="flex items-center justify-center md:justify-start gap-4 mt-1">
                 <button 
