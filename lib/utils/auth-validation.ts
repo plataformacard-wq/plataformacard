@@ -41,14 +41,30 @@ export async function verifyOrgAdmin(orgId: string): Promise<string> {
     throw new Error("Não autenticado.");
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("role, organization_id")
     .eq("id", user.id)
     .maybeSingle();
 
-  const isSuperAdmin = profile?.role === "main_admin" || profile?.role === "main_admin";
-  const isOrgAdmin = (profile?.role === "b2b_admin" || profile?.role === "admin" || profile?.role === "b2c_admin") && profile?.organization_id === orgId;
+  if (!profile) {
+    const { data: profileByUid } = await supabase
+      .from("profiles")
+      .select("role, organization_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    profile = profileByUid;
+  }
+
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
+  const isSuperAdmin = profile?.role === "main_admin";
+  const userOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+
+  const allowedRoles = ["b2b_admin", "admin", "b2c_admin", "seller", "caas_admin", "manager", "authorized", "gestor"];
+  const isOrgAdmin = allowedRoles.includes(profile?.role || "") && userOrgId === orgId;
 
   if (!isSuperAdmin && !isOrgAdmin) {
     throw new Error("Não autorizado. Esta ação requer privilégios administrativos nesta organização.");

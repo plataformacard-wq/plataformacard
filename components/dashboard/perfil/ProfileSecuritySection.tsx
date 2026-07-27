@@ -3,6 +3,7 @@
 import React from "react";
 import { Users, Package, Globe, Clock, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ProfileMfaCard from "./ProfileMfaCard";
 
 type ProfileSecuritySectionProps = {
   accountName: string;
@@ -102,6 +103,9 @@ export default function ProfileSecuritySection({
           O e-mail é a chave primária da conta e não pode ser alterado por aqui.
         </p>
       </div>
+
+      {/* Autenticação em Dois Fatores (2FA / Biometria) */}
+      <ProfileMfaCard userEmail={email} />
 
       {/* Domínio Próprio */}
       <div

@@ -71,6 +71,16 @@ export default function LoginPage() {
         setErrorMessage("Acesso restrito. Utilize o portal MAIN para administrar a plataforma.");
         return;
       }
+
+      // Verificação de 2FA
+      const { getMfaStatus } = await import("@/lib/auth/mfaActions");
+      const mfaStatus = await getMfaStatus();
+      
+      if (mfaStatus.isEnabled && !mfaStatus.isDeviceTrusted) {
+        router.push("/entrar/2fa");
+        router.refresh();
+        return;
+      }
     }
 
     router.push("/dashboard");

@@ -620,6 +620,11 @@ export async function getOrCreateCatalog(orgId: string) {
       return cat && cat.catalog_type !== 'CaaS' && cat.catalog_type !== 'platform';
     });
   }
+
+  // Fallback 2: Se ainda assim não encontrou, pega o primeiro catálogo vinculado à organização
+  if (!ownCatalogLink && linkedCatalogs && linkedCatalogs.length > 0) {
+    ownCatalogLink = linkedCatalogs[0];
+  }
  
   let catId = ownCatalogLink?.catalog_id;
  

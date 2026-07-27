@@ -414,22 +414,42 @@ export function useCatalogoManager(adminCatalogId: string | null = null) {
   async function fetchCatalog(orgId: string): Promise<string | null> {
     try {
       const res = await getOrCreateCatalog(orgId);
-      if (res?.error || !res?.catalog) {
-        console.error("Erro ao carregar ou criar catálogo via Server Action:", res?.error);
-        return null;
+      if (res?.catalog) {
+        const catalogData = res.catalog;
+        setCatalog(catalogData as Catalog);
+        setCatalogDescription(catalogData.description || "");
+        setCatalogType((catalogData as any).type || (catalogData as any).catalog_type || "product");
+        setWhatsappTemplate(catalogData.whatsapp_template || "");
+        return catalogData.id;
       }
-
-      const catalogData = res.catalog;
-      setCatalog(catalogData as Catalog);
-      setCatalogDescription(catalogData.description || "");
-      setCatalogType((catalogData as any).type || (catalogData as any).catalog_type || "product");
-      setWhatsappTemplate(catalogData.whatsapp_template || "");
-      
-      return catalogData.id;
+      console.warn("getOrCreateCatalog avisou erro, executando fallback via cliente Supabase:", res?.error);
     } catch (err) {
-      console.error("Erro catastrófico no fetchCatalog:", err);
-      return null;
+      console.warn("Exceção no getOrCreateCatalog, executando fallback via cliente Supabase:", err);
     }
+
+    // Fallback de Resiliência: Busca direta pelo cliente Supabase
+    try {
+      const supabase = createClient();
+      const { data: orgCat } = await supabase
+        .from("organization_catalogs")
+        .select("catalog_id, catalogs(id, name, description, catalog_type, type, whatsapp_template)")
+        .eq("organization_id", orgId)
+        .limit(1)
+        .maybeSingle();
+
+      const rawCat = orgCat?.catalogs ? (Array.isArray(orgCat.catalogs) ? orgCat.catalogs[0] : orgCat.catalogs) : null;
+      if (rawCat) {
+        setCatalog(rawCat as Catalog);
+        setCatalogDescription((rawCat as any).description || "");
+        setCatalogType((rawCat as any).type || (rawCat as any).catalog_type || "product");
+        setWhatsappTemplate((rawCat as any).whatsapp_template || "");
+        return (rawCat as any).id;
+      }
+    } catch (fallbackErr) {
+      console.error("Fallback do cliente também falhou:", fallbackErr);
+    }
+
+    return null;
   }
 
   async function refreshLimit() {
