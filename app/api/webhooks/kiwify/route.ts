@@ -1,18 +1,46 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
-// Instância com Service Role para atualizar assinaturas com privilégio de admin no banco
+// Instância estritamente com Service Role para operações administrativas
 function getAdminSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    throw new Error("Configuração de backend crítica: SUPABASE_SERVICE_ROLE_KEY não configurada.");
+  }
   return createClient(url, serviceKey);
 }
 
 export async function POST(req: Request) {
   try {
+    const webhookSecret = process.env.KIWIFY_WEBHOOK_SECRET;
+    const { searchParams } = new URL(req.url);
+    const signature = searchParams.get("signature") || req.headers.get("x-kiwify-signature");
+
     const text = await req.text();
     if (!text) {
       return NextResponse.json({ received: true });
+    }
+
+    // Validação de segurança do Webhook
+    if (webhookSecret) {
+      if (!signature) {
+        console.error("🔒 Webhook Kiwify rejeitado: Assinatura/Signature ausente na requisição.");
+        return NextResponse.json({ error: "Unauthorized: Missing signature" }, { status: 401 });
+      }
+
+      const calculatedSignature = crypto
+        .createHmac("sha1", webhookSecret)
+        .update(text)
+        .digest("hex");
+
+      if (signature !== calculatedSignature && signature !== webhookSecret) {
+        console.error("🔒 Webhook Kiwify rejeitado: Assinatura inválida.");
+        return NextResponse.json({ error: "Unauthorized: Invalid signature" }, { status: 401 });
+      }
+    } else {
+      console.warn("⚠️ ALERTA DE SEGURANÇA: KIWIFY_WEBHOOK_SECRET não configurado nas variáveis de ambiente.");
     }
 
     let payload: any;
@@ -61,3 +89,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+

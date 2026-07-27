@@ -15,6 +15,14 @@ Sempre que o usuário requisitar a execução do "Protocolo VPGP" para salvar as
 3. **Commit:** Após o sucesso, faça o staging (`git add .`) e o commit (`git commit -m "..."`).
 4. **Push:** Envie as alterações para o repositório remoto (`git push`).
 
+## Protocolo de Lançamento em Produção / Go-Live de Segurança (Gatilhos de Deploy)
+Sempre que o usuário utilizar frases de gatilho para colocar o app no ar (como **"Vamos colocar no ar"**, **"Vamos migrar para o local online definitivo"**, **"Deploy em produção"**, **"Subir projeto"**), a IA está EXPRESSAMENTE PROIBIDA de concluir o deploy sem antes executar a checklist do **Protocolo de Segurança Pré-Lançamento**:
+1. **Auditoria de RLS (Supabase):** Executar `node scripts/audit_security_rls.js` e validar 0 alertas críticos.
+2. **Auditoria de Pacotes:** Executar `npm audit` e reportar bibliotecas vulneráveis.
+3. **Validação de Variáveis de Produção:** Confirmar a presença de `KIWIFY_WEBHOOK_SECRET` e `SUPABASE_SERVICE_ROLE_KEY`.
+4. **Escudo Cloudflare:** Fornecer e instruir a migração dos Nameservers DNS para a Cloudflare (Proxy Nuvem Laranja + SSL Full Strict).
+5. **Build de Produção:** Executar `npm run build` para garantir 0 erros de compilação.
+
 ## Idioma de Comunicação (Planos de Implementação)
 Sempre escreva os Planos de Implementação (implementation_plan.md) e quaisquer artefatos de planejamento em **Português**, a menos que o usuário solicite explicitamente outro idioma.
 
