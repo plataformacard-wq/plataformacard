@@ -15,5 +15,5 @@ export function getPublicUrl(
     }
   }
 
-  return `${prefix}plataformashop.com.br/${slug}`;
+  return `${prefix}www.anotameucontato.com.br/${slug}`;
 }

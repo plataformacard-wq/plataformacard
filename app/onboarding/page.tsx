@@ -414,7 +414,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <p className="mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-xs font-bold text-emerald-500">
-                    anotameucontato.com.br/{slug || "link"}
+                    www.anotameucontato.com.br/{slug || "link"}
                   </p>
                   {slugError ? (
                     <p className="mt-2 text-xs font-bold text-red-400">{slugError}</p>

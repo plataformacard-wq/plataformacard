@@ -473,7 +473,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                         <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary)" }}>
                           {businessModel === 'B2B' 
                             ? `${stats.sellers.length} vendedores ativos` 
-                            : `anotameucontato.com.br/${organization.slug}`
+                            : `www.anotameucontato.com.br/${organization.slug}`
                           }
                         </p>
                       </div>
@@ -499,7 +499,7 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                             <div className="min-w-0">
                               <p className="text-sm font-black mb-0.5" style={{ color: "var(--dash-text-primary)" }}>{seller.full_name}</p>
                               <p className="text-xs font-bold text-[var(--dash-text-muted)] truncate lowercase tracking-tight">
-                                anotameucontato.com.br/{seller.slug}
+                                www.anotameucontato.com.br/{seller.slug}
                               </p>
                             </div>
                             <a 
