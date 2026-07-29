@@ -127,20 +127,23 @@ export default async function HomePage() {
   } : null;
 
   return (
-    <main className={`relative min-h-screen bg-zinc-50 dark:bg-[#0a0a0a] text-zinc-900 dark:text-white transition-colors duration-300 overflow-x-hidden ${inter.className}`}>
+    <main suppressHydrationWarning className={`relative min-h-screen bg-zinc-50 dark:bg-[#0a0a0a] text-zinc-900 dark:text-white transition-colors duration-300 overflow-x-hidden ${inter.className}`}>
       {/* 🤖 Script Injetado de Dados Estruturados JSON-LD para IAs e Motores de Busca */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        suppressHydrationWarning
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+        suppressHydrationWarning
       />
       {faqSchema && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+          suppressHydrationWarning
         />
       )}
 
@@ -156,9 +159,7 @@ export default async function HomePage() {
       </div>
 
       <div className="relative z-10">
-        <Suspense fallback={null}>
-          <AuthRedirectHandler />
-        </Suspense>
+        <AuthRedirectHandler />
         <Header settings={finalSettings} />
         <HeroSection settings={finalSettings} />
 
