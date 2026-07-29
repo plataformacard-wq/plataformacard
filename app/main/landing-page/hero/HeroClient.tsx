@@ -20,6 +20,9 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
     seo_title: "PlataformaShop | Catálogo Digital Premium",
     hero_mockup_url: initialSettings?.hero_mockup_url || "",
     hero_mockup_url_light: initialSettings?.hero_mockup_url_light || "",
+    hero_mockups_dark: initialSettings?.hero_mockups_dark || (initialSettings?.hero_mockup_url ? [initialSettings.hero_mockup_url] : []),
+    hero_mockups_light: initialSettings?.hero_mockups_light || (initialSettings?.hero_mockup_url_light ? [initialSettings.hero_mockup_url_light] : []),
+    hero_carousel_interval: initialSettings?.hero_carousel_interval || 4000,
     logo_url_dark: initialSettings?.logo_url_dark || "",
     logo_url_light: initialSettings?.logo_url_light || "",
     base_users: initialSettings?.base_users || 1500,
@@ -151,17 +154,20 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
       const res = await uploadHeroMockup(formData, themeType);
 
       if (res.success && res.publicUrl) {
-        const fieldKey = themeType === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light';
+        const fieldKey = themeType === 'dark' ? 'hero_mockups_dark' : 'hero_mockups_light';
+        const currentArray: string[] = Array.isArray(form[fieldKey]) ? form[fieldKey] : [];
+        const updatedArray = [...currentArray, res.publicUrl];
         const updatedForm = {
           ...form,
-          [fieldKey]: res.publicUrl
+          [fieldKey]: updatedArray,
+          [themeType === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light']: updatedArray[0]
         };
         setForm(updatedForm);
         const saveRes = await updateLandingSettings(updatedForm);
         if (saveRes?.error) {
           alert(`Mockup enviado, mas falhou ao publicar automaticamente: ${saveRes.error}`);
         } else {
-          alert(`Mockup Hero (${themeType === 'dark' ? 'Tema Escuro' : 'Tema Claro'}) enviado e publicado com sucesso na Landing Page!`);
+          alert(`Mockup Hero (${themeType === 'dark' ? 'Tema Escuro' : 'Tema Claro'}) adicionado à galeria do carrossel!`);
         }
       } else {
         alert(res.error || "Erro ao fazer upload do mockup.");
