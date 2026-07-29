@@ -66,7 +66,7 @@ export function HeroSection({ settings }: { settings?: any }) {
              <img 
                 src={mockupUrlDark} 
                 alt="PlataformaShop Mockup Tema Escuro" 
-                className="hidden dark:block absolute inset-0 w-full h-full object-contain p-2 sm:p-4 group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="hidden dark:block absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 onError={(e) => { (e.target as HTMLImageElement).src = "/hero_mockup.png"; }}
              />
 
@@ -74,7 +74,7 @@ export function HeroSection({ settings }: { settings?: any }) {
              <img 
                 src={mockupUrlLight} 
                 alt="PlataformaShop Mockup Tema Claro" 
-                className="block dark:hidden absolute inset-0 w-full h-full object-contain p-2 sm:p-4 group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="block dark:hidden absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 onError={(e) => { (e.target as HTMLImageElement).src = "/hero_mockup.png"; }}
              />
              {/* Elegant inner ring / glow */}
