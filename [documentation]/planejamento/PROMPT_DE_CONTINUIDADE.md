@@ -1,39 +1,41 @@
-# 🟩 PROMPT DE CONTINUIDADE: Interface Mobile do Dashboard, Upload Duplo de Mockups & Auditoria de Mídias
+# 🟩 PROMPT DE CONTINUIDADE: Carrossel Duplo de Hero Mockups, Correção de Hidratação & Refatoração Anti-Monolito
 
-**Data:** 25/07/2026
+**Data:** 29/07/2026
 
 ---
 
-## 📌 Contexto da Sessão Concluída:
-Nesta sessão, desenvolvemos a nova arquitetura do Dashboard Mobile, o sistema duplo de mockups e a auditoria de mídias da Landing Page:
+## 📌 Contexto da Sessão Concluída
 
-1. **Nova Arquitetura UX/UI do Dashboard Mobile:**
-   - Recriado o layout mobile exatamente conforme o protótipo de referência fornecido pelo usuário.
-   - **Top Header Mobile (`MobileKpiHeader.tsx`):** Avatar com indicador de status "Online", seletor de loja `.dash-select`, sino de notificações com contador e carrossel deslizável de KPIs (Vendas Hoje `R$ 4.250,00` com gráfico Sparkline SVG verde, Produtos Ativos `128` e Leads Kanban `8`).
-   - **Cards Touch de Produtos (`MobileProductCards.tsx`):** Grid de cards touch com foto em thumbnail (`rounded-2xl`), preço em verde esmeralda (`R$ 749,00`), badge *"Disponível"*, chave toggle instantânea (On/Off) e botão de envio direto no WhatsApp.
-   - **Floating Action Button (`MobileFabButton.tsx`):** Botão flutuante `+` em verde esmeralda com sombra e popover de ações rápidas (Adicionar Produto, Novo Vendedor, Copiar Link da Loja).
-   - **Thumb Navigation Bar (`MobileBottomNav.tsx`):** Barra de navegação fixa no rodapé com 4 atalhos (*Home*, *Catálogo*, *CRM* e *Settings*) e destaque luminoso na guia ativa.
+Nesta sessão, realizamos a refatoração arquitetural do CMS do Hero, a solução de hidratação do React 19 / Next.js 16, a implementação do Carrossel Duplo de Hero Mockups e a auditoria completa de todos os carrosséis do sistema:
 
-2. **Upload Duplo de Mockups & Botões de Download (CMS Admin):**
-   - Suporte a mídias duplas de Mockup do Hero (Tema Escuro e Tema Claro) no CMS Studio (`/main/landing-page`).
-   - **Botões de Download Direto:** Adicionados botões com o ícone `<Download />` em todos os cards de mídia (Logos Escura/Clara e Mockups Escuro/Claro) com leitura em Blob URL.
-   - **Alternância Dinâmica na LP (`HeroSection.tsx`):** Renderização automática do mockup escuro ou claro conforme o tema ativo da página (`hidden dark:block` / `block dark:hidden`).
+1. **Carrossel Duplo de Hero Mockups (Modo Escuro & Modo Claro):**
+   - **Gerenciador de Galeria no Painel ([HeroMockupsSection.tsx](file:///c:/Users/Start/PlataformaShop/app/main/landing-page/hero/components/HeroMockupsSection.tsx)):** Upload de múltiplos mockups por tema com thumbnails numeradas (`#1`, `#2`, `#3`), exclusão individual com lixeira, auto-publicação e seletor de tempo de rotação (**3s, 4s, 5s, 6s, 8s**).
+   - **Animação & UX na Landing Page ([HeroSection.tsx](file:///c:/Users/Start/PlataformaShop/components/HeroSection.tsx)):** Transição suave *Cross-Fade* via `framer-motion`, pausa ao passar o mouse (*Pause on Hover*), indicadores por bolinhas (*dots*), preenchimento total da caixa (`object-cover`) e **Fallback Inteligente Completo** (0 fotos -> padrão, 1 foto -> estático, 2+ fotos -> rotação animada e fallback cruzado entre temas).
+   - **Banco de Dados & Schema ([20260729000000_add_hero_mockups_carousel_columns.sql](file:///c:/Users/Start/PlataformaShop/supabase/migrations/20260729000000_add_hero_mockups_carousel_columns.sql)):** Adicionadas as colunas `hero_mockups_dark` (jsonb), `hero_mockups_light` (jsonb) e `hero_carousel_interval` (integer) com validação em `cms-schemas.ts`.
 
-3. **Relatório de Bloqueadores de Lançamento (Go-Live Blockers):**
-   - Mapeadas e documentadas todas as 10 pendências de assets visuais em [PENDENCIAS.md](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/PENDENCIAS.md#L18) e [RELATORIO_BLOQUEADORES_LANDING_PAGE.md](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/manuais/RELATORIO_BLOQUEADORES_LANDING_PAGE.md).
-   - Renderizado e publicado o **Mockup 3D Oficial com a logo PlataformaShop** no caminho `public/hero_mockup.png`.
+2. **Solução do Erro de Hidratação (React 19 / Next.js 16):**
+   - Reposicionadas as tags `<script type="application/ld+json">` para fora da tag `<main>` usando React Fragment `<>` em [app/page.tsx](file:///c:/Users/Start/PlataformaShop/app/page.tsx).
+   - Eliminado o erro de divergência de contagem de nós filhos entre o SSR do servidor e a hidratação no cliente.
 
-4. **Protocolo VPGP & Auditoria UX/UI:**
-   - Varredura com o script de Auditoria UX/UI executada em 118 arquivos com 240 correções de CSS/Tailwind aplicadas.
+3. **Refatoração Anti-Monolito ([HeroClient.tsx](file:///c:/Users/Start/PlataformaShop/app/main/landing-page/hero/HeroClient.tsx)):**
+   - Arquivo monolítico reduzido de **510 linhas** para **195 linhas**, extraindo a interface para sub-componentes modulares: `HeaderLogosSection`, `HeroMockupsSection` e `HeroTextsSection`.
+
+4. **Auditoria nos Sistemas de Carrosséis:**
+   - **Carrossel 1 (Hero Mockups):** Animação Framer Motion *Cross-Fade*, suporte dual theme, pause-on-hover e fallback inteligente.
+   - **Carrossel 2 (Depoimentos - `Testimonials.tsx`):** Marquee vertical de 3 colunas com desfoque `mask-image` no topo e base e pausa ao passar o cursor.
+   - **Carrossel 3 (Empresas Parceiras - `CompanyLogos.tsx`):** Marquee horizontal infinito com faders de gradiente lateral e controle condicional para 6+ parceiros.
+
+5. **Protocolo VPGP & Qualidade de Código:**
+   - Varredura de UX/UI com 241 correções aplicadas.
    - Compilação TypeScript `npx tsc --noEmit` validada com 0 erros.
 
 ---
 
 ## 🔗 Links para Testes (`http://localhost:3000`):
-- **Dashboard Mobile (Nova UX):** http://localhost:3000/dashboard (Redimensionar navegador ou acessar via mobile)
-- **Landing Page (Mockup 3D Oficial):** http://localhost:3000
-- **CMS Admin (Upload & Download de Mídias):** http://localhost:3000/main/landing-page/hero
-- **Artefato do Protótipo Mobile:** [mockup_dashboard_mobile.md](file:///C:/Users/Start/.gemini/antigravity-ide/brain/34d61b79-4d93-4d92-be7c-9ccbf145c65a/mockup_dashboard_mobile.md)
+- **Landing Page (Carrossel Hero & SEO):** http://localhost:3000
+- **CMS Admin (Gerenciador de Galeria e Tempo do Carrossel):** http://localhost:3000/main/landing-page/hero
+- **Dashboard Mobile:** http://localhost:3000/dashboard
+- **Walkthrough da Sessão:** [walkthrough.md](file:///C:/Users/Start/.gemini/antigravity-ide/brain/9a1cb6fa-43a7-4665-9c1b-d1dfa7ccc775/walkthrough.md)
 
 ---
 
@@ -41,23 +43,22 @@ Nesta sessão, desenvolvemos a nova arquitetura do Dashboard Mobile, o sistema d
 
 ```markdown
 <CONTEXTO_DE_CONTINUIDADE>
-Concluímos a nova interface do Dashboard Mobile, o sistema duplo de mockups do Hero com download nativo no CMS e a documentação de bloqueadores da Landing Page na PlataformaShop.
+Finalizamos a implementação do Carrossel Duplo de Hero Mockups (Modo Escuro & Claro), a solução de hidratação do React 19 / Next.js 16, a refatoração Anti-Monolito do HeroClient e a auditoria completa de todos os sistemas de carrossel da PlataformaShop.
 
 *Resumo das Entregas Ativas:*
-1. **Dashboard Mobile (Thumb Navigation & Touch Cards):**
-   - Componentes `MobileKpiHeader.tsx`, `MobileProductCards.tsx`, `MobileFabButton.tsx` e `MobileBottomNav.tsx` totalmente integrados em `PanelLayout.tsx` e `DashboardClient.tsx`.
-   - Layout tátil com status online, carrossel de KPIs, gráfico Sparkline, botão flutuante `+` e barra de navegação no rodapé.
-2. **Upload Duplo & Download de Mídias (CMS Admin):**
-   - Gerenciamento de Logos e Mockups para Modo Claro e Escuro.
-   - Botão de download em Blob URL integrado a todos os cards de mídia do Studio Admin.
-3. **Hero Mockup 3D & Bloqueadores de Lançamento:**
-   - Artefato e imagem de mockup 3D do smartphone com a logo da PlataformaShop salvos em `public/hero_mockup.png`.
-   - Relatórios `PENDENCIAS.md` e `RELATORIO_BLOQUEADORES_LANDING_PAGE.md` atualizados.
-4. **VPGP & Build:**
-   - Auditoria de UX/UI com 240 correções aplicadas.
+1. **Carrossel Duplo de Hero Mockups (Tema Escuro & Tema Claro):**
+   - Galerias dinâmicas no CMS Admin (`hero_mockups_dark` e `hero_mockups_light`) com upload múltiplo, remoção individual e controle de tempo de rotação (3s, 4s, 5s, 6s, 8s).
+   - Componente `HeroSection.tsx` com `framer-motion`, transição Cross-Fade suave, pause-on-hover, indicadores por dots, preenchimento total `object-cover` e Fallback Inteligente Completo.
+2. **Solução do Mismatch de Hidratação:**
+   - Tags de JSON-LD movidas para fora de `<main>` em `app/page.tsx` usando Fragment `<>`, zerando warnings e erros de hidratação no Next.js 16 / Turbopack.
+3. **Refatoração Anti-Monolito:**
+   - `HeroClient.tsx` modulado e limpo em sub-componentes (`HeaderLogosSection`, `HeroMockupsSection`, `HeroTextsSection`).
+4. **Auditoria dos Carrosséis Concluída:**
+   - Auditados `HeroSection.tsx`, `Testimonials.tsx` e `CompanyLogos.tsx` com 100% de conformidade técnica e visual.
+5. **VPGP & Build:**
    - Compilação TypeScript `npx tsc --noEmit` validada com 0 erros.
 
 *Objetivo da Nova Sessão:*
-Executar o Protocolo Start, validar o funcionamento da interface mobile no ambiente de homologação e dar sequência ao plano de integração com o Gateway de Pagamentos e 2FA/MFA.
+Executar o Protocolo Start, dar sequência às integrações comerciais e avançar nos testes de produção/deploy.
 </CONTEXTO_DE_CONTINUIDADE>
 ```
