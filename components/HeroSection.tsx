@@ -3,8 +3,8 @@ import Image from 'next/image';
 export function HeroSection({ settings }: { settings?: any }) {
   const headline = settings?.hero_headline || "O Fim dos Catálogos em PDF.<br/><span class='text-[#2CCB68]'>A Ferramenta Definitiva para o seu Time de Vendas.</span>";
   const subtitle = settings?.hero_subtitle || "Cartão de Visitas Digital NFC e um Catálogo Transacional Taxa Zero sempre sincronizado com o seu Bling. A máquina de vendas que as maiores empresas usam.";
-  const mockupUrlDark = settings?.hero_mockup_url || "/hero_mockup.png";
-  const mockupUrlLight = settings?.hero_mockup_url_light || mockupUrlDark;
+  const mockupUrlDark = settings?.hero_mockup_url || settings?.hero_mockup_url_light || "/hero_mockup.png";
+  const mockupUrlLight = settings?.hero_mockup_url_light || settings?.hero_mockup_url || "/hero_mockup.png";
 
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-transparent">
@@ -64,14 +64,16 @@ export function HeroSection({ settings }: { settings?: any }) {
              <img 
                 src={mockupUrlDark} 
                 alt="PlataformaShop Mockup Tema Escuro" 
-                className="hidden dark:block absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="hidden dark:block absolute inset-0 w-full h-full object-contain p-2 sm:p-4 group-hover:scale-105 transition-transform duration-700 ease-out"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/hero_mockup.png"; }}
              />
 
              {/* Mockup Tema Claro (Exibido no Light Mode) */}
              <img 
                 src={mockupUrlLight} 
                 alt="PlataformaShop Mockup Tema Claro" 
-                className="block dark:hidden absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="block dark:hidden absolute inset-0 w-full h-full object-contain p-2 sm:p-4 group-hover:scale-105 transition-transform duration-700 ease-out"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/hero_mockup.png"; }}
              />
              {/* Elegant inner ring / glow */}
              <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/10 pointer-events-none" />

@@ -100,11 +100,18 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
       const res = await uploadHeaderLogo(formData, themeType);
 
       if (res.success && res.publicUrl) {
-        setForm((prev: any) => ({
-          ...prev,
-          [themeType === 'dark' ? 'logo_url_dark' : 'logo_url_light']: res.publicUrl
-        }));
-        alert(`Logo (${themeType === 'dark' ? 'Tema Escuro' : 'Tema Claro'}) enviada com sucesso! Clique em "Salvar Alterações" para publicar.`);
+        const fieldKey = themeType === 'dark' ? 'logo_url_dark' : 'logo_url_light';
+        const updatedForm = {
+          ...form,
+          [fieldKey]: res.publicUrl
+        };
+        setForm(updatedForm);
+        const saveRes = await updateLandingSettings(updatedForm);
+        if (saveRes?.error) {
+          alert(`Logo enviada, mas falhou ao publicar automaticamente: ${saveRes.error}`);
+        } else {
+          alert(`Logo (${themeType === 'dark' ? 'Tema Escuro' : 'Tema Claro'}) enviada e publicada com sucesso na Landing Page!`);
+        }
       } else {
         alert(res.error || "Erro ao fazer upload da logo.");
       }
@@ -144,11 +151,18 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
       const res = await uploadHeroMockup(formData, themeType);
 
       if (res.success && res.publicUrl) {
-        setForm((prev: any) => ({
-          ...prev,
-          [themeType === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light']: res.publicUrl
-        }));
-        alert(`Mockup Hero (${themeType === 'dark' ? 'Tema Escuro' : 'Tema Claro'}) enviado com sucesso! Clique em "Salvar Alterações" para publicar.`);
+        const fieldKey = themeType === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light';
+        const updatedForm = {
+          ...form,
+          [fieldKey]: res.publicUrl
+        };
+        setForm(updatedForm);
+        const saveRes = await updateLandingSettings(updatedForm);
+        if (saveRes?.error) {
+          alert(`Mockup enviado, mas falhou ao publicar automaticamente: ${saveRes.error}`);
+        } else {
+          alert(`Mockup Hero (${themeType === 'dark' ? 'Tema Escuro' : 'Tema Claro'}) enviado e publicado com sucesso na Landing Page!`);
+        }
       } else {
         alert(res.error || "Erro ao fazer upload do mockup.");
       }
