@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function RedirectLogic() {
@@ -19,6 +19,14 @@ function RedirectLogic() {
 }
 
 export function AuthRedirectHandler() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <Suspense fallback={null}>
       <RedirectLogic />

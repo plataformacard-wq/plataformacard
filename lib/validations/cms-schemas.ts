@@ -11,6 +11,8 @@ export const updateSettingsSchema = z.object({
   hero_mockups_dark: z.array(z.string().url()).nullable().optional(),
   hero_mockups_light: z.array(z.string().url()).nullable().optional(),
   hero_carousel_interval: z.number().int().min(1000).max(30000).nullable().optional(),
+  stats_carousel_interval: z.number().int().min(1000).max(30000).nullable().optional(),
+  use_real_stats: z.boolean().nullable().optional(),
   logo_url_dark: z.string().url().nullable().optional().or(z.literal("")),
   logo_url_light: z.string().url().nullable().optional().or(z.literal("")),
   social_instagram: z.string().url().nullable().optional().or(z.literal("")),

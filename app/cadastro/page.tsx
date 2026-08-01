@@ -30,9 +30,14 @@ function CadastroContent() {
   useEffect(() => {
     const refOrgId = searchParams?.get("ref");
     const refCatalogId = searchParams?.get("catalog");
+    const reservedSlugParam = searchParams?.get("slug");
+
     if (refOrgId && refCatalogId) {
       localStorage.setItem("franchise_ref_org", refOrgId);
       localStorage.setItem("franchise_ref_catalog", refCatalogId);
+    }
+    if (reservedSlugParam) {
+      localStorage.setItem("reserved_slug", reservedSlugParam);
     }
   }, [searchParams]);
 

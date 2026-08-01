@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 function SingleThemeCarousel({ images, interval, isDarkTheme }: { images: string[]; interval: number; isDarkTheme: boolean }) {
@@ -31,6 +32,8 @@ function SingleThemeCarousel({ images, interval, isDarkTheme }: { images: string
           key={`${currentImage}-${activeIndex}`}
           src={currentImage}
           alt={`PlataformaShop Mockup ${isDarkTheme ? "Escuro" : "Claro"} ${activeIndex + 1}`}
+          fetchPriority={activeIndex === 0 ? "high" : "auto"}
+          decoding="async"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
@@ -63,10 +66,25 @@ function SingleThemeCarousel({ images, interval, isDarkTheme }: { images: string
 }
 
 export function HeroSection({ settings }: { settings?: any }) {
+  const router = useRouter();
+  const [slug, setSlug] = useState("");
+
   const headline = settings?.hero_headline || "O Fim dos Catálogos em PDF.<br/><span class='text-[#2CCB68]'>A Ferramenta Definitiva para o seu Time de Vendas.</span>";
   const subtitle = settings?.hero_subtitle || "Cartão de Visitas Digital NFC e um Catálogo Transacional Taxa Zero sempre sincronizado com o seu Bling. A máquina de vendas que as maiores empresas usam.";
   
   const interval = settings?.hero_carousel_interval || 4000;
+
+  function handleReserveLink(e: React.FormEvent) {
+    e.preventDefault();
+    const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (cleanSlug) {
+      localStorage.setItem("reserved_slug", cleanSlug);
+    }
+    const section = document.getElementById("planos");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  }
 
   // Fallback Inteligente de Imagens para o Tema Escuro
   const darkImages: string[] = Array.isArray(settings?.hero_mockups_dark) && settings.hero_mockups_dark.length > 0
@@ -103,20 +121,26 @@ export function HeroSection({ settings }: { settings?: any }) {
           </p>
           
           {/* Link Simulator */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 p-2 rounded-2xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 backdrop-blur-md max-w-xl shadow-lg dark:shadow-2xl focus-within:border-[#2CCB68] transition-colors">
-            <div className="flex items-center px-4 flex-1 w-full sm:w-auto">
-              <span className="text-zinc-500 font-medium">plataforma.shop/</span>
+          <form onSubmit={handleReserveLink} className="mt-6 flex flex-col sm:flex-row items-center gap-3 p-2 rounded-2xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 backdrop-blur-md max-w-xl shadow-lg dark:shadow-2xl focus-within:border-[#2CCB68] transition-colors">
+            <div className="flex items-center px-4 flex-1 w-full sm:w-auto overflow-hidden">
+              <span className="text-zinc-500 font-medium select-none text-xs sm:text-sm shrink-0">anotameucontato.com.br/</span>
               <input 
                 type="text" 
-                placeholder="suamarca" 
-                className="bg-transparent border-none outline-none text-zinc-900 dark:text-white font-medium w-full ml-1 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:ring-0"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="sua-empresa" 
+                className="bg-transparent border-none outline-none text-zinc-900 dark:text-white font-medium w-full ml-1 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:ring-0 text-xs sm:text-sm"
               />
             </div>
-            <button className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-white font-semibold shadow-lg shadow-[#2CCB68]/20 hover:shadow-[#2CCB68]/40 hover:-translate-y-0.5 transition-all">
+            <button 
+              type="submit" 
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-white font-semibold shadow-lg shadow-[#2CCB68]/20 hover:shadow-[#2CCB68]/40 hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer text-sm whitespace-nowrap"
+            >
               Reservar Link
             </button>
-          </div>
-          <p className="text-xs text-zinc-500 mt-2 ml-2">Crie sua conta grátis em 1 minuto. Sem cartão de crédito.</p>
+          </form>
+          
+          <p className="text-xs text-zinc-500 mt-2 ml-2">Escolha seu plano e comece a vender em minutos.</p>
           
           {/* Trust Badges B2B */}
           <div className="mt-6 flex flex-wrap gap-4 items-center border-t border-white/10 pt-6">

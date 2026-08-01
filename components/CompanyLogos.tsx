@@ -28,17 +28,17 @@ export function CompanyLogos({ partners }: { partners?: any[] }) {
         }
       `}</style>
       
-      {/* Top Banner Link (Simulando o link "Novo no networking digital?" do print) */}
+      {/* Top Banner Link */}
       <div className="border-b border-white/5 py-3 text-center">
-        <Link href="#recursos" className="text-xs md:text-sm text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-2 group">
+        <Link href="#como-funciona" className="text-xs md:text-sm text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-2 group">
           Novo no B2B digital? <span className="text-[#2CCB68] group-hover:underline flex items-center gap-1">Leia o guia completo da PlataformaShop <ArrowRight size={14} /></span>
         </Link>
       </div>
 
       <div className="py-12">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 px-4">
           <h2 className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase">
-            Usado pelas principais empresas e distribuidores do Brasil
+            FAÇA COMO AS EMPRESAS QUE ABANDONARAM OS PDFS E ACELERAM VENDAS COM CATÁLOGO DIGITAL
           </h2>
         </div>
 

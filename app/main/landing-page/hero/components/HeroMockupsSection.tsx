@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
-import { Loader2, UploadCloud, Image as ImageIcon, Moon, Sun, Download, Trash2, Clock } from "lucide-react";
+import { useState, useRef } from "react";
+import { Loader2, UploadCloud, Image as ImageIcon, Moon, Sun, Download, Trash2, Clock, GripVertical } from "lucide-react";
 import { updateLandingSettings } from "../../actions";
+import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 
 interface HeroMockupsSectionProps {
   form: any;
@@ -24,6 +25,11 @@ export function HeroMockupsSection({
   const darkMockupInputRef = useRef<HTMLInputElement>(null);
   const lightMockupInputRef = useRef<HTMLInputElement>(null);
 
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [activeTheme, setActiveTheme] = useState<'dark' | 'light'>('dark');
+  const [draggedIndex, setDraggedIndex] = useState<{ index: number; theme: 'dark' | 'light' } | null>(null);
+
   const darkImages: string[] = Array.isArray(form.hero_mockups_dark) && form.hero_mockups_dark.length > 0
     ? form.hero_mockups_dark
     : (form.hero_mockup_url ? [form.hero_mockup_url] : []);
@@ -31,6 +37,57 @@ export function HeroMockupsSection({
   const lightImages: string[] = Array.isArray(form.hero_mockups_light) && form.hero_mockups_light.length > 0
     ? form.hero_mockups_light
     : (form.hero_mockup_url_light ? [form.hero_mockup_url_light] : []);
+
+  function handleDragStart(e: React.DragEvent, index: number, theme: 'dark' | 'light') {
+    setDraggedIndex({ index, theme });
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  }
+
+  async function handleDrop(e: React.DragEvent, targetIndex: number, theme: 'dark' | 'light') {
+    e.preventDefault();
+    if (!draggedIndex || draggedIndex.theme !== theme || draggedIndex.index === targetIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const currentList = [...(theme === 'dark' ? darkImages : lightImages)];
+    const [movedItem] = currentList.splice(draggedIndex.index, 1);
+    currentList.splice(targetIndex, 0, movedItem);
+
+    const fieldKey = theme === 'dark' ? 'hero_mockups_dark' : 'hero_mockups_light';
+    const singleKey = theme === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light';
+
+    const updatedForm = {
+      ...form,
+      [fieldKey]: currentList,
+      [singleKey]: currentList[0] || null
+    };
+
+    setForm(updatedForm);
+    setDraggedIndex(null);
+    const res = await updateLandingSettings(updatedForm);
+    if (res?.error) {
+      alert("Erro ao reordenar mockups: " + res.error);
+    }
+  }
+
+  function handleContainerFileDrop(e: React.DragEvent, themeType: 'dark' | 'light') {
+    // Apenas se forem arquivos arrastados do computador (não itens reordenados)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        setSelectedFile(file);
+        setActiveTheme(themeType);
+        setCropModalOpen(true);
+      }
+    }
+  }
 
   async function handleRemoveImage(indexToRemove: number, themeType: 'dark' | 'light') {
     const fieldKey = themeType === 'dark' ? 'hero_mockups_dark' : 'hero_mockups_light';
@@ -92,7 +149,11 @@ export function HeroMockupsSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* GALERIA TEMA ESCURO */}
-        <div className="border border-[var(--dash-border)] rounded-2xl p-5 bg-[#0a0a0a] text-white shadow-md flex flex-col justify-between space-y-4">
+        <div 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleContainerFileDrop(e, 'dark')}
+          className="border border-[var(--dash-border)] rounded-2xl p-5 bg-[#0a0a0a] text-white shadow-md flex flex-col justify-between space-y-4"
+        >
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-zinc-200">
@@ -101,19 +162,31 @@ export function HeroMockupsSection({
               <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Modo Escuro</span>
             </div>
 
-            {/* Grid de Thumbnails */}
+            {/* Grid de Thumbnails com Arraste */}
             {darkImages.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                 {darkImages.map((imgUrl, idx) => (
-                  <div key={idx} className="relative group rounded-xl bg-black border border-white/10 overflow-hidden aspect-square flex items-center justify-center p-2">
+                  <div 
+                    key={idx} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx, 'dark')}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, idx, 'dark')}
+                    className={`relative group rounded-xl bg-black border transition-all aspect-square flex items-center justify-center p-2 cursor-grab active:cursor-grabbing ${
+                      draggedIndex?.theme === 'dark' && draggedIndex?.index === idx 
+                        ? 'opacity-40 border-dashed border-emerald-500 scale-95' 
+                        : 'border-white/10 hover:border-emerald-500/50'
+                    }`}
+                    title="Arraste para reordenar a sequência do carrossel"
+                  >
                     <img 
                       src={imgUrl} 
                       alt={`Mockup Escuro ${idx + 1}`} 
-                      className="max-h-full max-w-full object-contain" 
+                      className="max-h-full max-w-full object-contain pointer-events-none" 
                       onError={(e) => { (e.target as HTMLImageElement).src = "/hero_mockup.png"; }}
                     />
-                    <span className="absolute top-1 left-1 bg-black/80 text-[10px] text-zinc-300 font-bold px-1.5 py-0.5 rounded">
-                      #{idx + 1}
+                    <span className="absolute top-1 left-1 bg-black/80 text-[10px] text-zinc-300 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 shadow-sm">
+                      <GripVertical size={10} className="text-emerald-400" /> #{idx + 1}
                     </span>
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button
@@ -137,27 +210,23 @@ export function HeroMockupsSection({
                 ))}
               </div>
             ) : (
-              <div className="h-36 rounded-xl bg-black/50 border border-dashed border-white/10 flex flex-col items-center justify-center p-4 text-center text-xs text-zinc-500 mb-4">
+              <div 
+                className="h-36 rounded-xl bg-black/50 border border-dashed border-white/10 flex flex-col items-center justify-center p-4 text-center text-xs text-zinc-500 mb-4"
+              >
                 <ImageIcon size={24} className="mb-2 text-zinc-600" />
-                Nenhum mockup adicionado. O sistema exibirá a imagem padrão.
+                Arraste uma imagem para cá ou clique no botão abaixo para adicionar.
               </div>
             )}
           </div>
 
           <div className="pt-3 border-t border-zinc-800 flex items-center gap-2">
-            <input 
-              ref={darkMockupInputRef} 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) processMockupUpload(f, 'dark');
-              }}
-            />
             <button 
               type="button"
-              onClick={() => darkMockupInputRef.current?.click()}
+              onClick={() => {
+                setActiveTheme('dark');
+                setSelectedFile(null);
+                setCropModalOpen(true);
+              }}
               disabled={uploadingMockupDark}
               className="w-full py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
             >
@@ -168,7 +237,11 @@ export function HeroMockupsSection({
         </div>
 
         {/* GALERIA TEMA CLARO */}
-        <div className="border border-[var(--dash-border)] rounded-2xl p-5 bg-zinc-50 text-zinc-900 shadow-md flex flex-col justify-between space-y-4">
+        <div 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleContainerFileDrop(e, 'light')}
+          className="border border-[var(--dash-border)] rounded-2xl p-5 bg-zinc-50 text-zinc-900 shadow-md flex flex-col justify-between space-y-4"
+        >
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-zinc-800">
@@ -177,19 +250,31 @@ export function HeroMockupsSection({
               <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-600">Modo Claro</span>
             </div>
 
-            {/* Grid de Thumbnails */}
+            {/* Grid de Thumbnails com Arraste */}
             {lightImages.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                 {lightImages.map((imgUrl, idx) => (
-                  <div key={idx} className="relative group rounded-xl bg-white border border-zinc-200 shadow-sm overflow-hidden aspect-square flex items-center justify-center p-2">
+                  <div 
+                    key={idx} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx, 'light')}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, idx, 'light')}
+                    className={`relative group rounded-xl bg-white border shadow-sm transition-all aspect-square flex items-center justify-center p-2 cursor-grab active:cursor-grabbing ${
+                      draggedIndex?.theme === 'light' && draggedIndex?.index === idx 
+                        ? 'opacity-40 border-dashed border-amber-500 scale-95' 
+                        : 'border-zinc-200 hover:border-amber-500/50'
+                    }`}
+                    title="Arraste para reordenar a sequência do carrossel"
+                  >
                     <img 
                       src={imgUrl} 
                       alt={`Mockup Claro ${idx + 1}`} 
-                      className="max-h-full max-w-full object-contain" 
+                      className="max-h-full max-w-full object-contain pointer-events-none" 
                       onError={(e) => { (e.target as HTMLImageElement).src = "/hero_mockup.png"; }}
                     />
-                    <span className="absolute top-1 left-1 bg-white/90 text-[10px] text-zinc-800 font-bold px-1.5 py-0.5 rounded shadow-sm border border-zinc-200">
-                      #{idx + 1}
+                    <span className="absolute top-1 left-1 bg-white/90 text-[10px] text-zinc-800 font-bold px-1.5 py-0.5 rounded shadow-sm border border-zinc-200 flex items-center gap-0.5">
+                      <GripVertical size={10} className="text-amber-500" /> #{idx + 1}
                     </span>
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button
@@ -215,25 +300,19 @@ export function HeroMockupsSection({
             ) : (
               <div className="h-36 rounded-xl bg-white border border-dashed border-zinc-300 flex flex-col items-center justify-center p-4 text-center text-xs text-zinc-400 mb-4">
                 <ImageIcon size={24} className="mb-2 text-zinc-400" />
-                Nenhum mockup adicionado. O sistema exibirá o tema escuro/padrão.
+                Arraste uma imagem para cá ou clique no botão abaixo para adicionar.
               </div>
             )}
           </div>
 
           <div className="pt-3 border-t border-zinc-200 flex items-center gap-2">
-            <input 
-              ref={lightMockupInputRef} 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) processMockupUpload(f, 'light');
-              }}
-            />
             <button 
               type="button"
-              onClick={() => lightMockupInputRef.current?.click()}
+              onClick={() => {
+                setActiveTheme('light');
+                setSelectedFile(null);
+                setCropModalOpen(true);
+              }}
               disabled={uploadingMockupLight}
               className="w-full py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
             >
@@ -243,6 +322,28 @@ export function HeroMockupsSection({
           </div>
         </div>
       </div>
+
+      {/* Modal de Crop e Recorte de Imagem */}
+      <ImageEditorModal
+        isOpen={cropModalOpen}
+        onClose={() => {
+          setCropModalOpen(false);
+          setSelectedFile(null);
+        }}
+        onConfirm={(croppedFile) => {
+          setCropModalOpen(false);
+          setSelectedFile(null);
+          processMockupUpload(croppedFile, activeTheme);
+        }}
+        initialFile={selectedFile}
+        aspectRatio={1}
+        minWidth={300}
+        minHeight={300}
+        targetWidth={1000}
+        targetHeight={1000}
+        title={activeTheme === 'dark' ? "Editar Mockup (Modo Escuro)" : "Editar Mockup (Modo Claro)"}
+        description="Ajuste o enquadramento do seu mockup para obter a melhor proporção no carrossel da Landing Page."
+      />
     </div>
   );
 }

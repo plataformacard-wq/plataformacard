@@ -1,15 +1,80 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Leaf, RefreshCcw, MessageSquare, ShieldCheck, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
-export function WhyChooseUs() {
-  const stats = [
-    { value: "10k+", label: "Catálogos Criados", gradient: "from-[#2CCB68] to-[#06B6D4]" },
-    { value: "99.9%", label: "Disponibilidade", gradient: "from-[#06B6D4] to-[#3B82F6]" },
-    { value: "500+", label: "Empresas Ativas", gradient: "from-[#8B5CF6] to-[#D946EF]" },
-    { value: "R$ 50M+", label: "Transacionados", gradient: "from-[#F59E0B] to-[#EF4444]" },
+export function WhyChooseUs({ settings }: { settings?: any }) {
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const useRealStats = Boolean(settings?.use_real_stats);
+  const carouselInterval = Number(settings?.stats_carousel_interval) || 5000;
+
+  // Grupos Autênticos de Métricas (Modo Lançamento / Ético)
+  const ethicalStatGroups = [
+    {
+      id: "garantias",
+      badge: "🔒 Garantias & Infraestrutura",
+      badgeClass: "bg-emerald-500/10 text-[#2CCB68] border-emerald-500/20",
+      items: [
+        { value: "0%", label: "TAXA SOBRE VENDAS", desc: "Sem comissões intermediárias nos pedidos", gradient: "from-[#2CCB68] to-[#06B6D4]" },
+        { value: "99.9%", label: "UPTIME NA NUVEM", desc: "Infraestrutura de alta disponibilidade", gradient: "from-[#06B6D4] to-[#3B82F6]" },
+        { value: "< 1s", label: "TEMPO DE RESPOSTA", desc: "Carregamento ultrarrápido no 4G", gradient: "from-[#8B5CF6] to-[#D946EF]" },
+        { value: "100%", label: "ESTOQUE SINCRONIZADO", desc: "Integração automatizada Bling ERP", gradient: "from-[#F59E0B] to-[#EF4444]" },
+      ]
+    },
+    {
+      id: "fim-pdfs",
+      badge: "⚡ Fim dos PDFs & Desperdício",
+      badgeClass: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+      items: [
+        { value: "0", label: "PDFS DESATUALIZADOS", desc: "Seus clientes acessam sempre o preço certo", gradient: "from-[#06B6D4] to-[#3B82F6]" },
+        { value: "24/7", label: "VITRINE DISPONÍVEL", desc: "Catálogo aberto a qualquer hora do dia", gradient: "from-[#2CCB68] to-[#06B6D4]" },
+        { value: "100%", label: "DIGITAL & NFC", desc: "Substitua dezenas de cartões de papel", gradient: "from-[#8B5CF6] to-[#D946EF]" },
+        { value: "0%", label: "COMISSÃO POR PEDIDO", desc: "Margem de lucro cheia na sua conta", gradient: "from-[#F59E0B] to-[#EF4444]" },
+      ]
+    },
+    {
+      id: "experiencia",
+      badge: "🛒 Experiência de Compra B2B",
+      badgeClass: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      items: [
+        { value: "1 Clique", label: "ENVIO DE PEDIDOS", desc: "Sem digitação manual de códigos", gradient: "from-[#8B5CF6] to-[#D946EF]" },
+        { value: "99.9%", label: "ESTABILIDADE DA NUVEM", desc: "Segurança de nível enterprise", gradient: "from-[#06B6D4] to-[#3B82F6]" },
+        { value: "3x", label: "MAIS RÁPIDO QUE PDF", desc: "Abertura instantânea no navegador", gradient: "from-[#2CCB68] to-[#06B6D4]" },
+        { value: "100%", label: "CONTROLADO POR VOCÊ", desc: "Altere fotos e preços em segundos", gradient: "from-[#F59E0B] to-[#EF4444]" },
+      ]
+    }
   ];
+
+  // Modo Escala (Métricas Reais Agregadas)
+  const realStatsGroup = {
+    id: "reais",
+    badge: "🚀 Métricas Reais da Plataforma",
+    badgeClass: "bg-[#2CCB68]/10 text-[#2CCB68] border-[#2CCB68]/20",
+    items: [
+      { value: `${settings?.base_catalogs || 3200}+`, label: "CATÁLOGOS CRIADOS", desc: "Vitrines ativas em todo o Brasil", gradient: "from-[#2CCB68] to-[#06B6D4]" },
+      { value: "99.9%", label: "DISPONIBILIDADE", desc: "SLA de serviço sem interrupções", gradient: "from-[#06B6D4] to-[#3B82F6]" },
+      { value: `${settings?.base_users || 1500}+`, label: "EMPRESAS ATIVAS", desc: "Gestores e equipes conectadas", gradient: "from-[#8B5CF6] to-[#D946EF]" },
+      { value: "R$ 50M+", label: "VOLUME TRANSACIONADO", desc: "Movimentação processada sem taxas", gradient: "from-[#F59E0B] to-[#EF4444]" },
+    ]
+  };
+
+  const activeGroup = useRealStats ? realStatsGroup : ethicalStatGroups[activeGroupIndex];
+
+  useEffect(() => {
+    if (useRealStats || isPaused) return;
+
+    const timer = setInterval(() => {
+      setActiveGroupIndex((prev) => (prev + 1) % ethicalStatGroups.length);
+    }, carouselInterval);
+
+    return () => clearInterval(timer);
+  }, [useRealStats, isPaused, carouselInterval, ethicalStatGroups.length]);
 
   const features = [
     {
@@ -47,7 +112,7 @@ export function WhyChooseUs() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-16">
+        <div className="flex flex-col items-center text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#2CCB68]/10 border border-[#2CCB68]/20 text-[#2CCB68] text-xs font-bold uppercase tracking-widest mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2CCB68]" />
             Por Que PlataformaShop
@@ -60,18 +125,68 @@ export function WhyChooseUs() {
           </p>
         </div>
 
-        {/* Stats Row */}
-        <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-20">
-          {stats.map((stat, i) => (
-            <div key={i} className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/5 shadow-md dark:shadow-xl min-w-[160px] md:min-w-[200px] hover:border-zinc-300 dark:hover:border-white/10 transition-colors group cursor-default">
-              <span className={`text-3xl md:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r ${stat.gradient} group-hover:scale-105 transition-transform duration-300 ${plusJakarta.className}`}>
-                {stat.value}
-              </span>
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">
-                {stat.label}
-              </span>
+        {/* 🌟 STATS CAROUSEL CONTAINER */}
+        <div 
+          className="mb-20 flex flex-col items-center"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Badge Categoria Ativa & Controle por Tabs */}
+          {!useRealStats && (
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              {ethicalStatGroups.map((grp, idx) => (
+                <button
+                  key={grp.id}
+                  type="button"
+                  onClick={() => setActiveGroupIndex(idx)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+                    activeGroupIndex === idx
+                      ? `${grp.badgeClass} shadow-sm scale-105`
+                      : "bg-white/50 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  {grp.badge}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
+
+          {useRealStats && (
+            <div className={`px-4 py-1.5 rounded-full text-xs font-bold border mb-6 ${realStatsGroup.badgeClass}`}>
+              {realStatsGroup.badge}
+            </div>
+          )}
+
+          {/* Cards Animação com Framer Motion */}
+          <div className="w-full min-h-[140px] flex justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeGroup.id}
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 w-full max-w-5xl"
+              >
+                {activeGroup.items.map((stat, i) => (
+                  <div 
+                    key={i} 
+                    className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/5 shadow-md dark:shadow-xl hover:border-zinc-300 dark:hover:border-white/10 transition-all group cursor-default text-center"
+                  >
+                    <span className={`text-2xl md:text-3xl font-black mb-1 bg-clip-text text-transparent bg-gradient-to-r ${stat.gradient} group-hover:scale-105 transition-transform duration-300 ${plusJakarta.className}`}>
+                      {stat.value}
+                    </span>
+                    <span className="text-[11px] font-black text-zinc-800 dark:text-zinc-200 uppercase tracking-wider mb-1">
+                      {stat.label}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 font-medium leading-tight">
+                      {stat.desc}
+                    </span>
+                  </div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Features 2x2 Grid */}

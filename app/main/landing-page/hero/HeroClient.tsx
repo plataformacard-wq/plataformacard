@@ -6,6 +6,7 @@ import { updateLandingSettings, uploadHeroMockup, uploadHeaderLogo } from "../ac
 import { HeaderLogosSection } from "./components/HeaderLogosSection";
 import { HeroMockupsSection } from "./components/HeroMockupsSection";
 import { HeroTextsSection } from "./components/HeroTextsSection";
+import { StatsCarouselSection } from "./components/StatsCarouselSection";
 
 export function HeroClient({ initialSettings }: { initialSettings: any }) {
   const [saving, setSaving] = useState(false);
@@ -20,9 +21,15 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
     seo_title: "PlataformaShop | Catálogo Digital Premium",
     hero_mockup_url: initialSettings?.hero_mockup_url || "",
     hero_mockup_url_light: initialSettings?.hero_mockup_url_light || "",
-    hero_mockups_dark: initialSettings?.hero_mockups_dark || (initialSettings?.hero_mockup_url ? [initialSettings.hero_mockup_url] : []),
-    hero_mockups_light: initialSettings?.hero_mockups_light || (initialSettings?.hero_mockup_url_light ? [initialSettings.hero_mockup_url_light] : []),
+    hero_mockups_dark: Array.isArray(initialSettings?.hero_mockups_dark) && initialSettings.hero_mockups_dark.length > 0
+      ? initialSettings.hero_mockups_dark
+      : (initialSettings?.hero_mockup_url ? [initialSettings.hero_mockup_url] : []),
+    hero_mockups_light: Array.isArray(initialSettings?.hero_mockups_light) && initialSettings.hero_mockups_light.length > 0
+      ? initialSettings.hero_mockups_light
+      : (initialSettings?.hero_mockup_url_light ? [initialSettings.hero_mockup_url_light] : []),
     hero_carousel_interval: initialSettings?.hero_carousel_interval || 4000,
+    stats_carousel_interval: initialSettings?.stats_carousel_interval || 5000,
+    use_real_stats: initialSettings?.use_real_stats || false,
     logo_url_dark: initialSettings?.logo_url_dark || "",
     logo_url_light: initialSettings?.logo_url_light || "",
     base_users: initialSettings?.base_users || 1500,
@@ -155,12 +162,17 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
 
       if (res.success && res.publicUrl) {
         const fieldKey = themeType === 'dark' ? 'hero_mockups_dark' : 'hero_mockups_light';
-        const currentArray: string[] = Array.isArray(form[fieldKey]) ? form[fieldKey] : [];
+        const singleKey = themeType === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light';
+
+        const currentArray: string[] = Array.isArray(form[fieldKey]) && form[fieldKey].length > 0
+          ? form[fieldKey]
+          : (form[singleKey] ? [form[singleKey]] : []);
+
         const updatedArray = [...currentArray, res.publicUrl];
         const updatedForm = {
           ...form,
           [fieldKey]: updatedArray,
-          [themeType === 'dark' ? 'hero_mockup_url' : 'hero_mockup_url_light']: updatedArray[0]
+          [singleKey]: updatedArray[0] || null
         };
         setForm(updatedForm);
         const saveRes = await updateLandingSettings(updatedForm);
@@ -204,6 +216,14 @@ export function HeroClient({ initialSettings }: { initialSettings: any }) {
 
       {/* 🚀 CARD 3: PERSONALIZAÇÃO DE TEXTOS & SEO DO HERO */}
       <HeroTextsSection
+        form={form}
+        setForm={setForm}
+        saving={saving}
+        handleSave={handleSave}
+      />
+
+      {/* 📊 CARD 4: CARROSSEL DE MÉTRICAS & VANTAGENS */}
+      <StatsCarouselSection
         form={form}
         setForm={setForm}
         saving={saving}

@@ -8,7 +8,7 @@ export function HowItWorks() {
     {
       id: 1,
       title: "Crie Seu Catálogo",
-      desc: "Cadastre-se grátis no navegador ou no app e monte sua vitrine de produtos de forma fácil — sua loja funciona em todo lugar.",
+      desc: "Cadastre-se no navegador ou no app e monte sua vitrine de produtos de forma fácil — sua loja funciona em todo lugar.",
       icon: Plus,
     },
     {
@@ -32,7 +32,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 bg-transparent relative overflow-hidden">
+    <section id="como-funciona" className="py-24 bg-transparent relative overflow-hidden">
       {/* Subtle glow background */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#2CCB68]/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -95,7 +95,7 @@ export function HowItWorks() {
               ✓
             </div>
             <span className="text-sm text-zinc-700 dark:text-zinc-300">
-              Comece em menos de 2 minutos — <span className="font-bold text-[#2CCB68]">totalmente grátis</span>
+              Comece em menos de 2 minutos — <span className="font-bold text-[#2CCB68]">sem complicações</span>
             </span>
           </div>
         </div>

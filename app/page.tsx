@@ -166,38 +166,48 @@ export default async function HomePage() {
 
         {/* Agitation / Dores */}
         <section id="dores" className="py-20 bg-transparent">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              title: "Preços Desatualizados",
-              body: "Vendedores fechando negócio com tabela antiga porque não baixaram o PDF novo.",
-              icon: "⚠️",
-            },
-            {
-              title: "Catálogos Amadores",
-              body: "Representantes criando artes ruins que prejudicam a imagem premium da sua marca.",
-              icon: "📉",
-            },
-            {
-              title: "Falta de Métricas",
-              body: "Você envia o PDF no grupo e não tem ideia de quem abriu ou quais produtos olharam.",
-              icon: "👁️‍🗨️",
-            },
-          ].map((card, i) => (
-            <div key={i} className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-md dark:shadow-none hover:border-zinc-300 dark:hover:bg-white/10 transition-all">
-              <div className="text-4xl mb-4">{card.icon}</div>
-              <h3 className={`text-lg font-bold text-zinc-900 dark:text-zinc-200 mb-3 ${plusJakarta.className}`}>{card.title}</h3>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">{card.body}</p>
+          <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-bold uppercase tracking-widest mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              Gargalos de Vendas
             </div>
-          ))}
-        </div>
-      </section>
+            <h2 className={`text-3xl md:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight ${plusJakarta.className}`}>
+              A Plataforma<span className="text-[#2CCB68]">Shop</span> Veio Para Acabar Com:
+            </h2>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Preços Desatualizados",
+                body: "Vendedores fechando negócio com tabela antiga porque não baixaram o PDF novo.",
+                icon: "⚠️",
+              },
+              {
+                title: "Catálogos Amadores",
+                body: "Representantes criando artes ruins que prejudicam a imagem premium da sua marca.",
+                icon: "📉",
+              },
+              {
+                title: "Falta de Métricas",
+                body: "Você envia o PDF no grupo e não tem ideia de quem abriu ou quais produtos olharam.",
+                icon: "👁️‍🗨️",
+              },
+            ].map((card, i) => (
+              <div key={i} className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-md dark:shadow-none hover:border-zinc-300 dark:hover:bg-white/10 transition-all">
+                <div className="text-4xl mb-4">{card.icon}</div>
+                <h3 className={`text-lg font-bold text-zinc-900 dark:text-zinc-200 mb-3 ${plusJakarta.className}`}>{card.title}</h3>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">{card.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
       {/* Como Funciona Timeline */}
       <HowItWorks />
 
       {/* Por Que Escolher a PlataformaShop */}
-      <WhyChooseUs />
+      <WhyChooseUs settings={finalSettings} />
 
       {/* Features B2B */}
       <section id="recursos" className="py-24 bg-transparent">
@@ -215,22 +225,26 @@ export default async function HomePage() {
             {[
               {
                 title: "Taxa Zero nas Vendas",
-                desc: "Abandone as plataformas de Link na Bio que cobram até 10% de pedágio. Receba pagamentos via Pix direto na sua conta, sem intermediários.",
+                desc: "Abandone as plataformas de Link na Bio que cobram até 10% de pedágio. Receba pedidos pré-formatados diretamente no seu WhatsApp sem intermediários.",
+                image: "/assets/landing-page/recursos/mockup_taxa_zero_whatsapp.png",
                 green: true,
               },
               {
                 title: "Estoque Sincronizado (Bling V3)",
                 desc: "Chega de PDF desatualizado. Integre a plataforma ao seu Bling e seu catálogo sempre mostrará o preço e o estoque reais em tempo real.",
+                image: null,
                 green: false,
               },
               {
                 title: "Físico e Digital: O Híbrido Perfeito",
                 desc: "Seu vendedor aborda o cliente fisicamente com o Cartão NFC premium, que abre instantaneamente o catálogo online no celular do cliente.",
+                image: null,
                 green: false,
               },
               {
                 title: "Incorpore no seu Site (iFrame)",
                 desc: "Com apenas 1 linha de código, você embeda o seu catálogo completo dentro do seu site institucional. Rápido, profissional e conversivo.",
+                image: null,
                 green: false,
               },
             ].map((feat, idx) => (
@@ -239,8 +253,16 @@ export default async function HomePage() {
                   <h3 className={`text-2xl font-bold text-zinc-900 dark:text-white mb-4 ${plusJakarta.className}`}>{feat.title}</h3>
                   <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
                 </div>
-                <div className={`flex-1 h-64 w-full rounded-3xl flex items-center justify-center border backdrop-blur-md ${feat.green ? "bg-[#2CCB68]/5 border-[#2CCB68]/20" : "bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 shadow-sm"}`}>
-                   <span className={`text-sm font-semibold ${feat.green ? "text-[#2CCB68]" : "text-zinc-500"}`}>Ilustração da Interface</span>
+                <div className={`flex-1 h-64 md:h-80 w-full rounded-3xl overflow-hidden flex items-center justify-center border backdrop-blur-md relative group ${feat.green ? "bg-[#2CCB68]/5 border-[#2CCB68]/20" : "bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 shadow-sm"}`}>
+                  {feat.image ? (
+                    <img 
+                      src={feat.image} 
+                      alt={feat.title} 
+                      className="w-full h-full object-contain p-2 rounded-3xl group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <span className={`text-sm font-semibold ${feat.green ? "text-[#2CCB68]" : "text-zinc-500"}`}>Ilustração da Interface</span>
+                  )}
                 </div>
               </div>
             ))}

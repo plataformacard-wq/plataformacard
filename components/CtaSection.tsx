@@ -30,10 +30,10 @@ export function CtaSection() {
         {/* Botões */}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-12">
           <Link 
-            href="/cadastro" 
+            href="#planos" 
             className="flex items-center justify-center gap-2 bg-white text-emerald-900 font-bold px-8 py-4 rounded-xl hover:bg-zinc-100 transition-all hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
           >
-            Criar catálogo grátis
+            Escolher meu plano
             <ArrowRight size={18} strokeWidth={3} />
           </Link>
           <Link 
@@ -51,12 +51,12 @@ export function CtaSection() {
             Seguro e Privado
           </div>
           <div className="flex items-center gap-2">
-            <Zap size={16} className="text-amber-300" />
+            <Zap size={16} className="text-amber-[#2CCB68]" />
             Configure em 2 min
           </div>
           <div className="flex items-center gap-2">
             <CreditCard size={16} className="text-amber-300" />
-            Sem cartão de crédito
+            Ativação imediata
           </div>
         </div>
       </div>

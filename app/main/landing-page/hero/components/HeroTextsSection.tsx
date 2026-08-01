@@ -67,11 +67,45 @@ export function HeroTextsSection({
           />
         </div>
 
+        {/* Configurações do Carrossel de Métricas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[var(--dash-border)]">
+          <div>
+            <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-2 uppercase tracking-wider">
+              Tempo de Rotação das Métricas
+            </label>
+            <select 
+              value={form.stats_carousel_interval || 5000}
+              onChange={(e) => setForm({...form, stats_carousel_interval: Number(e.target.value)})}
+              className="dash-select w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl pl-4 py-3 text-sm text-[var(--dash-text-primary)] font-bold outline-none cursor-pointer"
+            >
+              <option value={3000}>3 segundos (Rápido)</option>
+              <option value={4000}>4 segundos</option>
+              <option value={5000}>5 segundos (Recomendado)</option>
+              <option value={6000}>6 segundos</option>
+              <option value={8000}>8 segundos (Calmo)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[var(--dash-text-secondary)] mb-2 uppercase tracking-wider">
+              Modo de Exibição das Métricas
+            </label>
+            <select 
+              value={form.use_real_stats ? "real" : "ethical"}
+              onChange={(e) => setForm({...form, use_real_stats: e.target.value === "real"})}
+              className="dash-select w-full bg-[var(--dash-input-bg)] border border-[var(--dash-border)] rounded-xl pl-4 py-3 text-sm text-[var(--dash-text-primary)] font-bold outline-none cursor-pointer"
+            >
+              <option value="ethical">Garantias & Diferenciais (Modo Lançamento)</option>
+              <option value="real">Métricas Reais da Plataforma (Modo Escala)</option>
+            </select>
+          </div>
+        </div>
+
         <div className="pt-4 border-t border-[var(--dash-border)] flex items-center justify-end">
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="w-full sm:w-auto px-8 py-3.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center min-w-[200px] shadow-md active:scale-95 text-sm"
+            className="w-full sm:w-auto px-8 py-3.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center min-w-[200px] shadow-md active:scale-95 text-sm cursor-pointer"
           >
             {saving ? <Loader2 size={18} className="animate-spin" /> : "Salvar Alterações"}
           </button>

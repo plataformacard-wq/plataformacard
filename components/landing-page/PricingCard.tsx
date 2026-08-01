@@ -185,7 +185,7 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
             {buttonText}
           </div>
           {isGreenTheme && isAnnual && (
-            <span className="text-[9px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Grátis Incluso!</span>
+            <span className="text-[9px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Incluso no Plano!</span>
           )}
         </a>
       ) : (
@@ -195,7 +195,7 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
         >
           <span>{buttonText}</span>
           {isGreenTheme && isAnnual && (
-            <span className="text-[9px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Grátis Incluso!</span>
+            <span className="text-[9px] uppercase font-bold opacity-80 text-center px-2">Cartão NFC Incluso no Plano!</span>
           )}
         </Link>
       )}
