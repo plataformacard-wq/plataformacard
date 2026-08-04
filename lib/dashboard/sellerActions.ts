@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { verifyOrgAdmin } from "@/lib/utils/auth-validation";
 
+import { revalidatePath } from "next/cache";
+
 export async function uploadStorageFile(formData: FormData) {
   const file = formData.get("file") as File;
   const bucket = formData.get("bucket") as string;
@@ -47,6 +49,7 @@ export async function updateCatalogConfig(catalogId: string, payload: any, orgId
 
   const adminClient = createAdminClient();
   
+  // 1. Atualizar o catálogo específico
   const { error: catError } = await adminClient
     .from("catalogs")
     .update(payload)
@@ -56,6 +59,7 @@ export async function updateCatalogConfig(catalogId: string, payload: any, orgId
     return { error: catError.message };
   }
 
+  // 2. Se houver dados da organização para salvar
   if (orgId && orgPayload) {
     const { error: orgError } = await adminClient
       .from("organizations")
@@ -65,20 +69,41 @@ export async function updateCatalogConfig(catalogId: string, payload: any, orgId
     if (orgError) {
       return { error: orgError.message };
     }
-    
-    // Se o admin for CaaS, replicar as configurações de visualização para o catálogo platform!
-    const { data: org } = await adminClient.from("organizations").select("business_model").eq("id", orgId).single();
-    if (org?.business_model === "CaaS") {
-      await adminClient.from("catalogs").update({
-        out_of_stock_at_end: payload.out_of_stock_at_end,
-        hide_prices: payload.hide_prices,
-        banner_speed_seconds: payload.banner_speed_seconds,
-        banner_initial_index: payload.banner_initial_index,
-        show_banners: payload.show_banners
-      }).eq("organization_id", orgId).eq("catalog_type", "platform");
-    }
   }
 
+  // 3. Busca o catálogo para obter organization_id e owner_id para replicação total
+  const { data: currentCat } = await adminClient
+    .from("catalogs")
+    .select("organization_id, owner_id")
+    .eq("id", catalogId)
+    .single();
+
+  const targetOrgId = orgId || currentCat?.organization_id;
+  const targetOwnerId = currentCat?.owner_id;
+
+  const replicationPayload = {
+    out_of_stock_at_end: payload.out_of_stock_at_end,
+    hide_prices: payload.hide_prices,
+    banner_speed_seconds: payload.banner_speed_seconds,
+    banner_initial_index: payload.banner_initial_index,
+    show_banners: payload.show_banners,
+    enable_shopping_cart: payload.enable_shopping_cart,
+    cart_min_order_value: payload.cart_min_order_value,
+    cart_delivery_options: payload.cart_delivery_options,
+    cart_payment_methods: payload.cart_payment_methods,
+  };
+
+  // Replicar incondicionalmente para a organização
+  if (targetOrgId) {
+    await adminClient.from("catalogs").update(replicationPayload).eq("organization_id", targetOrgId);
+  }
+
+  // Replicar incondicionalmente para o usuário dono
+  if (targetOwnerId) {
+    await adminClient.from("catalogs").update(replicationPayload).eq("owner_id", targetOwnerId);
+  }
+
+  revalidatePath("/", "layout");
   return { success: true };
 }
 

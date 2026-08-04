@@ -36,7 +36,11 @@ export const ProductModal = ({
   handleShare,
   businessStatus,
   hideCta,
-  primaryColor
+  primaryColor,
+  enableShoppingCart,
+  onAddToCart,
+  cartItems,
+  onUpdateQuantity
 }: any) => {
   if (!hasMounted || !selectedProduct || (isEmbed && isMobile)) return null;
 
@@ -414,6 +418,52 @@ export const ProductModal = ({
                     )
                   )}
 
+                  {/* Posição 2: Botão de Carrinho / Comanda (se habilitado) */}
+                  {enableShoppingCart && onAddToCart && selectedProduct.is_in_stock !== false && (
+                    (() => {
+                      const existingItem = cartItems?.find((i: any) => i.product.id === selectedProduct.id);
+                      if (existingItem && onUpdateQuantity) {
+                        return (
+                          <div 
+                            onClick={(e) => e.stopPropagation()} 
+                            className="mt-3 flex items-center justify-between gap-2 w-full py-2 px-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl shadow-sm"
+                          >
+                            <span className="text-xs font-black uppercase text-emerald-600 dark:text-emerald-400">Na comanda:</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => onUpdateQuantity(existingItem.id, -1)}
+                                className="w-7 h-7 rounded-lg bg-[var(--public-card-bg)] border border-emerald-500/30 flex items-center justify-center font-black text-sm text-rose-500 hover:bg-rose-500/10"
+                              >
+                                -
+                              </button>
+                              <span className="font-black text-sm px-2 text-[var(--public-text-main)]">
+                                {existingItem.quantity}
+                              </span>
+                              <button
+                                onClick={() => onUpdateQuantity(existingItem.id, 1)}
+                                className="w-7 h-7 rounded-lg bg-[var(--public-card-bg)] border border-emerald-500/30 flex items-center justify-center font-black text-sm text-emerald-500 hover:bg-emerald-500/10"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddToCart(selectedProduct);
+                          }}
+                          className="mt-3 flex items-center justify-center gap-1.5 w-full py-3 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-black rounded-xl transition-all text-xs uppercase tracking-wider cursor-pointer active:scale-95 whitespace-nowrap"
+                        >
+                          + Adicionar à Comanda
+                        </button>
+                      );
+                    })()
+                  )}
+
+                  {/* Posição 3: Compartilhar este Produto */}
                   <button 
                     onClick={() => {
                       const baseUrl = window.location.href.split('#')[0];
@@ -423,7 +473,7 @@ export const ProductModal = ({
                         `${baseUrl}#${selectedProduct.id}`
                       );
                     }}
-                    className="mt-4 flex items-center justify-center gap-2 w-full py-3 px-6 bg-[var(--public-card-bg)] border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-lg hover:bg-[var(--public-bg)] hover:text-[var(--public-text-main)] transition-all text-xs uppercase tracking-widest cursor-pointer"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-transparent border border-[var(--public-card-border)] text-[var(--public-text-dim)] font-bold rounded-xl hover:bg-[var(--public-bg)] hover:text-[var(--public-text-main)] transition-all text-xs uppercase tracking-wider cursor-pointer whitespace-nowrap"
                   >
                     <Share2 size={16} />
                     Compartilhar este Produto

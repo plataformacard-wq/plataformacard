@@ -443,6 +443,7 @@ export function useProfileManager() {
         status: recessActive ? "paused" : (isAvailable ? "active" : "paused"),
         recess_ends_at: recessEndsAt,
         custom_business_hours: customBusinessHours,
+        can_customize_hours: true,
         is_accepting_orders: isAcceptingOrders,
         public_banner_url: newPublicBannerUrl,
         redirect_leads: redirectLeads,

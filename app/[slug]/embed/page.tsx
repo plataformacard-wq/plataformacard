@@ -5,7 +5,8 @@ import ProductCatalogClient from "@/components/catalog/ProductCatalogClient";
 import CatalogUnavailableScreen from "@/components/catalog/CatalogUnavailableScreen";
 import { getNationalHolidays } from "@/lib/utils/holidays";
 
-export const revalidate = 60;
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -289,6 +290,10 @@ export default async function EmbedPage(props: PageProps) {
         bannerInitialIndex={catalogData?.banner_initial_index || 0}
         showBanners={catalogData?.show_banners !== false}
         outOfStockAtEnd={finalOutOfStockAtEnd}
+        enableShoppingCart={catalogData?.enable_shopping_cart}
+        cartMinOrderValue={catalogData?.cart_min_order_value}
+        cartDeliveryOptions={catalogData?.cart_delivery_options}
+        cartPaymentMethods={catalogData?.cart_payment_methods}
       />
     </div>
   );

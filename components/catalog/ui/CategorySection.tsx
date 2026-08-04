@@ -37,7 +37,11 @@ const ProductCard = memo(({
   whatsappTemplate,
   fullName,
   handleShare,
-  lastViewTimestamp
+  lastViewTimestamp,
+  enableShoppingCart,
+  onAddToCart,
+  cartItems,
+  onUpdateQuantity
 }: any) => {
   const { ref, inView } = useInView({
     triggerOnce: false,
@@ -259,19 +263,7 @@ const ProductCard = memo(({
           {/* Botões do Card em modo colapsado */}
           {!isExpanded && (sellerStatus !== 'paused' && isAcceptingOrders !== false) && (
             <div className="flex flex-col gap-2 w-full mt-1">
-              {/* Botão Saiba mais */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenProduct(product, e);
-                }}
-                className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 bg-transparent border font-bold rounded-lg transition-all text-xs uppercase tracking-wider cursor-pointer"
-                style={{ borderColor: primaryColor, color: primaryColor }}
-              >
-                Saiba mais
-              </button>
-
-              {/* Botão do WhatsApp sempre visível se houver número */}
+              {/* 1. Botão do WhatsApp (Destaque Principal / Chamativo no topo) */}
               {!hideCta && wpUrl && (
                 product.is_in_stock !== false ? (
                   businessStatus.isAvailableNow ? (
@@ -292,7 +284,7 @@ const ProductCard = memo(({
                           metadata: { slug, productName: product.name, priceMode }
                         });
                       }}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#25D366] hover:opacity-90 text-white font-black rounded-lg shadow-sm transition-all text-xs uppercase tracking-wider"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 px-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-lg shadow-md hover:shadow-lg transition-all text-[11px] sm:text-xs uppercase tracking-normal whitespace-nowrap active:scale-95 cursor-pointer"
                     >
                       <MessageCircle size={16} />
                       Pedir no WhatsApp
@@ -304,26 +296,86 @@ const ProductCard = memo(({
                         void trackAnalyticsEvent({
                           profileId,
                           catalogId,
+                          organizationId: organizationId,
                           productId: product.id,
-                          eventType: "whatsapp_click_closed",
+                          eventType: "whatsapp_click",
                           pageType: "product_card",
                           metadata: { slug, productName: product.name, priceMode }
                         });
                       }}
-                      className="flex flex-col items-center justify-center gap-0.5 w-full py-2 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] rounded-lg border border-[var(--public-card-border)] transition-all cursor-pointer hover:bg-[var(--public-card-border)]/20"
+                      className="w-full"
                     >
-                      <div className="flex items-center justify-center gap-1 font-black text-[9px] uppercase tracking-wider">
-                        <Clock size={12} className="text-slate-400" />
-                        Estabelecimento Fechado
-                      </div>
+                      <a
+                        href={wpUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 w-full py-2.5 px-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-lg shadow-md transition-all text-[11px] sm:text-xs uppercase tracking-normal whitespace-nowrap"
+                      >
+                        <MessageCircle size={16} />
+                        Pedir no WhatsApp
+                      </a>
                     </div>
                   )
-                ) : (
-                  <div className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[var(--public-bg)] text-[var(--public-text-dim)] font-black rounded-lg border border-[var(--public-card-border)] text-xs uppercase tracking-wider cursor-not-allowed opacity-60">
-                    <Package size={16} />
-                    Indisponível
-                  </div>
-                )
+                ) : null
+              )}
+
+              {/* 2. Botão de Carrinho / Comanda (apenas se habilitado) */}
+              {enableShoppingCart && onAddToCart && product.is_in_stock !== false && (
+                (() => {
+                  const existingItem = cartItems?.find((i: any) => i.product.id === product.id);
+                  if (existingItem && onUpdateQuantity) {
+                    return (
+                      <div 
+                        onClick={(e) => e.stopPropagation()} 
+                        className="flex items-center justify-between gap-2 w-full py-1.5 px-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg shadow-sm"
+                      >
+                        <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 whitespace-nowrap">Na comanda:</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => onUpdateQuantity(existingItem.id, -1)}
+                            className="w-6 h-6 rounded bg-[var(--public-card-bg)] border border-emerald-500/30 flex items-center justify-center font-black text-xs text-rose-500 hover:bg-rose-500/10"
+                          >
+                            -
+                          </button>
+                          <span className="font-black text-xs px-1 text-[var(--public-text-main)]">
+                            {existingItem.quantity}
+                          </span>
+                          <button
+                            onClick={() => onUpdateQuantity(existingItem.id, 1)}
+                            className="w-6 h-6 rounded bg-[var(--public-card-bg)] border border-emerald-500/30 flex items-center justify-center font-black text-xs text-emerald-500 hover:bg-emerald-500/10"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToCart(product);
+                      }}
+                      className="flex items-center justify-center gap-1.5 w-full py-2 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-black rounded-lg transition-all text-[11px] sm:text-xs uppercase tracking-normal whitespace-nowrap cursor-pointer active:scale-95"
+                    >
+                      + Adicionar à Comanda
+                    </button>
+                  );
+                })()
+              )}
+
+              {/* Botão Saiba mais apenas se o WhatsApp e o Carrinho estiverem desativados */}
+              {!enableShoppingCart && hideCta && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenProduct(product, e);
+                  }}
+                  className="flex items-center justify-center gap-1.5 w-full py-2 px-2 bg-transparent border font-bold rounded-lg transition-all text-[11px] sm:text-xs uppercase tracking-normal whitespace-nowrap cursor-pointer"
+                  style={{ borderColor: primaryColor, color: primaryColor }}
+                >
+                  Saiba mais
+                </button>
               )}
             </div>
           )}
@@ -444,7 +496,11 @@ const CategorySectionBase = ({
   hideCta,
   whatsappUrl,
   businessStatus,
-  lastViewTimestamp
+  lastViewTimestamp,
+  enableShoppingCart,
+  onAddToCart,
+  cartItems,
+  onUpdateQuantity
 }: any) => {
   return (
     <div className="space-y-16 relative">
@@ -556,6 +612,10 @@ const CategorySectionBase = ({
                     fullName={fullName}
                     handleShare={handleShare}
                     lastViewTimestamp={lastViewTimestamp}
+                    enableShoppingCart={enableShoppingCart}
+                    onAddToCart={onAddToCart}
+                    cartItems={cartItems}
+                    onUpdateQuantity={onUpdateQuantity}
                   />
                 );
               })}

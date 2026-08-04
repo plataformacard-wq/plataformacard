@@ -13,6 +13,7 @@ import {
   Globe,
   MessageCircle,
   HelpCircle,
+  ShoppingBag
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -37,6 +38,14 @@ interface ConfiguracoesGeralTabProps {
   setHidePrices: (v: boolean) => void;
   outOfStockAtEnd: boolean;
   setOutOfStockAtEnd: (v: boolean) => void;
+  enableShoppingCart: boolean;
+  setEnableShoppingCart: (v: boolean) => void;
+  cartMinOrderValue: number;
+  setCartMinOrderValue: (v: number) => void;
+  cartDeliveryOptions: string[];
+  setCartDeliveryOptions: (v: string[] | ((prev: string[]) => string[])) => void;
+  cartPaymentMethods: string[];
+  setCartPaymentMethods: (v: string[] | ((prev: string[]) => string[])) => void;
   isInheritingMaster: boolean;
   canViewBehavior: boolean;
   saving: boolean;
@@ -55,6 +64,14 @@ export default function ConfiguracoesGeralTab({
   setHidePrices,
   outOfStockAtEnd,
   setOutOfStockAtEnd,
+  enableShoppingCart,
+  setEnableShoppingCart,
+  cartMinOrderValue,
+  setCartMinOrderValue,
+  cartDeliveryOptions,
+  setCartDeliveryOptions,
+  cartPaymentMethods,
+  setCartPaymentMethods,
   isInheritingMaster,
   canViewBehavior,
   saving,
@@ -229,6 +246,126 @@ export default function ConfiguracoesGeralTab({
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-[var(--dash-surface)] shadow ring-0 transition duration-300 ease-in-out ${outOfStockAtEnd ? 'translate-x-2' : '-translate-x-2'}`} />
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Carrinho de Compras / Comanda WhatsApp */}
+          <div className="pt-8 border-t border-[var(--dash-border)] space-y-6">
+            <h4 className="text-xs font-black uppercase tracking-widest text-[var(--dash-text-muted)] flex items-center gap-2">
+              <ShoppingBag size={14} className="text-primary" /> Modo Carrinho / Comanda WhatsApp
+            </h4>
+            <div className="space-y-6">
+              {/* Toggle Habilitar Carrinho */}
+              <div className="flex items-center justify-between p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
+                <div className="space-y-1 pr-6">
+                  <label className="text-sm font-black text-[var(--dash-text-primary)] tracking-tight">
+                    Habilitar Carrinho de Compras (Multi-produtos)
+                  </label>
+                  <p className="text-[11px] font-medium text-[var(--dash-text-muted)] leading-relaxed">
+                    Permite que seus clientes adicionem vários produtos e quantidades ao catálogo e enviem o pedido completo formatado via WhatsApp. Ideal para docerias, pequenos comércios e lanchonetes.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEnableShoppingCart(!enableShoppingCart)}
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${enableShoppingCart ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-[var(--dash-surface)] shadow ring-0 transition duration-300 ease-in-out ${enableShoppingCart ? 'translate-x-2' : '-translate-x-2'}`} />
+                </button>
+              </div>
+
+              {enableShoppingCart && (
+                <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl space-y-6 animate-fadeIn">
+                  {/* Valor Mínimo */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-wider text-[var(--dash-text-muted)]">
+                      Valor Mínimo do Pedido (R$)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={cartMinOrderValue || 0}
+                      onChange={(e) => setCartMinOrderValue(parseFloat(e.target.value) || 0)}
+                      className="w-full max-w-xs p-3 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl text-sm font-bold text-[var(--dash-text-primary)] focus:ring-2 focus:ring-primary outline-none"
+                      placeholder="0.00"
+                    />
+                    <p className="text-[11px] text-[var(--dash-text-muted)]">
+                      Defina 0 para aceitar pedidos de qualquer valor.
+                    </p>
+                  </div>
+
+                  {/* Formas de Entrega */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-wider text-[var(--dash-text-muted)]">
+                      Tipos de Entrega Aceitos:
+                    </label>
+                    <div className="flex flex-wrap gap-4">
+                      {[
+                        { id: "retirada", label: "Retirada no Local" },
+                        { id: "entrega", label: "Entrega em Casa" },
+                      ].map((opt) => {
+                        const checked = cartDeliveryOptions.includes(opt.id);
+                        return (
+                          <label
+                            key={opt.id}
+                            className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[var(--dash-text-primary)]"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setCartDeliveryOptions((prev) => [...prev, opt.id]);
+                                } else {
+                                  setCartDeliveryOptions((prev) => prev.filter((i) => i !== opt.id));
+                                }
+                              }}
+                              className="w-4 h-4 rounded text-primary border-[var(--dash-border)] focus:ring-primary"
+                            />
+                            <span>{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Formas de Pagamento */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-wider text-[var(--dash-text-muted)]">
+                      Formas de Pagamento Aceitas:
+                    </label>
+                    <div className="flex flex-wrap gap-4">
+                      {[
+                        { id: "pix", label: "Pix" },
+                        { id: "cartao", label: "Cartão de Crédito/Débito" },
+                        { id: "dinheiro", label: "Dinheiro" },
+                      ].map((pay) => {
+                        const checked = cartPaymentMethods.includes(pay.id);
+                        return (
+                          <label
+                            key={pay.id}
+                            className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[var(--dash-text-primary)]"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setCartPaymentMethods((prev) => [...prev, pay.id]);
+                                } else {
+                                  setCartPaymentMethods((prev) => prev.filter((i) => i !== pay.id));
+                                }
+                              }}
+                              className="w-4 h-4 rounded text-primary border-[var(--dash-border)] focus:ring-primary"
+                            />
+                            <span>{pay.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

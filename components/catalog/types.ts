@@ -80,4 +80,8 @@ export type ProductCatalogClientProps = {
   bannerInitialIndex?: number;
   showBanners?: boolean;
   outOfStockAtEnd?: boolean;
+  enableShoppingCart?: boolean | null;
+  cartMinOrderValue?: number | null;
+  cartDeliveryOptions?: string[] | null;
+  cartPaymentMethods?: string[] | null;
 };

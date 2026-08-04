@@ -11,6 +11,10 @@ import { CatalogBannerCarousel } from "./ui/CatalogBannerCarousel";
 import { CategorySection } from "./ui/CategorySection";
 import { ProductModal } from "./ui/ProductModal";
 import { LgpdConsentBanner } from "./ui/LgpdConsentBanner";
+import { useShoppingCart } from "./hooks/useShoppingCart";
+import { CartFloatingBar } from "./ui/CartFloatingBar";
+import { CartDrawerModal } from "./ui/CartDrawerModal";
+import { QuickVariationModal } from "./ui/QuickVariationModal";
 
 export default function ProductCatalogClient(props: ProductCatalogClientProps) {
   const {
@@ -37,10 +41,21 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
     whatsappTemplate,
     acceptsMessagesWhenClosed,
     isB2B,
-    hidePrices
+    hidePrices,
+    enableShoppingCart,
+    cartMinOrderValue,
+    cartDeliveryOptions,
+    cartPaymentMethods
   } = props;
 
   const catalog = useProductCatalog(props);
+  const cart = useShoppingCart(
+    whatsapp,
+    catalogName,
+    organizationId,
+    profileId,
+    fullName
+  );
   const { state, computed, actions } = catalog;
   const primaryColor = accentColor || "#10b981";
 
@@ -182,6 +197,10 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
           whatsappUrl={computed.whatsappUrl}
           businessStatus={computed.businessStatus}
           lastViewTimestamp={state.lastViewTimestamp}
+          enableShoppingCart={enableShoppingCart}
+          onAddToCart={cart.handleProductAddToCartClick}
+          cartItems={cart.items}
+          onUpdateQuantity={cart.handleUpdateQuantity}
         />
       </main>
 
@@ -226,6 +245,10 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         businessStatus={computed.businessStatus}
         hideCta={hideCta}
         primaryColor={primaryColor}
+        enableShoppingCart={enableShoppingCart}
+        onAddToCart={cart.handleProductAddToCartClick}
+        cartItems={cart.items}
+        onUpdateQuantity={cart.handleUpdateQuantity}
       />
 
       <style jsx global>{`
@@ -328,6 +351,42 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         </AnimatePresence>,
         document.body
       )}
+      {/* Componentes do Carrinho de Compras / Comanda WhatsApp */}
+      {enableShoppingCart && (
+        <>
+          <CartFloatingBar
+            totalItems={cart.totalItems}
+            totalPrice={cart.totalPrice}
+            onOpenCart={() => cart.setIsCartOpen(true)}
+            accentColor={primaryColor}
+          />
+
+          <CartDrawerModal
+            isOpen={cart.isCartOpen}
+            onClose={() => cart.setIsCartOpen(false)}
+            items={cart.items}
+            onUpdateQuantity={cart.handleUpdateQuantity}
+            onRemoveItem={cart.handleRemoveItem}
+            onClearCart={cart.handleClearCart}
+            whatsappNumber={whatsapp}
+            slug={slug}
+            catalogName={catalogName}
+            accentColor={primaryColor}
+            minOrderValue={cartMinOrderValue}
+            deliveryOptions={cartDeliveryOptions}
+            paymentMethods={cartPaymentMethods}
+            onSendOrder={cart.handleSendOrder}
+          />
+
+          <QuickVariationModal
+            product={cart.variationProduct}
+            onClose={() => cart.setVariationProduct(null)}
+            onAddToCart={cart.handleAddItem}
+            accentColor={primaryColor}
+          />
+        </>
+      )}
+
       {!isEmbed && (
         <LgpdConsentBanner primaryColor={primaryColor} isEmbed={false} />
       )}

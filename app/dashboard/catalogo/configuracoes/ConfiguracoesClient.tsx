@@ -69,6 +69,10 @@ export default function ConfiguracoesClient({
   const [catalogType, setCatalogType] = useState<"product" | "service" | "hybrid">(initialCatalog.type || initialCatalog.catalog_type || "product");
   const [hidePrices, setHidePrices] = useState<boolean>(initialCatalog.hide_prices || false);
   const [outOfStockAtEnd, setOutOfStockAtEnd] = useState<boolean>(initialCatalog.out_of_stock_at_end || false);
+  const [enableShoppingCart, setEnableShoppingCart] = useState<boolean>(initialCatalog.enable_shopping_cart || false);
+  const [cartMinOrderValue, setCartMinOrderValue] = useState<number>(initialCatalog.cart_min_order_value || 0);
+  const [cartDeliveryOptions, setCartDeliveryOptions] = useState<string[]>(initialCatalog.cart_delivery_options || ["retirada", "entrega"]);
+  const [cartPaymentMethods, setCartPaymentMethods] = useState<string[]>(initialCatalog.cart_payment_methods || ["pix", "cartao", "dinheiro"]);
   const [isActive, setIsActive] = useState<boolean>(initialCatalog.is_active !== false);
 
   const [localBanners, setLocalBanners] = useState<any[]>(initialCatalog.banners || []);
@@ -144,6 +148,10 @@ ${iframeResizerCode}
         type: catalogType,
         hide_prices: hidePrices,
         out_of_stock_at_end: outOfStockAtEnd,
+        enable_shopping_cart: enableShoppingCart,
+        cart_min_order_value: cartMinOrderValue,
+        cart_delivery_options: cartDeliveryOptions,
+        cart_payment_methods: cartPaymentMethods,
         banners: localBanners,
         banner_speed_seconds: bannerSpeed,
         banner_initial_index: bannerInitialIndex,
@@ -243,6 +251,14 @@ ${iframeResizerCode}
             setHidePrices={setHidePrices}
             outOfStockAtEnd={outOfStockAtEnd}
             setOutOfStockAtEnd={setOutOfStockAtEnd}
+            enableShoppingCart={enableShoppingCart}
+            setEnableShoppingCart={setEnableShoppingCart}
+            cartMinOrderValue={cartMinOrderValue}
+            setCartMinOrderValue={setCartMinOrderValue}
+            cartDeliveryOptions={cartDeliveryOptions}
+            setCartDeliveryOptions={setCartDeliveryOptions}
+            cartPaymentMethods={cartPaymentMethods}
+            setCartPaymentMethods={setCartPaymentMethods}
             isInheritingMaster={isInheritingMaster}
             canViewBehavior={canViewBehavior}
             saving={saving}
