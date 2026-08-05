@@ -70,15 +70,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, subscription_status")
+    .select("organization_id, role, subscription_status")
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const cookieStore = await cookies();
+  const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
+
   if (profile?.role === "main_admin") {
     // Se for Super Admin, só permite acesso ao /dashboard em Shadow Mode (simulação de cliente)
-    const cookieStore = await cookies();
-    const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
-
     if (!shadowOrgId) {
       // Sem cookie de simulação → redireciona para o QG do Admin
       redirect("/main");
@@ -90,5 +90,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
-  return <PanelLayout>{children}</PanelLayout>;
+  const activeOrgId = (profile?.role === "main_admin" && shadowOrgId) ? shadowOrgId : profile?.organization_id;
+  let initialPlanId: string | null = null;
+  let initialBusinessModel: string = "B2B";
+
+  if (activeOrgId) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("plan_id, business_model")
+      .eq("id", activeOrgId)
+      .maybeSingle();
+
+    if (org) {
+      initialPlanId = org.plan_id || null;
+      initialBusinessModel = org.business_model || "B2B";
+    }
+  }
+
+  return (
+    <PanelLayout initialPlanId={initialPlanId} initialBusinessModel={initialBusinessModel}>
+      {children}
+    </PanelLayout>
+  );
 }

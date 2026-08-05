@@ -61,10 +61,18 @@ export default async function CrmPage() {
     .is("deleted_at", null)
     .order("name", { ascending: true });
 
+  // 4. Buscar o plano da organização
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("plan_id")
+    .eq("id", activeOrgId)
+    .maybeSingle();
+
   return (
     <CrmClient
       initialLeads={leads || []}
       products={products || []}
+      planSlug={org?.plan_id}
     />
   );
 }

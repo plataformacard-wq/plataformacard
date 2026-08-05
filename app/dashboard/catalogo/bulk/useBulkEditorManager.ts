@@ -21,6 +21,7 @@ export function useBulkEditorManager() {
   const [isSyncingSheets, setIsSyncingSheets] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [storedSheetUrl, setStoredSheetUrl] = useState<string | null>(null);
+  const [planSlug, setPlanSlug] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [catalogId, setCatalogId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -63,6 +64,14 @@ export function useBulkEditorManager() {
         setUserId(user.id);
         setUserName(profile.full_name || "Membro");
         setOrgId(activeOrgId);
+
+        const { data: orgData } = await supabase
+          .from("organizations")
+          .select("plan_id, google_sheets_url")
+          .eq("id", activeOrgId)
+          .maybeSingle();
+
+        setPlanSlug(orgData?.plan_id || null);
         
         const { data: ownData, error: prodsError } = await supabase
           .from("products")
@@ -495,6 +504,7 @@ export function useBulkEditorManager() {
     isExporting,
     setIsExporting,
     storedSheetUrl,
+    planSlug,
     orgId,
     catalogId,
     presence,

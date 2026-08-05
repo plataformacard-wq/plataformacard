@@ -80,7 +80,7 @@ export default async function DashboardPage() {
     const [{ count: pCount }, { data: sData, count: sCount }, { data: org }, { data: orgCatalogs }] = await Promise.all([
       supabase.from("products").select("*", { count: "exact", head: true }).eq("organization_id", activeOrgId).is("deleted_at", null),
       supabase.from("profiles").select("id, full_name, slug, avatar_url", { count: "exact" }).eq("organization_id", activeOrgId).eq("role", "seller").limit(5),
-      supabase.from("organizations").select("name, business_model, whatsapp, business_hours, bling_access_token, low_stock_threshold").eq("id", activeOrgId).maybeSingle(),
+      supabase.from("organizations").select("name, business_model, whatsapp, business_hours, bling_access_token, low_stock_threshold, plan_id").eq("id", activeOrgId).maybeSingle(),
       supabase.from("organization_catalogs").select("is_enabled, catalogs(organization_id, catalog_type, deleted_at)").eq("organization_id", activeOrgId)
     ]);
 
@@ -185,6 +185,11 @@ export default async function DashboardPage() {
   const accessStatusName = getAccessStatusName((profile as any)?.granular_permissions ?? null);
   const isAnalyticAccess = accessStatusName === "Acesso Analítico";
 
+  const { PLAN_LIMITS } = await import("@/lib/plans");
+  const planId = (profile as any)?.organizations?.plan_id || null;
+  const maxUsers = PLAN_LIMITS[planId || '']?.max_users ?? 1;
+  const isMultiUserAllowed = maxUsers === 0 || maxUsers > 1;
+
   const initialData = {
     profileData: profile,
     nome: displayName,
@@ -208,7 +213,10 @@ export default async function DashboardPage() {
     hasActiveMasterState,
     hasOwnedMasterState,
     showNoWhatsappWarning,
-    profileViews
+    profileViews,
+    planId,
+    maxUsers,
+    isMultiUserAllowed
   };
 
   return <DashboardClient initialData={initialData} />;

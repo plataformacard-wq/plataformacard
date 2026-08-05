@@ -6,10 +6,18 @@ import { getOrganizationDomain, addCustomDomain, removeCustomDomain, checkVercel
 import { checkNativeDNS } from "@/app/actions/dns";
 import { VercelDomainResponse } from "@/lib/vercel/domains";
 
+import { createClient } from "@/lib/supabase/client";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
+import UpgradeModal from "@/components/dashboard/upsell/UpgradeModal";
+import { isFeatureAllowed } from "@/lib/plans/feature-matrix";
+import { Sparkles, Lock } from "lucide-react";
+
 export default function DominioPage() {
+  const supabase = createClient();
   const [domain, setDomain] = useState("");
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
   const [domainStatus, setDomainStatus] = useState<VercelDomainResponse | null>(null);
+  const [planId, setPlanId] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -18,6 +26,8 @@ export default function DominioPage() {
   const [elapsedTime, setElapsedTime] = useState("");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [nativeStatus, setNativeStatus] = useState<Record<string, boolean | "loading">>({});
+
+  const { requestFeature, isOpen: isUpgradeOpen, closeModal: closeUpgradeModal, requestedFeature } = useFeatureGate(planId);
 
   useEffect(() => {
     loadData();
@@ -89,6 +99,17 @@ export default function DominioPage() {
   async function loadData() {
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("organization_id, organizations(plan_id)")
+          .eq("user_id", user.id)
+          .single();
+        const org = Array.isArray(profile?.organizations) ? profile?.organizations[0] : profile?.organizations;
+        setPlanId(org?.plan_id || null);
+      }
+
       const storedDomain = await getOrganizationDomain();
       setCurrentDomain(storedDomain);
       
@@ -152,14 +173,45 @@ export default function DominioPage() {
     );
   }
 
+  const isDomainAllowed = isFeatureAllowed(planId, "custom_domain");
+
   return (
     <div className="space-y-8">
+      <UpgradeModal
+        isOpen={isUpgradeOpen}
+        onClose={closeUpgradeModal}
+        feature={requestedFeature}
+      />
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[var(--dash-text-primary)]">Configurar Domínio</h1>
         <p className="text-sm text-[var(--dash-text-secondary)]">
           Use seu próprio domínio (ex: meucatalogo.com.br) para dar mais credibilidade ao seu negócio.
         </p>
       </div>
+
+      {!isDomainAllowed && (
+        <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-8 shadow-lg">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black uppercase tracking-wider">
+                <Lock size={12} /> Recurso Exclusivo Plano PRO
+              </div>
+              <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">
+                Conecte seu Domínio Próprio com SSL Automático
+              </h2>
+              <p className="text-sm text-[var(--dash-text-muted)] leading-relaxed">
+                No plano Starter, sua loja utiliza o subdomínio gratuito da plataforma. Faça o upgrade para o plano <strong className="text-amber-400">PRO</strong> ou superior para utilizar o seu próprio domínio profissional (ex: <code className="text-amber-300">sualoja.com.br</code>) com certificado de segurança grátis.
+              </p>
+            </div>
+            <button
+              onClick={() => requestFeature("custom_domain")}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-black font-extrabold text-sm shadow-md transition-transform active:scale-95 whitespace-nowrap"
+            >
+              <Sparkles size={16} /> Desbloquear com Plano PRO
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3 text-red-600 dark:text-red-400">

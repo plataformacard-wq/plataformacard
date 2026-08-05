@@ -9,8 +9,8 @@
  */
 export const PLAN_IDS = {
   STARTER:    "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d",
-  BASIC:      "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62",
-  PRO:        "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0", // Antigo START
+  PRO:        "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62",
+  SALES_TEAM: "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0",
   ENTERPRISE: "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26",
 } as const;
 
@@ -24,27 +24,27 @@ export interface PlanLimits {
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
   [PLAN_IDS.STARTER]: {
     name: "Starter",
-    max_products: 10,
+    max_products: 100,
     max_users: 1,
-    price: 47.00
-  },
-  [PLAN_IDS.BASIC]: {
-    name: "Basic",
-    max_products: 50,
-    max_users: 3,
-    price: 97.00
+    price: 59.90
   },
   [PLAN_IDS.PRO]: {
-    name: "Pro",
-    max_products: 200,
+    name: "PRO",
+    max_products: 1000,
+    max_users: 3,
+    price: 149.90
+  },
+  [PLAN_IDS.SALES_TEAM]: {
+    name: "Sales Team",
+    max_products: 5000,
     max_users: 10,
-    price: 147.00
+    price: 299.90
   },
   [PLAN_IDS.ENTERPRISE]: {
-    name: "Enterprise",
+    name: "All Service",
     max_products: 0,
     max_users: 0,
-    price: 197.00
+    price: 499.90
   },
 };
 

@@ -10,7 +10,7 @@ import {
   Settings2
 } from "lucide-react";
 import ClientDetailModal from "../clientes/ClientDetailModal";
-import { getPlanName } from "@/lib/plans";
+import { getPlanName, PLAN_IDS } from "@/lib/plans";
 import { useRouter } from "next/navigation";
 import { updateOrganizationPlan } from "@/lib/admin-actions";
 import { RefreshCw } from "lucide-react";
@@ -22,7 +22,7 @@ interface AssinaturasListProps {
 export default function AssinaturasList({ organizations }: AssinaturasListProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterPlan, setFilterPlan] = useState<"ALL" | "STARTER" | "BASIC" | "PRO" | "ENTERPRISE">("ALL");
+  const [filterPlan, setFilterPlan] = useState<"ALL" | "STARTER" | "PRO" | "SALES_TEAM" | "ENTERPRISE">("ALL");
   
   // Modal & Update State
   const [selectedOrg, setSelectedOrg] = useState<any>(null);
@@ -43,10 +43,10 @@ export default function AssinaturasList({ organizations }: AssinaturasListProps)
 
   const getPlanIdByFilter = (filter: string) => {
     switch (filter) {
-      case "STARTER": return "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d";
-      case "BASIC": return "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62";
-      case "PRO": return "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0";
-      case "ENTERPRISE": return "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26";
+      case "STARTER": return PLAN_IDS.STARTER;
+      case "PRO": return PLAN_IDS.PRO;
+      case "SALES_TEAM": return PLAN_IDS.SALES_TEAM;
+      case "ENTERPRISE": return PLAN_IDS.ENTERPRISE;
       default: return null;
     }
   };
@@ -96,7 +96,7 @@ export default function AssinaturasList({ organizations }: AssinaturasListProps)
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[var(--dash-text-muted)]" />
           <div className="flex bg-[var(--dash-bg)] p-1 rounded-lg border border-[var(--dash-border)] overflow-x-auto custom-scrollbar">
-            {(["ALL", "STARTER", "BASIC", "PRO", "ENTERPRISE"] as const).map((plan) => (
+            {(["ALL", "STARTER", "PRO", "SALES_TEAM", "ENTERPRISE"] as const).map((plan) => (
               <button
                 key={plan}
                 onClick={() => setFilterPlan(plan)}
@@ -106,7 +106,7 @@ export default function AssinaturasList({ organizations }: AssinaturasListProps)
                     : "text-[var(--dash-text-secondary)] hover:text-amber-500"
                 }`}
               >
-                {plan === "ALL" ? "Todos os Planos" : plan}
+                {plan === "ALL" ? "Todos os Planos" : plan === "STARTER" ? "Starter" : plan === "PRO" ? "PRO" : plan === "SALES_TEAM" ? "Sales Team" : "All Service"}
               </button>
             ))}
           </div>
@@ -173,7 +173,7 @@ export default function AssinaturasList({ organizations }: AssinaturasListProps)
                       value={org.plan_id || ''}
                       disabled={updatingId === org.id}
                       onChange={(e) => handlePlanChange(org.id, e.target.value)}
-                      className={`appearance-none text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md border outline-none cursor-pointer transition-all disabled:opacity-50 ${
+                      className={`dash-select text-[10px] font-black uppercase tracking-widest pl-4 pr-10 py-1.5 rounded-md border outline-none cursor-pointer transition-all disabled:opacity-50 ${
                         isEnterprise ? 'border-purple-500/30 text-purple-500 bg-purple-500/10 hover:bg-purple-500/20' :
                         isBasic ? 'border-blue-500/30 text-blue-500 bg-blue-500/10 hover:bg-blue-500/20' :
                         org.plan_id ? 'border-slate-500/30 text-slate-500 bg-slate-500/10 hover:bg-slate-500/20' :
@@ -181,10 +181,10 @@ export default function AssinaturasList({ organizations }: AssinaturasListProps)
                       }`}
                     >
                       <option value="">SEM PLANO</option>
-                      <option value="a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d">STARTER</option>
-                      <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">BASIC</option>
-                      <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PRO</option>
-                      <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">ENTERPRISE</option>
+                      <option value={PLAN_IDS.STARTER}>STARTER</option>
+                      <option value={PLAN_IDS.PRO}>PRO</option>
+                      <option value={PLAN_IDS.SALES_TEAM}>SALES TEAM</option>
+                      <option value={PLAN_IDS.ENTERPRISE}>ALL SERVICE</option>
                     </select>
                   </div>
                 </div>

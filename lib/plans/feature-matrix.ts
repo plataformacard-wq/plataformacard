@@ -3,6 +3,7 @@ export type FeatureKey =
   | "bling_sync"
   | "custom_domain"
   | "sales_team"
+  | "bulk_pricing"
   | "caas_master";
 
 export type PlanSlug = "starter" | "pro" | "sales_team" | "all_service";
@@ -64,7 +65,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     monthlyPrice: 299.90,
     annualPrice: 199.90,
     annualDiscountValue: 100.00,
-    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "caas_master"],
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "bulk_pricing"],
     maxProducts: 5000,
     maxUsers: 10,
     checkoutUrls: {
@@ -80,7 +81,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     monthlyPrice: 499.90,
     annualPrice: 349.90,
     annualDiscountValue: 150.00,
-    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "caas_master"],
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "bulk_pricing", "caas_master"],
     maxProducts: 99999,
     maxUsers: 99,
     checkoutUrls: {
@@ -90,16 +91,32 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
   },
 };
 
-export function isFeatureAllowed(planSlug: string | null | undefined, feature: FeatureKey): boolean {
-  if (!planSlug) return false;
-  const normalized = planSlug.toLowerCase().trim().replace(/[^a-z_]/g, "") as PlanSlug;
-  const plan = PLANS[normalized];
+const UUID_TO_SLUG_MAP: Record<string, PlanSlug> = {
+  "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d": "starter",
+  "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62": "pro",
+  "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0": "sales_team",
+  "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26": "all_service",
+};
+
+export function normalizePlanSlug(input?: string | null): PlanSlug {
+  if (!input) return "starter";
+  const trimmed = input.trim().toLowerCase();
+  if (UUID_TO_SLUG_MAP[trimmed]) return UUID_TO_SLUG_MAP[trimmed];
+  if (trimmed.includes("starter") || trimmed.includes("start")) return "starter";
+  if (trimmed.includes("sales") || trimmed.includes("team") || trimmed.includes("premium")) return "sales_team";
+  if (trimmed.includes("all_service") || trimmed.includes("franqueador") || trimmed.includes("enterprise") || trimmed.includes("hibrida")) return "all_service";
+  if (trimmed.includes("pro") || trimmed.includes("basic")) return "pro";
+  return "starter";
+}
+
+export function isFeatureAllowed(planIdentifier: string | null | undefined, feature: FeatureKey): boolean {
+  const slug = normalizePlanSlug(planIdentifier);
+  const plan = PLANS[slug];
   if (!plan) return false;
   return plan.allowedFeatures.includes(feature);
 }
 
-export function getPlanDefinition(planSlug: string | null | undefined): PlanDefinition {
-  if (!planSlug) return PLANS.starter;
-  const normalized = planSlug.toLowerCase().trim().replace(/[^a-z_]/g, "") as PlanSlug;
-  return PLANS[normalized] || PLANS.starter;
+export function getPlanDefinition(planIdentifier: string | null | undefined): PlanDefinition {
+  const slug = normalizePlanSlug(planIdentifier);
+  return PLANS[slug] || PLANS.starter;
 }

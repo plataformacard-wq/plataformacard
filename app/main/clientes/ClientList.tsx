@@ -9,8 +9,8 @@ import {
   RefreshCw
 } from "lucide-react";
 import ClientDetailModal from "./ClientDetailModal";
-import { updateOrganizationModel } from "@/lib/admin-actions";
-import { getPlanName } from "@/lib/plans";
+import { updateOrganizationModel, updateOrganizationPlan } from "@/lib/admin-actions";
+import { getPlanName, PLAN_IDS } from "@/lib/plans";
 
 interface ClientListProps {
   organizations: any[];
@@ -51,6 +51,25 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
     if (!result.success) {
       alert("Erro ao mudar modelo: " + result.error);
       // Revert on failure
+      setOrganizations(oldOrganizations);
+    }
+    setUpdatingId(null);
+  };
+
+  const handlePlanChange = async (orgId: string, newPlanId: string) => {
+    if (updatingId === orgId) return;
+    setUpdatingId(orgId);
+    
+    const isStarter = newPlanId === PLAN_IDS.STARTER;
+    const newModel = isStarter ? "B2C" : "B2B";
+
+    // Optimistic Update
+    const oldOrganizations = [...organizations];
+    setOrganizations(prev => prev.map(org => org.id === orgId ? { ...org, plan_id: newPlanId, business_model: newModel } : org));
+    
+    const result = await updateOrganizationPlan(orgId, newPlanId);
+    if (!result.success) {
+      alert("Erro ao mudar plano: " + result.error);
       setOrganizations(oldOrganizations);
     }
     setUpdatingId(null);
@@ -143,63 +162,82 @@ export default function ClientList({ organizations: initialOrgs }: ClientListPro
                   </div>
                 </div>
 
-                {/* SELETOR B2B / B2C ULTRA EVIDENTE */}
-                <div className="flex flex-col items-center min-w-[120px]">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-2">Modelo de Operação</p>
-                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-lg border border-[var(--dash-border)] relative scale-90 md:scale-100">
+                {/* MODELO DE OPERAÇÃO: BADGE DERIVADA DO PLANO */}
+                {(() => {
+                  const isStarter = (org.plan_id || PLAN_IDS.STARTER) === PLAN_IDS.STARTER;
+                  const displayModel = isStarter ? "B2C" : "B2B";
+                  return (
+                    <div className="flex flex-col items-center min-w-[70px]">
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Modelo</p>
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
+                        displayModel === 'B2C' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
+                        {displayModel}
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {/* SELETOR DE PLANO EM BOTÕES DE 1 CLIQUE (ULTRA RÁPIDO PARA TESTES) */}
+                <div className="flex flex-col items-center">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1.5">Plano Contratado</p>
+                  <div className="flex p-1 bg-[var(--dash-bg)] rounded-lg border border-[var(--dash-border)] relative">
                     {updatingId === org.id && (
                       <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-lg z-10 flex items-center justify-center">
                         <RefreshCw size={12} className="animate-spin text-white" />
                       </div>
                     )}
-                    <button 
-                      onClick={() => org.business_model !== 'CaaS' && handleModelChange(org.id, 'CaaS')}
-                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
-                        org.business_model === 'CaaS' 
-                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' 
-                          : 'text-[var(--dash-text-muted)] hover:text-purple-500'
+                    
+                    {/* STARTER */}
+                    <button
+                      onClick={() => org.plan_id !== PLAN_IDS.STARTER && handlePlanChange(org.id, PLAN_IDS.STARTER)}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-all ${
+                        (org.plan_id || PLAN_IDS.STARTER) === PLAN_IDS.STARTER
+                          ? 'bg-zinc-700 text-white shadow-md'
+                          : 'text-[var(--dash-text-muted)] hover:text-white'
                       }`}
                     >
-                      CaaS
+                      STARTER
                     </button>
-                    <button 
-                      onClick={() => org.business_model !== 'B2C' && handleModelChange(org.id, 'B2C')}
-                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
-                        org.business_model === 'B2C' 
-                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
-                          : 'text-[var(--dash-text-muted)] hover:text-emerald-500'
+
+                    {/* PRO */}
+                    <button
+                      onClick={() => org.plan_id !== PLAN_IDS.PRO && handlePlanChange(org.id, PLAN_IDS.PRO)}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-all ${
+                        org.plan_id === PLAN_IDS.PRO
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                          : 'text-[var(--dash-text-muted)] hover:text-blue-400'
                       }`}
                     >
-                      B2C
+                      PRO
                     </button>
-                    <button 
-                      onClick={() => org.business_model !== 'B2B' && handleModelChange(org.id, 'B2B')}
-                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
-                        org.business_model === 'B2B' 
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                          : 'text-[var(--dash-text-muted)] hover:text-blue-500'
+
+                    {/* SALES TEAM */}
+                    <button
+                      onClick={() => org.plan_id !== PLAN_IDS.SALES_TEAM && handlePlanChange(org.id, PLAN_IDS.SALES_TEAM)}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-all ${
+                        org.plan_id === PLAN_IDS.SALES_TEAM
+                          ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
+                          : 'text-[var(--dash-text-muted)] hover:text-amber-400'
                       }`}
                     >
-                      B2B
+                      SALES TEAM
                     </button>
-                    <button 
-                      onClick={() => org.business_model !== 'ALL_SERVICE' && handleModelChange(org.id, 'ALL_SERVICE')}
-                      className={`px-4 py-1.5 rounded-md text-[10px] font-black transition-all ${
-                        org.business_model === 'ALL_SERVICE' 
-                          ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' 
-                          : 'text-[var(--dash-text-muted)] hover:text-zinc-600'
+
+                    {/* ALL SERVICE */}
+                    <button
+                      onClick={() => org.plan_id !== PLAN_IDS.ENTERPRISE && handlePlanChange(org.id, PLAN_IDS.ENTERPRISE)}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-all ${
+                        org.plan_id === PLAN_IDS.ENTERPRISE
+                          ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                          : 'text-[var(--dash-text-muted)] hover:text-purple-400'
                       }`}
                     >
                       ALL SERVICE
                     </button>
                   </div>
-                </div>
-
-                <div className="flex flex-col items-center md:items-end min-w-[80px]">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)] mb-1">Plano</p>
-                  <p className="text-sm font-black text-amber-500 uppercase text-right">
-                    {getPlanName(org.plan_id)}
-                  </p>
                 </div>
               </div>
 

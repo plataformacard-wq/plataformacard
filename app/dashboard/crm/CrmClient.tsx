@@ -30,9 +30,10 @@ interface Lead {
 interface CrmClientProps {
   initialLeads: Lead[];
   products: Product[];
+  planSlug?: string | null;
 }
 
-export default function CrmClient({ initialLeads, products }: CrmClientProps) {
+export default function CrmClient({ initialLeads, products, planSlug }: CrmClientProps) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);

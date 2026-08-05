@@ -22,19 +22,21 @@ import { MobileFabButton } from "@/components/dashboard/mobile/MobileFabButton";
 import { getMyProfile, getOrganizationById, getOrganizationStats } from "@/lib/admin-actions";
 import { detectOverage, getPlanName } from "@/lib/plans";
 
-type PanelLayoutProps = {
+interface PanelLayoutProps {
   children: React.ReactNode;
-};
+  initialPlanId?: string | null;
+  initialBusinessModel?: string | null;
+}
 
-export function PanelLayout({ children }: PanelLayoutProps) {
+export function PanelLayout({ children, initialPlanId, initialBusinessModel }: PanelLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
   const [nome, setNome] = useState("Carregando...");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [role, setRole] = useState("admin");
-  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | "ALL_SERVICE" | null>(null);
-  const [planId, setPlanId] = useState<string | null>(null);
+  const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS" | "ALL_SERVICE">((initialBusinessModel as any) || "B2B");
+  const [planId, setPlanId] = useState<string | null>(initialPlanId || null);
   const [slug, setSlug] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);

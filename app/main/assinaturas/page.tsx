@@ -15,9 +15,11 @@ export default async function AssinaturasPage() {
     .order("created_at", { ascending: false });
 
   // 2. Metrics for the header
-  const totalStart = organizations?.filter(o => o.plan_id === '32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0').length || 0;
-  const totalBasic = organizations?.filter(o => o.plan_id === '6f3dfe4e-905c-486e-923f-2cfb6e5d3e62').length || 0;
-  const totalEnterprise = organizations?.filter(o => o.plan_id === 'd35c09c2-51a0-4f38-b5d9-dcc3526e7d26').length || 0;
+  const { PLAN_IDS } = await import("@/lib/plans");
+  const totalStarter = organizations?.filter(o => o.plan_id === PLAN_IDS.STARTER).length || 0;
+  const totalPro = organizations?.filter(o => o.plan_id === PLAN_IDS.PRO).length || 0;
+  const totalSalesTeam = organizations?.filter(o => o.plan_id === PLAN_IDS.SALES_TEAM).length || 0;
+  const totalEnterprise = organizations?.filter(o => o.plan_id === PLAN_IDS.ENTERPRISE).length || 0;
 
   return (
     <div className="space-y-10">
@@ -32,18 +34,22 @@ export default async function AssinaturasPage() {
           </p>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-3">
           <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-xl flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-slate-400" />
-            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalStart} Start</span>
+            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalStarter} Starter</span>
           </div>
           <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-xl flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-blue-500" />
-            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalBasic} Basic</span>
+            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalPro} PRO</span>
+          </div>
+          <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-xl flex items-center gap-3">
+            <div className="h-2 w-2 rounded-full bg-amber-500" />
+            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalSalesTeam} Sales Team</span>
           </div>
           <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] px-4 py-2 rounded-xl flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-purple-500" />
-            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalEnterprise} Enterprise</span>
+            <span className="text-xs font-bold uppercase tracking-tighter" style={{ color: "var(--dash-text-secondary)" }}>{totalEnterprise} All Service</span>
           </div>
         </div>
       </div>

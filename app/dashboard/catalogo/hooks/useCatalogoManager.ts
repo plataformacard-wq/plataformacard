@@ -347,7 +347,9 @@ export function useCatalogoManager(adminCatalogId: string | null = null) {
       const orgData = Array.isArray(org) ? org[0] : org;
       const plan = Array.isArray(orgData?.plans) ? orgData.plans[0] : orgData?.plans;
       if (plan) {
-        setProductLimit(plan.max_products !== undefined && plan.max_products !== null ? plan.max_products : 20);
+        setProductLimit(plan.max_products !== undefined && plan.max_products !== null ? plan.max_products : 100);
+      } else {
+        setProductLimit(100);
       }
       if (orgData?.business_model) {
         setBusinessModel(orgData.business_model);

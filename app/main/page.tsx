@@ -31,9 +31,11 @@ export default async function AdminDashboardPage() {
   const { count: allServiceCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("business_model", "ALL_SERVICE");
 
   // 3. BI por Plano
-  const { count: starterCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0");
-  const { count: proCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62");
-  const { count: enterpriseCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26");
+  const { PLAN_IDS } = await import("@/lib/plans");
+  const { count: starterCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", PLAN_IDS.STARTER);
+  const { count: proCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", PLAN_IDS.PRO);
+  const { count: salesTeamCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", PLAN_IDS.SALES_TEAM);
+  const { count: enterpriseCount } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("plan_id", PLAN_IDS.ENTERPRISE);
 
   // Recent profiles
   const { data: recentProfiles } = await supabase
@@ -179,12 +181,12 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Grid de Planos e Infraestrutura */}
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {/* Starter Plan */}
           <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-zinc-500/10 flex items-center justify-center text-zinc-500"><CreditCard size={16} /></div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Starter</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Starter</p>
              </div>
              <p className="text-3xl font-black" style={{ color: "var(--dash-text-primary)" }}>{starterCount || 0}</p>
           </div>
@@ -192,17 +194,25 @@ export default async function AdminDashboardPage() {
           <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><Zap size={16} /></div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Pro</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">PRO</p>
              </div>
              <p className="text-3xl font-black text-blue-500">{proCount || 0}</p>
           </div>
-          {/* Enterprise Plan */}
+          {/* Sales Team Plan */}
           <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
              <div className="flex items-center gap-3 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500"><TrendingUp size={16} /></div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Master</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">Sales Team</p>
              </div>
-             <p className="text-3xl font-black text-amber-500">{enterpriseCount || 0}</p>
+             <p className="text-3xl font-black text-amber-500">{salesTeamCount || 0}</p>
+          </div>
+          {/* All Service Plan */}
+          <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">
+             <div className="flex items-center gap-3 mb-4">
+                <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500"><ShieldCheck size={16} /></div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-text-muted)]">All Service</p>
+             </div>
+             <p className="text-3xl font-black text-purple-500">{enterpriseCount || 0}</p>
           </div>
           {/* Infra Global */}
           <div className="bg-[var(--dash-surface)] p-6 rounded-xl border border-[var(--dash-border)]">

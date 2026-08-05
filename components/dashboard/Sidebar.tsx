@@ -26,8 +26,13 @@ import {
   Sparkles,
   Paintbrush,
   Package,
-  Kanban
+  Kanban,
+  Lock
 } from "lucide-react";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
+import UpgradeModal from "@/components/dashboard/upsell/UpgradeModal";
+import { isFeatureAllowed, FeatureKey } from "@/lib/plans/feature-matrix";
+import { PLAN_LIMITS } from "@/lib/plans";
 
 interface SidebarProps {
   role: "main_admin" | "b2b_admin" | "b2c_admin" | "seller" | "admin" | string;
@@ -47,17 +52,28 @@ interface SidebarProps {
   granularPermissions?: any;
 }
 
+interface SubNavItem {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  requiredFeature?: FeatureKey;
+  badge?: string;
+}
+
 interface NavLink {
   href?: string;
   label: string;
   icon: React.ElementType;
-  subItems?: { href: string; label: string; icon: React.ElementType }[];
+  requiredFeature?: FeatureKey;
+  badge?: string;
+  subItems?: SubNavItem[];
 }
 
 export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollapsed, setIsCollapsed, isShadowMode, isReady, permissions, granularPermissions }: SidebarProps) {
   const pathname = usePathname();
   const { globalLogoUrl, globalIconUrl } = useGlobalBranding();
   const [currentHash, setCurrentHash] = useState("");
+  const { requestFeature, isOpen: isUpgradeOpen, closeModal: closeUpgradeModal, requestedFeature } = useFeatureGate(planId);
 
   useEffect(() => {
     const handleHash = () => setCurrentHash(window.location.hash.replace("#", ""));
@@ -158,7 +174,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       const isCaaS = businessModel === "CaaS" || (role as any) === "caas_admin";
       const isB2C = (businessModel === "B2C" || (role as any) === "b2c_admin") && !isCaaS && role !== "b2b_admin";
 
-      const companySubItems = [];
+      const companySubItems: SubNavItem[] = [];
       const canHours = granularPermissions?.company?.hours !== false;
       const canSeo = granularPermissions?.company?.seo !== false;
       const canDomain = granularPermissions?.company?.domain !== false;
@@ -166,7 +182,13 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
       if (canHours) companySubItems.push({ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock });
       if (canSeo) companySubItems.push({ href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings });
-      if (canDomain) companySubItems.push({ href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", label: "Configurar Domínio", icon: Globe });
+      if (canDomain) companySubItems.push({ 
+        href: isB2C ? "/dashboard/perfil/dominio" : "/dashboard/empresa/dominio", 
+        label: "Configurar Domínio", 
+        icon: Globe,
+        requiredFeature: "custom_domain",
+        badge: "PRO"
+      });
       if (canAccess) companySubItems.push({ href: "/dashboard/empresa/acessos", label: "Gerenciar Acessos", icon: ShieldCheck });
 
       navLinks.push({ 
@@ -182,7 +204,13 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           { href: "/dashboard/catalogo/gerenciador", label: "Gerenciar Catálogo", icon: BookOpen },
           { href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings },
           { href: "/dashboard/catalogo", label: "Gerenciar Produtos", icon: BookOpen },
-          { href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard },
+          { 
+            href: "/dashboard/catalogo/bulk", 
+            label: "Gerenciar em Massa", 
+            icon: LayoutDashboard,
+            requiredFeature: "bulk_pricing",
+            badge: "PREMIUM"
+          },
         ]
       });
 
@@ -190,11 +218,30 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       navLinks.push({ href: "/dashboard/crm", label: "CRM de Leads", icon: Kanban });
 
       if (!isB2C && !isCaaS) {
-        navLinks.push({ href: "/dashboard/vendedores", label: "Colaboradores", icon: Users });
+        const maxUsers = PLAN_LIMITS[planId || ""]?.max_users;
+        const isMultiUser = maxUsers === 0 || (maxUsers !== undefined && maxUsers > 1);
+
+        if (isMultiUser) {
+          navLinks.push({ href: "/dashboard/vendedores", label: "Colaboradores", icon: Users });
+        } else {
+          navLinks.push({ 
+            href: "/dashboard/vendedores", 
+            label: "Colaboradores", 
+            icon: Users,
+            requiredFeature: "sales_team",
+            badge: "PRO"
+          });
+        }
       }
 
-      if (isAllService) {
-        navLinks.push({ href: "/dashboard/franquias", label: "Franquias", icon: Globe });
+      if (isAllService || isActuallySuperAdmin) {
+        navLinks.push({ 
+          href: "/dashboard/franquias", 
+          label: "Franquias", 
+          icon: Globe,
+          requiredFeature: "caas_master",
+          badge: "ENTERPRISE"
+        });
       }
       
       if ((isB2C || isAllService) && role !== "b2b_admin" && businessModel !== "B2B") {
@@ -206,14 +253,20 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       const canAccessCompany = permissions?.dash_access_company;
 
       if (canAccessCompany) {
-        const companySubItems = [];
+        const companySubItems: SubNavItem[] = [];
         const canHours = granularPermissions?.company?.hours !== false;
         const canSeo = granularPermissions?.company?.seo !== false;
         const canDomain = granularPermissions?.company?.domain !== false;
 
         if (canHours) companySubItems.push({ href: "/dashboard/empresa", label: "Horário de Funcionamento", icon: Clock });
         if (canSeo) companySubItems.push({ href: "/dashboard/empresa/seo", label: "Informações e SEO", icon: Settings });
-        if (canDomain) companySubItems.push({ href: "/dashboard/empresa/dominio", label: "Configurar Domínio", icon: Globe });
+        if (canDomain) companySubItems.push({ 
+          href: "/dashboard/empresa/dominio", 
+          label: "Configurar Domínio", 
+          icon: Globe,
+          requiredFeature: "custom_domain",
+          badge: "PRO"
+        });
 
         if (companySubItems.length > 0) {
           navLinks.push({ 
@@ -225,7 +278,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       }
 
       if (canAccessCatalog) {
-        const catalogSubItems = [];
+        const catalogSubItems: SubNavItem[] = [];
         const catalogPerms = granularPermissions?.catalog || {};
         const canManageProducts = catalogPerms.create !== false || catalogPerms.edit !== false || catalogPerms.delete !== false;
         const canConfig = catalogPerms.settings_general !== false || catalogPerms.settings_behavior !== false || catalogPerms.settings_banners !== false;
@@ -239,7 +292,13 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           catalogSubItems.push({ href: "/dashboard/catalogo/configuracoes", label: "Configurar Catálogo", icon: Settings });
         }
         if (canBulk) {
-          catalogSubItems.push({ href: "/dashboard/catalogo/bulk", label: "Gerenciar produtos em Massa", icon: LayoutDashboard });
+          catalogSubItems.push({ 
+            href: "/dashboard/catalogo/bulk", 
+            label: "Gerenciar em Massa", 
+            icon: LayoutDashboard,
+            requiredFeature: "bulk_pricing",
+            badge: "PREMIUM"
+          });
         }
 
         if (catalogSubItems.length > 0) {
@@ -273,6 +332,11 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
 
   return (
     <>
+      <UpgradeModal
+        isOpen={isUpgradeOpen}
+        onClose={closeUpgradeModal}
+        feature={requestedFeature}
+      />
       {/* Mobile Overlay */}
       <div 
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
@@ -335,6 +399,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
               const isSameHash = itemHash ? currentHash === itemHash : !currentHash;
               
               const isActive = (isSamePath && isSameHash) || (hasSubItems && item.subItems.some((s: any) => pathname === s.href));
+              const isItemLocked = item.requiredFeature && !isFeatureAllowed(planId, item.requiredFeature);
 
               if (hasSubItems) {
                 return (
@@ -372,8 +437,37 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                           transition={{ duration: 0.3, ease: "easeInOut" }}
                           className={`overflow-hidden space-y-1 ${isCollapsed ? "px-0 flex flex-col items-center" : "pl-10"}`}
                         >
-                          {item.subItems.map((sub: any) => {
+                          {item.subItems.map((sub: SubNavItem) => {
                             const isSubActive = pathname === sub.href;
+                            const isSubLocked = sub.requiredFeature && !isFeatureAllowed(planId, sub.requiredFeature);
+
+                            if (isSubLocked) {
+                              return (
+                                <button
+                                  key={sub.href}
+                                  type="button"
+                                  onClick={() => requestFeature(sub.requiredFeature!)}
+                                  className={`flex w-full items-center justify-between gap-2 rounded-lg transition-all text-amber-500/80 hover:text-amber-400 ${
+                                    isCollapsed ? "p-2 justify-center" : "px-3 py-2 text-xs"
+                                  }`}
+                                  title={isCollapsed ? `${sub.label} (${sub.badge || 'PRO'})` : ""}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {sub.icon && <sub.icon size={isCollapsed ? 18 : 14} />}
+                                    {!isCollapsed && <span>{sub.label}</span>}
+                                  </div>
+                                  {!isCollapsed && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                        {sub.badge || "PRO"}
+                                      </span>
+                                      <Lock size={12} />
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            }
+
                             return (
                               <Link
                                 key={sub.href}
@@ -400,6 +494,33 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                       )}
                     </AnimatePresence>
                   </div>
+                );
+              }
+
+              if (isItemLocked) {
+                return (
+                  <button
+                    key={item.href || item.label}
+                    type="button"
+                    onClick={() => requestFeature(item.requiredFeature!)}
+                    className={`group relative flex w-full items-center justify-between rounded-lg p-3 text-sm font-medium transition-all text-amber-500/80 hover:text-amber-400 hover:bg-[var(--dash-surface)]/10 ${
+                      isCollapsed ? "justify-center px-0" : "px-4"
+                    }`}
+                    title={isCollapsed ? `${item.label} (${item.badge || 'PRO'})` : ""}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon size={22} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </div>
+                    {!isCollapsed && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          {item.badge || "PRO"}
+                        </span>
+                        <Lock size={14} />
+                      </div>
+                    )}
+                  </button>
                 );
               }
 

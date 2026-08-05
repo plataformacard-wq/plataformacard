@@ -274,7 +274,7 @@ export default function ConfiguracoesGeralTab({
               </div>
 
               {enableShoppingCart && (
-                <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-2xl space-y-6 animate-fadeIn">
+                <div className="p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-[27px] space-y-6 animate-fadeIn">
                   {/* Valor Mínimo */}
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-wider text-[var(--dash-text-muted)]">
@@ -286,7 +286,7 @@ export default function ConfiguracoesGeralTab({
                       step="1"
                       value={cartMinOrderValue || 0}
                       onChange={(e) => setCartMinOrderValue(parseFloat(e.target.value) || 0)}
-                      className="w-full max-w-xs p-3 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl text-sm font-bold text-[var(--dash-text-primary)] focus:ring-2 focus:ring-primary outline-none"
+                      className="w-full max-w-xs p-3 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg text-sm font-bold text-[var(--dash-text-primary)] focus:ring-2 focus:ring-primary outline-none"
                       placeholder="0.00"
                     />
                     <p className="text-[11px] text-[var(--dash-text-muted)]">

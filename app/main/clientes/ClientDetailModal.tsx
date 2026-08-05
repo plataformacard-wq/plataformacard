@@ -21,7 +21,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateOrganizationPlan, updateOrganizationModel, getOrganizationStats, startShadowAccess, updateOrganizationInternalName } from "@/lib/admin-actions";
-import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS } from "@/lib/plans";
+import { detectDowngradeConflicts, getPlanName, PLAN_LIMITS, PLAN_IDS } from "@/lib/plans";
 
 interface ClientDetailModalProps {
   isOpen: boolean;
@@ -130,6 +130,8 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
     const result = await updateOrganizationPlan(organization.id, planId);
     if (result.success) {
       setCurrentPlan(planId);
+      const isStarter = planId === PLAN_IDS.STARTER;
+      setBusinessModel(isStarter ? "B2C" : "B2B");
     } else {
       alert("Erro ao atualizar plano: " + result.error);
     }
@@ -352,12 +354,13 @@ export default function ClientDetailModal({ isOpen, onClose, organization }: Cli
                           value={currentPlan || ''}
                           disabled={updatingPlan}
                           onChange={(e) => handlePlanChange(e.target.value)}
-                          className="appearance-none text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                          className="dash-select text-[9px] font-black uppercase tracking-widest pl-4 pr-10 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 outline-none cursor-pointer hover:bg-amber-500/20 transition-all disabled:opacity-50"
                         >
                           <option value="">SELECIONE UM PLANO</option>
-                          <option value="32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0">PLANO: START</option>
-                          <option value="6f3dfe4e-905c-486e-923f-2cfb6e5d3e62">PLANO: BASIC</option>
-                          <option value="d35c09c2-51a0-4f38-b5d9-dcc3526e7d26">PLANO: ENTERPRISE</option>
+                          <option value={PLAN_IDS.STARTER}>PLANO: STARTER (R$ 59,90)</option>
+                          <option value={PLAN_IDS.PRO}>PLANO: PRO (R$ 149,90)</option>
+                          <option value={PLAN_IDS.SALES_TEAM}>PLANO: SALES TEAM (R$ 299,90)</option>
+                          <option value={PLAN_IDS.ENTERPRISE}>PLANO: ALL SERVICE (R$ 499,90)</option>
                         </select>
                         {updatingPlan && (
                           <div className="absolute -right-5 top-1/2 -translate-y-1/2">

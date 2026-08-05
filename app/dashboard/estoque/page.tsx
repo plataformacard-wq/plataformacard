@@ -68,10 +68,10 @@ export default async function EstoquePage() {
       : (p.categories || null)
   }));
 
-  // 5. Verificar se possui conexão com o Bling
+  // 5. Verificar conexão com Bling e Plano
   const { data: org } = await supabase
     .from("organizations")
-    .select("bling_access_token")
+    .select("bling_access_token, plan_id")
     .eq("id", activeOrgId)
     .maybeSingle();
 
@@ -83,6 +83,7 @@ export default async function EstoquePage() {
       categories={categories || []}
       orgId={activeOrgId}
       hasBlingConnection={hasBlingConnection}
+      planSlug={org?.plan_id}
     />
   );
 }

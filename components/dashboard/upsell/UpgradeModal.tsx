@@ -67,6 +67,16 @@ const FEATURE_DETAILS: Record<
       "Gestão corporativa multi-unidades",
     ],
   },
+  bulk_pricing: {
+    title: "Ajuste de Preços & Promoções em Massa",
+    desc: "Reajuste preços, aplique descontos percentuais ou edite produtos em lote de forma rápida e segura.",
+    targetPlan: "sales_team",
+    benefits: [
+      "Edição de preços por categoria ou catálogo inteiro com 1 clique",
+      "Sincronização direta com planilha Google Sheets",
+      "Histórico de alterações em lote e reversão simplificada",
+    ],
+  },
 };
 
 export default function UpgradeModal({ isOpen, onClose, feature, targetPlan }: UpgradeModalProps) {

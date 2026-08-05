@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Package, RefreshCw, Settings, ChevronDown, Check, Layout, Sparkles } from "lucide-react";
+import { Package, RefreshCw, Settings, ChevronDown, Check, Layout, Sparkles, Lock } from "lucide-react";
 import EstoqueManualTab from "@/components/dashboard/estoque/EstoqueManualTab";
 import StockIntelligenceSection from "@/components/dashboard/StockIntelligenceSection";
 import { syncBlingStock } from "@/app/dashboard/catalogo/actions/bling";
 import { useRouter } from "next/navigation";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
+import UpgradeModal from "@/components/dashboard/upsell/UpgradeModal";
+import { isFeatureAllowed } from "@/lib/plans/feature-matrix";
 
 interface Product {
   id: string;
@@ -29,6 +32,7 @@ interface EstoqueClientProps {
   categories: Category[];
   orgId: string;
   hasBlingConnection: boolean;
+  planSlug?: string | null;
 }
 
 export default function EstoqueClient({
@@ -36,9 +40,12 @@ export default function EstoqueClient({
   categories,
   orgId,
   hasBlingConnection: initialHasBlingConnection,
+  planSlug,
 }: EstoqueClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"manual" | "bling">(initialHasBlingConnection ? "bling" : "manual");
+  const { requestFeature, isOpen: isUpgradeOpen, closeModal: closeUpgradeModal, requestedFeature } = useFeatureGate(planSlug);
+  const isBlingAllowed = isFeatureAllowed(planSlug, "bling_sync");
+  const [activeTab, setActiveTab] = useState<"manual" | "bling">(initialHasBlingConnection && isBlingAllowed ? "bling" : "manual");
   
   // Estados do Bling (copiados e adaptados de CatalogManagerClient)
   const [hasBlingConnection, setHasBlingConnection] = useState(initialHasBlingConnection);
@@ -126,6 +133,11 @@ export default function EstoqueClient({
 
   return (
     <div className="space-y-8 pb-20">
+      <UpgradeModal
+        isOpen={isUpgradeOpen}
+        onClose={closeUpgradeModal}
+        feature={requestedFeature}
+      />
       {/* Header Premium com Abas */}
       <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-6 md:p-8 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none opacity-50 transition-opacity group-hover/header:opacity-100" />
@@ -154,7 +166,13 @@ export default function EstoqueClient({
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("bling")}
+              onClick={() => {
+                if (!isBlingAllowed) {
+                  requestFeature("bling_sync");
+                  return;
+                }
+                setActiveTab("bling");
+              }}
               className={`flex shrink-0 items-center gap-2 px-6 py-2.5 rounded-[27px] font-black text-xs uppercase tracking-widest transition-all ${
                 activeTab === "bling"
                   ? "bg-[var(--dash-surface)] text-[var(--dash-text-primary)] shadow-lg"
@@ -163,6 +181,7 @@ export default function EstoqueClient({
             >
               <Sparkles size={16} />
               Sincronização Bling
+              {!isBlingAllowed && <Lock size={12} className="text-amber-400 ml-1" />}
             </button>
           </div>
         </div>

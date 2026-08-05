@@ -71,7 +71,7 @@ export async function completeOnboarding(payload: {
         name: orgName,
         slug: trimmedSlug,
         business_model: businessModel,
-        plan_id: "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0" // Starter
+        plan_id: "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d" // Starter
       })
       .select("id")
       .single();

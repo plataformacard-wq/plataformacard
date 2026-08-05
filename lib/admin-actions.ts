@@ -109,9 +109,15 @@ export async function updateOrganizationPlan(orgId: string, planId: string) {
   await verifySuperAdmin();
   const supabase = createAdminClient();
  
+  const isStarter = planId === "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d";
+  const newModel = isStarter ? "B2C" : "B2B";
+
   const { error } = await supabase
     .from("organizations")
-    .update({ plan_id: planId })
+    .update({ 
+      plan_id: planId,
+      business_model: newModel 
+    })
     .eq("id", orgId);
  
   if (error) {
@@ -120,6 +126,8 @@ export async function updateOrganizationPlan(orgId: string, planId: string) {
   }
  
   revalidatePath("/main/clientes");
+  revalidatePath("/main/assinaturas");
+  revalidatePath("/dashboard");
   return { success: true };
 }
  
@@ -366,7 +374,7 @@ export async function getMyProfile() {
           name: "Minha Plataforma",
           slug: orgSlug,
           business_model: 'B2C',
-          plan_id: '32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0' // Plano Inicial
+          plan_id: 'a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d' // Plano Starter
         })
         .select("*")
         .single();

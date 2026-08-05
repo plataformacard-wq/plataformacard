@@ -29,12 +29,12 @@ export default function DashboardClient({ initialData }: { initialData: any }) {
     { title: "Gerenciar Catálogo", desc: initialData.isCaaS ? "Adicione, edite ou remova produtos do seu catálogo." : "Adicione, edite ou remova produtos do seu card digital.", icon: "📦", href: "/dashboard/catalogo", color: "from-emerald-500/10 to-emerald-500/5" },
     ...(initialData.businessModel !== "CaaS" ? [{ title: "Personalizar Perfil", desc: "Altere cores, fotos e informações do seu cartão.", icon: "👤", href: initialData.businessModel === "B2C" ? "/dashboard/perfil#cartao" : "/dashboard/perfil#perfil", color: "from-blue-500/10 to-blue-500/5" }] : []),
     { title: "Ver Analytics", desc: "Entenda o comportamento dos seus clientes.", icon: "📊", href: "/dashboard/analytics", color: "from-violet-500/10 to-violet-500/5" },
-    ...(initialData.isB2B ? [{ title: "Vendedores", desc: "Gerencie sua equipe de vendas e acessos.", icon: "👥", href: "/dashboard/vendedores", color: "from-amber-500/10 to-amber-500/5" }] : [])
+    ...(initialData.isB2B && initialData.isMultiUserAllowed ? [{ title: "Vendedores", desc: "Gerencie sua equipe de vendas e acessos.", icon: "👥", href: "/dashboard/vendedores", color: "from-amber-500/10 to-amber-500/5" }] : [])
   ];
 
   const coreChecklist = [
     { label: initialData.isB2B ? "Link da Empresa" : "Link do Perfil", done: !!initialData.slug, href: "/dashboard/perfil#cartao", icon: "🔗" },
-    { label: initialData.isB2B ? "Equipe de Vendas" : "WhatsApp de Vendas", done: initialData.isB2B ? initialData.sellerCount > 0 : initialData.hasValidWhatsapp, href: initialData.isB2B ? "/dashboard/vendedores" : "/dashboard/perfil#cartao", icon: initialData.isB2B ? "👥" : "📱" },
+    { label: initialData.isB2B && initialData.isMultiUserAllowed ? "Equipe de Vendas" : "WhatsApp de Vendas", done: initialData.isB2B && initialData.isMultiUserAllowed ? initialData.sellerCount > 0 : initialData.hasValidWhatsapp, href: initialData.isB2B && initialData.isMultiUserAllowed ? "/dashboard/vendedores" : "/dashboard/perfil#cartao", icon: initialData.isB2B && initialData.isMultiUserAllowed ? "👥" : "📱" },
     { label: initialData.hasActiveMasterState ? "Catálogo Ativo (Herdado)" : "Pelo menos 1 Produto", done: initialData.productCount > 0 || initialData.hasActiveMasterState, href: "/dashboard/catalogo", icon: "📦" }
   ];
 
@@ -91,7 +91,11 @@ export default function DashboardClient({ initialData }: { initialData: any }) {
               {initialData.nome ? `Olá, ${initialData.nome} 👋` : "Dashboard"}
             </h1>
             <p className="text-[var(--dash-text-secondary)]">
-              {initialData.isB2B ? "Gerencie sua equipe e seu catálogo matriz." : initialData.isCaaS ? "Gerencie seus produtos e vendas do seu catálogo CaaS." : "Aqui está o que está acontecendo com sua plataforma hoje."}
+              {initialData.isB2B 
+                ? (initialData.isMultiUserAllowed ? "Gerencie sua equipe e seu catálogo matriz." : "Gerencie seu catálogo de produtos e vendas.") 
+                : initialData.isCaaS 
+                ? "Gerencie seus produtos e vendas do seu catálogo CaaS." 
+                : "Aqui está o que está acontecendo com sua plataforma hoje."}
             </p>
           </div>
         </section>

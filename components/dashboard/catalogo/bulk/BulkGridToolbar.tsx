@@ -1,7 +1,10 @@
 "use client";
 import React from "react";
-import { Plus, Save, Loader2, Database, Download, RefreshCw, Tags, CheckCircle, X, Megaphone } from "lucide-react";
+import { Plus, Save, Loader2, Database, Download, RefreshCw, Tags, CheckCircle, X, Megaphone, Lock } from "lucide-react";
 import * as XLSX from "xlsx";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
+import UpgradeModal from "@/components/dashboard/upsell/UpgradeModal";
+import { isFeatureAllowed } from "@/lib/plans/feature-matrix";
 
 export default function BulkGridToolbar(props: any) {
   const {
@@ -19,10 +22,19 @@ export default function BulkGridToolbar(props: any) {
     storedSheetUrl,
     setShowPromoModal,
     setData,
+    planSlug,
   } = props;
+
+  const { requestFeature, isOpen: isUpgradeOpen, closeModal: closeUpgradeModal, requestedFeature } = useFeatureGate(planSlug);
+  const isBulkAllowed = isFeatureAllowed(planSlug, "bulk_pricing");
 
   return (
     <>
+      <UpgradeModal
+        isOpen={isUpgradeOpen}
+        onClose={closeUpgradeModal}
+        feature={requestedFeature}
+      />
       {/* --- Toolbar Refatorada --- */}
       <div className="flex flex-col gap-4 bg-[var(--dash-surface)] border border-[var(--dash-border)] p-4 rounded-[27px] shadow-sm">
         
@@ -188,12 +200,19 @@ export default function BulkGridToolbar(props: any) {
           
           <div className="flex flex-wrap items-center gap-3 flex-1">
             <button
-              onClick={() => setShowPromoModal(true)}
+              onClick={() => {
+                if (!isBulkAllowed) {
+                  requestFeature("bulk_pricing");
+                  return;
+                }
+                setShowPromoModal(true);
+              }}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 text-purple-600 border border-purple-600/20 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition-all shadow-sm"
               title="Ajustar preços e promoções em lote"
             >
               <Tags size={16} />
               Ajustes e Promoções
+              {!isBulkAllowed && <Lock size={12} className="text-amber-400 ml-1" />}
             </button>
 
             <div className="h-6 w-px bg-[var(--dash-border)] mx-1" />

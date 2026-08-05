@@ -48,6 +48,7 @@ export default function BulkGridEditor() {
           storedSheetUrl={manager.storedSheetUrl}
           setShowPromoModal={manager.setShowPromoModal}
           setData={manager.setData}
+          planSlug={manager.planSlug}
         />
 
         <BulkEditorTable
