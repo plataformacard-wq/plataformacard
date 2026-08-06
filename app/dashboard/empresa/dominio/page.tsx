@@ -190,10 +190,10 @@ export default function DominioPage() {
       </div>
 
       {!isDomainAllowed && (
-        <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-8 shadow-lg">
+        <div className="relative overflow-hidden rounded-[27px] border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-8 shadow-lg">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black uppercase tracking-wider">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-amber-500/20 text-amber-400 text-xs font-black uppercase tracking-wider">
                 <Lock size={12} /> Recurso Exclusivo Plano PRO
               </div>
               <h2 className="text-xl font-bold text-[var(--dash-text-primary)]">
@@ -205,7 +205,7 @@ export default function DominioPage() {
             </div>
             <button
               onClick={() => requestFeature("custom_domain")}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-black font-extrabold text-sm shadow-md transition-transform active:scale-95 whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-[var(--dash-text-primary)] font-extrabold text-sm shadow-md transition-transform active:scale-95 whitespace-nowrap"
             >
               <Sparkles size={16} /> Desbloquear com Plano PRO
             </button>

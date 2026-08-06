@@ -323,10 +323,10 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
     }
     navLinks.push({ href: "/dashboard/perfil#perfil", label: "Perfil", icon: ShieldCheck });
     
-    // ANALYTICS SEMPRE POR ÚLTIMO (Protocolo B2C)
+    // MINHAS MÉTRICAS SEMPRE POR ÚLTIMO (Protocolo B2C)
     const canSeeAnalytics = role === "admin" || role === "b2b_admin" || role === "b2c_admin" || isActuallySuperAdmin || permissions?.dash_access_analytics;
     if (canSeeAnalytics) {
-      navLinks.push({ href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 });
+      navLinks.push({ href: "/dashboard/analytics", label: "Minhas Métricas", icon: BarChart3 });
     }
   }
 

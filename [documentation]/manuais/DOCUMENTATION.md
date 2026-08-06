@@ -17,7 +17,7 @@ Este documento serve como a **Fonte Única de Verdade (SSOT)** para a arquitetur
 - **Contas de Emergência:** O sistema utiliza fallbacks automáticos via `user_metadata` caso o registro na tabela `profiles` demore a sincronizar.
 
 ## 4. Navegação e Sidebar
-- **Analytics:** Visível por padrão para todos os níveis de gestão.
+- **Minhas Métricas:** Visível por padrão para todos os níveis de gestão.
 - **Filtros de Menu:** Itens de equipe (Vendedores) são ocultados automaticamente para perfis `b2c_admin`.
 - **Indicador Ativo:** Uma barra lateral verde de 4px de largura deve ser renderizada à esquerda de qualquer item de menu ou submenu ativo.
 - **Ordem dos Menus (Padrão):** 
@@ -27,7 +27,7 @@ Este documento serve como a **Fonte Única de Verdade (SSOT)** para a arquitetur
   4. Vendedores (Apenas B2B)
   5. Editar Cartão Público (Apenas B2C)
   6. Perfil (Penúltimo)
-  7. Analytics (Último)
+  7. Minhas Métricas (Último)
 
 ## 5. Lógica de Disponibilidade e Horários
 O sistema utiliza uma hierarquia de três níveis para determinar se um catálogo está aberto:
@@ -178,7 +178,7 @@ Ambos possuem o mesmo formato de catálogo vitrine, o mesmo controle de recesso 
 - **2026-05-09:**
   - **UI/UX Premium (Galeria):** Implementação de reordenação por drag-and-drop e novo fluxo de editor que abre antes do seletor de arquivos.
   - **Herança de Horários:** Correção da lógica de disponibilidade para vendedores, respeitando permissões de personalização e implementando fallback seguro para horários da organização.
-  - Reordenamento estratégico da Sidebar (Dashboard > Empresa > Catálogo > ... > Perfil > Analytics).
+  - Reordenamento estratégico da Sidebar (Dashboard > Empresa > Catálogo > ... > Perfil > Minhas Métricas).
   - Implementação do campo `specs_title` e layout de coluna única para especificações.
   - Substituição de botões estáticos por Sliders de Status (Visível/Estoque).
   - Auditoria completa de cores (Pre-Git Scan) removendo hexadecimais fixos e classes `zinc` residuais.

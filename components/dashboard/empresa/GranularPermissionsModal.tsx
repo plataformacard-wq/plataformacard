@@ -16,7 +16,7 @@ interface Props {
 
 const MODULE_TITLES = {
   catalog: "Permissões de Catálogo",
-  analytics: "Permissões de Analytics",
+  analytics: "Permissões de Minhas Métricas",
   company: "Permissões de Empresa",
   profile: "Permissões do Próprio Cadastro"
 };

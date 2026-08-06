@@ -72,7 +72,7 @@ Solução completa para médias e grandes empresas, redes de distribuição, fra
 - ✅ **Gestão Multi-Vendedor B2B & CRM Integrado:** Distribuição e atribuição inteligente de atendimento por vendedor, com quadro Kanban para acompanhamento de leads.
 - ✅ **Catálogo Mestre CaaS (Catalog as a Service):** Funcionalidade para clonar, gerenciar e distribuir catálogos matriz para filiais, lojas parceiras ou representantes.
 - ✅ **Ajuste de Preços em Massa (Bulk Pricing):** Reajuste percentual ou valor fixo em massa para categorias inteiras ou todo o catálogo.
-- ✅ **Relatórios e Analytics Avançados:** Métricas de acessos por produto, taxa de conversão por vendedor e categorias mais buscadas.
+- ✅ **Relatórios e Minhas Métricas Avançados:** Métricas de acessos por produto, taxa de conversão por vendedor e categorias mais buscadas.
 - ✅ **Suporte VIP Prioritário:** Atendimento via WhatsApp exclusivo com gerente de contas e SLA reduzido.
 
 ### 4. Modalidade ALL SERVICE — *Omnichannel, Franquias e Redes Enterprise*

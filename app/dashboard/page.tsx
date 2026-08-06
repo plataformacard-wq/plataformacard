@@ -75,6 +75,7 @@ export default async function DashboardPage() {
   let hasOwnedMasterState = false;
   let showNoWhatsappWarning = false;
   let profileViews = 0;
+  let categoryDistribution: { label: string; value: number; color?: string }[] = [];
 
   if (activeOrgId) {
     const [{ count: pCount }, { data: sData, count: sCount }, { data: org }, { data: orgCatalogs }] = await Promise.all([
@@ -92,6 +93,34 @@ export default async function DashboardPage() {
     if (org?.business_model) businessModel = org.business_model;
     if (org?.name) orgName = org.name;
     if (org?.bling_access_token) hasBlingConnection = true;
+
+    // Buscar distribuição de produtos por categorias reais da organização
+    const { data: orgCategories } = await supabase
+      .from("categories")
+      .select("id, name")
+      .eq("organization_id", activeOrgId);
+
+    if (orgCategories && orgCategories.length > 0) {
+      const palette = ["#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#f59e0b"];
+      const categoryCounts = await Promise.all(
+        orgCategories.map((c) =>
+          supabase
+            .from("products")
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", activeOrgId)
+            .eq("category_id", c.id)
+            .is("deleted_at", null)
+        )
+      );
+
+      categoryDistribution = orgCategories
+        .map((c, i) => ({
+          label: c.name,
+          value: categoryCounts[i].count || 0,
+          color: palette[i % palette.length],
+        }))
+        .filter((c) => c.value > 0);
+    }
 
     // Feriados
     const orgBusinessHours = org?.business_hours as any;
@@ -216,7 +245,8 @@ export default async function DashboardPage() {
     profileViews,
     planId,
     maxUsers,
-    isMultiUserAllowed
+    isMultiUserAllowed,
+    categoryDistribution: typeof categoryDistribution !== "undefined" ? categoryDistribution : []
   };
 
   return <DashboardClient initialData={initialData} />;
