@@ -329,7 +329,7 @@ function SortableCard({
             e.stopPropagation();
             if (onOpenDetail) onOpenDetail(metric.id);
           }}
-          className="absolute top-3.5 right-3.5 z-20 opacity-0 group-hover:opacity-100 p-1.5 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)]/90 backdrop-blur-sm text-[var(--dash-text-secondary)] hover:text-primary hover:border-primary/40 transition-all shadow-sm"
+          className="absolute top-3.5 right-3.5 z-20 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)]/90 backdrop-blur-sm text-[var(--dash-text-secondary)] hover:text-primary hover:border-primary/40 transition-all shadow-sm"
           title="Ver detalhamento completo"
         >
           <Maximize2 size={13} />
@@ -338,7 +338,7 @@ function SortableCard({
 
       {/* Editing Controls: Chart Selector, Drag Handle & Remove Button */}
       {isEditing && (
-        <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-[var(--dash-surface)]/95 backdrop-blur-md p-1 rounded-xl border border-[var(--dash-border)] shadow-md">
+        <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-[var(--dash-surface)]/95 backdrop-blur-md p-1 rounded-lg border border-[var(--dash-border)] shadow-md">
           {/* Seletor Dinâmico de Gráfico */}
           <div className="flex items-center gap-0.5 border-r border-[var(--dash-border)] pr-1.5">
             {allowedKinds.includes("area") && (
@@ -407,7 +407,7 @@ function SortableCard({
       )}
 
       <div className="flex items-center justify-between">
-        <div className={`rounded-xl p-2.5 ${metric.bgClass} ${metric.textClass}`}>
+        <div className={`rounded-lg p-2.5 ${metric.bgClass} ${metric.textClass}`}>
           <metric.icon size={22} />
         </div>
 
@@ -581,7 +581,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               disabled={availableMetrics.length === 0}
-              className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all border ${
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all border ${
                 availableMetrics.length === 0
                   ? "border-[var(--dash-border)] bg-[var(--dash-surface)] opacity-50 cursor-not-allowed text-[var(--dash-text-secondary)]"
                   : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
@@ -598,7 +598,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
                   initial={{ opacity: 0, y: 6, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 z-40 w-56 rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-2 shadow-xl backdrop-blur-xl"
+                  className="absolute right-0 top-full mt-2 z-40 w-56 rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-2 shadow-xl backdrop-blur-xl"
                 >
                   <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--dash-text-secondary)]">
                     Métricas Disponíveis
@@ -609,7 +609,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
                         key={m.id}
                         type="button"
                         onClick={() => handleAddMetric(m.id)}
-                        className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-[var(--dash-text-primary)] hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-[var(--dash-text-primary)] hover:bg-primary/10 hover:text-primary transition-colors text-left"
                       >
                         <div className="flex items-center gap-2">
                           <m.icon size={16} className={m.textClass} />
@@ -628,7 +628,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all border ${
+            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all border ${
               isEditing
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
                 : "border-[var(--dash-border)] bg-[var(--dash-surface)] text-[var(--dash-text-primary)] hover:border-primary/40"
@@ -652,7 +652,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
             <button
               type="button"
               onClick={handleRestoreDefaults}
-              className="flex items-center gap-1.5 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] px-3.5 py-2 text-xs font-bold text-[var(--dash-text-secondary)] hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 transition-all"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] px-3.5 py-2 text-xs font-bold text-[var(--dash-text-secondary)] hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 transition-all"
               title="Restaurar as métricas e gráficos padrão"
             >
               <RotateCcw size={14} />
@@ -676,7 +676,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-[27px] border-2 border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-8 text-center"
         >
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-[27px] bg-primary/10 text-primary">
             <SlidersHorizontal size={24} />
           </div>
           <h3 className="text-base font-bold text-[var(--dash-text-primary)]">
@@ -689,7 +689,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
             <button
               type="button"
               onClick={() => setIsDropdownOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-primary/90 transition-all"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-primary/90 transition-all"
             >
               <Plus size={16} />
               <span>Adicionar Métricas</span>
@@ -697,7 +697,7 @@ export default function MyMetricsSection({ initialData }: { initialData: any }) 
             <button
               type="button"
               onClick={handleRestoreDefaults}
-              className="flex items-center gap-2 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] px-4 py-2.5 text-xs font-bold text-[var(--dash-text-primary)] hover:border-primary/40 transition-all"
+              className="flex items-center gap-2 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] px-4 py-2.5 text-xs font-bold text-[var(--dash-text-primary)] hover:border-primary/40 transition-all"
             >
               <RotateCcw size={15} />
               <span>Restaurar 4 Métricas Padrão</span>

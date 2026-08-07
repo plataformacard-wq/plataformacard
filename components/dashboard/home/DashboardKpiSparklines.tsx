@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export interface SparklinePoint {
   label: string;
   value: number;
+  color?: string;
 }
 
 interface AreaSparklineProps {
@@ -197,7 +198,7 @@ export function BarSparkline({ data, color = "#10b981", height = 44, width = 105
                 x={x}
                 width={barWidth}
                 rx={2.5}
-                fill={color}
+                fill={d.color || color}
                 opacity={isHovered ? 1 : 0.65}
                 className="transition-opacity"
               />

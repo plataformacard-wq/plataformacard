@@ -80,7 +80,8 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
 
   const priceMatch = displayPriceStr.match(/(R\$)\s*([\d,]+)(.*)/);
 
-  const isGreenTheme = plan?.theme === 'green';
+  const isCurrentPlan = !!plan?.isCurrent;
+  const isGreenTheme = plan?.theme === 'green' || isCurrentPlan;
   const featuresList = Array.isArray(plan?.features) 
     ? plan.features.filter((f: any) => typeof f === 'string' && f.trim() !== '') 
     : [];
@@ -91,15 +92,23 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
   return (
     <div 
       className={`relative flex flex-col h-full w-full transition-all ${!isInteractive ? 'pointer-events-none select-none' : ''} ${
-        isGreenTheme 
+        isCurrentPlan
+          ? 'bg-emerald-500/15 dark:bg-emerald-500/20 border-4 border-emerald-500 ring-4 ring-emerald-500/30 rounded-3xl p-5 xl:p-6 sm:p-7 backdrop-blur-md shadow-[0_0_35px_rgba(16,185,129,0.35)] scale-[1.02] z-10'
+          : isGreenTheme 
           ? 'bg-emerald-500/5 dark:bg-[#2CCB68]/5 border-2 border-[#2CCB68] rounded-3xl p-5 xl:p-6 sm:p-7 backdrop-blur-md shadow-lg dark:shadow-none' 
           : 'bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-3xl p-5 xl:p-6 sm:p-7 backdrop-blur-md shadow-md dark:shadow-none'
       }`}
     >
-      {/* Badge Recomendado (Centro) */}
-      {plan?.badge_text && (
-        <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full uppercase text-[11px] font-bold tracking-wider z-20 whitespace-nowrap shadow-md ${isGreenTheme ? 'bg-[#2CCB68] text-[#0A0A0A]' : 'bg-zinc-900 text-white dark:bg-white dark:text-black'}`}>
-          {plan.badge_text}
+      {/* Badge Recomendado ou Plano Ativo (Centro) */}
+      {(isCurrentPlan || plan?.badge_text) && (
+        <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full uppercase text-xs font-black tracking-widest z-20 whitespace-nowrap shadow-lg ${
+          isCurrentPlan 
+            ? 'bg-emerald-500 text-black font-black border border-emerald-400 shadow-emerald-500/40 ring-2 ring-emerald-500/50'
+            : isGreenTheme 
+            ? 'bg-[#2CCB68] text-[#0A0A0A]' 
+            : 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+        }`}>
+          {isCurrentPlan ? "✓ PLANO ATIVO (CONTRATADO)" : plan.badge_text}
         </div>
       )}
       
@@ -148,12 +157,7 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
         <div className="min-h-[30px] mt-1.5 flex items-center">
           {!isAnnual && currentActivePriceValue > 0 && (
              <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium tracking-wide whitespace-nowrap">
-               Total de <strong className="text-zinc-800 dark:text-zinc-200">R$ {(currentActivePriceValue * 12).toFixed(2).replace('.', ',')}</strong> por ano.
-             </div>
-          )}
-          {isAnnual && activeDiscountValue > 0 && (
-             <div className="text-[10px] font-bold text-[#2CCB68] bg-[#2CCB68]/10 px-2.5 py-0.5 rounded-md uppercase tracking-wider whitespace-nowrap">
-               economize R$ {(activeDiscountValue * 12).toFixed(2).replace('.', ',')} por ano.
+               Faturamento mensal sem fidelidade
              </div>
           )}
         </div>
@@ -161,11 +165,12 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
       
       <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-6 min-h-[40px] leading-snug">{plan?.subtitle || "Sem descrição definida."}</p>
       
-      <ul className="space-y-3 mb-8 flex-1">
-        {featuresList.map((feat: string, i: number) => (
-          <li key={i} className="flex items-center gap-2.5 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
-            <div className="text-[#2CCB68] shrink-0"><CheckIcon size={16} /></div>
-            <span className="line-clamp-2">{feat}</span>
+      {/* Lista de Recursos Alinhada */}
+      <ul className="space-y-3 mb-6 flex-1 pt-2 border-t border-zinc-200 dark:border-white/10">
+        {featuresList.map((feature: string, idx: number) => (
+          <li key={idx} className="flex items-start gap-2.5 text-xs text-zinc-700 dark:text-zinc-300">
+            <CheckIcon size={16} className="text-[#2CCB68] shrink-0 mt-0.5" />
+            <span className="leading-snug">{feature}</span>
           </li>
         ))}
         {featuresList.length === 0 && (
@@ -173,7 +178,15 @@ export function PricingCard({ plan, isAnnual, isInteractive = true, officialPlan
         )}
       </ul>
       
-      {buttonUrl.startsWith("http") ? (
+      {/* Botão de Ação (Desabilitado se for o Plano Ativo) */}
+      {isCurrentPlan ? (
+        <button 
+          disabled
+          className="mt-auto flex flex-col items-center justify-center gap-1 w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 cursor-not-allowed shadow-inner"
+        >
+          <span>✓ SEU PLANO ATUAL</span>
+        </button>
+      ) : buttonUrl.startsWith("http") ? (
         <a 
           href={buttonUrl} 
           target="_blank" 

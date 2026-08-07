@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useGlobalBranding } from "@/components/providers/GlobalBrandingProvider";
 import { getAccessStatusName, getAccessStatusColor } from "@/lib/utils/permissions";
+import { useRouter } from "next/navigation";
 
 interface TopHeaderProps {
   nome: string;
@@ -54,6 +55,8 @@ export function TopHeader({
   jobTitle,
   granularPermissions
 }: TopHeaderProps) {
+  const router = useRouter();
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const isB2B = businessModel === "B2B" || businessModel === "ALL_SERVICE";
   const isCaaS = businessModel === "CaaS";
   const { globalIconUrl } = useGlobalBranding();
@@ -108,8 +111,15 @@ export function TopHeader({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--dash-text-muted)]" size={18} />
           <input 
             type="text" 
-            placeholder="Buscar recursos..." 
-            className="h-10 w-64 rounded-lg border bg-[var(--dash-input-bg)] pl-10 pr-4 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+            value={globalSearchQuery}
+            onChange={(e) => setGlobalSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && globalSearchQuery.trim()) {
+                router.push(`/dashboard/estoque?search=${encodeURIComponent(globalSearchQuery.trim())}`);
+              }
+            }}
+            placeholder="Buscar produtos, esgotados, SKUs... [Enter]" 
+            className="h-10 w-72 rounded-lg border bg-[var(--dash-input-bg)] pl-10 pr-4 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
           />
         </div>
       </div>

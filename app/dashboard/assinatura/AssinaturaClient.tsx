@@ -4,23 +4,29 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getOrganizationStats, getOrganizationById } from "@/lib/admin-actions";
 import { getPlanName } from "@/lib/plans";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, 
   Check, 
   ArrowUpRight, 
   ShieldCheck, 
-  Sparkles, 
   Package, 
   Users, 
-  AlertTriangle,
   HelpCircle,
-  Loader2
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Table
 } from "lucide-react";
+
+import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
+import { PricingCard } from "@/components/landing-page/PricingCard";
+import { PlanComparisonTable } from "@/components/landing-page/PlanComparisonTable";
 
 interface Plan {
   id: string;
   name: string;
+  slug?: string;
   price_monthly: number;
   max_products: number;
   max_users: number;
@@ -37,6 +43,8 @@ export default function AssinaturaClient() {
   const [stats, setStats] = useState<{ products: number; sellers: number } | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isAnnual, setIsAnnual] = useState(true);
+  const [isTableOpen, setIsTableOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -117,16 +125,81 @@ export default function AssinaturaClient() {
   }
 
   const getCheckoutUrl = (planId: string) => {
-    // Redireciona para o Mock de Pagamentos (Ambiente de Sandbox)
     return `/sandbox-checkout/${planId}?org_id=${orgId}`;
   };
 
-  const formatPrice = (priceCents: number) => {
-    return `R$ ${(priceCents / 100).toFixed(2).replace(".", ",")}`;
+  // Encontra o plano ativo da organização com fallback robusto
+  const currentPlan = plans.find(p => p.id === currentPlanId || p.slug === currentPlanId) || plans[0] || {
+    id: "starter",
+    name: "Starter",
+    max_products: 1000,
+    max_users: 1,
+    max_images_per_product: 5,
+    price_monthly: 5990,
+    checkout_url: null,
   };
 
-  // Find active plan details
-  const currentPlan = plans.find(p => p.id === currentPlanId);
+  // Mapeamento dos 4 planos em 1 linha
+  const defaultPlanKeys: PlanSlug[] = ["starter", "pro", "sales_team", "all_service"];
+  
+  const displayPlans = defaultPlanKeys.map((key) => {
+    const p = PLANS[key];
+    const dbPlan = plans.find((dp) => 
+      dp.id === currentPlanId || 
+      dp.slug === key || 
+      dp.name?.toLowerCase().includes(key.replace('_', '')) ||
+      (key === 'all_service' && (dp.name?.toLowerCase().includes('all') || dp.name?.toLowerCase().includes('franqueador')))
+    );
+    const planId = dbPlan?.id || key;
+
+    // Detecta se este card é o plano contratado pela organização
+    let isCurrent = false;
+    if (currentPlanId) {
+      const matchDbPlan = plans.find(p => p.id === currentPlanId || p.slug === currentPlanId);
+      if (matchDbPlan) {
+        const matchName = (matchDbPlan.name || '').toLowerCase();
+        const matchSlug = (matchDbPlan.slug || '').toLowerCase();
+        if (key === 'starter' && (matchName.includes('start') || matchSlug.includes('start'))) isCurrent = true;
+        else if (key === 'pro' && (matchName.includes('pro') || matchSlug.includes('pro'))) isCurrent = true;
+        else if (key === 'sales_team' && (matchName.includes('sales') || matchName.includes('team') || matchSlug.includes('sales'))) isCurrent = true;
+        else if (key === 'all_service' && (matchName.includes('all') || matchName.includes('franqueador') || matchSlug.includes('all'))) isCurrent = true;
+      } else {
+        const curLow = currentPlanId.toLowerCase();
+        if (key === 'starter' && curLow.includes('start')) isCurrent = true;
+        else if (key === 'pro' && curLow.includes('pro')) isCurrent = true;
+        else if (key === 'sales_team' && (curLow.includes('sales') || curLow.includes('team'))) isCurrent = true;
+        else if (key === 'all_service' && (curLow.includes('all') || curLow.includes('franqueador'))) isCurrent = true;
+      }
+    } else {
+      // Se não houver plan_id salvo na org, define o Starter como plano ativo inicial
+      if (key === 'starter') isCurrent = true;
+    }
+
+    return {
+      id: planId,
+      name: p.name,
+      slug: p.slug,
+      badge_text: isCurrent ? "✓ PLANO ATIVO" : (p.slug === "pro" ? "Mais Popular" : p.badgeText),
+      theme: isCurrent ? "green" : (p.slug === "pro" ? "green" : "dark"),
+      subtitle: p.slug === "starter" 
+        ? "Para autônomos que estão começando." 
+        : p.slug === "pro" 
+        ? "Para lojistas que buscam automação." 
+        : p.slug === "sales_team"
+        ? "Para equipes e médias empresas."
+        : "Para marcas, redes de franquias e catálogos matriz",
+      features: p.slug === "starter" 
+        ? ["Catálogo online sempre atualizado", "Até 1.000 produtos catalogados", "Taxa 0% em qualquer venda", "Status da conversa (CRM)", "Atualização de estoque a cada venda"] 
+        : p.slug === "pro"
+        ? ["Tudo do Starter", "Até 3.000 produtos catalogados", "Assistente de IA para Produtos e SEO", "Estoque Automatizado via Bling V3", "Domínio Próprio no seu Site"]
+        : p.slug === "sales_team"
+        ? ["Tudo do PRO", "Até 5.000 produtos catalogados", "Até 10 Vendedores/Usuários B2B", "Gestão Multi-Vendedor com Comissão", "Suporte Prioritário VIP via WhatsApp"]
+        : ["Tudo do PRO e Sales Team", "Produtos e Usuários Ilimitados", "Painel de Gestão de Franquias & Matriz", "Vendas no Varejo, Atacado e B2B", "Gerente de Contas Dedicado & Suporte VIP"],
+      button_text: isCurrent ? "✓ SEU PLANO ATUAL" : (p.slug === "pro" ? "Assinar PRO" : "Assinar Plano"),
+      button_url: isCurrent ? undefined : getCheckoutUrl(planId),
+      isCurrent,
+    };
+  });
 
   return (
     <div className="w-full space-y-10 pb-20">
@@ -141,12 +214,12 @@ export default function AssinaturaClient() {
             </p>
           </div>
           <div className="flex items-center gap-3 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg px-6 py-4">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+            <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
               <CreditCard size={20} />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-text-muted)]">Plano Atual</p>
-              <h3 className="text-lg font-black text-primary uppercase tracking-tight">{getPlanName(currentPlanId)}</h3>
+              <h3 className="text-lg font-black text-emerald-500 uppercase tracking-tight">{getPlanName(currentPlanId)}</h3>
             </div>
           </div>
         </div>
@@ -162,7 +235,7 @@ export default function AssinaturaClient() {
       {stats && currentPlan && (
         <section className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
-            <ShieldCheck className="text-primary animate-pulse" size={24} />
+            <ShieldCheck className="text-emerald-500 animate-pulse" size={24} />
             <h3 className="text-xl font-bold tracking-tight">Utilização do Plano</h3>
           </div>
 
@@ -171,7 +244,7 @@ export default function AssinaturaClient() {
             <div className="space-y-3 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Package className="text-primary" size={18} />
+                  <Package className="text-emerald-500" size={18} />
                   <span className="text-sm font-bold">Produtos Cadastrados</span>
                 </div>
                 <span className="text-xs font-black">
@@ -203,7 +276,7 @@ export default function AssinaturaClient() {
               <div className="space-y-3 p-6 bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Users className="text-primary" size={18} />
+                    <Users className="text-emerald-500" size={18} />
                     <span className="text-sm font-bold">Vendedores Ativos</span>
                   </div>
                   <span className="text-xs font-black">
@@ -234,110 +307,101 @@ export default function AssinaturaClient() {
         </section>
       )}
 
-      {/* Grid de Planos */}
-      <div>
-        <h2 className="text-2xl font-black tracking-tight text-[var(--dash-text-primary)] text-center mb-10">
-          Escolha o Plano Ideal para seu Negócio
-        </h2>
+      {/* Grid de Planos Espelhado da Landing Page */}
+      <div className="space-y-10">
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl font-extrabold tracking-tight text-[var(--dash-text-primary)]">
+            Escolha o Plano Ideal para seu Negócio
+          </h2>
+          <p className="text-[var(--dash-text-muted)] text-base max-w-xl mx-auto font-medium">
+            Cresça sua vitrine digital com inteligência, sem surpresas no faturamento.
+          </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-          {plans.map((plan) => {
-            const isCurrent = plan.id === currentPlanId;
-            const isFree = plan.price_monthly === 0 || plan.name.toLowerCase() === 'free' || plan.name.toLowerCase() === 'start';
-
-            return (
-              <motion.div
-                key={plan.id}
-                whileHover={{ y: -6 }}
-                className={`relative rounded-lg border bg-[var(--dash-surface)] p-8 shadow-md flex flex-col min-h-[500px] overflow-hidden transition-all ${
-                  isCurrent 
-                    ? "border-primary shadow-lg ring-1 ring-primary" 
-                    : "border-[var(--dash-border)] hover:border-zinc-700"
+          {/* Toggle Switch Mensal / Anual Perfeitamente Alinhado */}
+          <div className="flex flex-col items-center justify-center gap-3 pt-2">
+            <div className="inline-flex items-center bg-[var(--dash-hover-bg)] border border-[var(--dash-border)] rounded-full p-1 relative shadow-inner">
+              <div 
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#2CCB68] rounded-full transition-transform duration-300 ease-in-out ${
+                  isAnnual ? 'left-1 translate-x-full' : 'left-1 translate-x-0'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setIsAnnual(false)}
+                className={`relative z-10 w-32 py-2.5 text-xs font-black rounded-full transition-colors text-center cursor-pointer ${
+                  !isAnnual ? 'text-[#0A0A0A]' : 'text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]'
                 }`}
               >
-                {/* Destaque do Plano Ativo */}
-                {isCurrent && (
-                  <div className="absolute top-4 right-4 bg-primary/10 text-primary border border-primary/20 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                    Plano Ativo
-                  </div>
-                )}
+                Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAnnual(true)}
+                className={`relative z-10 w-32 py-2.5 text-xs font-black rounded-full transition-colors text-center cursor-pointer ${
+                  isAnnual ? 'text-[#0A0A0A]' : 'text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)]'
+                }`}
+              >
+                Anual
+              </button>
+            </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-black uppercase tracking-wider">{plan.name}</h3>
-                  <div className="flex items-baseline text-[var(--dash-text-primary)]">
-                    <span className="text-4xl font-extrabold tracking-tight">
-                      {formatPrice(plan.price_monthly)}
-                    </span>
-                    <span className="ml-1 text-xs text-[var(--dash-text-muted)] font-semibold">/mês</span>
-                  </div>
-                </div>
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-xs">
+              <span>🔥 20% OFF no faturamento anual</span>
+            </div>
+          </div>
+        </div>
 
-                {/* Benefícios e Recursos */}
-                <ul className="mt-8 space-y-4 flex-1">
-                  <li className="flex items-start gap-3 text-sm">
-                    <Check className="text-primary shrink-0 mt-0.5" size={16} />
-                    <span>
-                      Até <strong className="text-white">{plan.max_products > 0 ? plan.max_products : "Ilimitados"}</strong> produtos
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3 text-sm">
-                    <Check className="text-primary shrink-0 mt-0.5" size={16} />
-                    <span>
-                      Até <strong className="text-white">{plan.max_images_per_product}</strong> fotos por produto
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3 text-sm">
-                    <Check className="text-primary shrink-0 mt-0.5" size={16} />
-                    <span>
-                      Até <strong className="text-white">{plan.max_users > 0 ? plan.max_users : "Ilimitados"}</strong> vendedores (B2B)
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3 text-sm">
-                    <Check className="text-primary shrink-0 mt-0.5" size={16} />
-                    <span>Suporte WhatsApp prioritário</span>
-                  </li>
-                </ul>
+        {/* 📊 GRID EM 1 LINHA NO DESKTOP (4 COLUNAS) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 items-stretch max-w-[1550px] mx-auto">
+          {displayPlans.map((plan) => (
+            <PricingCard key={plan.id} plan={plan} isAnnual={isAnnual} isInteractive={true} />
+          ))}
+        </div>
 
-                {/* Botão de Ação */}
-                <div className="mt-8 pt-6 border-t border-[var(--dash-border)]">
-                  {isCurrent ? (
-                    <button
-                      disabled
-                      className="w-full bg-[var(--dash-hover-bg)] text-[var(--dash-text-muted)] border border-[var(--dash-border)] rounded-lg py-4 text-xs font-black uppercase tracking-widest cursor-not-allowed"
-                    >
-                      Plano Ativo
-                    </button>
-                  ) : isFree ? (
-                    <button
-                      disabled
-                      className="w-full bg-[var(--dash-hover-bg)] text-[var(--dash-text-muted)] border border-[var(--dash-border)] rounded-lg py-4 text-xs font-black uppercase tracking-widest cursor-not-allowed"
-                    >
-                      Disponível via Suporte
-                    </button>
-                  ) : (
-                    <a
-                      href={getCheckoutUrl(plan.id)}
-                      className="flex items-center justify-center gap-2 w-full bg-primary text-white rounded-lg py-4 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-98 transition-all shadow-lg shadow-primary/20 group"
-                    >
-                      Assinar Plano
-                      <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </a>
-                  )}
-                </div>
+        {/* 🔻 SANFONA EXPANSÍVEL: TABELA COMPARATIVA DE RECURSOS */}
+        <div className="mt-12 text-center flex flex-col items-center max-w-[1550px] mx-auto pt-6">
+          <button
+            type="button"
+            onClick={() => setIsTableOpen(!isTableOpen)}
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[var(--dash-surface)] border border-[var(--dash-border)] hover:border-emerald-500/50 hover:bg-emerald-500/10 text-[var(--dash-text-primary)] font-bold text-sm transition-all shadow-md active:scale-95 group"
+          >
+            <Table className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
+            <span>
+              {isTableOpen
+                ? "Ocultar matriz comparativa de recursos"
+                : "Comparar todas as funcionalidades e limites em detalhes"}
+            </span>
+            {isTableOpen ? (
+              <ChevronUp className="w-5 h-5 text-emerald-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-emerald-500" />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {isTableOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4 }}
+                className="w-full mt-8 overflow-hidden text-left"
+              >
+                <PlanComparisonTable isAnnual={isAnnual} />
               </motion.div>
-            );
-          })}
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* Rodapé Informativo */}
-      <div className="rounded-lg border border-dashed border-[var(--dash-border)] p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="rounded-lg border border-dashed border-[var(--dash-border)] p-6 flex flex-col md:flex-row items-center justify-between gap-6 bg-[var(--dash-surface)]">
         <div className="flex items-start gap-3">
           <HelpCircle className="text-[var(--dash-text-muted)] shrink-0 mt-1" size={20} />
           <div>
             <h4 className="font-bold text-sm text-[var(--dash-text-primary)]">Faturamento e Cancelamento</h4>
             <p className="text-xs text-[var(--dash-text-muted)] mt-1 max-w-xl">
-              Nossas assinaturas são gerenciadas de forma segura. Você pode cancelar a renovação da sua assinatura a qualquer momento diretamente no seu painel de controle do gateway ou entrando em contato com o suporte.
+              Nossas assinaturas são gerenciadas de forma segura. Você pode alterar seu plano ou cancelar a renovação da sua assinatura a qualquer momento com total transparência.
             </p>
           </div>
         </div>

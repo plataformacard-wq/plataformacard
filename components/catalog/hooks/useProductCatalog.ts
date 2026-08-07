@@ -6,6 +6,7 @@ import { formatWhatsAppMessage } from "@/lib/utils/whatsapp-utils";
 import { ProductCatalogClientProps, Product } from "../types";
 import { sanitizeText, formatPrice } from "../utils";
 import { trackLeadAction } from "@/app/actions/leads";
+import { smartSearchMatch } from "@/lib/utils/smart-search";
 
 const supabase = createClient();
 
@@ -386,7 +387,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
       const filteredAndMapped = products.filter(p => 
         p.category_id === cat.id && 
         p.is_active !== false &&
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        smartSearchMatch(p, searchQuery)
       ).map(p => ({ ...p, name: sanitizeText(p.name) }));
 
       if (outOfStockAtEnd) {
@@ -407,7 +408,7 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
     const uncategorized = products.filter(p => 
       (!p.category_id || !categories.some(c => c.id === p.category_id)) && 
       p.is_active !== false &&
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      smartSearchMatch(p, searchQuery)
     ).map(p => ({ ...p, name: sanitizeText(p.name) }));
 
     if (outOfStockAtEnd && uncategorized.length > 0) {

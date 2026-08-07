@@ -256,6 +256,12 @@ export default function EstoqueClient({
         )}
       </AnimatePresence>
 
+      {/* Componente Analítico de Estoque (Sempre visível) */}
+      <StockIntelligenceSection
+        activeOrgId={orgId}
+        hasBlingConnection={hasBlingConnection}
+      />
+
       <AnimatePresence mode="wait">
         {activeTab === "manual" ? (
           <motion.div
@@ -411,12 +417,6 @@ export default function EstoqueClient({
                 </div>
               )}
             </div>
-
-            {/* Componente Analítico de Estoque */}
-            <StockIntelligenceSection
-              activeOrgId={orgId}
-              hasBlingConnection={hasBlingConnection}
-            />
           </motion.div>
         )}
       </AnimatePresence>

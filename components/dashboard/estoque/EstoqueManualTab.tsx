@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Package, Check, AlertCircle, Loader2, X, ChevronDown, ChevronRight, Palette } from "lucide-react";
 import { updateProductStock, updateProductColorStock } from "@/app/dashboard/estoque/actions";
+import { smartSearchMatch } from "@/lib/utils/smart-search";
 
 interface ColorItem {
   name: string;
@@ -29,6 +30,8 @@ interface Category {
   name: string;
 }
 
+import { useSearchParams } from "next/navigation";
+
 interface EstoqueManualTabProps {
   products: Product[];
   categories: Category[];
@@ -36,10 +39,18 @@ interface EstoqueManualTabProps {
 }
 
 export default function EstoqueManualTab({ products: initialProducts, categories, hasBlingConnection }: EstoqueManualTabProps) {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const q = searchParams?.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [updatingColorKey, setUpdatingColorKey] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, "success" | "error" | null>>({});
@@ -52,12 +63,9 @@ export default function EstoqueManualTab({ products: initialProducts, categories
     setExpandedProducts((prev) => ({ ...prev, [productId]: !prev[productId] }));
   };
 
-  // Filtragem dos produtos
+  // Filtragem inteligente dos produtos com suporte semântico (ex: esgotado, baixo, promoção)
   const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
-
+    const matchesSearch = smartSearchMatch(product, searchQuery);
     const matchesCategory =
       selectedCategory === "all" || product.category_id === selectedCategory;
 

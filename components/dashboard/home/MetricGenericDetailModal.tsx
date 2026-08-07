@@ -246,12 +246,12 @@ export default function MetricGenericDetailModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[32px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 md:p-8 shadow-2xl"
+          className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 md:p-8 shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-start justify-between border-b border-[var(--dash-border)] pb-5">
             <div className="flex items-center gap-3.5">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner ${config.iconColorClass}`}>
+              <div className={`flex h-12 w-12 items-center justify-center rounded-[27px] border shadow-inner ${config.iconColorClass}`}>
                 <IconComp size={24} />
               </div>
               <div>
@@ -276,7 +276,7 @@ export default function MetricGenericDetailModal({
           {/* Main Grid Content (2 Columns) */}
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-12">
             {/* Coluna Esquerda: Gráficos de Evolução Diária & Divisão */}
-            <div className="md:col-span-6 flex flex-col justify-between rounded-2xl border border-[var(--dash-border)] bg-black/5 dark:bg-white/5 p-5">
+            <div className="md:col-span-6 flex flex-col justify-between rounded-[27px] border border-[var(--dash-border)] bg-black/5 dark:bg-[var(--dash-surface)]/5 p-5">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-[var(--dash-text-secondary)] mb-3">
                   {chartType === "donut"
@@ -311,7 +311,7 @@ export default function MetricGenericDetailModal({
                   {activeSegments.map((seg, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between text-xs rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] px-3 py-2"
+                      className="flex items-center justify-between text-xs rounded-lg bg-[var(--dash-surface)] border border-[var(--dash-border)] px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: seg.color }} />
@@ -330,7 +330,7 @@ export default function MetricGenericDetailModal({
             <div className="md:col-span-6 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 {/* Highlight Stats */}
-                <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4">
+                <div className="rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-[var(--dash-text-secondary)] uppercase">{config.badgeText}</span>
                     <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
@@ -344,7 +344,7 @@ export default function MetricGenericDetailModal({
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-3.5">
+                  <div className="rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] p-3.5">
                     <div className="flex items-center gap-1.5 text-[var(--dash-text-secondary)] mb-1">
                       <Calendar size={14} />
                       <span className="text-[11px] font-semibold">{config.statsLabel1}</span>
@@ -354,7 +354,7 @@ export default function MetricGenericDetailModal({
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-3.5">
+                  <div className="rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] p-3.5">
                     <div className="flex items-center gap-1.5 text-[var(--dash-text-secondary)] mb-1">
                       <Sparkles size={14} className="text-primary" />
                       <span className="text-[11px] font-semibold">{config.statsLabel2}</span>
@@ -370,7 +370,7 @@ export default function MetricGenericDetailModal({
               <div className="space-y-2 pt-2">
                 <Link
                   href={config.primaryButtonHref}
-                  className="flex w-full items-center justify-between rounded-xl bg-primary px-4 py-3 text-xs font-bold text-white shadow-md hover:bg-primary/90 transition-all group"
+                  className="flex w-full items-center justify-between rounded-lg bg-primary px-4 py-3 text-xs font-bold text-white shadow-md hover:bg-primary/90 transition-all group"
                   onClick={onClose}
                 >
                   <div className="flex items-center gap-2">
@@ -382,7 +382,7 @@ export default function MetricGenericDetailModal({
 
                 <Link
                   href={config.secondaryButtonHref}
-                  className="flex w-full items-center justify-between rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] px-4 py-3 text-xs font-bold text-[var(--dash-text-primary)] hover:border-primary/40 hover:bg-primary/5 transition-all"
+                  className="flex w-full items-center justify-between rounded-lg border border-[var(--dash-border)] bg-[var(--dash-surface)] px-4 py-3 text-xs font-bold text-[var(--dash-text-primary)] hover:border-primary/40 hover:bg-primary/5 transition-all"
                   onClick={onClose}
                 >
                   <div className="flex items-center gap-2">

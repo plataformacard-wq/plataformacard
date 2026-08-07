@@ -187,7 +187,7 @@ export default function AnalyticsKpiGrid({ summary }: { summary: AnalyticsSummar
             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-all" />
           </div>
           <div className="flex items-center justify-between">
-            <div className={`rounded-xl p-2.5 ${kpi.bgClass} ${kpi.textClass}`}>
+            <div className={`rounded-lg p-2.5 ${kpi.bgClass} ${kpi.textClass}`}>
               <kpi.icon size={22} />
             </div>
 
