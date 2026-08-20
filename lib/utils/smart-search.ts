@@ -37,11 +37,13 @@ export function smartSearchMatch(
   }
 
   // 2. Busca Direta por Categoria
+  const categoriesProp: any = item.categories;
+  const categoriesName = Array.isArray(categoriesProp) ? categoriesProp[0]?.name : categoriesProp?.name;
   const categoryName = (
     item.category ||
     item.category_name ||
     item.categoria ||
-    item.categories?.name ||
+    categoriesName ||
     ""
   ).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 

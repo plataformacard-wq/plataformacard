@@ -26,24 +26,24 @@ interface QuickSearchProductModalProps {
 export function QuickSearchProductModal({ product, onClose }: QuickSearchProductModalProps) {
   const router = useRouter();
 
-  if (!product) return null;
-
-  const qty = product.stock_quantity ?? 0;
-  const isInStock = (product.is_in_stock ?? true) && qty > 0;
+  const qty = product?.stock_quantity ?? 0;
+  const isInStock = (product?.is_in_stock ?? true) && qty > 0;
   const isLowStock = isInStock && qty <= 5;
-  const isOutOfStock = !product.is_in_stock || qty <= 0;
+  const isOutOfStock = !product?.is_in_stock || qty <= 0;
 
-  const priceFormatted = product.price != null
+  const priceFormatted = product?.price != null
     ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.price)
     : "R$ 0,00";
 
-  const promoPriceFormatted = product.promotional_price != null && product.promotional_price > 0
+  const promoPriceFormatted = product?.promotional_price != null && product.promotional_price > 0
     ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.promotional_price)
     : null;
 
-  const categoryName = product.categories?.name || product.category_name || "Sem categoria";
+  const categoriesProp: any = product?.categories;
+  const categoryName = (Array.isArray(categoriesProp) ? categoriesProp[0]?.name : categoriesProp?.name) || product?.category_name || "Sem categoria";
 
   const handleNavigateToStock = () => {
+    if (!product) return;
     onClose();
     router.push(`/dashboard/estoque?search=${encodeURIComponent(product.name)}`);
   };
@@ -55,13 +55,14 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-2xl"
-        >
+      {product && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            className="relative w-full max-w-lg overflow-hidden rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-2xl"
+          >
           {/* Botão Fechar */}
           <button
             onClick={onClose}
@@ -157,6 +158,7 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 }
