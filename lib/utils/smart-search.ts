@@ -87,3 +87,38 @@ export function smartSearchMatch(
 
   return false;
 }
+
+export type AnalyticsQueryType = "out_of_stock" | "low_stock" | "categories" | "global_stock" | null;
+
+export function detectAnalyticsQuery(query: string): AnalyticsQueryType {
+  if (!query || query.trim() === "") return null;
+  const cleanedQuery = query.replace(/[\[\]]/g, "").trim().toLowerCase();
+  if (!cleanedQuery) return null;
+  const normalizedQuery = cleanedQuery.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  const outOfStockTerms = [
+    "esgotado", "esgotados", "esgotada", "esgotadas",
+    "sem estoque", "semestoque", "zerado", "zerados", "zerada", "zeradas",
+    "indisponivel", "indisponiveis", "acabou", "out of stock"
+  ];
+  if (outOfStockTerms.some((term) => normalizedQuery === term || normalizedQuery.includes(term) || term.includes(normalizedQuery))) {
+    return "out_of_stock";
+  }
+
+  const lowStockTerms = ["baixo", "baixos", "estoque baixo", "reposicao", "alerta", "pouco", "critico"];
+  if (lowStockTerms.some((term) => normalizedQuery === term || normalizedQuery.includes(term) || term.includes(normalizedQuery))) {
+    return "low_stock";
+  }
+
+  const categoryTerms = ["categoria", "categorias", "setor", "setores", "grupo", "grupos", "departamento"];
+  if (categoryTerms.some((term) => normalizedQuery === term || normalizedQuery.includes(term) || term.includes(normalizedQuery))) {
+    return "categories";
+  }
+
+  const globalStockTerms = ["total", "totais", "estoque total", "geral", "visão geral", "visao geral", "inventario", "inventário"];
+  if (globalStockTerms.some((term) => normalizedQuery === term || normalizedQuery.includes(term) || term.includes(normalizedQuery))) {
+    return "global_stock";
+  }
+
+  return null;
+}

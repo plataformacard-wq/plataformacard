@@ -2,18 +2,31 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Package, X, ArrowRight, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { 
+  Search, 
+  Package, 
+  X, 
+  ArrowRight, 
+  Loader2, 
+  AlertTriangle, 
+  XCircle, 
+  Layers, 
+  BarChart3, 
+  ArrowUpRight 
+} from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { smartSearchMatch } from "@/lib/utils/smart-search";
+import { smartSearchMatch, detectAnalyticsQuery, AnalyticsQueryType } from "@/lib/utils/smart-search";
 import { QuickSearchProduct } from "../QuickSearchProductModal";
 
 interface HeaderSearchPopoverProps {
-  onSelectProduct: (product: QuickSearchProduct) => void;
+  onSelectProduct?: (product: QuickSearchProduct) => void;
+  onOpenAnalyticsModal?: (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => void;
 }
 
-export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProps) {
+export function HeaderSearchPopover({ onSelectProduct, onOpenAnalyticsModal }: HeaderSearchPopoverProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
@@ -29,14 +42,12 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
     if (hasFetchedProducts || isFetchingProducts) return;
     setIsFetchingProducts(true);
     try {
-      // 1. Tenta consulta com join de categorias
       let res: any = await supabase
         .from("products")
         .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
         .is("deleted_at", null)
         .order("name");
 
-      // 2. Fallback caso ocorra erro no join de categorias do PostgREST
       if (res.error) {
         console.warn("[HeaderSearchPopover] Fallback para busca direta sem join:", res.error.message);
         res = await supabase
@@ -60,6 +71,8 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
   const matchingProducts = globalSearchQuery.trim()
     ? productsList.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 6)
     : [];
+
+  const detectedAnalytics = detectAnalyticsQuery(globalSearchQuery);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -90,13 +103,7 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!isPopoverOpen || matchingProducts.length === 0) {
-      if (e.key === "Enter" && globalSearchQuery.trim()) {
-        setIsPopoverOpen(false);
-        router.push(`/dashboard/estoque?search=${encodeURIComponent(globalSearchQuery.trim())}`);
-      }
-      return;
-    }
+    if (!isPopoverOpen) return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -109,9 +116,9 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (highlightedIndex >= 0 && matchingProducts[highlightedIndex]) {
-        const item = matchingProducts[highlightedIndex];
-        onSelectProduct(item);
-        setIsPopoverOpen(false);
+        handleSelectProduct(matchingProducts[highlightedIndex]);
+      } else if (detectedAnalytics && onOpenAnalyticsModal) {
+        handleSelectAnalytics(detectedAnalytics);
       } else if (globalSearchQuery.trim()) {
         setIsPopoverOpen(false);
         router.push(`/dashboard/estoque?search=${encodeURIComponent(globalSearchQuery.trim())}`);
@@ -120,8 +127,27 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
   };
 
   const handleSelectProduct = (product: QuickSearchProduct) => {
-    onSelectProduct(product);
     setIsPopoverOpen(false);
+    if (onSelectProduct) onSelectProduct(product);
+
+    // Redireciona para o Catálogo com o modal de edição ativado
+    const targetUrl = `/dashboard/catalogo?editProduct=${product.id}`;
+    if (pathname === "/dashboard/catalogo") {
+      router.push(targetUrl);
+    } else {
+      router.push(targetUrl);
+    }
+  };
+
+  const handleSelectAnalytics = (type: AnalyticsQueryType) => {
+    if (!type) return;
+    setIsPopoverOpen(false);
+    if (onOpenAnalyticsModal) {
+      onOpenAnalyticsModal(type);
+    } else {
+      // Fallback para página de estoque se modal não fornecido
+      router.push(`/dashboard/estoque?search=${encodeURIComponent(globalSearchQuery.trim())}`);
+    }
   };
 
   const handleViewAllResults = () => {
@@ -168,6 +194,46 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
               </span>
               {isFetchingProducts && <Loader2 size={12} className="animate-spin text-primary" />}
             </div>
+
+            {/* Banner de Atalho para Modal Analítico (Se detectado termo semântico) */}
+            {detectedAnalytics && (
+              <div className="p-1 border-b border-[var(--dash-border)]/40 mb-1">
+                <button
+                  type="button"
+                  onClick={() => handleSelectAnalytics(detectedAnalytics)}
+                  className={`w-full flex items-center justify-between gap-3 p-3 rounded-2xl transition-all cursor-pointer text-left shadow-sm active:scale-95 ${
+                    detectedAnalytics === "out_of_stock"
+                      ? "bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20"
+                      : detectedAnalytics === "low_stock"
+                      ? "bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20"
+                      : detectedAnalytics === "categories"
+                      ? "bg-purple-500/10 border border-purple-500/30 text-purple-500 hover:bg-purple-500/20"
+                      : "bg-blue-500/10 border border-blue-500/30 text-blue-500 hover:bg-blue-500/20"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-2 rounded-xl bg-current/10 shrink-0">
+                      {detectedAnalytics === "out_of_stock" && <XCircle size={18} />}
+                      {detectedAnalytics === "low_stock" && <AlertTriangle size={18} />}
+                      {detectedAnalytics === "categories" && <Layers size={18} />}
+                      {detectedAnalytics === "global_stock" && <BarChart3 size={18} />}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-black uppercase tracking-wider leading-tight truncate">
+                        {detectedAnalytics === "out_of_stock" && "Abrir Diagnóstico de Esgotados"}
+                        {detectedAnalytics === "low_stock" && "Abrir Alertas de Estoque Baixo"}
+                        {detectedAnalytics === "categories" && "Abrir Volumetria por Categoria"}
+                        {detectedAnalytics === "global_stock" && "Abrir Visão Geral do Estoque"}
+                      </span>
+                      <span className="text-[10px] font-medium opacity-80 leading-none mt-1 truncate">
+                        Clique para visualizar o painel completo
+                      </span>
+                    </div>
+                  </div>
+                  <ArrowUpRight size={16} className="shrink-0 opacity-80" />
+                </button>
+              </div>
+            )}
 
             <div className="max-h-80 overflow-y-auto custom-scrollbar p-1 space-y-1">
               {matchingProducts.length === 0 ? (

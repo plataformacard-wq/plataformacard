@@ -21,6 +21,10 @@ import { MobileBottomNav } from "@/components/dashboard/mobile/MobileBottomNav";
 import { MobileFabButton } from "@/components/dashboard/mobile/MobileFabButton";
 import { getMyProfile, getOrganizationById, getOrganizationStats } from "@/lib/admin-actions";
 import { detectOverage, getPlanName } from "@/lib/plans";
+import GlobalStockModal from "@/components/dashboard/GlobalStockModal";
+import LowStockAlertModal from "@/components/dashboard/LowStockAlertModal";
+import OutOfStockModal from "@/components/dashboard/OutOfStockModal";
+import TopCategoriesModal from "@/components/dashboard/TopCategoriesModal";
 
 interface PanelLayoutProps {
   children: React.ReactNode;
@@ -57,6 +61,32 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
   const [planOverages, setPlanOverages] = useState<{resource: string; label: string; current: number; limit: number}[]>([]);
   const [currentPlanName, setCurrentPlanName] = useState("");
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
+
+  const [activeAnalyticsModal, setActiveAnalyticsModal] = useState<"out_of_stock" | "low_stock" | "categories" | "global_stock" | null>(null);
+  const [analyticsProducts, setAnalyticsProducts] = useState<any[]>([]);
+
+  const handleOpenAnalyticsModal = async (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => {
+    setActiveAnalyticsModal(type);
+    try {
+      let res: any = await supabase
+        .from("products")
+        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
+        .is("deleted_at", null)
+        .order("name");
+
+      if (res.error) {
+        res = await supabase
+          .from("products")
+          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price")
+          .is("deleted_at", null)
+          .order("name");
+      }
+
+      if (res.data) setAnalyticsProducts(res.data);
+    } catch (e) {
+      console.error("Erro ao carregar dados para modal analítico:", e);
+    }
+  };
 
   useEffect(() => {
     // Tema
@@ -419,6 +449,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
           subscriptionStatus={subscriptionStatus || undefined}
           notifications={allNotifications}
           jobTitle={jobTitle}
+          onOpenAnalyticsModal={handleOpenAnalyticsModal}
           toggleTheme={() => {
             const next = !isDark;
             setIsDark(next);
@@ -489,6 +520,63 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
       {/* Componentes de UX Mobile (Navegacao por polegar & FAB) */}
       <MobileFabButton />
       <MobileBottomNav />
+
+      {/* Modais Analíticos Nativos Acionáveis pela Busca */}
+      {activeAnalyticsModal === "global_stock" && (
+        <GlobalStockModal
+          isOpen={true}
+          onClose={() => setActiveAnalyticsModal(null)}
+          products={analyticsProducts}
+        />
+      )}
+      {activeAnalyticsModal === "low_stock" && (
+        <LowStockAlertModal
+          isOpen={true}
+          onClose={() => setActiveAnalyticsModal(null)}
+          products={analyticsProducts}
+          onStockUpdated={() => {}}
+        />
+      )}
+      {activeAnalyticsModal === "out_of_stock" && (
+        <OutOfStockModal
+          isOpen={true}
+          onClose={() => setActiveAnalyticsModal(null)}
+          products={analyticsProducts}
+          onStockUpdated={() => {}}
+        />
+      )}
+      {activeAnalyticsModal === "categories" && (() => {
+        const categoryMap: Record<string, { total: number; outOfStock: number }> = {};
+        let totalUnits = 0;
+
+        analyticsProducts.forEach((p) => {
+          const catName = (Array.isArray(p.categories) ? p.categories[0]?.name : p.categories?.name) || "Sem categoria";
+          const qty = p.stock_quantity ?? 0;
+          const isOutOf = !p.is_in_stock || qty <= 0;
+          totalUnits += qty;
+
+          if (!categoryMap[catName]) {
+            categoryMap[catName] = { total: 0, outOfStock: 0 };
+          }
+          categoryMap[catName].total += qty;
+          if (isOutOf) categoryMap[catName].outOfStock += 1;
+        });
+
+        const categoriesData = Object.entries(categoryMap).map(([name, data]) => ({
+          name,
+          total: data.total,
+          outOfStock: data.outOfStock,
+          percentage: totalUnits > 0 ? Math.round((data.total / totalUnits) * 100) : 0,
+        }));
+
+        return (
+          <TopCategoriesModal
+            isOpen={true}
+            onClose={() => setActiveAnalyticsModal(null)}
+            categories={categoriesData}
+          />
+        );
+      })()}
 
     </div>
   );

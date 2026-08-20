@@ -25,6 +25,7 @@ interface TopHeaderProps {
   notifications?: any[];
   jobTitle?: string | null;
   granularPermissions?: any;
+  onOpenAnalyticsModal?: (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => void;
 }
 
 export function TopHeader({ 
@@ -42,7 +43,8 @@ export function TopHeader({
   subscriptionStatus,
   notifications = [],
   jobTitle,
-  granularPermissions
+  granularPermissions,
+  onOpenAnalyticsModal
 }: TopHeaderProps) {
   const [selectedProductModal, setSelectedProductModal] = useState<QuickSearchProduct | null>(null);
 
@@ -62,7 +64,10 @@ export function TopHeader({
           </button>
           
           {/* Componente de Busca Preditiva de Produtos */}
-          <HeaderSearchPopover onSelectProduct={(product) => setSelectedProductModal(product)} />
+          <HeaderSearchPopover 
+            onSelectProduct={(product) => setSelectedProductModal(product)} 
+            onOpenAnalyticsModal={onOpenAnalyticsModal}
+          />
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">

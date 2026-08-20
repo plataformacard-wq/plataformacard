@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateCatalog } from "@/lib/dashboard/sellerActions";
+import { useSearchParams } from "next/navigation";
 
 // Copiando as tipagens necessárias
 type Category = {
@@ -156,6 +157,19 @@ export function useCatalogoManager(adminCatalogId: string | null = null) {
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ product: ProductRow, field: 'is_active' | 'is_in_stock' } | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
   const [makingAllVisible, setMakingAllVisible] = useState(false);
+
+  const searchParams = useSearchParams();
+  const editProductId = searchParams?.get("editProduct");
+
+  useEffect(() => {
+    if (editProductId && products.length > 0) {
+      const target = products.find((p) => p.id === editProductId);
+      if (target) {
+        setEditingProduct(target);
+        setShowModal(true);
+      }
+    }
+  }, [editProductId, products]);
 
   const hiddenInheritedProducts = useMemo(() => {
     return products.filter(p => p.is_caas && p.is_new_from_master);
