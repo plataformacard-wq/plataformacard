@@ -124,7 +124,7 @@ export default function LowStockAlertModal({
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6 bg-red-500/5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
                   <AlertTriangle size={22} />
                 </div>
                 <div>
@@ -166,7 +166,7 @@ export default function LowStockAlertModal({
                   </div>
 
                   {/* Gráfico do Modal */}
-                  <div className="bg-[var(--dash-surface)] border border-amber-500/20 rounded-2xl p-5 shadow-sm space-y-3">
+                  <div className="bg-[var(--dash-surface)] border border-amber-500/20 rounded-[27px] p-5 shadow-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-[var(--dash-text-muted)]">Estoque Restante por Produto</span>
                       <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md">{products.length} Produtos</span>
@@ -198,7 +198,7 @@ export default function LowStockAlertModal({
                     </div>
                   </div>
 
-                  <div className="bg-[var(--dash-surface)] border border-red-500/20 rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="bg-[var(--dash-surface)] border border-red-500/20 rounded-[27px] p-5 shadow-sm space-y-2">
                     <span className="text-xs font-semibold text-[var(--dash-text-muted)]">
                       Produtos em Alerta
                     </span>
@@ -211,7 +211,7 @@ export default function LowStockAlertModal({
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                <div className="p-4 rounded-[27px] bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 font-medium">
                   ⚠️ <strong>Atenção:</strong> Produtos com 0 unidades não são exibidos nos catálogos com filtro de disponibilidade ativo.
                 </div>
               </div>
@@ -227,7 +227,7 @@ export default function LowStockAlertModal({
                       return (
                         <div
                           key={p.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-red-500/15 bg-red-500/5 hover:border-red-500/30 transition-all gap-3"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[27px] border border-red-500/15 bg-red-500/5 hover:border-red-500/30 transition-all gap-3"
                         >
                           <div className="flex flex-col flex-1 min-w-0">
                             <span className="text-xs font-bold text-[var(--dash-text-primary)] truncate" title={p.name}>
@@ -296,7 +296,7 @@ export default function LowStockAlertModal({
                                 </button>
                                 <button
                                   onClick={() => handleEdit(p)}
-                                  className="text-[11px] font-bold px-3 py-1 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-primary)] hover:border-red-500/50 hover:text-red-500 transition shadow-sm ml-1"
+                                  className="text-[11px] font-bold px-3 py-1 rounded-lg bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-primary)] hover:border-red-500/50 hover:text-red-500 transition shadow-sm ml-1"
                                 >
                                   Ajustar
                                 </button>

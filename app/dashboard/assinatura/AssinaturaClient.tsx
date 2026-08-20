@@ -345,7 +345,7 @@ export default function AssinaturaClient() {
               </button>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-xs">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-xs">
               <span>🔥 20% OFF no faturamento anual</span>
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function AssinaturaClient() {
           <button
             type="button"
             onClick={() => setIsTableOpen(!isTableOpen)}
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[var(--dash-surface)] border border-[var(--dash-border)] hover:border-emerald-500/50 hover:bg-emerald-500/10 text-[var(--dash-text-primary)] font-bold text-sm transition-all shadow-md active:scale-95 group"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded bg-[var(--dash-surface)] border border-[var(--dash-border)] hover:border-emerald-500/50 hover:bg-emerald-500/10 text-[var(--dash-text-primary)] font-bold text-sm transition-all shadow-md active:scale-95 group"
           >
             <Table className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
             <span>

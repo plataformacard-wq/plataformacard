@@ -72,7 +72,7 @@ export default function TopCategoriesModal({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6 bg-[var(--dash-surface)]">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
                   <BarChart2 size={22} />
                 </div>
                 <div>
@@ -114,7 +114,7 @@ export default function TopCategoriesModal({
                   </div>
 
                   {/* Gráfico do Modal */}
-                  <div className="bg-[var(--dash-surface)] border border-purple-500/20 rounded-2xl p-5 shadow-sm space-y-3">
+                  <div className="bg-[var(--dash-surface)] border border-purple-500/20 rounded-[27px] p-5 shadow-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-[var(--dash-text-muted)]">Proporção por Categoria</span>
                       <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md">Top Grupos</span>
@@ -146,7 +146,7 @@ export default function TopCategoriesModal({
                     </div>
                   </div>
 
-                  <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-5 shadow-sm space-y-2">
                     <span className="text-xs font-semibold text-[var(--dash-text-muted)]">
                       Total de Categorias Ativas
                     </span>
@@ -158,7 +158,7 @@ export default function TopCategoriesModal({
                     </div>
                   </div>
 
-                  <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-5 shadow-sm space-y-3">
+                  <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-[27px] p-5 shadow-sm space-y-3">
                     <div className="flex items-center justify-between text-xs font-bold text-[var(--dash-text-primary)]">
                       <span>Risco de Indisponibilidade</span>
                       <span className="text-rose-600 dark:text-rose-400 font-extrabold">{categoriesWithOutOfStock} / {totalCategories} com esgotados</span>
@@ -169,7 +169,7 @@ export default function TopCategoriesModal({
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 font-semibold">
+                <div className="p-4 rounded-[27px] bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 font-semibold">
                   📊 <strong>Dica Visual:</strong> As cores vibrantes diferenciam a participação de cada categoria no inventário.
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function TopCategoriesModal({
                       return (
                         <div
                           key={idx}
-                          className="flex flex-col p-4 rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-bg)]/60 hover:bg-[var(--dash-hover-bg)] transition-colors space-y-2.5 shadow-sm"
+                          className="flex flex-col p-4 rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-bg)]/60 hover:bg-[var(--dash-hover-bg)] transition-colors space-y-2.5 shadow-sm"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 max-w-[240px]">

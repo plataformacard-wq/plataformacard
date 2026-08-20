@@ -227,7 +227,7 @@ export default function StockIntelligenceSection({
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-500 group-hover:scale-105 transition-transform">
+              <div className="rounded-lg bg-blue-500/10 p-2.5 text-blue-500 group-hover:scale-105 transition-transform">
                 <Package size={20} />
               </div>
               <span className="text-xs font-bold text-[var(--dash-text-secondary)]">
@@ -301,7 +301,7 @@ export default function StockIntelligenceSection({
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-500 group-hover:scale-105 transition-transform">
+              <div className="rounded-lg bg-amber-500/10 p-2.5 text-amber-500 group-hover:scale-105 transition-transform">
                 <AlertTriangle size={20} />
               </div>
               <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
@@ -377,7 +377,7 @@ export default function StockIntelligenceSection({
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="rounded-xl bg-rose-500/10 p-2.5 text-rose-500 group-hover:scale-105 transition-transform">
+              <div className="rounded-lg bg-rose-500/10 p-2.5 text-rose-500 group-hover:scale-105 transition-transform">
                 <PackageX size={20} />
               </div>
               <span className="text-xs font-bold text-rose-700 dark:text-rose-400">
@@ -439,7 +439,7 @@ export default function StockIntelligenceSection({
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="rounded-xl bg-purple-500/10 p-2.5 text-purple-500 group-hover:scale-105 transition-transform">
+              <div className="rounded-lg bg-purple-500/10 p-2.5 text-purple-500 group-hover:scale-105 transition-transform">
                 <BarChart2 size={20} />
               </div>
               <span className="text-xs font-bold text-[var(--dash-text-secondary)]">

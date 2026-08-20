@@ -123,7 +123,7 @@ export default function OutOfStockModal({
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-[var(--dash-border)] p-6 bg-rose-500/5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
                   <PackageX size={22} />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function OutOfStockModal({
                   </div>
 
                   {/* Gráfico do Modal */}
-                  <div className="bg-[var(--dash-surface)] border border-rose-500/20 rounded-2xl p-5 shadow-sm space-y-3">
+                  <div className="bg-[var(--dash-surface)] border border-rose-500/20 rounded-[27px] p-5 shadow-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-[var(--dash-text-muted)]">Esgotados por Categoria</span>
                       <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md">{categoryBarsData.length} Setores</span>
@@ -197,7 +197,7 @@ export default function OutOfStockModal({
                     </div>
                   </div>
 
-                  <div className="bg-[var(--dash-surface)] border border-rose-500/20 rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="bg-[var(--dash-surface)] border border-rose-500/20 rounded-[27px] p-5 shadow-sm space-y-2">
                     <span className="text-xs font-semibold text-[var(--dash-text-muted)]">
                       Total Zerado
                     </span>
@@ -210,7 +210,7 @@ export default function OutOfStockModal({
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400 font-medium">
+                <div className="p-4 rounded-[27px] bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400 font-medium">
                   🚫 <strong>Vendas Bloqueadas:</strong> Produtos zerados perdem relevância de busca interna.
                 </div>
               </div>
@@ -225,7 +225,7 @@ export default function OutOfStockModal({
                       return (
                         <div
                           key={p.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-rose-500/15 bg-rose-500/5 hover:border-rose-500/30 transition-all gap-3"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[27px] border border-rose-500/15 bg-rose-500/5 hover:border-rose-500/30 transition-all gap-3"
                         >
                           <div className="flex flex-col flex-1 min-w-0">
                             <span className="text-xs font-bold text-[var(--dash-text-primary)] truncate" title={p.name}>
@@ -297,7 +297,7 @@ export default function OutOfStockModal({
                                     setEditingId(p.id);
                                     setEditValue("1");
                                   }}
-                                  className="text-[11px] font-bold px-3 py-1 rounded-xl bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-primary)] hover:border-rose-500/50 hover:text-rose-500 transition shadow-sm ml-1"
+                                  className="text-[11px] font-bold px-3 py-1 rounded-lg bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-primary)] hover:border-rose-500/50 hover:text-rose-500 transition shadow-sm ml-1"
                                 >
                                   Ajustar
                                 </button>
