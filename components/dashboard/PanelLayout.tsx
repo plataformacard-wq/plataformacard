@@ -70,14 +70,14 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
     try {
       let res: any = await supabase
         .from("products")
-        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
+        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name)")
         .is("deleted_at", null)
         .order("name");
 
       if (res.error) {
         res = await supabase
           .from("products")
-          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price")
+          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id")
           .is("deleted_at", null)
           .order("name");
       }
@@ -325,7 +325,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
           try {
             let pRes: any = await supabase
               .from("products")
-              .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
+              .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name)")
               .eq("organization_id", targetOrgId)
               .is("deleted_at", null)
               .order("name");
@@ -333,7 +333,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
             if (pRes.error) {
               pRes = await supabase
                 .from("products")
-                .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price")
+                .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id")
                 .eq("organization_id", targetOrgId)
                 .is("deleted_at", null)
                 .order("name");

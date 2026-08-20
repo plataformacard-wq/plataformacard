@@ -13,6 +13,7 @@ export interface QuickSearchProduct {
   stock_quantity?: number | null;
   is_in_stock?: boolean | null;
   price?: number | null;
+  compare_at_price?: number | null;
   promotional_price?: number | null;
   categories?: { name?: string } | null;
   category_name?: string | null;
@@ -35,8 +36,9 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
     ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.price)
     : "R$ 0,00";
 
-  const promoPriceFormatted = product?.promotional_price != null && product.promotional_price > 0
-    ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.promotional_price)
+  const promoPriceVal = product?.compare_at_price || product?.promotional_price;
+  const promoPriceFormatted = promoPriceVal != null && promoPriceVal > 0
+    ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(promoPriceVal)
     : null;
 
   const categoriesProp: any = product?.categories;

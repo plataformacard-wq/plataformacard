@@ -14,6 +14,7 @@ export function smartSearchMatch(
     stock_quantity?: number | null;
     is_in_stock?: boolean | null;
     price?: number | null;
+    compare_at_price?: number | null;
     promotional_price?: number | null;
     price_promotional?: number | null;
   },
@@ -78,7 +79,7 @@ export function smartSearchMatch(
   }
 
   // 6. Status Semântico: Promoção / Oferta / Desconto
-  const promoPrice = item.promotional_price || item.price_promotional || 0;
+  const promoPrice = item.compare_at_price || item.promotional_price || item.price_promotional || 0;
   const isPromo = promoPrice > 0;
   const promoTerms = ["promocao", "promocoes", "oferta", "ofertas", "desconto", "descontos", "promo", "liquidação"];
   if (promoTerms.some((term) => normalizedQuery === term || normalizedQuery.includes(term) || term.includes(normalizedQuery))) {

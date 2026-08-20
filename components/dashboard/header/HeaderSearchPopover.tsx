@@ -65,7 +65,7 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
 
       let query = supabase
         .from("products")
-        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name), organization_id")
+        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name), organization_id")
         .is("deleted_at", null);
 
       if (shadowOrgId) {
@@ -78,7 +78,7 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
         console.warn("[HeaderSearchPopover] Fallback para busca direta sem join:", res.error.message);
         let fallbackQuery = supabase
           .from("products")
-          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, organization_id")
+          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, organization_id")
           .is("deleted_at", null);
 
         if (shadowOrgId) {
