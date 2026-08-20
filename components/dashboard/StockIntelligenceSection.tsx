@@ -1,39 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Package,
-  BarChart2,
-  AlertTriangle,
-  PackageX,
-  Settings,
-  TrendingUp,
-  BarChart3,
-  PieChart,
-  Maximize2,
-  SlidersHorizontal,
-} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlobalStockModal from "./GlobalStockModal";
 import TopCategoriesModal from "./TopCategoriesModal";
 import LowStockAlertModal from "./LowStockAlertModal";
 import OutOfStockModal from "./OutOfStockModal";
 import StockThresholdModal from "./StockThresholdModal";
-import {
-  AreaSparkline,
-  BarSparkline,
-  DonutSparkline,
-  SparklinePoint,
-  DonutSegment,
-} from "./home/DashboardKpiSparklines";
+import StockTotalCard, { ChartType } from "./stock-intelligence/StockTotalCard";
+import StockLowCard from "./stock-intelligence/StockLowCard";
+import StockOutOfStockCard from "./stock-intelligence/StockOutOfStockCard";
+import StockCategoriesCard from "./stock-intelligence/StockCategoriesCard";
+import { DonutSegment } from "./home/DashboardKpiSparklines";
 
 interface StockIntelligenceSectionProps {
   activeOrgId: string;
   hasBlingConnection: boolean;
 }
-
-type ChartType = "area" | "bar" | "donut";
 
 export default function StockIntelligenceSection({
   activeOrgId,
@@ -156,37 +139,6 @@ export default function StockIntelligenceSection({
     percentage: totalProductsCount > 0 ? (catMap[k].total / totalProductsCount) * 100 : 0,
   }));
 
-  // Sparklines Data Providers
-  const historyTotalUnits: SparklinePoint[] = [
-    { label: "Seg", value: Math.round(totalStockUnits * 0.82) },
-    { label: "Ter", value: Math.round(totalStockUnits * 0.88) },
-    { label: "Qua", value: Math.round(totalStockUnits * 0.91) },
-    { label: "Qui", value: Math.round(totalStockUnits * 0.95) },
-    { label: "Sex", value: Math.round(totalStockUnits * 0.97) },
-    { label: "Sáb", value: Math.round(totalStockUnits * 0.99) },
-    { label: "Hoje", value: totalStockUnits },
-  ];
-
-  const historyLowStock: SparklinePoint[] = [
-    { label: "Seg", value: lowStockProducts.length + 3 },
-    { label: "Ter", value: lowStockProducts.length + 2 },
-    { label: "Qua", value: lowStockProducts.length + 4 },
-    { label: "Qui", value: lowStockProducts.length + 1 },
-    { label: "Sex", value: lowStockProducts.length + 2 },
-    { label: "Sáb", value: lowStockProducts.length },
-    { label: "Hoje", value: lowStockProducts.length },
-  ];
-
-  const historyOutOfStock: SparklinePoint[] = [
-    { label: "Seg", value: outOfStockProducts.length + 2 },
-    { label: "Ter", value: outOfStockProducts.length + 1 },
-    { label: "Qua", value: outOfStockProducts.length + 3 },
-    { label: "Qui", value: outOfStockProducts.length },
-    { label: "Sex", value: outOfStockProducts.length + 1 },
-    { label: "Sáb", value: outOfStockProducts.length },
-    { label: "Hoje", value: outOfStockProducts.length },
-  ];
-
   const donutCategories: DonutSegment[] = allCategories.slice(0, 4).map((c, i) => {
     const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
     return { label: c.name, value: c.total, color: colors[i % colors.length] };
@@ -220,267 +172,39 @@ export default function StockIntelligenceSection({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-        {/* Card 1: Total em Estoque */}
-        <div
+        <StockTotalCard
+          totalStockUnits={totalStockUnits}
+          totalProductsCount={totalProductsCount}
+          inStockProductsCount={inStockProducts.length}
+          outOfStockProductsCount={outOfStockProducts.length}
+          chartType={chartTypes.estoque_total}
+          onSelectChartType={(type) => handleSelectChartType("estoque_total", type)}
           onClick={() => setIsGlobalModalOpen(true)}
-          className="relative group overflow-hidden rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-sm hover:border-blue-500/30 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-blue-500/10 p-2.5 text-blue-500 group-hover:scale-105 transition-transform">
-                <Package size={20} />
-              </div>
-              <span className="text-xs font-bold text-[var(--dash-text-secondary)]">
-                Unidades Totais
-              </span>
-            </div>
+        />
 
-            {/* Selector Dropdown */}
-            <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
-              <select
-                value={chartTypes.estoque_total}
-                onChange={(e) => handleSelectChartType("estoque_total", e.target.value as ChartType)}
-                className="dash-select text-[10px] font-bold rounded-lg border border-[var(--dash-border)] bg-[var(--dash-hover-bg)] pl-2 pr-7 py-1 text-[var(--dash-text-primary)] outline-none cursor-pointer"
-              >
-                <option value="area">📈 Onda</option>
-                <option value="bar">📊 Barras</option>
-                <option value="donut">🍩 Donut</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-1 mb-4">
-            <div className="text-3xl font-black text-[var(--dash-text-primary)] tracking-tight">
-              {totalStockUnits.toLocaleString()} <span className="text-xs font-bold text-[var(--dash-text-muted)]">peças</span>
-            </div>
-            <p className="text-xs font-medium text-[var(--dash-text-muted)]">
-              Distribuídas em {totalProductsCount} modelos (SKUs)
-            </p>
-          </div>
-
-          {/* Sparkline Render */}
-          <div className="h-16 w-full pt-1">
-            {chartTypes.estoque_total === "area" && (
-              <AreaSparkline
-                data={[
-                  { label: "Peças Disponíveis", value: totalStockUnits },
-                  { label: "Modelos Ativos", value: inStockProducts.length },
-                  { label: "Modelos Zerados", value: outOfStockProducts.length },
-                  { label: "Peças Zeradas", value: 0 },
-                ]}
-                color="blue"
-              />
-            )}
-            {chartTypes.estoque_total === "bar" && (
-              <BarSparkline
-                data={[
-                  { label: "Peças Disponíveis", value: totalStockUnits, color: "#3b82f6" },
-                  { label: "Peças Zeradas", value: 0, color: "#f59e0b" },
-                  { label: "Modelos Ativos", value: inStockProducts.length, color: "#10b981" },
-                  { label: "Modelos Zerados", value: outOfStockProducts.length, color: "#ef4444" },
-                ]}
-              />
-            )}
-            {chartTypes.estoque_total === "donut" && (
-              <DonutSparkline
-                segments={[
-                  { label: "Peças Disponíveis", value: totalStockUnits, color: "#3b82f6" },
-                  { label: "Modelos Ativos", value: inStockProducts.length, color: "#10b981" },
-                  { label: "Modelos Zerados", value: outOfStockProducts.length, color: "#ef4444" },
-                ]}
-                size={54}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Card 2: Estoque Baixo */}
-        <div
+        <StockLowCard
+          lowStockProducts={lowStockProducts}
+          lowStockThreshold={lowStockThreshold}
+          chartType={chartTypes.estoque_baixo}
+          onSelectChartType={(type) => handleSelectChartType("estoque_baixo", type)}
           onClick={() => setIsLowStockModalOpen(true)}
-          className="relative group overflow-hidden rounded-[27px] border border-amber-500/20 bg-amber-500/5 p-6 shadow-sm hover:border-amber-500/40 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-amber-500/10 p-2.5 text-amber-500 group-hover:scale-105 transition-transform">
-                <AlertTriangle size={20} />
-              </div>
-              <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                Estoque Baixo
-              </span>
-            </div>
+          onOpenThresholdModal={() => setIsThresholdModalOpen(true)}
+        />
 
-            <div className="relative shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setIsThresholdModalOpen(true)}
-                className="p-1 rounded-lg text-amber-500 hover:bg-amber-500/20 transition"
-                title="Configurar limite"
-              >
-                <Settings size={14} />
-              </button>
-              <select
-                value={chartTypes.estoque_baixo}
-                onChange={(e) => handleSelectChartType("estoque_baixo", e.target.value as ChartType)}
-                className="dash-select text-[10px] font-bold rounded-lg border border-amber-500/30 bg-[var(--dash-surface)] pl-2 pr-7 py-1 text-[var(--dash-text-primary)] outline-none cursor-pointer"
-              >
-                <option value="area">📈 Onda</option>
-                <option value="bar">📊 Barras</option>
-                <option value="donut">🍩 Donut</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-1 mb-4">
-            <div className="text-3xl font-black text-amber-600 dark:text-amber-400 tracking-tight">
-              {lowStockProducts.length} <span className="text-xs font-bold text-amber-600/70">itens</span>
-            </div>
-            <p className="text-xs font-medium text-[var(--dash-text-muted)]">
-              Unidades &le; {lowStockThreshold} em reposição
-            </p>
-          </div>
-
-          <div className="h-16 w-full pt-1">
-            {chartTypes.estoque_baixo === "area" && (
-              <AreaSparkline
-                data={lowStockProducts.map((p, i) => ({
-                  label: p.name || `Item #${i + 1}`,
-                  value: p.stock_quantity ?? 0,
-                }))}
-                color="amber"
-              />
-            )}
-            {chartTypes.estoque_baixo === "bar" && (
-              <BarSparkline
-                data={lowStockProducts.map((p, i) => ({
-                  label: p.name || `Item #${i + 1}`,
-                  value: p.stock_quantity ?? 0,
-                  color: ["#f59e0b", "#ef4444", "#8b5cf6", "#3b82f6", "#10b981", "#ec4899"][i % 6],
-                }))}
-              />
-            )}
-            {chartTypes.estoque_baixo === "donut" && (
-              <DonutSparkline
-                segments={lowStockProducts.map((p, i) => ({
-                  label: p.name || `Item #${i + 1}`,
-                  value: p.stock_quantity || 1,
-                  color: ["#f59e0b", "#ef4444", "#8b5cf6", "#3b82f6", "#10b981", "#ec4899"][i % 6],
-                }))}
-                size={54}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Card 3: Produtos Esgotados */}
-        <div
+        <StockOutOfStockCard
+          outOfStockProducts={outOfStockProducts}
+          chartType={chartTypes.estoque_esgotado}
+          onSelectChartType={(type) => handleSelectChartType("estoque_esgotado", type)}
           onClick={() => setIsOutOfStockModalOpen(true)}
-          className="relative group overflow-hidden rounded-[27px] border border-rose-500/20 bg-rose-500/5 p-6 shadow-sm hover:border-rose-500/40 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-rose-500/10 p-2.5 text-rose-500 group-hover:scale-105 transition-transform">
-                <PackageX size={20} />
-              </div>
-              <span className="text-xs font-bold text-rose-700 dark:text-rose-400">
-                Esgotados
-              </span>
-            </div>
+        />
 
-            <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
-              <select
-                value={chartTypes.estoque_esgotado}
-                onChange={(e) => handleSelectChartType("estoque_esgotado", e.target.value as ChartType)}
-                className="dash-select text-[10px] font-bold rounded-lg border border-rose-500/30 bg-[var(--dash-surface)] pl-2 pr-7 py-1 text-[var(--dash-text-primary)] outline-none cursor-pointer"
-              >
-                <option value="area">📈 Onda</option>
-                <option value="bar">📊 Barras</option>
-                <option value="donut">🍩 Donut</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-1 mb-4">
-            <div className="text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
-              {outOfStockProducts.length} <span className="text-xs font-bold text-rose-600/70">itens</span>
-            </div>
-            <p className="text-xs font-medium text-[var(--dash-text-muted)]">
-              0 unidades disponíveis
-            </p>
-          </div>
-
-          <div className="h-16 w-full pt-1">
-            {(() => {
-              const catMap: Record<string, number> = {};
-              outOfStockProducts.forEach((p) => {
-                const c = p.category || p.categories?.name || p.categoria || "Geral";
-                catMap[c] = (catMap[c] || 0) + 1;
-              });
-              const colors = ["#ef4444", "#f97316", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6"];
-              const categoryData = Object.entries(catMap).map(([name, count], i) => ({
-                label: name,
-                value: count,
-                color: colors[i % colors.length],
-              }));
-
-              if (chartTypes.estoque_esgotado === "area") {
-                return <AreaSparkline data={categoryData} color="amber" />;
-              }
-              if (chartTypes.estoque_esgotado === "bar") {
-                return <BarSparkline data={categoryData} />;
-              }
-              return <DonutSparkline segments={categoryData} size={54} />;
-            })()}
-          </div>
-        </div>
-
-        {/* Card 4: Top Categorias */}
-        <div
+        <StockCategoriesCard
+          allCategories={allCategories}
+          donutCategories={donutCategories}
+          chartType={chartTypes.estoque_categorias}
+          onSelectChartType={(type) => handleSelectChartType("estoque_categorias", type)}
           onClick={() => setIsCategoryModalOpen(true)}
-          className="relative group overflow-hidden rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-sm hover:border-purple-500/30 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-purple-500/10 p-2.5 text-purple-500 group-hover:scale-105 transition-transform">
-                <BarChart2 size={20} />
-              </div>
-              <span className="text-xs font-bold text-[var(--dash-text-secondary)]">
-                Volumetria Categorias
-              </span>
-            </div>
-
-            <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
-              <select
-                value={chartTypes.estoque_categorias}
-                onChange={(e) => handleSelectChartType("estoque_categorias", e.target.value as ChartType)}
-                className="dash-select text-[10px] font-bold rounded-lg border border-[var(--dash-border)] bg-[var(--dash-hover-bg)] pl-2 pr-7 py-1 text-[var(--dash-text-primary)] outline-none cursor-pointer"
-              >
-                <option value="donut">🍩 Donut</option>
-                <option value="bar">📊 Barras</option>
-                <option value="area">📈 Onda</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-1 mb-4">
-            <div className="text-3xl font-black text-[var(--dash-text-primary)] tracking-tight">
-              {allCategories.length} <span className="text-xs font-bold text-[var(--dash-text-muted)]">grupos</span>
-            </div>
-            <p className="text-xs font-medium text-[var(--dash-text-muted)] truncate">
-              Maior: {allCategories[0]?.name || "Nenhuma"}
-            </p>
-          </div>
-
-          <div className="h-16 w-full pt-1">
-            {chartTypes.estoque_categorias === "donut" && (
-              <DonutSparkline segments={donutCategories} size={54} />
-            )}
-            {chartTypes.estoque_categorias === "bar" && (
-              <BarSparkline data={allCategories.slice(0, 5).map(c => ({ label: c.name, value: c.total }))} color="#8b5cf6" />
-            )}
-            {chartTypes.estoque_categorias === "area" && (
-              <AreaSparkline data={allCategories.slice(0, 5).map(c => ({ label: c.name, value: c.total }))} color="violet" />
-            )}
-          </div>
-        </div>
+        />
       </div>
 
       {/* Modais Detalhados */}
@@ -518,4 +242,3 @@ export default function StockIntelligenceSection({
     </>
   );
 }
-
