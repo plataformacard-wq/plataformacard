@@ -64,6 +64,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
 
   const [activeAnalyticsModal, setActiveAnalyticsModal] = useState<"out_of_stock" | "low_stock" | "categories" | "global_stock" | null>(null);
   const [analyticsProducts, setAnalyticsProducts] = useState<any[]>([]);
+  const [headerCollaborators, setHeaderCollaborators] = useState<any[]>([]);
 
   const handleOpenAnalyticsModal = async (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => {
     setActiveAnalyticsModal(type);
@@ -346,6 +347,21 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
             console.warn("Erro ao pre-carregar produtos no PanelLayout:", pErr);
           }
 
+          // Pre-carrega colaboradores para a busca inteligente
+          try {
+            const { data: cData } = await supabase
+              .from("profiles")
+              .select("id, full_name, name, email, whatsapp, job_title, avatar_url, role, status, is_active")
+              .eq("organization_id", targetOrgId)
+              .order("full_name");
+
+            if (cData) {
+              setHeaderCollaborators(cData);
+            }
+          } catch (cErr) {
+            console.warn("Erro ao pre-carregar colaboradores no PanelLayout:", cErr);
+          }
+
           const channelName = `leads-${targetOrgId}`;
           // Previne erro "cannot add postgres_changes callbacks after subscribe" em Strict Mode ou re-renders
           supabase.getChannels().forEach(ch => {
@@ -475,6 +491,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
           notifications={allNotifications}
           jobTitle={jobTitle}
           products={analyticsProducts}
+          collaborators={headerCollaborators}
           onOpenAnalyticsModal={handleOpenAnalyticsModal}
           toggleTheme={() => {
             const next = !isDark;

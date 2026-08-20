@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import ImageEditorModal from "@/components/dashboard/ImageEditorModal";
 import { BusinessHours, TimeShift } from "@/lib/utils/time";
@@ -106,10 +106,21 @@ export default function VendedoresClient({
   const [showHoursConfig, setShowHoursConfig] = useState(false);
   const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
   const [terminating, setTerminating] = useState(false);
+  const searchParams = useSearchParams();
+  const editSellerId = searchParams?.get("editSeller");
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (editSellerId && vendedores.length > 0) {
+      const target = vendedores.find((v) => v.id === editSellerId);
+      if (target) {
+        handleOpenForm(target);
+      }
+    }
+  }, [editSellerId, vendedores]);
 
   const [debugData, setDebugData] = useState<any>(null);
 

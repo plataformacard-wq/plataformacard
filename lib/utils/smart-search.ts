@@ -123,3 +123,62 @@ export function detectAnalyticsQuery(query: string): AnalyticsQueryType {
 
   return null;
 }
+
+export interface SearchCollaboratorItem {
+  id: string;
+  name?: string | null;
+  full_name?: string | null;
+  email?: string | null;
+  whatsapp?: string | null;
+  job_title?: string | null;
+  avatar_url?: string | null;
+  role?: string | null;
+  status?: string | null;
+  is_active?: boolean | null;
+}
+
+export function smartSearchCollaboratorMatch(
+  seller: SearchCollaboratorItem,
+  query: string
+): boolean {
+  if (!query || query.trim() === "") return true;
+
+  const cleanedQuery = query.replace(/[\[\]]/g, "").trim().toLowerCase();
+  if (!cleanedQuery) return true;
+
+  const normalizedQuery = cleanedQuery.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  // 1. Termos semânticos de equipe/vendedor
+  const teamTerms = ["vendedor", "vendedores", "equipe", "colaborador", "colaboradores", "time", "comercial", "membros"];
+  if (teamTerms.some((t) => normalizedQuery === t || normalizedQuery.includes(t))) {
+    return true;
+  }
+
+  // 2. Busca por Nome ou Nome Completo
+  const name = (seller.full_name || seller.name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (name.includes(normalizedQuery)) {
+    return true;
+  }
+
+  // 3. Busca por E-mail
+  const email = (seller.email || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (email.includes(normalizedQuery)) {
+    return true;
+  }
+
+  // 4. Busca por Cargo / Job Title
+  const jobTitle = (seller.job_title || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (jobTitle && jobTitle.includes(normalizedQuery)) {
+    return true;
+  }
+
+  // 5. Busca por WhatsApp / Telefone
+  const whatsapp = (seller.whatsapp || "").replace(/\D/g, "");
+  const queryDigits = cleanedQuery.replace(/\D/g, "");
+  if (queryDigits.length >= 3 && whatsapp.includes(queryDigits)) {
+    return true;
+  }
+
+  return false;
+}
+

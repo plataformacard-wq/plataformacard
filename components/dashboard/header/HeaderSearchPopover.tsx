@@ -12,20 +12,36 @@ import {
   XCircle, 
   Layers, 
   BarChart3, 
-  ArrowUpRight 
+  ArrowUpRight,
+  Users,
+  User,
+  Mail,
+  Phone
 } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { smartSearchMatch, detectAnalyticsQuery, AnalyticsQueryType } from "@/lib/utils/smart-search";
+import { 
+  smartSearchMatch, 
+  detectAnalyticsQuery, 
+  AnalyticsQueryType,
+  smartSearchCollaboratorMatch,
+  SearchCollaboratorItem
+} from "@/lib/utils/smart-search";
 import { QuickSearchProduct } from "../QuickSearchProductModal";
 
 interface HeaderSearchPopoverProps {
   products?: QuickSearchProduct[];
+  collaborators?: SearchCollaboratorItem[];
   onSelectProduct?: (product: QuickSearchProduct) => void;
   onOpenAnalyticsModal?: (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => void;
 }
 
-export function HeaderSearchPopover({ products: initialProducts = [], onSelectProduct, onOpenAnalyticsModal }: HeaderSearchPopoverProps) {
+export function HeaderSearchPopover({ 
+  products: initialProducts = [], 
+  collaborators = [],
+  onSelectProduct, 
+  onOpenAnalyticsModal 
+}: HeaderSearchPopoverProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -101,10 +117,16 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
   const activeProducts = productsList.length > 0 ? productsList : initialProducts;
 
   const matchingProducts = globalSearchQuery.trim()
-    ? activeProducts.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 6)
+    ? activeProducts.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 5)
+    : [];
+
+  const matchingCollaborators = globalSearchQuery.trim()
+    ? (collaborators || []).filter((c) => smartSearchCollaboratorMatch(c, globalSearchQuery)).slice(0, 4)
     : [];
 
   const detectedAnalytics = detectAnalyticsQuery(globalSearchQuery);
+
+  const hasAnyResults = matchingProducts.length > 0 || matchingCollaborators.length > 0 || detectedAnalytics !== null;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -137,20 +159,36 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isPopoverOpen) return;
 
+    const totalSelectable = matchingCollaborators.length + matchingProducts.length;
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlightedIndex((prev) => (prev < matchingProducts.length - 1 ? prev + 1 : 0));
+      setHighlightedIndex((prev) => (prev < totalSelectable - 1 ? prev + 1 : 0));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : matchingProducts.length - 1));
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : totalSelectable - 1));
     } else if (e.key === "Escape") {
       setIsPopoverOpen(false);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (highlightedIndex >= 0 && matchingProducts[highlightedIndex]) {
-        handleSelectProduct(matchingProducts[highlightedIndex]);
-      } else if (detectedAnalytics && onOpenAnalyticsModal) {
+      if (highlightedIndex >= 0) {
+        if (highlightedIndex < matchingCollaborators.length) {
+          handleSelectCollaborator(matchingCollaborators[highlightedIndex]);
+          return;
+        }
+        const productIndex = highlightedIndex - matchingCollaborators.length;
+        if (matchingProducts[productIndex]) {
+          handleSelectProduct(matchingProducts[productIndex]);
+          return;
+        }
+      }
+      
+      if (detectedAnalytics && onOpenAnalyticsModal) {
         handleSelectAnalytics(detectedAnalytics);
+      } else if (matchingCollaborators.length > 0 && matchingProducts.length === 0) {
+        handleSelectCollaborator(matchingCollaborators[0]);
+      } else if (matchingProducts.length > 0) {
+        handleSelectProduct(matchingProducts[0]);
       } else if (globalSearchQuery.trim()) {
         setIsPopoverOpen(false);
         router.push(`/dashboard/estoque?search=${encodeURIComponent(globalSearchQuery.trim())}`);
@@ -161,14 +199,12 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
   const handleSelectProduct = (product: QuickSearchProduct) => {
     setIsPopoverOpen(false);
     if (onSelectProduct) onSelectProduct(product);
+    router.push(`/dashboard/catalogo?editProduct=${product.id}`);
+  };
 
-    // Redireciona para o Catálogo com o modal de edição ativado
-    const targetUrl = `/dashboard/catalogo?editProduct=${product.id}`;
-    if (pathname === "/dashboard/catalogo") {
-      router.push(targetUrl);
-    } else {
-      router.push(targetUrl);
-    }
+  const handleSelectCollaborator = (collaborator: SearchCollaboratorItem) => {
+    setIsPopoverOpen(false);
+    router.push(`/dashboard/vendedores?editSeller=${collaborator.id}`);
   };
 
   const handleSelectAnalytics = (type: AnalyticsQueryType) => {
@@ -177,7 +213,6 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
     if (onOpenAnalyticsModal) {
       onOpenAnalyticsModal(type);
     } else {
-      // Fallback para página de estoque se modal não fornecido
       router.push(`/dashboard/estoque?search=${encodeURIComponent(globalSearchQuery.trim())}`);
     }
   };
@@ -196,7 +231,7 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
         onFocus={handleSearchFocus}
         onChange={(e) => handleSearchChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Buscar produtos, SKUs, esgotados..." 
+        placeholder="Buscar produtos, equipe, SKUs, esgotados..." 
         className="h-10 w-full rounded-lg border border-[var(--dash-border)] bg-[var(--dash-input-bg)] pl-10 pr-8 text-xs md:text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-[var(--dash-text-muted)]"
       />
       {globalSearchQuery && (
@@ -227,7 +262,7 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
               {isFetchingProducts && <Loader2 size={12} className="animate-spin text-primary" />}
             </div>
 
-            {/* Banner de Atalho para Modal Analítico (Se detectado termo semântico) */}
+            {/* Banner de Atalho para Modal Analítico */}
             {detectedAnalytics && (
               <div className="p-1 border-b border-[var(--dash-border)]/40 mb-1">
                 <button
@@ -267,89 +302,173 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
               </div>
             )}
 
-            <div className="max-h-80 overflow-y-auto custom-scrollbar p-1 space-y-1">
-              {matchingProducts.length === 0 ? (
+            <div className="max-h-80 overflow-y-auto custom-scrollbar p-1 space-y-2">
+              {!hasAnyResults ? (
                 <div className="px-4 py-6 text-center text-xs text-[var(--dash-text-muted)]">
                   Nenhum resultado encontrado para &quot;{globalSearchQuery}&quot;
                 </div>
               ) : (
-                matchingProducts.map((p, idx) => {
-                  const qty = p.stock_quantity ?? 0;
-                  const isInStock = (p.is_in_stock ?? true) && qty > 0;
-                  const isLowStock = isInStock && qty <= 5;
-                  const isOutOfStock = !p.is_in_stock || qty <= 0;
-                  const isHighlighted = highlightedIndex === idx;
-
-                  const priceFormatted = p.price != null
-                    ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p.price)
-                    : null;
-
-                  return (
-                    <div
-                      key={p.id || idx}
-                      onClick={() => handleSelectProduct(p)}
-                      onMouseEnter={() => setHighlightedIndex(idx)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
-                        isHighlighted
-                          ? "bg-[var(--dash-hover-bg)] ring-1 ring-primary/30"
-                          : "hover:bg-[var(--dash-hover-bg)]"
-                      }`}
-                    >
-                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)] flex items-center justify-center">
-                        {p.image_url ? (
-                          <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <Package size={18} className="text-[var(--dash-text-muted)] opacity-50" />
-                        )}
+                <>
+                  {/* SEÇÃO DE COLABORADORES */}
+                  {matchingCollaborators.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="px-3 py-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-500">
+                        <Users size={12} />
+                        <span>Equipe & Colaboradores ({matchingCollaborators.length})</span>
                       </div>
 
-                      <div className="flex flex-1 flex-col min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-bold text-[var(--dash-text-primary)] truncate">
-                            {p.name}
-                          </p>
-                          {priceFormatted && (
-                            <span className="text-xs font-extrabold text-primary shrink-0">
-                              {priceFormatted}
-                            </span>
-                          )}
-                        </div>
+                      {matchingCollaborators.map((c, cIdx) => {
+                        const isHighlighted = highlightedIndex === cIdx;
+                        const colabName = c.full_name || c.name || "Colaborador";
+                        const colabRole = c.job_title || (c.role === "admin" ? "Administrador" : "Vendedor");
+                        const isColabActive = c.status !== "inactive" && c.is_active !== false;
 
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {p.sku && (
-                            <span className="text-[10px] text-[var(--dash-text-muted)] font-mono truncate">
-                              SKU: {p.sku}
-                            </span>
-                          )}
+                        return (
+                          <div
+                            key={c.id || cIdx}
+                            onClick={() => handleSelectCollaborator(c)}
+                            onMouseEnter={() => setHighlightedIndex(cIdx)}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                              isHighlighted
+                                ? "bg-emerald-500/10 ring-1 ring-emerald-500/30"
+                                : "hover:bg-[var(--dash-hover-bg)]"
+                            }`}
+                          >
+                            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xs">
+                              {c.avatar_url ? (
+                                <img src={c.avatar_url} alt={colabName} className="h-full w-full object-cover rounded-full" />
+                              ) : (
+                                <span>{colabName.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
 
-                          {isOutOfStock ? (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
-                              🔴 Esgotado
-                            </span>
-                          ) : isLowStock ? (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
-                              🟡 Baixo ({qty})
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
-                              🟢 {qty} un
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                            <div className="flex flex-1 flex-col min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-bold text-[var(--dash-text-primary)] truncate">
+                                  {colabName}
+                                </p>
+                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shrink-0">
+                                  {colabRole}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-3 mt-0.5 text-[10px] text-[var(--dash-text-muted)]">
+                                {c.email && (
+                                  <span className="flex items-center gap-1 truncate max-w-[150px]">
+                                    <Mail size={10} className="shrink-0" />
+                                    {c.email}
+                                  </span>
+                                )}
+                                {c.whatsapp && (
+                                  <span className="flex items-center gap-1 shrink-0">
+                                    <Phone size={10} className="shrink-0" />
+                                    {c.whatsapp}
+                                  </span>
+                                )}
+                                <span className={`inline-flex items-center gap-0.5 text-[8px] font-black uppercase ml-auto ${
+                                  isColabActive ? "text-emerald-500" : "text-zinc-400"
+                                }`}>
+                                  {isColabActive ? "🟢 Ativo" : "⚪ Inativo"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })
+                  )}
+
+                  {/* SEÇÃO DE PRODUTOS */}
+                  {matchingProducts.length > 0 && (
+                    <div className="space-y-1 pt-1">
+                      {matchingCollaborators.length > 0 && (
+                        <div className="px-3 py-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[var(--dash-text-muted)] border-t border-[var(--dash-border)]/40 mt-1 pt-2">
+                          <Package size={12} />
+                          <span>Produtos ({matchingProducts.length})</span>
+                        </div>
+                      )}
+
+                      {matchingProducts.map((p, idx) => {
+                        const itemIndex = matchingCollaborators.length + idx;
+                        const qty = p.stock_quantity ?? 0;
+                        const isInStock = (p.is_in_stock ?? true) && qty > 0;
+                        const isLowStock = isInStock && qty <= 5;
+                        const isOutOfStock = !p.is_in_stock || qty <= 0;
+                        const isHighlighted = highlightedIndex === itemIndex;
+
+                        const priceFormatted = p.price != null
+                          ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p.price)
+                          : null;
+
+                        return (
+                          <div
+                            key={p.id || idx}
+                            onClick={() => handleSelectProduct(p)}
+                            onMouseEnter={() => setHighlightedIndex(itemIndex)}
+                            className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all ${
+                              isHighlighted
+                                ? "bg-[var(--dash-hover-bg)] ring-1 ring-primary/30"
+                                : "hover:bg-[var(--dash-hover-bg)]"
+                            }`}
+                          >
+                            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[var(--dash-border)] bg-[var(--dash-bg)] flex items-center justify-center">
+                              {p.image_url ? (
+                                <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                              ) : (
+                                <Package size={16} className="text-[var(--dash-text-muted)] opacity-50" />
+                              )}
+                            </div>
+
+                            <div className="flex flex-1 flex-col min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-bold text-[var(--dash-text-primary)] truncate">
+                                  {p.name}
+                                </p>
+                                {priceFormatted && (
+                                  <span className="text-xs font-extrabold text-primary shrink-0">
+                                    {priceFormatted}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {p.sku && (
+                                  <span className="text-[10px] text-[var(--dash-text-muted)] font-mono truncate">
+                                    SKU: {p.sku}
+                                  </span>
+                                )}
+
+                                {isOutOfStock ? (
+                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
+                                    🔴 Esgotado
+                                  </span>
+                                ) : isLowStock ? (
+                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                                    🟡 Baixo ({qty})
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                                    🟢 {qty} un
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {globalSearchQuery.trim() && (
-              <div className="p-1 border-t border-[var(--dash-border)]/50">
+            {globalSearchQuery.trim() && matchingProducts.length > 0 && (
+              <div className="p-1 border-t border-[var(--dash-border)]/50 mt-1">
                 <button
                   onClick={handleViewAllResults}
                   className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
                 >
-                  Ver todos os resultados no Estoque
+                  Ver todos os produtos no Estoque
                   <ArrowRight size={14} />
                 </button>
               </div>
