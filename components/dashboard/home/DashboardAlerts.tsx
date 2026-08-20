@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Package, MessageCircle, ArrowUpRight } from "lucide-react";
+import { Package, MessageCircle, ArrowUpRight, ShieldCheck } from "lucide-react";
 
 export default function DashboardAlerts({
   hasActiveMasterState,
@@ -18,7 +18,8 @@ export default function DashboardAlerts({
   avatarUrl,
   hasSellersWithoutPhoto,
   isCaaS,
-  isAnalyticAccess
+  isAnalyticAccess,
+  isMfaEnabled
 }: any) {
   return (
     <>
@@ -168,6 +169,32 @@ export default function DashboardAlerts({
             {isB2B ? (sellerCount === 0 ? "Cadastrar Vendedor" : "Configurar Vendedores") : "Configurar WhatsApp"}
             <ArrowUpRight size={16} />
           </Link>
+        </motion.div>
+      )}
+
+      {/* Alerta Educativo de Segurança (2FA) */}
+      {isMfaEnabled === false && !isAnalyticAccess && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-[27px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex items-start gap-3 mb-4"
+        >
+          <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+            <ShieldCheck size={20} />
+          </div>
+          <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div>
+              <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400">
+                Reforce a Segurança da sua Loja com 2FA
+              </h4>
+              <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                Ative a verificação em duas etapas no seu perfil para proteger alteração de senhas, WhatsApp e dados da conta.
+              </p>
+            </div>
+            <Link href="/dashboard/perfil" className="shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-colors">
+              Ativar 2FA
+            </Link>
+          </div>
         </motion.div>
       )}
 

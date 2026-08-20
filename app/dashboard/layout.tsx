@@ -3,7 +3,7 @@ import { PanelLayout } from "@/components/dashboard/PanelLayout";
 import BlockedSubscriptionScreen from "@/components/auth/BlockedSubscriptionScreen";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createClient();
@@ -77,10 +77,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const cookieStore = await cookies();
   const shadowOrgId = cookieStore.get("shadow_org_id")?.value;
 
+  const headersList = await headers();
+  const currentPathname = headersList.get("x-pathname") || "";
+
   if (profile?.role === "main_admin") {
-    // Se for Super Admin, só permite acesso ao /dashboard em Shadow Mode (simulação de cliente)
-    if (!shadowOrgId) {
-      // Sem cookie de simulação → redireciona para o QG do Admin
+    // Se for Super Admin, permite acesso ao próprio perfil (/dashboard/perfil) sem Shadow Mode
+    // Para as demais páginas do tenant dashboard, exige Shadow Mode (simulação de cliente)
+    const isPerfilPage = currentPathname.startsWith("/dashboard/perfil");
+    if (!shadowOrgId && !isPerfilPage) {
       redirect("/main");
     }
   } else {

@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, Fingerprint, Lock, Smartphone, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ShieldCheck, Fingerprint, Smartphone, RefreshCw, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 import { getMfaStatus, disableMfaForUser, MfaStatusResult } from "@/lib/auth/mfaActions";
 import { isPasskeySupported } from "@/lib/auth/passkey-helpers";
 import MfaEnrollModal from "./MfaEnrollModal";
 import PasskeyEnrollModal from "./PasskeyEnrollModal";
 
 export default function ProfileMfaCard({ userEmail }: { userEmail: string }) {
+  const searchParams = useSearchParams();
+  const isMfaRequired = searchParams?.get("mfa_required") === "true";
+
   const [mfaStatus, setMfaStatus] = useState<MfaStatusResult | null>(null);
   const [passkeySupported, setPasskeySupported] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -26,6 +30,10 @@ export default function ProfileMfaCard({ userEmail }: { userEmail: string }) {
     try {
       const res = await getMfaStatus();
       setMfaStatus(res);
+      // Se mfa_required for true e o usuário ainda não ativou o 2FA, abre automaticamente o modal de ativação
+      if (isMfaRequired && !res.isEnabled) {
+        setIsEnrollModalOpen(true);
+      }
     } catch (err) {
       console.error("Erro ao carregar status 2FA:", err);
     } finally {
@@ -74,6 +82,19 @@ export default function ProfileMfaCard({ userEmail }: { userEmail: string }) {
         <p className="mt-1 text-sm text-[var(--dash-text-muted)] leading-relaxed">
           Proteja sua loja contra invasões exigindo um segundo fator de verificação (App Autenticador ou Biometria Nativa).
         </p>
+
+        {/* Alerta de Obrigatoriedade para Super Admin */}
+        {isMfaRequired && (!mfaStatus || !mfaStatus.isEnabled) && (
+          <div className="mt-4 p-4 rounded-[27px] border border-red-500/30 bg-red-500/10 text-red-500 text-xs flex items-start gap-3 shadow-md">
+            <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="font-extrabold text-sm uppercase tracking-wider">Ação Obrigatória de Segurança</p>
+              <p className="mt-0.5 leading-relaxed font-medium">
+                Para acessar o <strong>Portal Super Admin (QG)</strong>, é obrigatório ativar a Autenticação em Dois Fatores (2FA) via App Autenticador (Google Authenticator / Authy) abaixo.
+              </p>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="mt-6 p-4 rounded-lg border bg-black/5 dark:bg-[var(--dash-surface)]/5 animate-pulse text-xs text-[var(--dash-text-muted)] text-center">

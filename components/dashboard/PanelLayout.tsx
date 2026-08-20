@@ -165,7 +165,8 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
           ?.split("=")[1];
 
         if (userRole === "main_admin") {
-          if (!shadowOrgId && window.location.pathname.startsWith("/dashboard")) {
+          const isPerfilPage = window.location.pathname.startsWith("/dashboard/perfil");
+          if (!shadowOrgId && window.location.pathname.startsWith("/dashboard") && !isPerfilPage) {
             router.replace("/main");
             return;
           }

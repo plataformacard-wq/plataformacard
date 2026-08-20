@@ -49,6 +49,16 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
     setErrorMsg("");
     try {
       const supabase = createClient();
+
+      // Limpar fatores não-verificados acumulados no Supabase Auth para evitar erro de duplicidade
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      if (factorsData?.all && factorsData.all.length > 0) {
+        const unverified = factorsData.all.filter((f) => f.status === "unverified");
+        for (const f of unverified) {
+          await supabase.auth.mfa.unenroll({ factorId: f.id });
+        }
+      }
+
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
         issuer: "PlataformaShop",
@@ -191,10 +201,16 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
               <motion.div key="qr-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                 <div className="p-4 rounded-[27px] border bg-black/5 dark:bg-[var(--dash-surface)]/5 flex flex-col items-center justify-center text-center" style={{ borderColor: "var(--dash-border)" }}>
                   {qrCodeSvg ? (
-                    <div
-                      className="p-3 bg-[var(--dash-surface)] rounded-lg shadow-md mb-3"
-                      dangerouslySetInnerHTML={{ __html: qrCodeSvg }}
-                    />
+                    <div className="p-3 bg-white rounded-xl shadow-md mb-3 flex items-center justify-center">
+                      {qrCodeSvg.startsWith("data:") || qrCodeSvg.startsWith("http") ? (
+                        <img src={qrCodeSvg} alt="QR Code 2FA" className="w-48 h-48 object-contain" />
+                      ) : (
+                        <div
+                          className="w-48 h-48 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                          dangerouslySetInnerHTML={{ __html: qrCodeSvg.replace(/^data:image\/svg\+xml;utf-8,/, "") }}
+                        />
+                      )}
+                    </div>
                   ) : (
                     <QrCode size={120} className="text-primary mb-3" />
                   )}

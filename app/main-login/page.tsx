@@ -14,13 +14,41 @@ export default function MainLoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Se já estiver logado, tentar redirecionar para o MAIN
+  // Se já estiver logado, checar nível de 2FA antes de redirecionar para o MAIN
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        router.replace("/main");
+    async function checkAuthAndMfa() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profile?.role !== "main_admin") {
+        return;
       }
-    });
+
+      // 🔒 Checagem de 2FA para o Super Admin
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalData?.currentLevel === "aal1" && aalData?.nextLevel === "aal2") {
+        router.replace("/entrar/2fa?redirect=/main");
+        return;
+      }
+
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const verifiedFactors = factorsData?.all?.filter((f) => f.status === "verified") || [];
+
+      if (verifiedFactors.length === 0) {
+        router.replace("/dashboard/perfil?mfa_required=true");
+        return;
+      }
+
+      router.replace("/main");
+    }
+
+    checkAuthAndMfa();
   }, [supabase, router]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -39,18 +67,34 @@ export default function MainLoginPage() {
       return;
     }
 
-    // Verificar se realmente é um main_admin antes de deixar acessar o /main
+    // Verificar se realmente é um main_admin antes de prosseguir
     if (data.user) {
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', data.user.id)
+        .from("profiles")
+        .select("role")
+        .eq("user_id", data.user.id)
         .single();
-      
-      if (profile?.role !== 'main_admin') {
+
+      if (profile?.role !== "main_admin") {
         await supabase.auth.signOut();
         setLoading(false);
         setErrorMessage("Acesso Negado. Esta área é restrita para o Main Admin.");
+        return;
+      }
+
+      // 🔒 1. Verificar se a conta possui 2FA ativo que precisa de desafio (AAL2)
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalData?.currentLevel === "aal1" && aalData?.nextLevel === "aal2") {
+        router.push("/entrar/2fa?redirect=/main");
+        return;
+      }
+
+      // 🔒 2. Verificar se o Super Admin ainda não ativou o 2FA (obrigatoriedade)
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const verifiedFactors = factorsData?.all?.filter((f) => f.status === "verified") || [];
+
+      if (verifiedFactors.length === 0) {
+        router.push("/dashboard/perfil?mfa_required=true");
         return;
       }
     }

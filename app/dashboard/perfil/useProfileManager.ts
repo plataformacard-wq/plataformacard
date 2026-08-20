@@ -99,18 +99,15 @@ export function useProfileManager() {
 
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash;
-      if (hash === "#cartao") {
-        setView("card");
-      } else {
-        setView("security");
-      }
+      const hash = typeof window !== "undefined" ? window.location.hash : "";
+      const targetView = hash === "#cartao" ? "card" : "security";
+      setView((prev) => (prev !== targetView ? targetView : prev));
     };
 
     handleHash();
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
-  }, [pathname, searchParams]);
+  }, []);
 
   useEffect(() => {
     async function loadProfile() {
