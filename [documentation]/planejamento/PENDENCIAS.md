@@ -54,6 +54,7 @@ graph TD
 - [ ] **Landing Page de Captura:** Criar página oficial para conversão de novos clientes do SaaS.
 - [x] **Sistemas de Pagamento:** Arquitetura de checkout Kiwify + Sandbox e webhooks atômicos implementada.
 - [x] **Domínios Próprios:** Arquitetura de `custom_domain` automatizada via API da Vercel.
+- [ ] **Assistente de Inteligência do Lojista (Chat RAG - Agendado Pós-Lançamento):** Arquitetura RAG isolada por `organization_id`, cotas mensais por plano (PRO/Enterprise) e especificações técnicas documentadas em [`[documentation]/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md). Implementação agendada para a Fase 2 (Pós-Go-Live).
 - [ ] **Análise Estratégica - Gestão de Acessos B2B:** Criação e validação do sistema de acesso de vendedores ao dashboard com as limitações configuradas pelo Gestor B2B.
 - [ ] **Análise Estratégica - Planos e Funções:** Definição e criação de Planos e Funções (Roles) do SaaS.
 - [ ] **Pesquisa de Mercado:** Estudo de precificação e análise de concorrência.

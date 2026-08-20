@@ -14,22 +14,24 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
   - Integração do motor `smartSearchMatch` (`lib/utils/smart-search.ts`) no cabeçalho do Dashboard.
   - Dropdown flutuante em tempo real ao focar e digitar na barra de busca (sem exigir Enter).
   - Exibição rich de itens com Foto miniatura, Nome, SKU, Badge de Status (`🔴 Esgotado`, `🟡 Estoque Baixo`, `🟢 Em Estoque`) e Preço formatado.
-  - Modal de detalhes rápido ([QuickSearchProductModal.tsx](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/components/dashboard/QuickSearchProductModal.tsx)) ao clicar em qualquer resultado.
+  - Modal de detalhes rápido ([QuickSearchProductModal.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/QuickSearchProductModal.tsx)) ao clicar em qualquer resultado.
   - Navegação via teclado (`ArrowUp`, `ArrowDown`, `Enter`, `Escape`), fechamento no clique fora e suporte a dispositivos móveis.
-- [x] **Auditoria Profunda de Responsividade Mobile (`< 768px`):**
-  - Inclusão de `overflow-x-hidden` no `<main>` de [PanelLayout.tsx](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/components/dashboard/PanelLayout.tsx) prevenindo 100% dos scrolls horizontais no Dashboard.
-  - Readequação do padding do header em [AssinaturaClient.tsx](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/app/dashboard/assinatura/AssinaturaClient.tsx) (`p-5 md:p-10`) e alinhamento dos cartões de planos em 1 coluna fluida no celular (`grid-cols-1 md:grid-cols-2 lg:grid-cols-4`).
-- [x] **Validação & Compilação:**
-  - Executado `npx tsc --noEmit` obtendo **0 erros de compilação**.
+- [x] **Refatoração Anti-Monolito do TopHeader (`components/dashboard/header/`):**
+  - Decomposição do arquivo monolítico de 562 linhas em 3 sub-componentes modulares: [`HeaderSearchPopover.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderSearchPopover.tsx), [`HeaderNotificationsMenu.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderNotificationsMenu.tsx) e [`HeaderUserMenu.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderUserMenu.tsx).
+  - Redução do orquestrador [`TopHeader.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/TopHeader.tsx) para 130 linhas (redução de 77%).
+- [x] **Documentação Técnica do Chat RAG (Agendado Pós-Lançamento):**
+  - Estudo de viabilidade, arquitetura RAG criptografada com isolamento por `organization_id`, modelo de cotas por plano (Starter/PRO/Enterprise) e plano de implementação documentados em [`ESPECIFICACAO_CHAT_IA_RAG.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md) e [`PENDENCIAS.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/PENDENCIAS.md).
+- [x] **Protocolo VPGP (Verify, Push, Github, Push):**
+  - Validação `npx tsc --noEmit` obtendo **0 erros de compilação**. Commits e push efetuados para `origin/main`.
 
 ---
 
 ## 2. Próximos Passos (Backlog de Lançamento)
 
-1. **Assistente de Inteligência do Lojista (Chat RAG):**
-   - Implementação do assistente de IA com contexto SQL/RAG no Dashboard conforme especificado em [[documentation]/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md).
-2. **Execução do Protocolo VPGP (Verify, Push, Github, Push):**
-   - Compilação do build final (`npm run build`), commit das novas alterações de Live Search e push para o repositório remoto.
+1. **Assets Visuais & Mockups Oficiais da Landing Page:**
+   - Adicionar os mockups 3D oficiais e ilustrações B2B no CMS/public para o lançamento público.
+2. **Separação de Ambientes Supabase (Staging):**
+   - Configurar projeto de homologação para testes de staging pós-lançamento.
 
 ---
 
@@ -38,7 +40,7 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
 ```text
 Protocolo START! 
 
-Finalizamos com sucesso a implementação do Live Search Popover Preditivo no TopHeader com a integração do smartSearchMatch, o modal QuickSearchProductModal, e a Auditoria Profunda de Responsividade Mobile. Todos os arquivos compilam com 0 erros no TypeScript (`npx tsc --noEmit`).
+Finalizamos com sucesso a implementação do Live Search Popover Preditivo, o modal QuickSearchProductModal, a Refatoração Anti-Monolito do TopHeader, e o salvamento via Protocolo VPGP no GitHub remoto. A especificação do Assistente de Inteligência do Lojista (Chat RAG) foi 100% documentada para implementação na Fase 2 pós-lançamento. Todos os arquivos compilam com 0 erros no TypeScript (`npx tsc --noEmit`).
 
-Por favor, valide o estado atual do repositório e execute a próxima etapa: a implementação do Assistente de Inteligência do Lojista (Chat RAG) conforme a especificação técnica em [documentation]/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md ou a execução do Protocolo VPGP para salvar as alterações.
+Por favor, valide o estado atual do repositório e informe as tarefas prioritárias para o lançamento online da PlataformaShop.
 ```
