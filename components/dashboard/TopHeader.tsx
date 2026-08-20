@@ -25,6 +25,7 @@ interface TopHeaderProps {
   notifications?: any[];
   jobTitle?: string | null;
   granularPermissions?: any;
+  products?: any[];
   onOpenAnalyticsModal?: (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => void;
 }
 
@@ -44,6 +45,7 @@ export function TopHeader({
   notifications = [],
   jobTitle,
   granularPermissions,
+  products = [],
   onOpenAnalyticsModal
 }: TopHeaderProps) {
   const [selectedProductModal, setSelectedProductModal] = useState<QuickSearchProduct | null>(null);
@@ -65,6 +67,7 @@ export function TopHeader({
           
           {/* Componente de Busca Preditiva de Produtos */}
           <HeaderSearchPopover 
+            products={products}
             onSelectProduct={(product) => setSelectedProductModal(product)} 
             onOpenAnalyticsModal={onOpenAnalyticsModal}
           />

@@ -321,6 +321,31 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
 
         // --- REALTIME LEADS LISTENER ---
         if (targetOrgId) {
+          // Pre-carrega produtos da organização ativa para a busca instantânea do cabeçalho
+          try {
+            let pRes: any = await supabase
+              .from("products")
+              .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
+              .eq("organization_id", targetOrgId)
+              .is("deleted_at", null)
+              .order("name");
+
+            if (pRes.error) {
+              pRes = await supabase
+                .from("products")
+                .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price")
+                .eq("organization_id", targetOrgId)
+                .is("deleted_at", null)
+                .order("name");
+            }
+
+            if (pRes.data) {
+              setAnalyticsProducts(pRes.data);
+            }
+          } catch (pErr) {
+            console.warn("Erro ao pre-carregar produtos no PanelLayout:", pErr);
+          }
+
           const channelName = `leads-${targetOrgId}`;
           // Previne erro "cannot add postgres_changes callbacks after subscribe" em Strict Mode ou re-renders
           supabase.getChannels().forEach(ch => {
@@ -449,6 +474,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
           subscriptionStatus={subscriptionStatus || undefined}
           notifications={allNotifications}
           jobTitle={jobTitle}
+          products={analyticsProducts}
           onOpenAnalyticsModal={handleOpenAnalyticsModal}
           toggleTheme={() => {
             const next = !isDark;

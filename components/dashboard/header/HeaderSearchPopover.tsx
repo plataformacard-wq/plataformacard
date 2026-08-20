@@ -14,47 +14,77 @@ import {
   BarChart3, 
   ArrowUpRight 
 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { smartSearchMatch, detectAnalyticsQuery, AnalyticsQueryType } from "@/lib/utils/smart-search";
 import { QuickSearchProduct } from "../QuickSearchProductModal";
 
 interface HeaderSearchPopoverProps {
+  products?: QuickSearchProduct[];
   onSelectProduct?: (product: QuickSearchProduct) => void;
   onOpenAnalyticsModal?: (type: "out_of_stock" | "low_stock" | "categories" | "global_stock") => void;
 }
 
-export function HeaderSearchPopover({ onSelectProduct, onOpenAnalyticsModal }: HeaderSearchPopoverProps) {
+export function HeaderSearchPopover({ products: initialProducts = [], onSelectProduct, onOpenAnalyticsModal }: HeaderSearchPopoverProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
-  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
-  const [productsList, setProductsList] = useState<QuickSearchProduct[]>([]);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState(searchParams?.get("search") || "");
+  const [productsList, setProductsList] = useState<QuickSearchProduct[]>(initialProducts);
   const [isFetchingProducts, setIsFetchingProducts] = useState(false);
-  const [hasFetchedProducts, setHasFetchedProducts] = useState(false);
+  const [hasFetchedProducts, setHasFetchedProducts] = useState(initialProducts.length > 0);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const searchRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    if (initialProducts.length > 0) {
+      setProductsList(initialProducts);
+      setHasFetchedProducts(true);
+    }
+  }, [initialProducts]);
+
+  useEffect(() => {
+    const urlQuery = searchParams?.get("search");
+    if (urlQuery !== null && urlQuery !== undefined && urlQuery !== globalSearchQuery) {
+      setGlobalSearchQuery(urlQuery);
+    }
+  }, [searchParams]);
+
   const fetchSearchProducts = useCallback(async () => {
+    if (initialProducts.length > 0) return;
     if (hasFetchedProducts || isFetchingProducts) return;
     setIsFetchingProducts(true);
     try {
-      let res: any = await supabase
+      const shadowOrgId = typeof document !== 'undefined'
+        ? document.cookie.split("; ").find((row) => row.startsWith("shadow_org_id="))?.split("=")[1]
+        : null;
+
+      let query = supabase
         .from("products")
-        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
-        .is("deleted_at", null)
-        .order("name");
+        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name), organization_id")
+        .is("deleted_at", null);
+
+      if (shadowOrgId) {
+        query = query.eq("organization_id", shadowOrgId);
+      }
+
+      let res: any = await query.order("name");
 
       if (res.error) {
         console.warn("[HeaderSearchPopover] Fallback para busca direta sem join:", res.error.message);
-        res = await supabase
+        let fallbackQuery = supabase
           .from("products")
-          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price")
-          .is("deleted_at", null)
-          .order("name");
+          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, organization_id")
+          .is("deleted_at", null);
+
+        if (shadowOrgId) {
+          fallbackQuery = fallbackQuery.eq("organization_id", shadowOrgId);
+        }
+        res = await fallbackQuery.order("name");
       }
 
       if (res.data) {
@@ -66,10 +96,12 @@ export function HeaderSearchPopover({ onSelectProduct, onOpenAnalyticsModal }: H
     } finally {
       setIsFetchingProducts(false);
     }
-  }, [supabase, hasFetchedProducts, isFetchingProducts]);
+  }, [supabase, hasFetchedProducts, isFetchingProducts, initialProducts]);
+
+  const activeProducts = productsList.length > 0 ? productsList : initialProducts;
 
   const matchingProducts = globalSearchQuery.trim()
-    ? productsList.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 6)
+    ? activeProducts.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 6)
     : [];
 
   const detectedAnalytics = detectAnalyticsQuery(globalSearchQuery);
