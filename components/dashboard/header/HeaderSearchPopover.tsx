@@ -270,7 +270,7 @@ export function HeaderSearchPopover({ products: initialProducts = [], onSelectPr
             <div className="max-h-80 overflow-y-auto custom-scrollbar p-1 space-y-1">
               {matchingProducts.length === 0 ? (
                 <div className="px-4 py-6 text-center text-xs text-[var(--dash-text-muted)]">
-                  Nenhum produto encontrado para &quot;{globalSearchQuery}&quot;
+                  Nenhum resultado encontrado para &quot;{globalSearchQuery}&quot;
                 </div>
               ) : (
                 matchingProducts.map((p, idx) => {
