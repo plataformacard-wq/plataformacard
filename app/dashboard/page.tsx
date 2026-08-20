@@ -94,29 +94,32 @@ export default async function DashboardPage() {
     if (org?.name) orgName = org.name;
     if (org?.bling_access_token) hasBlingConnection = true;
 
-    // Buscar distribuição de produtos por categorias reais da organização
-    const { data: orgCategories } = await supabase
-      .from("categories")
-      .select("id, name")
-      .eq("organization_id", activeOrgId);
+    // Buscar distribuição de produtos por categorias reais da organização de forma otimizada (sem loop waterfall)
+    const [{ data: orgCategories }, { data: prodsCategoryIds }] = await Promise.all([
+      supabase
+        .from("categories")
+        .select("id, name")
+        .eq("organization_id", activeOrgId),
+      supabase
+        .from("products")
+        .select("category_id")
+        .eq("organization_id", activeOrgId)
+        .is("deleted_at", null)
+    ]);
 
-    if (orgCategories && orgCategories.length > 0) {
+    if (orgCategories && orgCategories.length > 0 && prodsCategoryIds) {
+      const countMap: Record<string, number> = {};
+      for (const p of prodsCategoryIds) {
+        if (p.category_id) {
+          countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
+        }
+      }
+
       const palette = ["#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#f59e0b"];
-      const categoryCounts = await Promise.all(
-        orgCategories.map((c) =>
-          supabase
-            .from("products")
-            .select("id", { count: "exact", head: true })
-            .eq("organization_id", activeOrgId)
-            .eq("category_id", c.id)
-            .is("deleted_at", null)
-        )
-      );
-
       categoryDistribution = orgCategories
         .map((c, i) => ({
           label: c.name,
-          value: categoryCounts[i].count || 0,
+          value: countMap[c.id] || 0,
           color: palette[i % palette.length],
         }))
         .filter((c) => c.value > 0);

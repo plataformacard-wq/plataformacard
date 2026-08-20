@@ -20,12 +20,28 @@ import PlanOverageAlert from "@/components/dashboard/PlanOverageAlert";
 import { MobileBottomNav } from "@/components/dashboard/mobile/MobileBottomNav";
 import { MobileFabButton } from "@/components/dashboard/mobile/MobileFabButton";
 import { getMyProfile, getOrganizationById, getOrganizationStats } from "@/lib/admin-actions";
+import dynamic from "next/dynamic";
 import { detectOverage, getPlanName } from "@/lib/plans";
 import { getSellers } from "@/lib/dashboard/sellerActions";
-import GlobalStockModal from "@/components/dashboard/GlobalStockModal";
-import LowStockAlertModal from "@/components/dashboard/LowStockAlertModal";
-import OutOfStockModal from "@/components/dashboard/OutOfStockModal";
-import TopCategoriesModal from "@/components/dashboard/TopCategoriesModal";
+
+const GlobalStockModal = dynamic(() => import("@/components/dashboard/GlobalStockModal"), { ssr: false });
+const LowStockAlertModal = dynamic(() => import("@/components/dashboard/LowStockAlertModal"), { ssr: false });
+const OutOfStockModal = dynamic(() => import("@/components/dashboard/OutOfStockModal"), { ssr: false });
+const TopCategoriesModal = dynamic(() => import("@/components/dashboard/TopCategoriesModal"), { ssr: false });
+
+// Cache em memória compartilhado entre rotas do Dashboard (TTL de 60s)
+let layoutMemoryCache: {
+  orgId: string | null;
+  products: any[];
+  collaborators: any[];
+  timestamp: number;
+} = {
+  orgId: null,
+  products: [],
+  collaborators: [],
+  timestamp: 0,
+};
+const CACHE_TTL_MS = 60 * 1000;
 
 interface PanelLayoutProps {
   children: React.ReactNode;
@@ -321,41 +337,52 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
         combinedNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setAllNotifications(combinedNotifications);
 
-        // --- REALTIME LEADS LISTENER ---
+        // --- CARREGAMENTO OTIMIZADO DE PRODUTOS & COLABORADORES (COM CACHE EM MEMÓRIA) ---
         if (targetOrgId) {
-          // Pre-carrega produtos da organização ativa para a busca instantânea do cabeçalho
-          try {
-            let pRes: any = await supabase
-              .from("products")
-              .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name)")
-              .eq("organization_id", targetOrgId)
-              .is("deleted_at", null)
-              .order("name");
+          const isCacheValid = layoutMemoryCache.orgId === targetOrgId && 
+            (Date.now() - layoutMemoryCache.timestamp < CACHE_TTL_MS) &&
+            layoutMemoryCache.products.length > 0;
 
-            if (pRes.error) {
-              pRes = await supabase
-                .from("products")
-                .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id")
-                .eq("organization_id", targetOrgId)
-                .is("deleted_at", null)
-                .order("name");
-            }
+          if (isCacheValid) {
+            setAnalyticsProducts(layoutMemoryCache.products);
+            setHeaderCollaborators(layoutMemoryCache.collaborators);
+          } else {
+            try {
+              const [pRes, sellersRes] = await Promise.all([
+                supabase
+                  .from("products")
+                  .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name)")
+                  .eq("organization_id", targetOrgId)
+                  .is("deleted_at", null)
+                  .order("name"),
+                getSellers()
+              ]);
 
-            if (pRes.data) {
-              setAnalyticsProducts(pRes.data);
-            }
-          } catch (pErr) {
-            console.warn("Erro ao pre-carregar produtos no PanelLayout:", pErr);
-          }
+              let finalProducts: any[] = (pRes.data as any[]) || [];
+              if (pRes.error) {
+                const { data: fallbackProds } = await supabase
+                  .from("products")
+                  .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id")
+                  .eq("organization_id", targetOrgId)
+                  .is("deleted_at", null)
+                  .order("name");
+                finalProducts = (fallbackProds as any[]) || [];
+              }
 
-          // Pre-carrega colaboradores via Server Action (bypassa RLS) para a busca inteligente
-          try {
-            const sellersRes = await getSellers();
-            if (sellersRes?.sellers && sellersRes.sellers.length > 0) {
-              setHeaderCollaborators(sellersRes.sellers as any[]);
+              const finalSellers = (sellersRes?.sellers as any[]) || [];
+
+              setAnalyticsProducts(finalProducts);
+              setHeaderCollaborators(finalSellers);
+
+              layoutMemoryCache = {
+                orgId: targetOrgId,
+                products: finalProducts,
+                collaborators: finalSellers,
+                timestamp: Date.now()
+              };
+            } catch (pErr) {
+              console.warn("Erro ao pre-carregar dados no PanelLayout:", pErr);
             }
-          } catch (cErr) {
-            console.warn("Erro ao pre-carregar colaboradores no PanelLayout:", cErr);
           }
 
           const channelName = `leads-${targetOrgId}`;

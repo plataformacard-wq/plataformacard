@@ -471,6 +471,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                               <Link
                                 key={sub.href}
                                 href={sub.href}
+                                prefetch={true}
                                 className={`flex items-center gap-2 rounded-lg transition-all ${
                                   isCollapsed ? "p-2 justify-center" : "px-3 py-2 text-xs"
                                 } ${
@@ -527,6 +528,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   className={`group relative flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-all ${
                     isActive 
                       ? "text-white bg-primary" 
