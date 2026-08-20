@@ -221,7 +221,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
         const maxUsers = PLAN_LIMITS[planId || ""]?.max_users;
         const isMultiUser = maxUsers === 0 || (maxUsers !== undefined && maxUsers > 1);
 
-        if (isMultiUser) {
+        if (isMultiUser || isActuallySuperAdmin) {
           navLinks.push({ href: "/dashboard/vendedores", label: "Colaboradores", icon: Users });
         } else {
           navLinks.push({ 
@@ -239,8 +239,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
           href: "/dashboard/franquias", 
           label: "Franquias", 
           icon: Globe,
-          requiredFeature: "caas_master",
-          badge: "ENTERPRISE"
+          ...(isActuallySuperAdmin ? {} : { requiredFeature: "caas_master", badge: "ENTERPRISE" })
         });
       }
       
@@ -399,7 +398,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
               const isSameHash = itemHash ? currentHash === itemHash : !currentHash;
               
               const isActive = (isSamePath && isSameHash) || (hasSubItems && item.subItems.some((s: any) => pathname === s.href));
-              const isItemLocked = item.requiredFeature && !isFeatureAllowed(planId, item.requiredFeature);
+              const isItemLocked = !isActuallySuperAdmin && item.requiredFeature && !isFeatureAllowed(planId, item.requiredFeature);
 
               if (hasSubItems) {
                 return (
@@ -439,7 +438,7 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
                         >
                           {item.subItems.map((sub: SubNavItem) => {
                             const isSubActive = pathname === sub.href;
-                            const isSubLocked = sub.requiredFeature && !isFeatureAllowed(planId, sub.requiredFeature);
+                            const isSubLocked = !isActuallySuperAdmin && sub.requiredFeature && !isFeatureAllowed(planId, sub.requiredFeature);
 
                             if (isSubLocked) {
                               return (

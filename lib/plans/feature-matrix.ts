@@ -102,9 +102,9 @@ export function normalizePlanSlug(input?: string | null): PlanSlug {
   if (!input) return "starter";
   const trimmed = input.trim().toLowerCase();
   if (UUID_TO_SLUG_MAP[trimmed]) return UUID_TO_SLUG_MAP[trimmed];
+  if (trimmed.includes("main_admin") || trimmed.includes("super_admin") || trimmed.includes("admin") || trimmed.includes("all_service") || trimmed.includes("franqueador") || trimmed.includes("enterprise") || trimmed.includes("hibrida")) return "all_service";
   if (trimmed.includes("starter") || trimmed.includes("start")) return "starter";
   if (trimmed.includes("sales") || trimmed.includes("team") || trimmed.includes("premium")) return "sales_team";
-  if (trimmed.includes("all_service") || trimmed.includes("franqueador") || trimmed.includes("enterprise") || trimmed.includes("hibrida")) return "all_service";
   if (trimmed.includes("pro") || trimmed.includes("basic")) return "pro";
   return "starter";
 }
