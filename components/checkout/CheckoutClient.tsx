@@ -29,6 +29,7 @@ export default function CheckoutClient() {
 
   const planParam = (searchParams?.get("plan") || "pro").toLowerCase() as PlanSlug;
   const initialCycle = searchParams?.get("cycle") === "monthly" ? "monthly" : "annual";
+  const orgIdParam = searchParams?.get("org_id") || "";
 
   const [cycle, setCycle] = useState<"annual" | "monthly">(initialCycle);
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
@@ -52,7 +53,6 @@ export default function CheckoutClient() {
   const annualSavings = (monthlyAnchor - activeMonthlyPrice) * 12;
 
   // URLs do Checkout da Kiwify (ou homologação / iframe)
-  // Substituir pelas URLs dos produtos cadastrados na Kiwify se necessário
   const handleProceedPayment = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
@@ -65,22 +65,28 @@ export default function CheckoutClient() {
     setLoading(true);
 
     // Em produção com a Kiwify: Redirecionar para a URL do Checkout Kiwify com parâmetros de identificação do lojista
-    // Exemplo: https://pay.kiwify.com.br/ABCDEF?email=...&name=...
     const kiwifyBaseUrl = activePlan.checkoutUrls?.[cycle] || process.env.NEXT_PUBLIC_KIWIFY_CHECKOUT_URL;
     
     // Parâmetros de identificação e pré-preenchimento do cliente na Kiwify
-    const params = new URLSearchParams({
+    const paramsPayload: Record<string, string> = {
       name: fullName,
       email: email,
       doc: document,
       phone: whatsapp,
-    });
+    };
+
+    if (orgIdParam) {
+      paramsPayload.s1 = orgIdParam;
+      paramsPayload["custom_variables[org_id]"] = orgIdParam;
+    }
+
+    const params = new URLSearchParams(paramsPayload);
 
     setTimeout(() => {
       if (kiwifyBaseUrl) {
         window.location.href = `${kiwifyBaseUrl}?${params.toString()}`;
       } else {
-        router.push(`/cadastro?plan=${activePlan.slug}&cycle=${cycle}&email=${encodeURIComponent(email)}`);
+        router.push(`/cadastro?plan=${activePlan.slug}&cycle=${cycle}&email=${encodeURIComponent(email)}&org_id=${encodeURIComponent(orgIdParam)}`);
       }
     }, 800);
   };

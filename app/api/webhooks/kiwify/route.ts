@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
-// Instância estritamente com Service Role para operações administrativas
 function getAdminSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -10,6 +9,29 @@ function getAdminSupabase() {
     throw new Error("Configuração de backend crítica: SUPABASE_SERVICE_ROLE_KEY não configurada.");
   }
   return createClient(url, serviceKey);
+}
+
+const PLAN_UUID_MAP = {
+  starter: "a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d",
+  pro: "6f3dfe4e-905c-486e-923f-2cfb6e5d3e62",
+  sales_team: "32c7b8a2-2bf7-43dd-b1a6-5706566fbfd0",
+  all_service: "d35c09c2-51a0-4f38-b5d9-dcc3526e7d26",
+};
+
+function resolvePlanId(productName?: string, productId?: string): string {
+  const name = (productName || "").toLowerCase();
+  const id = (productId || "").toLowerCase();
+
+  if (name.includes("starter") || id.includes("starter") || name.includes("start")) {
+    return PLAN_UUID_MAP.starter;
+  }
+  if (name.includes("sales") || name.includes("team") || id.includes("sales")) {
+    return PLAN_UUID_MAP.sales_team;
+  }
+  if (name.includes("all") || name.includes("franqueador") || name.includes("enterprise") || id.includes("all")) {
+    return PLAN_UUID_MAP.all_service;
+  }
+  return PLAN_UUID_MAP.pro;
 }
 
 export async function POST(req: Request) {
@@ -23,7 +45,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    // Validação de segurança do Webhook
     if (webhookSecret) {
       if (!signature) {
         console.error("🔒 Webhook Kiwify rejeitado: Assinatura/Signature ausente na requisição.");
@@ -39,8 +60,6 @@ export async function POST(req: Request) {
         console.error("🔒 Webhook Kiwify rejeitado: Assinatura inválida.");
         return NextResponse.json({ error: "Unauthorized: Invalid signature" }, { status: 401 });
       }
-    } else {
-      console.warn("⚠️ ALERTA DE SEGURANÇA: KIWIFY_WEBHOOK_SECRET não configurado nas variáveis de ambiente.");
     }
 
     let payload: any;
@@ -50,43 +69,111 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    // Kiwify payload extraction
-    const orderStatus = payload?.order_status || payload?.status;
+    const orderStatus = payload?.order_status || payload?.status || payload?.event;
     const customerEmail = payload?.Customer?.email || payload?.email;
-    const planName = payload?.Product?.product_name || payload?.plan_name || "pro";
+    const productName = payload?.Product?.product_name || payload?.plan_name || payload?.product_name;
+    const productId = payload?.Product?.product_id || payload?.product_id;
 
-    console.log(`Webhook Kiwify Recebido: Status=${orderStatus}, Email=${customerEmail}, Plano=${planName}`);
+    let orgId =
+      searchParams.get("org_id") ||
+      payload?.custom_variables?.org_id ||
+      payload?.tracking_parameters?.s1 ||
+      payload?.s1 ||
+      payload?.s2;
 
-    if (orderStatus === "paid" || orderStatus === "approved" || orderStatus === "active") {
-      if (customerEmail) {
-        const supabase = getAdminSupabase();
+    const supabase = getAdminSupabase();
 
-        // Localiza o perfil pelo e-mail
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, organization_id")
-          .eq("email", customerEmail.toLowerCase().trim())
-          .maybeSingle();
+    if (!orgId && customerEmail) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, organization_id")
+        .eq("email", customerEmail.toLowerCase().trim())
+        .maybeSingle();
 
-        if (profile?.organization_id) {
-          // Atualiza a organização com o status de assinatura ativo
-          await supabase
-            .from("organizations")
-            .update({
-              subscription_status: "active",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", profile.organization_id);
-
-          console.log(`Assinatura ativada com sucesso para a organização ${profile.organization_id}`);
-        }
+      if (profile?.organization_id) {
+        orgId = profile.organization_id;
       }
     }
 
-    return NextResponse.json({ success: true, received: true });
+    if (!orgId) {
+      return NextResponse.json({ received: true, warning: "Organization not found for this purchase" });
+    }
+
+    const isApproval =
+      orderStatus === "paid" ||
+      orderStatus === "approved" ||
+      orderStatus === "active" ||
+      orderStatus === "order_approved" ||
+      orderStatus === "subscription_renewed";
+
+    const isCancellation =
+      orderStatus === "refunded" ||
+      orderStatus === "charged_back" ||
+      orderStatus === "canceled" ||
+      orderStatus === "subscription_canceled";
+
+    if (isApproval) {
+      const targetPlanId = resolvePlanId(productName, productId);
+
+      const basePayload: Record<string, any> = {
+        plan_id: targetPlanId,
+        updated_at: new Date().toISOString(),
+      };
+
+      let { error: updateErr } = await supabase
+        .from("organizations")
+        .update({
+          ...basePayload,
+          subscription_status: "active",
+        })
+        .eq("id", orgId);
+
+      if (updateErr && updateErr.message.includes("subscription_status")) {
+        const fallbackRes = await supabase
+          .from("organizations")
+          .update(basePayload)
+          .eq("id", orgId);
+        updateErr = fallbackRes.error;
+      }
+
+      if (updateErr) {
+        return NextResponse.json({ error: "Failed to update organization" }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, status: "active", orgId, planId: targetPlanId });
+    }
+
+    if (isCancellation) {
+      const basePayload: Record<string, any> = {
+        plan_id: PLAN_UUID_MAP.starter,
+        updated_at: new Date().toISOString(),
+      };
+
+      let { error: updateErr } = await supabase
+        .from("organizations")
+        .update({
+          ...basePayload,
+          subscription_status: "canceled",
+        })
+        .eq("id", orgId);
+
+      if (updateErr && updateErr.message.includes("subscription_status")) {
+        const fallbackRes = await supabase
+          .from("organizations")
+          .update(basePayload)
+          .eq("id", orgId);
+        updateErr = fallbackRes.error;
+      }
+
+      if (updateErr) {
+        return NextResponse.json({ error: "Failed to downgrade organization" }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, status: "canceled", orgId });
+    }
+
+    return NextResponse.json({ success: true, received: true, info: "No action required" });
   } catch (error: any) {
-    console.error("Erro crítico no Webhook Kiwify:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-

@@ -19,7 +19,7 @@ import {
   Table
 } from "lucide-react";
 
-import { PLANS, PlanSlug } from "@/lib/plans/feature-matrix";
+import { PLANS, PlanSlug, normalizePlanSlug } from "@/lib/plans/feature-matrix";
 import { PricingCard } from "@/components/landing-page/PricingCard";
 import { PlanComparisonTable } from "@/components/landing-page/PlanComparisonTable";
 
@@ -152,28 +152,9 @@ export default function AssinaturaClient() {
     );
     const planId = dbPlan?.id || key;
 
-    // Detecta se este card é o plano contratado pela organização
-    let isCurrent = false;
-    if (currentPlanId) {
-      const matchDbPlan = plans.find(p => p.id === currentPlanId || p.slug === currentPlanId);
-      if (matchDbPlan) {
-        const matchName = (matchDbPlan.name || '').toLowerCase();
-        const matchSlug = (matchDbPlan.slug || '').toLowerCase();
-        if (key === 'starter' && (matchName.includes('start') || matchSlug.includes('start'))) isCurrent = true;
-        else if (key === 'pro' && (matchName.includes('pro') || matchSlug.includes('pro'))) isCurrent = true;
-        else if (key === 'sales_team' && (matchName.includes('sales') || matchName.includes('team') || matchSlug.includes('sales'))) isCurrent = true;
-        else if (key === 'all_service' && (matchName.includes('all') || matchName.includes('franqueador') || matchSlug.includes('all'))) isCurrent = true;
-      } else {
-        const curLow = currentPlanId.toLowerCase();
-        if (key === 'starter' && curLow.includes('start')) isCurrent = true;
-        else if (key === 'pro' && curLow.includes('pro')) isCurrent = true;
-        else if (key === 'sales_team' && (curLow.includes('sales') || curLow.includes('team'))) isCurrent = true;
-        else if (key === 'all_service' && (curLow.includes('all') || curLow.includes('franqueador'))) isCurrent = true;
-      }
-    } else {
-      // Se não houver plan_id salvo na org, define o Starter como plano ativo inicial
-      if (key === 'starter') isCurrent = true;
-    }
+    // Detecta se este card é o plano contratado pela organização via matriz unificada
+    const activeSlug = normalizePlanSlug(currentPlanId);
+    const isCurrent = key === activeSlug;
 
     return {
       id: planId,
