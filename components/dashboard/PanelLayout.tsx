@@ -21,6 +21,7 @@ import { MobileBottomNav } from "@/components/dashboard/mobile/MobileBottomNav";
 import { MobileFabButton } from "@/components/dashboard/mobile/MobileFabButton";
 import { getMyProfile, getOrganizationById, getOrganizationStats } from "@/lib/admin-actions";
 import { detectOverage, getPlanName } from "@/lib/plans";
+import { getSellers } from "@/lib/dashboard/sellerActions";
 import GlobalStockModal from "@/components/dashboard/GlobalStockModal";
 import LowStockAlertModal from "@/components/dashboard/LowStockAlertModal";
 import OutOfStockModal from "@/components/dashboard/OutOfStockModal";
@@ -347,16 +348,11 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
             console.warn("Erro ao pre-carregar produtos no PanelLayout:", pErr);
           }
 
-          // Pre-carrega colaboradores para a busca inteligente
+          // Pre-carrega colaboradores via Server Action (bypassa RLS) para a busca inteligente
           try {
-            const { data: cData } = await supabase
-              .from("profiles")
-              .select("id, full_name, name, email, whatsapp, job_title, avatar_url, role, status, is_active")
-              .eq("organization_id", targetOrgId)
-              .order("full_name");
-
-            if (cData) {
-              setHeaderCollaborators(cData);
+            const sellersRes = await getSellers();
+            if (sellersRes?.sellers && sellersRes.sellers.length > 0) {
+              setHeaderCollaborators(sellersRes.sellers as any[]);
             }
           } catch (cErr) {
             console.warn("Erro ao pre-carregar colaboradores no PanelLayout:", cErr);

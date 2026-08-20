@@ -27,6 +27,7 @@ import {
   smartSearchCollaboratorMatch,
   SearchCollaboratorItem
 } from "@/lib/utils/smart-search";
+import { getSellers } from "@/lib/dashboard/sellerActions";
 import { QuickSearchProduct } from "../QuickSearchProductModal";
 
 interface HeaderSearchPopoverProps {
@@ -49,8 +50,9 @@ export function HeaderSearchPopover({
 
   const [globalSearchQuery, setGlobalSearchQuery] = useState(searchParams?.get("search") || "");
   const [productsList, setProductsList] = useState<QuickSearchProduct[]>(initialProducts);
+  const [collaboratorsList, setCollaboratorsList] = useState<SearchCollaboratorItem[]>(collaborators);
   const [isFetchingProducts, setIsFetchingProducts] = useState(false);
-  const [hasFetchedProducts, setHasFetchedProducts] = useState(initialProducts.length > 0);
+  const [hasFetchedProducts, setHasFetchedProducts] = useState(initialProducts.length > 0 && collaborators.length > 0);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
@@ -59,9 +61,14 @@ export function HeaderSearchPopover({
   useEffect(() => {
     if (initialProducts.length > 0) {
       setProductsList(initialProducts);
-      setHasFetchedProducts(true);
     }
   }, [initialProducts]);
+
+  useEffect(() => {
+    if (collaborators.length > 0) {
+      setCollaboratorsList(collaborators);
+    }
+  }, [collaborators]);
 
   useEffect(() => {
     const urlQuery = searchParams?.get("search");
@@ -71,7 +78,6 @@ export function HeaderSearchPopover({
   }, [searchParams]);
 
   const fetchSearchProducts = useCallback(async () => {
-    if (initialProducts.length > 0) return;
     if (hasFetchedProducts || isFetchingProducts) return;
     setIsFetchingProducts(true);
     try {
@@ -79,49 +85,64 @@ export function HeaderSearchPopover({
         ? document.cookie.split("; ").find((row) => row.startsWith("shadow_org_id="))?.split("=")[1]
         : null;
 
-      let query = supabase
-        .from("products")
-        .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name), organization_id")
-        .is("deleted_at", null);
-
-      if (shadowOrgId) {
-        query = query.eq("organization_id", shadowOrgId);
-      }
-
-      let res: any = await query.order("name");
-
-      if (res.error) {
-        console.warn("[HeaderSearchPopover] Fallback para busca direta sem join:", res.error.message);
-        let fallbackQuery = supabase
+      if (initialProducts.length === 0) {
+        let query = supabase
           .from("products")
-          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, organization_id")
+          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, categories(name), organization_id")
           .is("deleted_at", null);
 
         if (shadowOrgId) {
-          fallbackQuery = fallbackQuery.eq("organization_id", shadowOrgId);
+          query = query.eq("organization_id", shadowOrgId);
         }
-        res = await fallbackQuery.order("name");
+
+        let res: any = await query.order("name");
+
+        if (res.error) {
+          console.warn("[HeaderSearchPopover] Fallback para busca direta sem join:", res.error.message);
+          let fallbackQuery = supabase
+            .from("products")
+            .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, compare_at_price, category_id, organization_id")
+            .is("deleted_at", null);
+
+          if (shadowOrgId) {
+            fallbackQuery = fallbackQuery.eq("organization_id", shadowOrgId);
+          }
+          res = await fallbackQuery.order("name");
+        }
+
+        if (res.data) {
+          setProductsList(res.data as any[]);
+        }
       }
 
-      if (res.data) {
-        setProductsList(res.data as any[]);
-        setHasFetchedProducts(true);
+      if (collaborators.length === 0) {
+        try {
+          const sRes = await getSellers();
+          if (sRes?.sellers && sRes.sellers.length > 0) {
+            setCollaboratorsList(sRes.sellers as any[]);
+          }
+        } catch (sErr) {
+          console.warn("Erro ao buscar colaboradores fallback no HeaderSearchPopover:", sErr);
+        }
       }
+
+      setHasFetchedProducts(true);
     } catch (e) {
-      console.error("Erro ao buscar produtos para pesquisa:", e);
+      console.error("Erro ao buscar dados para pesquisa:", e);
     } finally {
       setIsFetchingProducts(false);
     }
-  }, [supabase, hasFetchedProducts, isFetchingProducts, initialProducts]);
+  }, [supabase, hasFetchedProducts, isFetchingProducts, initialProducts, collaborators]);
 
-  const activeProducts = productsList.length > 0 ? productsList : initialProducts;
+  const activeProducts = (initialProducts && initialProducts.length > 0) ? initialProducts : productsList;
+  const activeCollaborators = (collaborators && collaborators.length > 0) ? collaborators : collaboratorsList;
 
   const matchingProducts = globalSearchQuery.trim()
     ? activeProducts.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 5)
     : [];
 
   const matchingCollaborators = globalSearchQuery.trim()
-    ? (collaborators || []).filter((c) => smartSearchCollaboratorMatch(c, globalSearchQuery)).slice(0, 4)
+    ? activeCollaborators.filter((c) => smartSearchCollaboratorMatch(c, globalSearchQuery)).slice(0, 4)
     : [];
 
   const detectedAnalytics = detectAnalyticsQuery(globalSearchQuery);
