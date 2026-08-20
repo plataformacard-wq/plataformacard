@@ -40,33 +40,31 @@ export default async function CrmPage() {
     );
   }
 
-  // 2. Montar consulta de leads
-  let query = supabase
+  // 2. Montar consulta de leads em paralelo
+  let leadQuery = supabase
     .from("leads_tracking")
     .select("*")
     .eq("organization_id", activeOrgId);
 
   // Se o usuário for vendedor, filtrar apenas por seus próprios leads
   if (profile.role === "seller") {
-    query = query.eq("profile_id", profile.id);
+    leadQuery = leadQuery.eq("profile_id", profile.id);
   }
 
-  const { data: leads } = await query.order("created_at", { ascending: false });
-
-  // 3. Buscar os produtos ativos para a baixa de estoque
-  const { data: products } = await supabase
-    .from("products")
-    .select("id, name, sku, stock_quantity")
-    .eq("organization_id", activeOrgId)
-    .is("deleted_at", null)
-    .order("name", { ascending: true });
-
-  // 4. Buscar o plano da organização
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("plan_id")
-    .eq("id", activeOrgId)
-    .maybeSingle();
+  const [{ data: leads }, { data: products }, { data: org }] = await Promise.all([
+    leadQuery.order("created_at", { ascending: false }),
+    supabase
+      .from("products")
+      .select("id, name, sku, stock_quantity")
+      .eq("organization_id", activeOrgId)
+      .is("deleted_at", null)
+      .order("name", { ascending: true }),
+    supabase
+      .from("organizations")
+      .select("plan_id")
+      .eq("id", activeOrgId)
+      .maybeSingle()
+  ]);
 
   return (
     <CrmClient

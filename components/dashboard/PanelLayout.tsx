@@ -422,9 +422,6 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
             .subscribe();
           
           setIsReady(hasContactInfo && hasProducts);
-          return () => {
-            supabase.removeChannel(channel);
-          };
         }
         
         setIsReady(hasContactInfo && hasProducts);
@@ -437,7 +434,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
     }
 
     loadData();
-  }, [supabase, router, pathname]);
+  }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
