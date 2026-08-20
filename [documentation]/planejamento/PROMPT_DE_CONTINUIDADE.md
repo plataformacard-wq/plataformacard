@@ -1,55 +1,52 @@
-# 🚀 Prompt de Continuidade - PlataformaShop
+# PROMPT DE CONTINUIDADE - PLATAFORMASHOP
 
-> **Data de Atualização:** 20 de Agosto de 2026  
-> **Status da Branch:** `main` 100% sincronizada e testada (Commit: `811a411`)
-
----
-
-## 📌 Contexto & Estado do Projeto
-Você está assumindo a continuidade do desenvolvimento da **PlataformaShop** (`c:\Users\Start\PlataformaShop`). O ambiente foi auditado, refatorado e o gateway de pagamento foi consolidado com sucesso.
+Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retomada de sessão de desenvolvimento.
 
 ---
 
-## ✅ O que foi Concluído nesta Sessão
+## 1. Status das Entregas Concluídas
 
-1. **Protocolo START & Auditoria UX/UI:**
-   - Script de varredura `audit_ux_ui.js` corrigiu automaticamente 306 infrações de Dark Mode em 67 arquivos.
-   - Validação TypeScript `npx tsc --noEmit` e build com 0 erros.
-
-2. **Refatoração Anti-Monolito (`StockIntelligenceSection.tsx`):**
-   - Componente reduzido de **522 linhas** para **244 linhas** (redução de 53%).
-   - Criados 4 sub-componentes modulares de cards (padrão UI-as-a-Service):
-     - `components/dashboard/stock-intelligence/StockTotalCard.tsx`
-     - `components/dashboard/stock-intelligence/StockLowCard.tsx`
-     - `components/dashboard/stock-intelligence/StockOutOfStockCard.tsx`
-     - `components/dashboard/stock-intelligence/StockCategoriesCard.tsx`
-
-3. **Gateway de Pagamento & Webhooks (Kiwify & Sandbox):**
-   - **Webhook Kiwify (`/api/webhooks/kiwify`):** Validação HMAC-SHA1 (`KIWIFY_WEBHOOK_SECRET`), extração de `org_id` (`s1`/`custom_variables`), ativação de planos (`starter`, `pro`, `sales_team`, `all_service`) e tratamento de estornos/cancelamentos com fallback de banco.
-   - **Checkout Client (`CheckoutClient.tsx`):** Injeção de `s1=${org_id}` nas URLs da Kiwify.
-   - **Endpoint de Testes Sandbox (`/api/webhooks/kiwify/test`):** Simulação de aprovação/cancelamento em 1-clique via URL.
-   - **Migration SQL:** `supabase/migrations/20260820000000_add_subscription_status_to_organizations.sql` criada para adicionar `subscription_status` na tabela `organizations`.
-
-4. **Protocolo VPGP:**
-   - Commit e Push realizados com sucesso na branch `main` (`811a411`).
-
----
-
-## 🎯 Próximos Passos Recomendados (Backlog Prioritário)
-
-1. **Autenticação 2FA / MFA via TOTP (Segurança do Super Admin / QG):**
-   - Ativar obrigatoriedade de App Autenticador no Portal Main (`/main`) e trava no ajuste de WhatsApp no Dashboard do lojista.
-2. **Assets Visuais Widescreen 16:9 para os Blocos de Recursos da Landing Page:**
-   - Gerar e aplicar as 3 artes restantes em `public/assets/landing-page/recursos/` (Estoque Bling V3, NFC Híbrido e Embed em iFrame).
-3. **Servidor SMTP (Resend / Supabase):**
-   - Configuração de credenciais de disparo de e-mails para recuperação de senha e transações do SaaS.
+- [x] **Protocolo START & Auditoria UX/UI:**
+  - `git fetch` & status validados. Repositório 100% sincronizado com `origin/main`.
+  - Servidor Next.js dev ativo em `http://localhost:3000`.
+  - Executado o script `audit_ux_ui.js` corrigindo automaticamente **306 infrações de Dark Mode** em 67 arquivos.
+- [x] **Refatoração Anti-Monolito de Estoque:**
+  - [StockIntelligenceSection.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/StockIntelligenceSection.tsx) reduzido de 522 para **244 linhas** (redução de 53%).
+  - Criados os sub-componentes modulares de cards: [StockTotalCard.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/stock-intelligence/StockTotalCard.tsx), [StockLowCard.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/stock-intelligence/StockLowCard.tsx), [StockOutOfStockCard.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/stock-intelligence/StockOutOfStockCard.tsx) e [StockCategoriesCard.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/stock-intelligence/StockCategoriesCard.tsx).
+- [x] **Gateway de Pagamento Kiwify & Sandbox:**
+  - Webhook unificado em [/api/webhooks/kiwify](file:///c:/Users/Start/PlataformaShop/app/api/webhooks/kiwify/route.ts) com validação HMAC-SHA1, extração de `org_id` (`s1`/`custom_variables`), ativação de planos (`starter`, `pro`, `sales_team`, `all_service`) e tratamento de estornos/cancelamentos.
+  - Checkout Client com repasse de `org_id` nos links da Kiwify.
+  - Endpoint de teste Sandbox em `/api/webhooks/kiwify/test` e checkout de simulação instantânea em `/sandbox-checkout/[plan_id]`.
+  - Migration SQL `20260820000000_add_subscription_status_to_organizations.sql` com fallback de banco.
+- [x] **Autenticação de Dois Fatores (2FA / MFA via TOTP):**
+  - Trava de segurança no layout do Portal Main Admin ([app/main/layout.tsx](file:///c:/Users/Start/PlataformaShop/app/main/layout.tsx)) e no login ([app/main-login/page.tsx](file:///c:/Users/Start/PlataformaShop/app/main-login/page.tsx)) forçando 2FA TOTP e desafio AAL2 para `main_admin`.
+  - Redirecionamento limpo para `/dashboard/perfil?mfa_required=true` com banner de alerta vermelho/âmbar e abertura automática do modal de cadastro do Google Authenticator/Authy.
+  - Geração e salvamento de 8 códigos de backup criptografados em SHA-256 no banco Supabase.
+  - Alerta educativo sutil no Dashboard ([DashboardAlerts.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/home/DashboardAlerts.tsx)).
+- [x] **Infraestrutura de Identidade (Resend SMTP & Domínios Vercel):**
+  - Módulo transacional de e-mails ([lib/email/resend.ts](file:///c:/Users/Start/PlataformaShop/lib/email/resend.ts)) e templates HTML responsivos Dark Mode/Emerald ([lib/email/templates.ts](file:///c:/Users/Start/PlataformaShop/lib/email/templates.ts)).
+  - Script executável de auditoria de chaves ([scripts/audit_identity_infrastructure.js](file:///c:/Users/Start/PlataformaShop/scripts/audit_identity_infrastructure.js)).
+  - Guia completo de parametrização DNS/Resend SMTP em [[documentation]/infraestrutura/GUIA_CONFIGURACAO_DOMINIO_SMTP.md](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/infraestrutura/GUIA_CONFIGURACAO_DOMINIO_SMTP.md).
+- [x] **Protocolo VPGP (Verify, Push, Github, Push):**
+  - `npx tsc --noEmit` executado com **0 erros**.
+  - `npm run build` executado com sucesso (56/56 páginas estáticas compiladas).
+  - Commits e push realizados na branch `main` (`3fc8f35`).
 
 ---
 
-## ⚡ Prompt para a Próxima Sessão (Copie e cole abaixo):
+## 2. Próximos Passos (Backlog de Lançamento)
+
+1. **Assets Visuais & Mockups 16:9 da Landing Page (LP):**
+   - Gerar e aplicar mockups 16:9 em alta definição para o aplicativo, cartão NFC físico, Sincronização Bling ERP V3, NFC Híbrido e Embed em iFrame.
+2. **Gestão de Acessos & Permissões de Vendedores B2B:**
+   - Validar a granularidade de permissões para a equipe de vendas cadastrada pelos gestores no painel `/dashboard/vendedores`.
+
+---
+
+## 3. Prompt de Retomada para Copiar na Próxima Sessão
 
 ```text
-Olá! Estou retomando o desenvolvimento da PlataformaShop. Na última sessão, concluímos o Gateway de Pagamento Kiwify com Webhooks, refatoramos o monolito de estoque e rodamos o VPGP.
+Olá! Estou retomando o desenvolvimento da PlataformaShop. Na última sessão, concluímos o Gateway Kiwify com Webhook, a refatoração do estoque, a Autenticação de Dois Fatores (2FA/MFA TOTP) e a Infraestrutura de Identidade (Resend SMTP).
 
-Por favor, execute o Protocolo START (git status, dev server na porta 3000, tsc check e auditoria UX/UI) e apresente as opções de próximos passos do backlog de lançamento (ex: Autenticação 2FA/MFA ou Mockups da Landing Page).
+Por favor, execute o Protocolo START (git status, dev server na porta 3000, tsc check e auditoria UX/UI) e vamos avançar com a geração e aplicação dos Mockups Widescreen 16:9 da Landing Page ou a Gestão de Acessos de Vendedores B2B.
 ```
