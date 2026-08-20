@@ -191,7 +191,7 @@ export default function DashboardAlerts({
                 Ative a verificação em duas etapas no seu perfil para proteger alteração de senhas, WhatsApp e dados da conta.
               </p>
             </div>
-            <Link href="/dashboard/perfil" className="shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-colors">
+            <Link href="/dashboard/perfil" className="shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg bg-amber-500 text-[var(--dash-text-primary)] hover:bg-amber-400 transition-colors">
               Ativar 2FA
             </Link>
           </div>

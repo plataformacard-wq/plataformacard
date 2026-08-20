@@ -441,7 +441,7 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
           <PlanOverageAlert overages={planOverages} planName={currentPlanName} />
         )}
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8">
           <div className="w-full">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
               {children}

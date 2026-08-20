@@ -185,7 +185,7 @@ export default function AssinaturaClient() {
   return (
     <div className="w-full space-y-10 pb-20">
       {/* Header Premium */}
-      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg p-10 shadow-sm group/header">
+      <div className="relative overflow-hidden bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-lg p-5 md:p-10 shadow-sm group/header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none opacity-50 transition-opacity" />
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">

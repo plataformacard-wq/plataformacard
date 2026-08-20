@@ -201,7 +201,7 @@ export default function MfaEnrollModal({ isOpen, onClose, onSuccess }: MfaEnroll
               <motion.div key="qr-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                 <div className="p-4 rounded-[27px] border bg-black/5 dark:bg-[var(--dash-surface)]/5 flex flex-col items-center justify-center text-center" style={{ borderColor: "var(--dash-border)" }}>
                   {qrCodeSvg ? (
-                    <div className="p-3 bg-white rounded-xl shadow-md mb-3 flex items-center justify-center">
+                    <div className="p-3 bg-[var(--dash-surface)] rounded-lg shadow-md mb-3 flex items-center justify-center">
                       {qrCodeSvg.startsWith("data:") || qrCodeSvg.startsWith("http") ? (
                         <img src={qrCodeSvg} alt="QR Code 2FA" className="w-48 h-48 object-contain" />
                       ) : (
