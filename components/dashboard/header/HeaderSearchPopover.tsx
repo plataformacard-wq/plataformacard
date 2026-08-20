@@ -29,14 +29,25 @@ export function HeaderSearchPopover({ onSelectProduct }: HeaderSearchPopoverProp
     if (hasFetchedProducts || isFetchingProducts) return;
     setIsFetchingProducts(true);
     try {
-      const { data, error } = await supabase
+      // 1. Tenta consulta com join de categorias
+      let res: any = await supabase
         .from("products")
         .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price, categories(name)")
         .is("deleted_at", null)
         .order("name");
 
-      if (!error && data) {
-        setProductsList(data as any[]);
+      // 2. Fallback caso ocorra erro no join de categorias do PostgREST
+      if (res.error) {
+        console.warn("[HeaderSearchPopover] Fallback para busca direta sem join:", res.error.message);
+        res = await supabase
+          .from("products")
+          .select("id, name, sku, image_url, stock_quantity, is_in_stock, price, promotional_price")
+          .is("deleted_at", null)
+          .order("name");
+      }
+
+      if (res.data) {
+        setProductsList(res.data as any[]);
         setHasFetchedProducts(true);
       }
     } catch (e) {
