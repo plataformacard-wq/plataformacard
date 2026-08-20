@@ -72,7 +72,7 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
 
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             {/* Foto Miniatura do Produto */}
-            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-bg)] flex items-center justify-center shadow-inner">
+            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[27px] border border-[var(--dash-border)] bg-[var(--dash-bg)] flex items-center justify-center shadow-inner">
               {product.image_url ? (
                 <img
                   src={product.image_url}
@@ -89,15 +89,15 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
               {/* Badge de Status */}
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
                 {isOutOfStock ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20">
                     <XCircle size={12} /> 🔴 Esgotado
                   </span>
                 ) : isLowStock ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
                     <AlertTriangle size={12} /> 🟡 Estoque Baixo ({qty} un)
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                     <CheckCircle2 size={12} /> 🟢 Em Estoque ({qty} un)
                   </span>
                 )}
@@ -142,14 +142,14 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
           <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 border-t border-[var(--dash-border)]/50 pt-4">
             <button
               onClick={handleNavigateToStock}
-              className="w-full flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white hover:bg-primary/90 transition-all shadow-md active:scale-95"
+              className="w-full flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-white hover:bg-primary/90 transition-all shadow-md active:scale-95"
             >
               Ver no Estoque
               <ArrowRight size={14} />
             </button>
             <button
               onClick={handleNavigateToCatalog}
-              className="w-full flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-hover-bg)] px-4 py-2.5 text-xs font-bold text-[var(--dash-text-primary)] hover:bg-[var(--dash-border)] transition-all active:scale-95"
+              className="w-full flex-1 flex items-center justify-center gap-2 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-hover-bg)] px-4 py-2.5 text-xs font-bold text-[var(--dash-text-primary)] hover:bg-[var(--dash-border)] transition-all active:scale-95"
             >
               Ver no Catálogo
               <ExternalLink size={14} />

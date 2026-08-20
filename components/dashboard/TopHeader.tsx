@@ -223,7 +223,7 @@ export function TopHeader({
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Buscar produtos, SKUs, esgotados..." 
-              className="h-10 w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-input-bg)] pl-10 pr-8 text-xs md:text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-[var(--dash-text-muted)]"
+              className="h-10 w-full rounded-lg border border-[var(--dash-border)] bg-[var(--dash-input-bg)] pl-10 pr-8 text-xs md:text-sm text-[var(--dash-text-primary)] outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-[var(--dash-text-muted)]"
             />
             {globalSearchQuery && (
               <button
@@ -275,7 +275,7 @@ export function TopHeader({
                             key={p.id || idx}
                             onClick={() => handleSelectProduct(p)}
                             onMouseEnter={() => setHighlightedIndex(idx)}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
                               isHighlighted
                                 ? "bg-[var(--dash-hover-bg)] ring-1 ring-primary/30"
                                 : "hover:bg-[var(--dash-hover-bg)]"
@@ -333,7 +333,7 @@ export function TopHeader({
                     <div className="p-1 border-t border-[var(--dash-border)]/50">
                       <button
                         onClick={handleViewAllResults}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
                       >
                         Ver todos os resultados no Estoque
                         <ArrowRight size={14} />
