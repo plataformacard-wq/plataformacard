@@ -26,10 +26,11 @@
 
 - [x] **Domínio Principal Conectado:** `www.plataformashop.com.br` ativo no Vercel e servindo via SSL.
 - [x] **Middleware & Roteamento:** Suporte nativo a `plataformashop` configurado em `middleware.ts`.
+- [x] **Slug de Organização Ativo:** Slug `majmobilidade` vinculado à organização `MAJ MOBILIDADE ELÉTRICA` no Supabase (Retornando `HTTP 200 OK` no catálogo público).
 - [x] **Compilação e Tipagem:** Projeto auditado e validado com `npx tsc --noEmit` (0 erros).
-- [ ] **Validação de Login & RLS:** Acesso da Maj via `/entrar` com `organization_id` correspondente a `majmobilidade`.
+- [ ] **Validação de Login & Acesso ao Dashboard:** Acesso do e-mail `marketingmajv@gmail.com` via `/entrar` com `organization_id` correspondente a `majmobilidade`.
 - [ ] **Sincronização Bling ERP:** Verificação do token OAuth v3 e recebimento dos webhooks de estoque.
-- [ ] **Experimento Comparativo (GPT Nativo vs PlataformaShop):** Fornecimento da chave de API do Bling para aferição empírica no Custom GPT da Maj, comprovando as limitações do GPT direto (falta de webhooks, expiração de OAuth, limitação de payload e ausência de interface analítica gráfica).
+- [ ] **Experimento Comparativo (GPT Nativo vs PlataformaShop):** Fornecimento da chave de API do Bling para aferição empírica no Custom GPT da Maj.
 
 ---
 
