@@ -17,7 +17,7 @@
 | Recurso | Endereço Online | Descrição |
 | :--- | :--- | :--- |
 | **Vitrine Pública (Catálogo)** | `https://www.plataformashop.com.br/majmobilidade` | Vitrine digital da Maj Mobilidade acessível publicamente para clientes |
-| **Painel de Gestão (Dashboard)** | `https://www.plataformashop.com.br/entrar` | Acesso autenticado da Maj para gerenciar e visualizar o Analítico de Estoque |
+| **Painel de Gestão (Dashboard)** | `https://www.plataformashop.com.br/majmobilidade/login` | Portal de login personalizado da Maj Mobilidade para acesso ao Dashboard |
 | **Busca Preditiva & Modais** | `https://www.plataformashop.com.br/dashboard` | Acesso rápido aos produtos por Live Search e modais de estoque global |
 
 ---
