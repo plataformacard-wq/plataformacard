@@ -23,6 +23,9 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
   - Estudo de viabilidade, arquitetura RAG criptografada com isolamento por `organization_id`, modelo de cotas por plano (Starter/PRO/Enterprise) e plano de implementação documentados em [`ESPECIFICACAO_CHAT_IA_RAG.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md) e [`PENDENCIAS.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/PENDENCIAS.md).
 - [x] **Protocolo VPGP (Verify, Push, Github, Push):**
   - Validação `npx tsc --noEmit` obtendo **0 erros de compilação**. Commits e push efetuados para `origin/main`.
+- [x] **Fase de Homologação Online (Maj Mobilidade - `majmobilidade`):**
+  - Documentação atípica de teste real em produção criada em [`PLANO_HOMOLOGACAO_MAJMOBILIDADE.md`](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/%5Bdocumentation%5D/manuais/PLANO_HOMOLOGACAO_MAJMOBILIDADE.md).
+  - Validação de rotas online (`https://www.plataformashop.com.br/majmobilidade` e `/entrar`) para o teste da Inteligência de Estoque conectada ao Bling ERP.
 
 ---
 

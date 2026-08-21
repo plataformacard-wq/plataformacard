@@ -289,7 +289,7 @@ export function HeaderSearchPopover({
                 <button
                   type="button"
                   onClick={() => handleSelectAnalytics(detectedAnalytics)}
-                  className={`w-full flex items-center justify-between gap-3 p-3 rounded-2xl transition-all cursor-pointer text-left shadow-sm active:scale-95 ${
+                  className={`w-full flex items-center justify-between gap-3 p-3 rounded-[27px] transition-all cursor-pointer text-left shadow-sm active:scale-95 ${
                     detectedAnalytics === "out_of_stock"
                       ? "bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20"
                       : detectedAnalytics === "low_stock"
@@ -300,7 +300,7 @@ export function HeaderSearchPopover({
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-2 rounded-xl bg-current/10 shrink-0">
+                    <div className="p-2 rounded-lg bg-current/10 shrink-0">
                       {detectedAnalytics === "out_of_stock" && <XCircle size={18} />}
                       {detectedAnalytics === "low_stock" && <AlertTriangle size={18} />}
                       {detectedAnalytics === "categories" && <Layers size={18} />}
@@ -349,7 +349,7 @@ export function HeaderSearchPopover({
                             key={c.id || cIdx}
                             onClick={() => handleSelectCollaborator(c)}
                             onMouseEnter={() => setHighlightedIndex(cIdx)}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
                               isHighlighted
                                 ? "bg-emerald-500/10 ring-1 ring-emerald-500/30"
                                 : "hover:bg-[var(--dash-hover-bg)]"
@@ -426,7 +426,7 @@ export function HeaderSearchPopover({
                             key={p.id || idx}
                             onClick={() => handleSelectProduct(p)}
                             onMouseEnter={() => setHighlightedIndex(itemIndex)}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all ${
+                            className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
                               isHighlighted
                                 ? "bg-[var(--dash-hover-bg)] ring-1 ring-primary/30"
                                 : "hover:bg-[var(--dash-hover-bg)]"
