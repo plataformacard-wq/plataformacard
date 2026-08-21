@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -11,14 +12,41 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${requestUrl.origin}/entrar`);
   }
 
-  const supabase = await createClient();
+  const cookieStore = await cookies();
 
-  console.log("Iniciando troca de código por sessão...");
+  // Prepara resposta com redirecionamento padrão para permitir gravação de cookies de sessão no browser
+  const redirectUrl = new URL(`${requestUrl.origin}${next}`);
+  const response = NextResponse.redirect(redirectUrl);
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+              response.cookies.set(name, value, options);
+            });
+          } catch {
+            // Ignora se invocado em contexto somente-leitura
+          }
+        },
+      },
+    }
+  );
+
+  console.log("Iniciando troca de código por sessão no callback...");
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     console.error("Erro na troca de código:", error.message);
-    return NextResponse.redirect(`${requestUrl.origin}/entrar?error=auth_callback_failed`);
+    const errParam = encodeURIComponent(error.message || "auth_callback_failed");
+    return NextResponse.redirect(`${requestUrl.origin}/entrar?error=${errParam}`);
   }
 
   const user = data.user;
@@ -27,25 +55,33 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${requestUrl.origin}/entrar?error=no_user`);
   }
 
-  console.log("Sessão obtida. Verificando perfil para o usuário:", user.id);
+  console.log("Sessão obtida com sucesso. Usuário:", user.id, user.email);
 
-  // Verifica se o perfil existe e tem slug
+  // Busca perfil por id ou por user_id para garantir compatibilidade total
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("slug")
-    .eq("user_id", user.id)
+    .select("id, slug, organization_id, user_id")
+    .or(`id.eq.${user.id},user_id.eq.${user.id}`)
     .maybeSingle();
 
   if (profileError) {
     console.error("Erro ao buscar perfil no callback:", profileError.message);
-    return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
   }
 
-  if (!profile?.slug) {
-    console.log("Usuário sem slug, redirecionando para onboarding.");
-    return NextResponse.redirect(`${requestUrl.origin}/onboarding`);
+  if (profile) {
+    // Se o user_id estivesse nulo na tabela profiles, atualiza para garantir integridade
+    if (!profile.user_id) {
+      await supabase
+        .from("profiles")
+        .update({ user_id: user.id })
+        .eq("id", profile.id);
+    }
+
+    console.log("Perfil encontrado. Redirecionando para o dashboard:", next);
+    return response;
   }
 
-  console.log("Fluxo de callback concluído com sucesso. Indo para:", next);
-  return NextResponse.redirect(`${requestUrl.origin}${next}`);
+  // Se não encontrar perfil prévio, redireciona para onboarding
+  console.log("Perfil não encontrado, redirecionando para onboarding.");
+  return NextResponse.redirect(`${requestUrl.origin}/onboarding`);
 }
