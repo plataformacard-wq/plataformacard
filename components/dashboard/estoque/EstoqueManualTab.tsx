@@ -72,6 +72,19 @@ export default function EstoqueManualTab({ products: initialProducts, categories
     return matchesSearch && matchesCategory;
   });
 
+  // Auto-scroll suave e foco no produto buscado
+  useEffect(() => {
+    if (searchQuery.trim().length > 0 && filteredProducts.length > 0) {
+      const timer = setTimeout(() => {
+        const targetRow = document.getElementById(`product-row-${filteredProducts[0].id}`);
+        if (targetRow) {
+          targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, filteredProducts]);
+
   // Paginação
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice(
@@ -213,116 +226,120 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                 const catName = p.categories ? p.categories.name : "Sem Categoria";
                 const hasColors = Array.isArray(p.colors) && p.colors.length > 0;
                 const isExpanded = expandedProducts[p.id] ?? false;
+                const isSearched = searchQuery.trim().length > 0 && smartSearchMatch(p, searchQuery);
 
                 return (
                   <React.Fragment key={p.id}>
                     <tr
-                      className={`transition-colors hover:bg-[var(--dash-hover-bg)]/50 ${
-                        rowStatus === "success"
+                      id={`product-row-${p.id}`}
+                      className={`transition-all duration-300 hover:bg-[var(--dash-hover-bg)]/50 ${
+                        isSearched
+                          ? "bg-emerald-500/10 border-l-4 border-l-emerald-500 font-bold shadow-md"
+                          : rowStatus === "success"
                           ? "bg-green-500/5"
                           : rowStatus === "error"
                           ? "bg-red-500/5"
                           : ""
                       }`}
                     >
-                      <td className="px-6 py-4 flex items-center gap-4">
-                        {hasColors ? (
-                          <button
-                            type="button"
-                            onClick={() => toggleExpand(p.id)}
-                            className="p-1.5 rounded-lg bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] hover:text-white transition-colors"
-                            title="Expandir cores"
-                          >
-                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                          </button>
-                        ) : null}
-                        {p.image_url ? (
-                          <img
-                            src={p.image_url}
-                            alt={p.name}
-                            className="w-12 h-12 rounded-lg object-cover border border-[var(--dash-border)]"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                            <Package size={20} />
-                          </div>
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-bold line-clamp-2 max-w-sm" title={p.name}>
-                            {p.name}
-                          </span>
-                          {hasColors && (
-                            <button
-                              type="button"
-                              onClick={() => toggleExpand(p.id)}
-                              className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5 hover:underline text-left"
+                          <td className="px-6 py-4 flex items-center gap-4">
+                            {hasColors ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(p.id)}
+                                className="p-1.5 rounded-lg bg-[var(--dash-hover-bg)] text-[var(--dash-text-secondary)] hover:text-white transition-colors"
+                                title="Expandir cores"
+                              >
+                                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                              </button>
+                            ) : null}
+                            {p.image_url ? (
+                              <img
+                                src={p.image_url}
+                                alt={p.name}
+                                className="w-12 h-12 rounded-lg object-cover border border-[var(--dash-border)]"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                <Package size={20} />
+                              </div>
+                            )}
+                            <div className="flex flex-col">
+                              <span className="font-bold line-clamp-2 max-w-sm" title={p.name}>
+                                {p.name}
+                              </span>
+                              {hasColors && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleExpand(p.id)}
+                                  className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5 hover:underline text-left"
+                                >
+                                  <Palette size={12} />
+                                  {p.colors?.length} cor(es) cadastrada(s)
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-[var(--dash-text-secondary)] font-mono">
+                            {p.sku || "-"}
+                          </td>
+                          <td className="px-6 py-4 text-[var(--dash-text-secondary)]">
+                            {catName}
+                          </td>
+                          <td className="px-6 py-4 relative">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={p.stock_quantity ?? 0}
+                                readOnly={hasBlingConnection || hasColors}
+                                disabled={updatingId === p.id}
+                                onChange={(e) => {
+                                  if (!hasBlingConnection && !hasColors) {
+                                    const val = parseInt(e.target.value, 10);
+                                    setProducts(prev => prev.map(prod => prod.id === p.id ? { ...prod, stock_quantity: isNaN(val) ? 0 : val } : prod));
+                                  }
+                                }}
+                                onBlur={(e) => !hasBlingConnection && !hasColors && handleQuantityBlur(p.id, e.target.value, p.stock_quantity)}
+                                onClick={() => {
+                                  if (hasBlingConnection) {
+                                    alert("Para alterar o estoque manualmente, você precisa desconectar a integração com o Bling na aba 'Sincronização Bling'.");
+                                  } else if (hasColors) {
+                                    toggleExpand(p.id);
+                                  }
+                                }}
+                                className={`w-24 px-3 py-2 bg-[var(--dash-hover-bg)] border rounded-lg text-center font-bold text-sm outline-none transition-all ${
+                                  hasBlingConnection || hasColors ? "cursor-pointer opacity-80 border-[var(--dash-border)]" :
+                                  rowStatus === "success"
+                                    ? "border-green-500 ring-2 ring-green-500/20"
+                                    : rowStatus === "error"
+                                    ? "border-red-500 ring-2 ring-red-500/20"
+                                    : "border-[var(--dash-border)] focus:ring-2 focus:ring-primary"
+                                }`}
+                                title={hasColors ? "Estoque calculated automaticamente pelas cores" : undefined}
+                              />
+                              {updatingId === p.id && (
+                                <Loader2 size={16} className="animate-spin text-primary" />
+                              )}
+                              {rowStatus === "success" && (
+                                <Check size={16} className="text-green-500 animate-bounce" />
+                              )}
+                              {rowStatus === "error" && (
+                                <AlertCircle size={16} className="text-red-500 animate-pulse" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span
+                              className={`inline-flex px-3 py-1 rounded text-xs font-bold ${
+                                p.is_in_stock
+                                  ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                  : "bg-red-500/10 text-red-500 border border-red-500/20"
+                              }`}
                             >
-                              <Palette size={12} />
-                              {p.colors?.length} cor(es) cadastrada(s)
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-[var(--dash-text-secondary)] font-mono">
-                        {p.sku || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-[var(--dash-text-secondary)]">
-                        {catName}
-                      </td>
-                      <td className="px-6 py-4 relative">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={p.stock_quantity ?? 0}
-                            readOnly={hasBlingConnection || hasColors}
-                            disabled={updatingId === p.id}
-                            onChange={(e) => {
-                              if (!hasBlingConnection && !hasColors) {
-                                const val = parseInt(e.target.value, 10);
-                                setProducts(prev => prev.map(prod => prod.id === p.id ? { ...prod, stock_quantity: isNaN(val) ? 0 : val } : prod));
-                              }
-                            }}
-                            onBlur={(e) => !hasBlingConnection && !hasColors && handleQuantityBlur(p.id, e.target.value, p.stock_quantity)}
-                            onClick={() => {
-                              if (hasBlingConnection) {
-                                alert("Para alterar o estoque manualmente, você precisa desconectar a integração com o Bling na aba 'Sincronização Bling'.");
-                              } else if (hasColors) {
-                                toggleExpand(p.id);
-                              }
-                            }}
-                            className={`w-24 px-3 py-2 bg-[var(--dash-hover-bg)] border rounded-lg text-center font-bold text-sm outline-none transition-all ${
-                              hasBlingConnection || hasColors ? "cursor-pointer opacity-80 border-[var(--dash-border)]" :
-                              rowStatus === "success"
-                                ? "border-green-500 ring-2 ring-green-500/20"
-                                : rowStatus === "error"
-                                ? "border-red-500 ring-2 ring-red-500/20"
-                                : "border-[var(--dash-border)] focus:ring-2 focus:ring-primary"
-                            }`}
-                            title={hasColors ? "Estoque calculado automaticamente pelas cores" : undefined}
-                          />
-                          {updatingId === p.id && (
-                            <Loader2 size={16} className="animate-spin text-primary" />
-                          )}
-                          {rowStatus === "success" && (
-                            <Check size={16} className="text-green-500 animate-bounce" />
-                          )}
-                          {rowStatus === "error" && (
-                            <AlertCircle size={16} className="text-red-500 animate-pulse" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex px-3 py-1 rounded text-xs font-bold ${
-                            p.is_in_stock
-                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                              : "bg-red-500/10 text-red-500 border border-red-500/20"
-                          }`}
-                        >
-                          {p.is_in_stock ? "Em Estoque" : "Esgotado"}
-                        </span>
-                      </td>
-                    </tr>
+                              {p.is_in_stock ? "Em Estoque" : "Esgotado"}
+                            </span>
+                          </td>
+                        </tr>
 
                     {/* Sub-tabela de Cores Expansível */}
                     {hasColors && isExpanded && (
