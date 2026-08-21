@@ -28,8 +28,10 @@
 - [x] **Middleware & Roteamento:** Suporte nativo a `plataformashop` configurado em `middleware.ts`.
 - [x] **Slug de Organização Ativo:** Slug `majmobilidade` vinculado à organização `MAJ MOBILIDADE ELÉTRICA` no Supabase (Retornando `HTTP 200 OK` no catálogo público).
 - [x] **Compilação e Tipagem:** Projeto auditado e validado com `npx tsc --noEmit` (0 erros).
-- [ ] **Validação de Login & Acesso ao Dashboard:** Acesso do e-mail `marketingmajv@gmail.com` via `/entrar` com `organization_id` correspondente a `majmobilidade`.
-- [ ] **Sincronização Bling ERP:** Verificação do token OAuth v3 e recebimento dos webhooks de estoque.
+- [x] **Modal Status 360° do Produto:** Raio-X completo com estoque, Bling, acessos no catálogo e conversas de WhatsApp.
+- [x] **Validação de Roteamento Multi-Empresa:** Prefixo `/majmobilidade` forçado em todas as rotas do dashboard.
+- [x] **Validação de Login & Acesso ao Dashboard:** Autenticação via Google OAuth com `organization_id` vinculado à Maj Mobilidade.
+- [x] **Sincronização Bling ERP:** Integração Bling V3 ativa e recebendo webhooks.
 - [ ] **Experimento Comparativo (GPT Nativo vs PlataformaShop):** Fornecimento da chave de API do Bling para aferição empírica no Custom GPT da Maj.
 
 ---
