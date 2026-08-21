@@ -29,6 +29,18 @@
 - [x] **Compilação e Tipagem:** Projeto auditado e validado com `npx tsc --noEmit` (0 erros).
 - [ ] **Validação de Login & RLS:** Acesso da Maj via `/entrar` com `organization_id` correspondente a `majmobilidade`.
 - [ ] **Sincronização Bling ERP:** Verificação do token OAuth v3 e recebimento dos webhooks de estoque.
+- [ ] **Experimento Comparativo (GPT Nativo vs PlataformaShop):** Fornecimento da chave de API do Bling para aferição empírica no Custom GPT da Maj, comprovando as limitações do GPT direto (falta de webhooks, expiração de OAuth, limitação de payload e ausência de interface analítica gráfica).
+
+---
+
+## ⚡ Experimento Comparativo (Bling API no GPT vs PlataformaShop)
+
+Para fins de validação técnica, disponibilizou-se a Chave de API v3 do Bling para que a Maj teste a consulta direta via Custom GPT Actions. Este teste evidenciará:
+
+1. **Gargalo de Renovação de Tokens (OAuth 2.0 / API v3):** A API v3 do Bling exige fluxo OAuth dinâmico com expiração de `access_token`. O GPT não mantém backend persistente para *refresh tokens*.
+2. **Ausência de Reatividade (Webhooks):** O GPT é um sistema *pull* (só responde quando provocado). Ele não pode receber chamadas passivas do Bling quando um produto esgota.
+3. **Estouro de Timeouts & Payload:** Consultas a estoques volumosos estouram o limite de resposta HTTP do ChatGPT.
+4. **Interface Gráfica vs Texto:** O GPT retorna texto puro em Markdown, enquanto a PlataformaShop provê painéis executivos com gráficos (Donut, Bar, Sparklines) e modais interativos.
 
 ---
 
