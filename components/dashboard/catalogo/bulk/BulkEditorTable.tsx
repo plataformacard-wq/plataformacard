@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,11 +20,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { GripVertical, Settings2, Trash2, AlertCircle } from "lucide-react";
+import { GripVertical, Settings2, Trash2, AlertCircle, Sparkles } from "lucide-react";
 import { ProductRow } from "@/components/dashboard/ProductDetailDrawer";
 import { Category } from "@/app/dashboard/catalogo/bulk/useBulkEditorManager";
 import { EditableCell } from "@/app/dashboard/catalogo/bulk/components/EditableCell";
 import { DraggableRow } from "@/app/dashboard/catalogo/bulk/components/DraggableRow";
+import { ProductStatusModal } from "@/components/dashboard/ProductStatusModal";
 
 type BulkEditorTableProps = {
   data: ProductRow[];
@@ -43,6 +44,8 @@ export default function BulkEditorTable({
   setEditingRowIndex,
   handleDragEnd,
 }: BulkEditorTableProps) {
+  const [statusProduct, setStatusProduct] = useState<any | null>(null);
+
   const columns = useMemo<ColumnDef<ProductRow>[]>(
     () => [
       {
@@ -59,15 +62,25 @@ export default function BulkEditorTable({
         id: "edit-details",
         header: "",
         cell: ({ row }) => (
-          <button 
-            onClick={() => setEditingRowIndex(row.index)}
-            className="p-2 text-[var(--dash-text-muted)] hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
-            title="Editar todos os detalhes"
-          >
-            <Settings2 size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => setEditingRowIndex(row.index)}
+              className="p-1.5 text-[var(--dash-text-muted)] hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+              title="Editar todos os detalhes"
+            >
+              <Settings2 size={16} />
+            </button>
+            <button 
+              type="button"
+              onClick={() => setStatusProduct(row.original)}
+              className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-all"
+              title="Ver Raio-X Status 360°"
+            >
+              <Sparkles size={16} />
+            </button>
+          </div>
         ),
-        size: 50,
+        size: 70,
       },
       {
         accessorKey: "name",
@@ -292,6 +305,12 @@ export default function BulkEditorTable({
           <p className="text-[var(--dash-text-secondary)]">Nenhum produto encontrado para edição em massa.</p>
         </div>
       )}
+
+      <ProductStatusModal
+        product={statusProduct}
+        isOpen={!!statusProduct}
+        onClose={() => setStatusProduct(null)}
+      />
     </div>
   );
 }

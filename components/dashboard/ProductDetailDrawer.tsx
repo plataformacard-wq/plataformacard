@@ -13,10 +13,12 @@ import {
   Plus as PlusIcon,
   List,
   Palette,
-  Tag
+  Tag,
+  Sparkles
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { createClient } from "@/lib/supabase/client";
+import { ProductStatusModal } from "@/components/dashboard/ProductStatusModal";
 
 import DrawerImageGallery from "./product-drawer/DrawerImageGallery";
 import DrawerDisplaySettings from "./product-drawer/DrawerDisplaySettings";
@@ -65,6 +67,7 @@ export default function ProductDetailDrawer({
 }: ProductDetailDrawerProps) {
   const supabase = createClient();
   const [uploading, setUploading] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [specs, setSpecs] = useState<any[]>(
     Array.isArray(product.specs) ? product.specs : []
   );
@@ -201,12 +204,20 @@ export default function ProductDetailDrawer({
             <h3 className="text-xl font-bold text-[var(--dash-text-primary)]">Detalhes do Produto</h3>
             <p className="text-sm text-[var(--dash-text-muted)]">ID: {product.id.slice(0,8)}...</p>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-[var(--dash-hover-bg)] rounded-full transition-colors"
-          >
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsStatusModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-extrabold transition-all shadow-sm active:scale-95"
+            >
+              <Sparkles size={14} /> Status 360°
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-[var(--dash-hover-bg)] rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div className="p-8 space-y-8 pb-32">
@@ -270,6 +281,12 @@ export default function ProductDetailDrawer({
           </div>
         </div>
       </motion.div>
+
+      <ProductStatusModal
+        product={product}
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+      />
 
       <style jsx global>{`
         .premium-picker-wrapper .react-colorful {

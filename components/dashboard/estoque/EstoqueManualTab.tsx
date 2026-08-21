@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Package, Check, AlertCircle, Loader2, X, ChevronDown, ChevronRight, Palette } from "lucide-react";
+import { Search, Package, Check, AlertCircle, Loader2, X, ChevronDown, ChevronRight, Palette, Sparkles } from "lucide-react";
 import { updateProductStock, updateProductColorStock } from "@/app/dashboard/estoque/actions";
 import { smartSearchMatch } from "@/lib/utils/smart-search";
+import { ProductStatusModal } from "@/components/dashboard/ProductStatusModal";
 
 interface ColorItem {
   name: string;
@@ -44,6 +45,7 @@ export default function EstoqueManualTab({ products: initialProducts, categories
   const [searchQuery, setSearchQuery] = useState(searchParams?.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedStatusProduct, setSelectedStatusProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     const q = searchParams?.get("search");
@@ -328,7 +330,7 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
                             <span
                               className={`inline-flex px-3 py-1 rounded text-xs font-bold ${
                                 p.is_in_stock
@@ -338,6 +340,14 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                             >
                               {p.is_in_stock ? "Em Estoque" : "Esgotado"}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedStatusProduct(p)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-extrabold transition-all shadow-sm active:scale-95"
+                              title="Ver Raio-X 360° do Produto"
+                            >
+                              <Sparkles size={12} /> Status 360°
+                            </button>
                           </td>
                         </tr>
 
@@ -460,6 +470,13 @@ export default function EstoqueManualTab({ products: initialProducts, categories
           </div>
         </div>
       )}
+
+      <ProductStatusModal
+        product={selectedStatusProduct}
+        isOpen={!!selectedStatusProduct}
+        onClose={() => setSelectedStatusProduct(null)}
+        hasBlingConnection={hasBlingConnection}
+      />
     </div>
   );
 }
