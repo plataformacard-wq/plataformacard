@@ -104,11 +104,46 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Proteção de rotas para Dashboard e Admin Principal
-  if (!user && (path.startsWith("/dashboard") || (path.startsWith("/main") && !path.startsWith("/main-login")) || path.startsWith("/admin") || path.startsWith("/onboarding"))) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/entrar";
-    return NextResponse.redirect(redirectUrl);
+  // Suporte a Rota por Organização (ex: /majmobilidade/dashboard ou /majmobilidade/dashboard/estoque)
+  const pathParts = path.split("/").filter(Boolean);
+  const reservedSystemPrefixes = ["api", "auth", "entrar", "cadastro", "checkout", "main", "admin", "onboarding", "_next", "recriador", "sandbox-checkout", "privacidade", "termos", "recuperar-senha"];
+
+  if (pathParts.length >= 2 && !reservedSystemPrefixes.includes(pathParts[0]) && pathParts[1] === "dashboard") {
+    const slug = pathParts[0];
+    if (!user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = `/${slug}/login`;
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Reescreve internamente /majmobilidade/dashboard/xxx para /dashboard/xxx
+    const internalPath = "/" + pathParts.slice(1).join("/");
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = internalPath;
+    return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } });
+  }
+
+  // Proteção de rotas para Dashboard e Admin Principal (Redirecionamento automático para /[slug]/dashboard)
+  if (path.startsWith("/dashboard") || (path.startsWith("/main") && !path.startsWith("/main-login")) || path.startsWith("/admin") || path.startsWith("/onboarding")) {
+    if (!user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/entrar";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (path.startsWith("/dashboard")) {
+      // Se for /dashboard direto sem o slug na URL, redireciona para /[slug]/dashboard
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id, organizations(slug)")
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+        .maybeSingle();
+
+      const orgSlug = (profile?.organizations as any)?.slug || "majmobilidade";
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = `/${orgSlug}${path}`;
+      return NextResponse.redirect(redirectUrl);
+    }
   }
 
   return response;

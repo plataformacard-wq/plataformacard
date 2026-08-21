@@ -60,7 +60,7 @@ export async function GET(request: Request) {
   // Busca perfil por id ou por user_id para garantir compatibilidade total
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, user_id")
+    .select("id, slug, organization_id, user_id, organizations(slug)")
     .or(`id.eq.${user.id},user_id.eq.${user.id}`)
     .maybeSingle();
 
@@ -77,8 +77,19 @@ export async function GET(request: Request) {
         .eq("id", profile.id);
     }
 
-    console.log("Perfil encontrado. Redirecionando para o dashboard:", next);
-    return response;
+    const orgSlug = (profile.organizations as any)?.slug || "majmobilidade";
+    const destination = next.startsWith("/dashboard") ? `/${orgSlug}${next}` : next;
+
+    console.log("Perfil encontrado. Redirecionando para:", destination);
+    const finalUrl = new URL(`${requestUrl.origin}${destination}`);
+    const finalResponse = NextResponse.redirect(finalUrl);
+
+    // Copia os cookies gravados anteriormente
+    response.cookies.getAll().forEach((c) => {
+      finalResponse.cookies.set(c.name, c.value, c);
+    });
+
+    return finalResponse;
   }
 
   // Se não encontrar perfil prévio, redireciona para onboarding
