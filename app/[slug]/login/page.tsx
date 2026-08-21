@@ -130,10 +130,14 @@ export default function OrgLoginPage(props: PageProps) {
   async function handleGoogleOAuth() {
     setErrorMessage("");
     setLoadingGoogle(true);
+    const origin = typeof window !== "undefined" && window.location.hostname !== "localhost"
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL || "https://www.plataformashop.com.br");
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`,
+        redirectTo: `${origin}/auth/callback`,
       },
     });
 
