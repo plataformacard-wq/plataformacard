@@ -51,8 +51,9 @@ export function QuickSearchProductModal({ product, onClose }: QuickSearchProduct
   };
 
   const handleNavigateToCatalog = () => {
+    if (!product) return;
     onClose();
-    router.push(`/dashboard/catalogo`);
+    router.push(`/dashboard/catalogo?search=${encodeURIComponent(product.name)}`);
   };
 
   return (

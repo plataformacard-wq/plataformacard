@@ -6,7 +6,7 @@ import { Package, RefreshCw, Settings, ChevronDown, Check, Layout, Sparkles, Loc
 import EstoqueManualTab from "@/components/dashboard/estoque/EstoqueManualTab";
 import StockIntelligenceSection from "@/components/dashboard/StockIntelligenceSection";
 import { syncBlingStock } from "@/app/dashboard/catalogo/actions/bling";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useFeatureGate } from "@/hooks/useFeatureGate";
 import UpgradeModal from "@/components/dashboard/upsell/UpgradeModal";
 import { isFeatureAllowed } from "@/lib/plans/feature-matrix";
@@ -43,9 +43,19 @@ export default function EstoqueClient({
   planSlug,
 }: EstoqueClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams?.get("search");
   const { requestFeature, isOpen: isUpgradeOpen, closeModal: closeUpgradeModal, requestedFeature } = useFeatureGate(planSlug);
   const isBlingAllowed = isFeatureAllowed(planSlug, "bling_sync");
-  const [activeTab, setActiveTab] = useState<"manual" | "bling">(initialHasBlingConnection && isBlingAllowed ? "bling" : "manual");
+  const [activeTab, setActiveTab] = useState<"manual" | "bling">(
+    searchQuery ? "manual" : (initialHasBlingConnection && isBlingAllowed ? "bling" : "manual")
+  );
+
+  useEffect(() => {
+    if (searchParams?.get("search")) {
+      setActiveTab("manual");
+    }
+  }, [searchParams]);
   
   // Estados do Bling (copiados e adaptados de CatalogManagerClient)
   const [hasBlingConnection, setHasBlingConnection] = useState(initialHasBlingConnection);
