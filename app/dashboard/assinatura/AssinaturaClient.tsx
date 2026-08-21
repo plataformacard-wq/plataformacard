@@ -145,10 +145,11 @@ export default function AssinaturaClient() {
   const displayPlans = defaultPlanKeys.map((key) => {
     const p = PLANS[key];
     const dbPlan = plans.find((dp) => 
-      dp.id === currentPlanId || 
       dp.slug === key || 
-      dp.name?.toLowerCase().includes(key.replace('_', '')) ||
-      (key === 'all_service' && (dp.name?.toLowerCase().includes('all') || dp.name?.toLowerCase().includes('franqueador')))
+      (key === "starter" && dp.name?.toLowerCase().includes("starter")) ||
+      (key === "pro" && dp.name?.toLowerCase().includes("pro")) ||
+      (key === "sales_team" && (dp.name?.toLowerCase().includes("sales") || dp.name?.toLowerCase().includes("team"))) ||
+      (key === "all_service" && (dp.name?.toLowerCase().includes("all") || dp.name?.toLowerCase().includes("franqueador")))
     );
     const planId = dbPlan?.id || key;
 
@@ -335,7 +336,7 @@ export default function AssinaturaClient() {
         {/* 📊 GRID EM 1 LINHA NO DESKTOP (4 COLUNAS) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 items-stretch max-w-[1550px] mx-auto">
           {displayPlans.map((plan) => (
-            <PricingCard key={plan.id} plan={plan} isAnnual={isAnnual} isInteractive={true} />
+            <PricingCard key={plan.slug || plan.id} plan={plan} isAnnual={isAnnual} isInteractive={true} />
           ))}
         </div>
 
