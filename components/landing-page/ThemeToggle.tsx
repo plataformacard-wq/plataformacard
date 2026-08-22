@@ -39,20 +39,17 @@ export function ThemeToggle() {
     applyTheme(nextTheme);
   }
 
-  if (!mounted) {
-    return (
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-200 dark:bg-white/10 w-24 h-7" />
-    );
-  }
-
   return (
     <button
       type="button"
       onClick={toggleTheme}
+      suppressHydrationWarning
       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-200 dark:bg-white/10 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-white/20 transition-all text-xs font-bold shadow-sm"
-      title={`Alternar para modo ${theme === "light" ? "escuro" : "claro"}`}
+      title={mounted ? `Alternar para modo ${theme === "light" ? "escuro" : "claro"}` : "Alternar tema"}
     >
-      {theme === "light" ? (
+      {!mounted ? (
+        <span className="w-16 h-4 inline-block" />
+      ) : theme === "light" ? (
         <>
           <Sun className="w-4 h-4 text-amber-500" />
           <span className="hidden sm:inline">Modo Claro</span>
