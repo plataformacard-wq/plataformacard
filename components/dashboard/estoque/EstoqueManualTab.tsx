@@ -343,7 +343,7 @@ export default function EstoqueManualTab({ products: initialProducts, categories
                             <button
                               type="button"
                               onClick={() => setSelectedStatusProduct(p)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-extrabold transition-all shadow-sm active:scale-95"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-extrabold transition-all shadow-sm active:scale-95"
                               title="Ver Raio-X 360° do Produto"
                             >
                               <Sparkles size={12} /> Status 360°

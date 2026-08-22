@@ -226,42 +226,65 @@ export default async function HomePage() {
               {
                 title: "Taxa Zero nas Vendas",
                 desc: "Abandone as plataformas de Link na Bio que cobram até 10% de pedágio. Receba pedidos pré-formatados diretamente no seu WhatsApp sem intermediários.",
+                imageLight: "/assets/landing-page/recursos/mockup_taxa_zero_light.png",
+                imageDark: "/assets/landing-page/recursos/mockup_taxa_zero_dark.png",
                 image: "/assets/landing-page/recursos/mockup_taxa_zero_whatsapp.png",
                 green: true,
               },
               {
                 title: "Estoque Sincronizado (Bling V3)",
                 desc: "Chega de PDF desatualizado. Integre a plataforma ao seu Bling e seu catálogo sempre mostrará o preço e o estoque reais em tempo real.",
-                image: null,
+                imageLight: "/assets/landing-page/recursos/mockup_estoque_bling_v3_light.png",
+                imageDark: "/assets/landing-page/recursos/mockup_estoque_bling_v3_dark.png",
+                image: "/assets/landing-page/recursos/mockup_estoque_bling_v3.png",
                 green: false,
               },
               {
                 title: "Físico e Digital: O Híbrido Perfeito",
                 desc: "Seu vendedor aborda o cliente fisicamente com o Cartão NFC premium, que abre instantaneamente o catálogo online no celular do cliente.",
+                imageLight: "/assets/landing-page/recursos/nfc_hibrido_light.png",
+                imageDark: "/assets/landing-page/recursos/nfc_hibrido_dark.png",
                 image: null,
                 green: false,
               },
               {
                 title: "Incorpore no seu Site (iFrame)",
                 desc: "Com apenas 1 linha de código, você embeda o seu catálogo completo dentro do seu site institucional. Rápido, profissional e conversivo.",
+                imageLight: "/assets/landing-page/recursos/iframe_embed_light.png",
+                imageDark: "/assets/landing-page/recursos/iframe_embed_dark.png",
                 image: null,
                 green: false,
               },
             ].map((feat, idx) => (
-              <div key={idx} className={`flex flex-col md:flex-row gap-8 items-center ${idx % 2 !== 0 ? "md:flex-row-reverse" : ""}`}>
-                <div className="flex-1">
-                  <h3 className={`text-2xl font-bold text-zinc-900 dark:text-white mb-4 ${plusJakarta.className}`}>{feat.title}</h3>
-                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
+              <div key={idx} className={`flex flex-col md:flex-row gap-8 lg:gap-12 items-center ${idx % 2 !== 0 ? "md:flex-row-reverse" : ""}`}>
+                <div className="flex-1 space-y-4">
+                  <h3 className={`text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white ${plusJakarta.className}`}>{feat.title}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-base md:text-lg leading-relaxed">{feat.desc}</p>
                 </div>
-                <div className={`flex-1 h-64 md:h-80 w-full rounded-3xl overflow-hidden flex items-center justify-center border backdrop-blur-md relative group ${feat.green ? "bg-[#2CCB68]/5 border-[#2CCB68]/20" : "bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 shadow-sm"}`}>
-                  {feat.image ? (
+                <div className="flex-1 w-full max-w-lg lg:max-w-xl rounded-3xl overflow-hidden shadow-2xl border border-zinc-200/80 dark:border-white/10 relative group aspect-[2400/1792] bg-zinc-100 dark:bg-black/40">
+                  {feat.imageLight && feat.imageDark ? (
+                    <>
+                      <img 
+                        src={feat.imageLight} 
+                        alt={`${feat.title} - Modo Claro`} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 block dark:hidden"
+                      />
+                      <img 
+                        src={feat.imageDark} 
+                        alt={`${feat.title} - Modo Escuro`} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 hidden dark:block"
+                      />
+                    </>
+                  ) : feat.image ? (
                     <img 
                       src={feat.image} 
                       alt={feat.title} 
-                      className="w-full h-full object-contain p-2 rounded-3xl group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <span className={`text-sm font-semibold ${feat.green ? "text-[#2CCB68]" : "text-zinc-500"}`}>Ilustração da Interface</span>
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-100 dark:bg-white/5">
+                      <span className="text-sm font-semibold text-zinc-500">Ilustração da Interface</span>
+                    </div>
                   )}
                 </div>
               </div>

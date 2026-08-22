@@ -119,7 +119,8 @@ export function HeaderSearchPopover({
         try {
           const sRes = await getSellers();
           if (sRes?.sellers && sRes.sellers.length > 0) {
-            setCollaboratorsList(sRes.sellers as any[]);
+            const realSellers = (sRes.sellers as any[]).filter((s) => s.role === "seller" || s.role === "manager");
+            setCollaboratorsList(realSellers);
           }
         } catch (sErr) {
           console.warn("Erro ao buscar colaboradores fallback no HeaderSearchPopover:", sErr);
@@ -135,7 +136,8 @@ export function HeaderSearchPopover({
   }, [supabase, hasFetchedProducts, isFetchingProducts, initialProducts, collaborators]);
 
   const activeProducts = (initialProducts && initialProducts.length > 0) ? initialProducts : productsList;
-  const activeCollaborators = (collaborators && collaborators.length > 0) ? collaborators : collaboratorsList;
+  const activeCollaborators = ((collaborators && collaborators.length > 0) ? collaborators : collaboratorsList)
+    .filter((c) => c.role === "seller" || c.role === "manager");
 
   const matchingProducts = globalSearchQuery.trim()
     ? activeProducts.filter((p) => smartSearchMatch(p, globalSearchQuery)).slice(0, 5)
@@ -341,7 +343,7 @@ export function HeaderSearchPopover({
                       {matchingCollaborators.map((c, cIdx) => {
                         const isHighlighted = highlightedIndex === cIdx;
                         const colabName = c.full_name || c.name || "Colaborador";
-                        const colabRole = c.job_title || (c.role === "admin" ? "Administrador" : "Vendedor");
+                        const colabRole = c.job_title || (c.role === "manager" ? "Gerente" : "Vendedor");
                         const isColabActive = c.status !== "inactive" && c.is_active !== false;
 
                         return (

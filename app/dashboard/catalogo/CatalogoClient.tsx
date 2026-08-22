@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import ProductModal from "@/components/dashboard/ProductModal";
+import { ProductStatusModal } from "@/components/dashboard/ProductStatusModal";
 import CatalogProductItem from "@/components/dashboard/catalogo/CatalogProductItem";
 import CatalogHeader from "@/components/dashboard/catalogo/CatalogHeader";
 import CatalogCategoryList from "@/components/dashboard/catalogo/CatalogCategoryList";
@@ -168,6 +169,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
     fetchCategories
   } = useCatalogoManager(adminCatalogId);
 
+  const [selectedStatusProduct, setSelectedStatusProduct] = useState<ProductRow | null>(null);
 
   return (
     <div className="flex flex-col gap-10 pb-20">
@@ -308,7 +310,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                         className="space-y-4"
                       >
                         {category.products.map((product) => (
-                                                    <CatalogProductItem
+                          <CatalogProductItem
                             key={product.id}
                             product={product}
                             handleOpenEdit={handleOpenEdit}
@@ -321,6 +323,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                             allowCaasDetachment={allowCaasDetachment}
                             handleDuplicateProduct={handleDuplicateProduct}
                             handleDelete={handleDelete}
+                            handleOpenStatusModal={(p) => setSelectedStatusProduct(p)}
                           />
                         ))}
                       </Reorder.Group>
@@ -343,7 +346,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                         className="space-y-4"
                       >
                         {categorizedProducts.uncategorized.map((product) => (
-                                                    <CatalogProductItem
+                          <CatalogProductItem
                             key={product.id}
                             product={product}
                             handleOpenEdit={handleOpenEdit}
@@ -356,6 +359,7 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
                             allowCaasDetachment={allowCaasDetachment}
                             handleDuplicateProduct={handleDuplicateProduct}
                             handleDelete={handleDelete}
+                            handleOpenStatusModal={(p) => setSelectedStatusProduct(p)}
                           />
                         ))}
                       </Reorder.Group>
@@ -408,6 +412,12 @@ export default function CatalogoPage({ adminCatalogId = null }: { adminCatalogId
         setDontShowAgain={setDontShowAgain}
         onClose={() => { setShowVisibilityAlert(false); setPendingStatusUpdate(null); }}
         onConfirm={confirmVisibilityUpdate}
+      />
+
+      <ProductStatusModal
+        product={selectedStatusProduct}
+        isOpen={!!selectedStatusProduct}
+        onClose={() => setSelectedStatusProduct(null)}
       />
 
     </div>

@@ -369,7 +369,8 @@ export function PanelLayout({ children, initialPlanId, initialBusinessModel }: P
                 finalProducts = (fallbackProds as any[]) || [];
               }
 
-              const finalSellers = (sellersRes?.sellers as any[]) || [];
+              const rawSellers = (sellersRes?.sellers as any[]) || [];
+              const finalSellers = rawSellers.filter((s: any) => s.role === "seller" || s.role === "manager");
 
               setAnalyticsProducts(finalProducts);
               setHeaderCollaborators(finalSellers);

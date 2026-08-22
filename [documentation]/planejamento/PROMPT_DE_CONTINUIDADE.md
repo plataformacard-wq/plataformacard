@@ -7,43 +7,47 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
 ## 1. Status das Entregas Concluídas
 
 - [x] **Protocolo START & Auditoria UX/UI:**
-  - `git fetch` & status validados. Repositório 100% sincronizado com `origin/main`.
+  - Sincronização com `origin/main` efetuada com sucesso.
   - Servidor Next.js dev ativo em `http://localhost:3000`.
-  - Executado o script `audit_ux_ui.js` corrigindo automaticamente **293 infrações de Dark Mode** em 133 arquivos.
-- [x] **Motor de Busca Semântica & Live Search Popover Preditivo (`TopHeader.tsx`):**
-  - Integração do motor `smartSearchMatch` (`lib/utils/smart-search.ts`) no cabeçalho do Dashboard.
-  - Dropdown flutuante em tempo real ao focar e digitar na barra de busca (sem exigir Enter).
-  - Exibição rich de itens com Foto miniatura, Nome, SKU, Badge de Status (`🔴 Esgotado`, `🟡 Estoque Baixo`, `🟢 Em Estoque`) e Preço formatado.
-  - Modal de detalhes rápido ([QuickSearchProductModal.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/QuickSearchProductModal.tsx)) ao clicar em qualquer resultado.
-  - Navegação via teclado (`ArrowUp`, `ArrowDown`, `Enter`, `Escape`), fechamento no clique fora e suporte a dispositivos móveis.
-- [x] **Refatoração Anti-Monolito do TopHeader (`components/dashboard/header/`):**
-  - Decomposição do arquivo monolítico de 562 linhas em 3 sub-componentes modulares: [`HeaderSearchPopover.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderSearchPopover.tsx), [`HeaderNotificationsMenu.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderNotificationsMenu.tsx) e [`HeaderUserMenu.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderUserMenu.tsx).
-  - Redução do orquestrador [`TopHeader.tsx`](file:///c:/Users/Start/PlataformaShop/components/dashboard/TopHeader.tsx) para 130 linhas (redução de 77%).
-- [x] **Documentação Técnica do Chat RAG (Agendado Pós-Lançamento):**
-  - Estudo de viabilidade, arquitetura RAG criptografada com isolamento por `organization_id`, modelo de cotas por plano (Starter/PRO/Enterprise) e plano de implementação documentados em [`ESPECIFICACAO_CHAT_IA_RAG.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md) e [`PENDENCIAS.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/PENDENCIAS.md).
-- [x] **Protocolo VPGP (Verify, Push, Github, Push):**
-  - Validação `npx tsc --noEmit` obtendo **0 erros de compilação**. Commits e push efetuados para `origin/main`.
-- [x] **Fase de Homologação Online (Maj Mobilidade - `majmobilidade`):**
-  - Documentação atípica de teste real em produção criada em [`PLANO_HOMOLOGACAO_MAJMOBILIDADE.md`](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/%5Bdocumentation%5D/manuais/PLANO_HOMOLOGACAO_MAJMOBILIDADE.md).
-  - Validação de rotas online (`https://www.plataformashop.com.br/majmobilidade` e `/entrar`) para o teste da Inteligência de Estoque conectada ao Bling ERP.
+  - Calibração do motor `audit_ux_ui.js` para respeitar a hierarquia de cantos arredondados: container (`rounded-[27px]`), sub-cards (`rounded-2xl`), badges/stickers (`rounded-full`) e botões (`rounded-xl`).
+- [x] **Implementação e Harmonização do Modal Status 360° do Produto:**
+  - Integrado em todo o ecossistema: Catálogo ([CatalogProductItem.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/catalogo/CatalogProductItem.tsx), [CatalogoClient.tsx](file:///c:/Users/Start/PlataformaShop/app/dashboard/catalogo/CatalogoClient.tsx), [ProductListItem.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/ProductListItem.tsx)), Estoque ([EstoqueManualTab.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/estoque/EstoqueManualTab.tsx)), Busca Rápida ([QuickSearchProductModal.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/QuickSearchProductModal.tsx)) e Gaveta ([ProductDetailDrawer.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/ProductDetailDrawer.tsx)).
+- [x] **Correção no Filtro de Colaboradores da Busca Preditiva:**
+  - [HeaderSearchPopover.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/header/HeaderSearchPopover.tsx) e [PanelLayout.tsx](file:///c:/Users/Start/PlataformaShop/components/dashboard/PanelLayout.tsx) ajustados para filtrar exclusivamente colaboradores e vendedores reais (`role === 'seller' | 'manager'`), impedindo que administradores apareçam indevidamente como "Vendedor".
+- [x] **Landing Page — Mockups de Recursos B2B (Seção `#recursos`):**
+  - Suporte nativo à troca automática de temas Dark/Light implementado em [app/page.tsx](file:///c:/Users/Start/PlataformaShop/app/page.tsx).
+  - **Card 1 (Taxa Zero nas Vendas):** Entregue e renderizado perfeitamente com os assets `mockup_taxa_zero_light.png` e `mockup_taxa_zero_dark.png`.
+  - Container calibrado na proporção exata 4:3 (`aspect-[2400/1792]`) com `object-cover` e sombra `shadow-2xl`.
+- [x] **Compilação e Tipagem:**
+  - Validação estrita via `npx tsc --noEmit` obtendo **0 erros de compilação**.
 
 ---
 
-## 2. Próximos Passos (Backlog de Lançamento)
+## 2. Próximos Passos (Criação dos Mockups Restantes da Landing Page)
 
-1. **Assets Visuais & Mockups Oficiais da Landing Page:**
-   - Adicionar os mockups 3D oficiais e ilustrações B2B no CMS/public para o lançamento público.
-2. **Separação de Ambientes Supabase (Staging):**
-   - Configurar projeto de homologação para testes de staging pós-lançamento.
+1. **Card 2 — Sincronização Bling ERP V3:**
+   - Salvar: `public/assets/landing-page/recursos/mockup_estoque_bling_v3_light.png` e `mockup_estoque_bling_v3_dark.png`
+2. **Card 3 — Físico e Digital: O Híbrido Perfeito (NFC):**
+   - Salvar: `public/assets/landing-page/recursos/nfc_hibrido_light.png` e `nfc_hibrido_dark.png`
+3. **Card 4 — Incorpore no seu Site (iFrame):**
+   - Salvar: `public/assets/landing-page/recursos/iframe_embed_light.png` e `iframe_embed_dark.png`
+4. **Hero Mockup 3D Principal (Topo da LP):**
+   - Salvar no CMS ou em `public/assets/landing-page/hero/`
 
 ---
 
 ## 3. Prompt de Retomada para Copiar na Próxima Sessão
 
 ```text
-Protocolo START! 
+Protocolo START!
 
-Finalizamos com sucesso a implementação do Live Search Popover Preditivo, o modal QuickSearchProductModal, a Refatoração Anti-Monolito do TopHeader, e o salvamento via Protocolo VPGP no GitHub remoto. A especificação do Assistente de Inteligência do Lojista (Chat RAG) foi 100% documentada para implementação na Fase 2 pós-lançamento. Todos os arquivos compilam com 0 erros no TypeScript (`npx tsc --noEmit`).
+Finalizamos com sucesso a integração do Modal Status 360° em todo o dashboard, o filtro de colaboradores na busca do TopHeader e a implementação do Card 1 da Landing Page (Taxa Zero nas Vendas) com suporte dinâmico a Dark e Light Mode em proporção 4:3 perfeita.
 
-Por favor, valide o estado atual do repositório e informe as tarefas prioritárias para o lançamento online da PlataformaShop.
+Estou com o ambiente pronto para continuar criando e inserindo os mockups restantes da Landing Page:
+- Card 2: Estoque Sincronizado (Bling V3)
+- Card 3: Físico e Digital (NFC)
+- Card 4: Incorpore no seu Site (iFrame)
+
+Por favor, valide o estado do projeto e vamos continuar com a inclusão dos próximos mockups!
 ```
+

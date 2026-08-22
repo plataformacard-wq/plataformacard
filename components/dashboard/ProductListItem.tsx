@@ -3,7 +3,7 @@
 import React from "react";
 import { Reorder } from "framer-motion";
 import Link from "next/link";
-import { GripVertical, Package, Eye, Copy, Edit2 as EditIcon, Trash2 as TrashIcon } from "lucide-react";
+import { GripVertical, Package, Eye, Copy, Edit2 as EditIcon, Trash2 as TrashIcon, Sparkles } from "lucide-react";
 
 export type Spec = { id?: string; chave: string; valor: string };
 
@@ -57,6 +57,7 @@ type ProductListItemProps = {
   adminCatalogId: string | null;
   catalogId: string | null;
   allowCaasDetachment: boolean;
+  handleOpenStatusModal?: (p: ProductRow) => void;
 };
 
 export default function ProductListItem({
@@ -70,7 +71,8 @@ export default function ProductListItem({
   userSlug,
   adminCatalogId,
   catalogId,
-  allowCaasDetachment
+  allowCaasDetachment,
+  handleOpenStatusModal
 }: ProductListItemProps) {
   return (
     <Reorder.Item
@@ -189,6 +191,20 @@ export default function ProductListItem({
           </div>
 
           <div className="flex items-center gap-1">
+            {handleOpenStatusModal && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenStatusModal(product);
+                }}
+                className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all shadow-sm active:scale-95 flex items-center gap-1"
+                title="Raio-X Status 360°"
+              >
+                <Sparkles size={14} />
+              </button>
+            )}
+
             {userSlug ? (
               <Link
                 href={adminCatalogId ? `/${userSlug}/catalogo?preview_catalog=${adminCatalogId}#${product.id}` : `/${userSlug}/catalogo#${product.id}`}

@@ -193,15 +193,15 @@ export function ProductStatusModal({
                   <Package size={14} className="text-blue-500" /> Estoque Físico
                 </span>
                 {isOutOfStock ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-red-500/10 text-red-500 border border-red-500/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-red-500/10 text-red-500 border border-red-500/20">
                     Esgotado
                   </span>
                 ) : isLowStock ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
                     Baixo
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                     Disponível
                   </span>
                 )}
@@ -225,7 +225,7 @@ export function ProductStatusModal({
                 <span className="text-xs font-bold text-[var(--dash-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
                   <Eye size={14} className="text-indigo-500" /> Cliques / Acessos
                 </span>
-                <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
                   Últimos 30d
                 </span>
               </div>
@@ -251,7 +251,7 @@ export function ProductStatusModal({
                 <span className="text-xs font-bold text-[var(--dash-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
                   <MessageSquare size={14} className="text-emerald-500" /> Conversas / Leads
                 </span>
-                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                   WhatsApp
                 </span>
               </div>
@@ -278,7 +278,7 @@ export function ProductStatusModal({
                   <Tag size={14} className="text-amber-500" /> Valor de Tabela
                 </span>
                 {promoPriceFormatted && (
-                  <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                     Promoção Ativa
                   </span>
                 )}
