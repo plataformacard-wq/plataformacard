@@ -16,6 +16,10 @@ Este documento reúne o mapeamento dos principais concorrentes diretos e indiret
 | **Bagy** | Indireto | Loja Virtual Social / Sacolinha Instagram | A partir de R$ 49,00/mês | 0% (Taxa do gateway de pagamento) | Integração profunda com Instagram Shopping |
 | **OlaClick** | Indireto | Cardápio Digital & Delivery para WhatsApp | Grátis a R$ 64-188/mês | 0% | Chatbot de IA para automatizar pedidos de WhatsApp |
 | **WhatsApp Business** | Indireto | Catálogo Nativo no Mensageiro | 100% Grátis | 0% | Presença na ferramenta mais usada do país |
+| **Zydon** | Direto (B2B) | E-commerce B2B Integrado ao ERP | Sob Consulta / Planos Corporativos | 0% | Regras B2B por CNPJ e integração ERP (Bling, Omie) |
+| **Mercos** | Direto (B2B) | E-commerce B2B e Força de Vendas | Mensalidade por Usuário / Vendedor | 0% | App de força de vendas offline e extensão Bling |
+
+> 📌 **Nota B2B:** Para a análise aprofundada dos concorrentes diretos no segmento B2B (Zydon e Mercos) e como a PlataformaShop se posiciona com o **Plano Zeon**, consulte o documento dedicado: [`ANALISE_CONCORRENTES_B2B.md`](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/%5Bdocumentation%5D/estrategia/ANALISE_CONCORRENTES_B2B.md).
 
 ---
 
