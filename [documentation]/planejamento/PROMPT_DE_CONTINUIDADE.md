@@ -21,17 +21,25 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
   - **Card 3 (Físico e Digital - NFC Híbrido):** Entregue com `nfc_hibrido_light.png` e `nfc_hibrido_dark.png`.
   - **Card 4 (Incorpore no seu Site - iFrame):** Entregue com `iframe_embed_light.png` e `iframe_embed_dark.png`.
   - Todos os containers calibrados na proporção exata 4:3 (`aspect-[2400/1792]`) com `object-cover` e sombra `shadow-2xl`.
+- [x] **Módulo B2B (Plano Zeon) — Portal Híbrido, Google Sheets & Bling ERP v3:**
+  - Migração SQL executada em `supabase/migrations/20260826_b2b_hybrid_portal.sql`.
+  - Sincronizador de planilhas Google Sheets por SKU em `lib/google-sheets.ts` e API `/api/b2b/sync-sheets`.
+  - Gestão B2B no Dashboard em [app/dashboard/b2b/page.tsx](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/app/dashboard/b2b/page.tsx) com abas para clientes aprovados, solicitações pendentes e integração Google Sheets.
+  - Onboarding Híbrido: Convite Direto em 1-clique (Outbound) e Solicitação Inbound no catálogo [components/catalog/B2bRegisterModal.tsx](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/components/catalog/B2bRegisterModal.tsx) com mensagem de retenção *"Preparando ofertas..."*.
+  - Grade de Pedido em Lote B2B em [components/catalog/B2bFastOrderModal.tsx](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/components/catalog/B2bFastOrderModal.tsx) com envio de Pedido de Venda via API v3 do Bling (`POST /pedidos/vendas`).
+  - **Plano de Auditoria Registrado:** Documento de teste e homologação disponível em [`[documentation]/manuais/PLANO_AUDITORIA_ZEON_B2B.md`](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/%5Bdocumentation%5D/manuais/PLANO_AUDITORIA_ZEON_B2B.md).
 - [x] **Compilação e Tipagem:**
   - Validação estrita via `npx tsc --noEmit` obtendo **0 erros de compilação**.
 
 ---
 
-## 2. Próximos Passos Sugeridos
+## 2. Próxima Sessão / Roteiro de Auditoria do Portal B2B
 
-1. **Hero Mockup 3D Principal (Topo da Landing Page):**
-   - Ilustração ou mockup premium 3D no topo da página inicial para destacar o ecossistema completo.
-2. **Revisão Visual e Testes de Responsividade na Landing Page:**
-   - Testar o comportamento da troca de tema (Dark/Light) e a responsividade mobile da seção de recursos.
-3. **Protocolo VPGP:**
-   - Commit e push das alterações para o repositório remoto.
+Para validar o Módulo B2B Zeon em uma nova sessão, siga os passos do documento [`PLANO_AUDITORIA_ZEON_B2B.md`](file:///Users/macstudio-maj/Documents/Desenvolvimento/Aplicativos/PlataformaShop/%5Bdocumentation%5D/manuais/PLANO_AUDITORIA_ZEON_B2B.md):
+
+1. **Executar a Migração SQL no Supabase:** Rodar o script `supabase/migrations/20260826_b2b_hybrid_portal.sql`.
+2. **Cenário 1 (Google Sheets):** No Dashboard `/dashboard/b2b`, aba *Google Sheets*, sincronizar a planilha de preços por SKU.
+3. **Cenário 2 (Convite Direto):** Cadastrar cliente no Dashboard ➔ Copiar link `?b2b=TOKEN` ➔ Abrir em janela anônima e conferir preços da Tabela Y.
+4. **Cenário 3 (Solicitação Inbound):** No catálogo `/majmobilidade`, clicar em *"Quero ser Revendedor"* ➔ Preencher formulário ➔ Aprovar no Dashboard selecionando a Tabela Z.
+5. **Cenário 4 (Pedido B2B + Bling):** Abrir *"Pedido em Lote B2B"*, selecionar itens e finalizar ➔ Verificar gravação no Supabase e envio do Pedido de Venda para o Bling ERP.
 
