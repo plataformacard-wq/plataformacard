@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, UserPlus, Send, Copy, Check } from "lucide-react";
+import { X, UserPlus, CheckCircle2, Copy, Send } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface B2bNewClientModalProps {
   isOpen: boolean;
   onClose: () => void;
   organizationId: string;
   slug: string;
+  customTables?: { key: string; label: string }[];
   onClientCreated: () => void;
 }
 
@@ -16,13 +18,14 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
   onClose,
   organizationId,
   slug,
-  onClientCreated
+  customTables = [],
+  onClientCreated,
 }) => {
   const [cnpj, setCnpj] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [tradeName, setTradeName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [assignedPriceKey, setAssignedPriceKey] = useState("tabela_x");
+  const [assignedPriceKey, setAssignedPriceKey] = useState("valor_1");
   const [loading, setLoading] = useState(false);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -43,11 +46,11 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
           slug,
           cnpjCpf: cnpj,
           companyName,
-          tradeName: tradeName || companyName,
+          tradeName: tradeName || undefined,
           phoneWhatsapp: whatsapp,
           assignedPriceKey,
-          isDirectInvite: true
-        })
+          isDirectInvite: true,
+        }),
       });
 
       const data = await res.json();
@@ -57,8 +60,8 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
       } else {
         alert(data.error || "Erro ao cadastrar cliente B2B.");
       }
-    } catch (err: any) {
-      alert("Erro de conexão ao criar cliente.");
+    } catch (err) {
+      alert("Erro de conexão ao cadastrar lojista.");
     } finally {
       setLoading(false);
     }
@@ -71,11 +74,12 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
     return `https://www.plataformashop.com.br/${slug}?b2b=${token}`;
   };
 
-  const handleCopy = () => {
+  const handleCopyLink = () => {
     if (!createdToken) return;
-    navigator.clipboard.writeText(getClientUrl(createdToken));
+    const url = getClientUrl(createdToken);
+    navigator.clipboard.writeText(url);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const handleWhatsAppSend = () => {
@@ -86,161 +90,208 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
     window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
+  const handleResetAndClose = () => {
+    setCnpj("");
+    setCompanyName("");
+    setTradeName("");
+    setWhatsapp("");
+    setAssignedPriceKey("valor_1");
+    setCreatedToken(null);
+    setCopied(false);
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md p-6 rounded-2xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface)] shadow-2xl relative space-y-5">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-[var(--dash-text-muted)] hover:bg-[var(--dash-surface-element)] transition-colors"
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md p-6 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] shadow-xl relative space-y-4"
         >
-          <X className="w-5 h-5" />
-        </button>
+          <button
+            onClick={handleResetAndClose}
+            className="absolute top-4 right-4 p-1.5 rounded-lg text-[var(--dash-text-muted)] hover:bg-[var(--dash-surface-secondary)] hover:text-[var(--dash-text-primary)] transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <UserPlus className="w-5 h-5" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shrink-0">
+              <UserPlus className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-[var(--dash-text-primary)]">
+                Cadastrar Lojista B2B
+              </h3>
+              <p className="text-xs text-[var(--dash-text-muted)]">
+                Convite Direto Pré-Configurado (Outbound)
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-base text-[var(--dash-text-primary)]">
-              Cadastrar Novo Lojista B2B
-            </h3>
-            <p className="text-xs text-[var(--dash-text-muted)]">
-              Fluxo A: Convite Direto Pré-Configurado (Outbound)
-            </p>
-          </div>
-        </div>
 
-        {!createdToken ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                CNPJ / CPF do Cliente:
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2 focus:outline-none focus:border-emerald-500/50"
-                placeholder="Ex: 12.345.678/0001-90"
-                value={cnpj}
-                onChange={(e) => setCnpj(e.target.value)}
-              />
-            </div>
+          {!createdToken ? (
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                  CNPJ / CPF do Lojista:
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all font-mono"
+                  placeholder="Ex: 12.345.678/0001-90"
+                  value={cnpj}
+                  onChange={(e) => setCnpj(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                Razão Social:
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2 focus:outline-none focus:border-emerald-500/50"
-                placeholder="Ex: Mobilidade Urbana LTDA"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                  Razão Social:
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all"
+                  placeholder="Ex: Mobilidade Urbana LTDA"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                Nome Fantasia (Opcional):
-              </label>
-              <input
-                type="text"
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2 focus:outline-none focus:border-emerald-500/50"
-                placeholder="Ex: Loja de Mobilidade BH"
-                value={tradeName}
-                onChange={(e) => setTradeName(e.target.value)}
-              />
-            </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                  Nome Fantasia (Opcional):
+                </label>
+                <input
+                  type="text"
+                  className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all"
+                  placeholder="Ex: Loja de Motos BH"
+                  value={tradeName}
+                  onChange={(e) => setTradeName(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                WhatsApp com DDD:
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2 focus:outline-none focus:border-emerald-500/50"
-                placeholder="Ex: (31) 99999-8888"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-              />
-            </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                  WhatsApp com DDD:
+                </label>
+                <input
+                  type="tel"
+                  required
+                  className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all font-mono"
+                  placeholder="Ex: (31) 99999-8888"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                Tabela de Preço Atribuída:
-              </label>
-              <select
-                className="dash-select w-full text-xs font-semibold rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] pl-3 py-2 focus:outline-none"
-                value={assignedPriceKey}
-                onChange={(e) => setAssignedPriceKey(e.target.value)}
-              >
-                <option value="tabela_x">Tabela X (VIP)</option>
-                <option value="tabela_y">Tabela Y (Margem Ajustada)</option>
-                <option value="tabela_z">Tabela Z (Plus / Atacado)</option>
-                <option value="bling">Preço Base (Bling)</option>
-              </select>
-            </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                  Tabela de Preço Atribuída:
+                </label>
+                <select
+                  className="dash-select w-full text-xs font-semibold rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] pl-3 py-2.5 focus:outline-none focus:border-emerald-500/50 cursor-pointer"
+                  value={assignedPriceKey}
+                  onChange={(e) => setAssignedPriceKey(e.target.value)}
+                >
+                  {customTables.length > 0 ? (
+                    customTables.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.label}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="valor_1">Tabela 1 (Valor 1)</option>
+                      <option value="valor_2">Tabela 2 (Valor 2)</option>
+                      <option value="valor_3">Tabela 3 (Valor 3)</option>
+                      <option value="valor_4">Tabela 4 (Valor 4)</option>
+                    </>
+                  )}
+                  <option value="bling">Preço Base (Bling / Catálogo)</option>
+                </select>
+              </div>
 
-            <div className="pt-3 flex justify-end gap-2 border-t border-[var(--dash-border-subtle)]">
+              <div className="pt-2 flex justify-end gap-2.5 border-t border-slate-200/60 dark:border-white/5">
+                <button
+                  type="button"
+                  onClick={handleResetAndClose}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200/80 dark:border-white/10 hover:bg-[var(--dash-surface-secondary)] text-[var(--dash-text-secondary)] transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  {loading ? "Cadastrando..." : "Cadastrar & Gerar Link"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="text-center space-y-4 py-3">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle2 className="w-7 h-7" />
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-lg text-[var(--dash-text-primary)]">
+                  Lojista Cadastrado com Sucesso!
+                </h4>
+                <p className="text-xs text-[var(--dash-text-secondary)] max-w-sm mx-auto">
+                  O link exclusivo com token foi gerado e está pronto para envio.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--dash-surface-secondary)] border border-slate-200/80 dark:border-white/10 text-xs font-mono text-[var(--dash-text-muted)] break-all text-left">
+                {getClientUrl(createdToken)}
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <button
+                  onClick={handleCopyLink}
+                  className={`w-full py-2.5 px-3.5 text-xs font-semibold rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    copied
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                      : "border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] hover:border-emerald-500/30"
+                  }`}
+                >
+                  {copied ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <span>Link Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copiar Link Exclusivo</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleWhatsAppSend}
+                  className="w-full py-2.5 px-3.5 text-xs font-semibold rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Enviar Convite pelo WhatsApp</span>
+                </button>
+              </div>
+
               <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-xs font-medium rounded-xl border border-[var(--dash-border-subtle)] hover:bg-[var(--dash-surface-element)] text-[var(--dash-text-secondary)]"
+                onClick={handleResetAndClose}
+                className="text-xs text-[var(--dash-text-muted)] hover:text-[var(--dash-text-primary)] font-semibold transition-colors pt-1 block mx-auto cursor-pointer"
               >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm disabled:opacity-50"
-              >
-                {loading ? "Cadastrando..." : "Cadastrar & Liberar Link"}
+                Concluir e Fechar
               </button>
             </div>
-          </form>
-        ) : (
-          <div className="space-y-4 text-center py-2">
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 space-y-1">
-              <p className="font-semibold text-sm">Cliente Cadastrado com Sucesso!</p>
-              <p className="text-xs opacity-80">Link de acesso exclusivo em 1 clique gerado com a tabela selecionada.</p>
-            </div>
-
-            <div className="p-3 rounded-xl bg-[var(--dash-surface-element)] text-xs font-mono text-[var(--dash-text-primary)] break-all border border-[var(--dash-border-subtle)]">
-              {getClientUrl(createdToken)}
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={handleCopy}
-                className="flex-1 px-4 py-2 text-xs font-semibold rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] hover:border-emerald-500/50 flex items-center justify-center gap-1.5"
-              >
-                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? "Copiado!" : "Copiar Link"}</span>
-              </button>
-
-              <button
-                onClick={handleWhatsAppSend}
-                className="flex-1 px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <Send className="w-4 h-4" />
-                <span>Enviar no WhatsApp</span>
-              </button>
-            </div>
-
-            <button
-              onClick={() => {
-                setCreatedToken(null);
-                onClose();
-              }}
-              className="w-full mt-2 text-xs text-[var(--dash-text-muted)] hover:underline"
-            >
-              Concluir e Fechar
-            </button>
-          </div>
-        )}
+          )}
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 };

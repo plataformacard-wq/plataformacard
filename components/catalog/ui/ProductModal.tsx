@@ -235,8 +235,10 @@ export const ProductModal = ({
             <div className="px-6 sm:px-10 py-8 pb-12 min-w-0">
               {selectedProduct.is_in_stock !== false && (
                 hidePrices || 
-                (selectedProduct.has_retail !== false && selectedProduct.price !== null) || 
-                (selectedProduct.has_wholesale && selectedProduct.wholesale_price !== null)
+                (selectedProduct.price !== null && Number(selectedProduct.price) > 0) ||
+                (selectedProduct.wholesale_price !== null && Number(selectedProduct.wholesale_price) > 0) ||
+                selectedProduct.has_retail !== false || 
+                selectedProduct.has_wholesale
               ) && (
                 <div className="space-y-6 mb-8">
                   <div className="bg-[var(--public-bg)] border border-[var(--public-card-border)] rounded-xl p-6">
@@ -248,7 +250,10 @@ export const ProductModal = ({
                         </div>
                       ) : (
                         <>
-                          {selectedProduct.has_retail !== false && (!isB2B || !selectedProduct.has_wholesale) && (
+                          {(
+                            (selectedProduct.price !== null && Number(selectedProduct.price) > 0) ||
+                            (selectedProduct.has_retail !== false && selectedProduct.price !== null)
+                          ) && (!isB2B || !selectedProduct.has_wholesale || Number(selectedProduct.wholesale_price || 0) === 0) && (
                             <div 
                               onClick={() => setPriceMode("retail")}
                               className={`p-4 rounded-xl border transition-all cursor-pointer ${
@@ -257,22 +262,33 @@ export const ProductModal = ({
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <p className="text-[var(--public-text-dim)] text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                                  <Tag size={12} /> Preço de Varejo
+                                  <Tag size={12} className="text-emerald-500" /> {isB2B ? "Condição Comercial Exclusiva (Atacado)" : "Preço"}
                                 </p>
                                 {priceMode === "retail" && <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center"><Check size={10} className="text-black" /></div>}
                               </div>
-                              <div className="flex flex-col gap-1">
-                                {selectedProduct.compare_at_price && (
-                                  <div className="flex items-center gap-2 text-sm font-bold text-[var(--public-text-dim)]">
-                                    <span className="text-[10px] uppercase opacity-60">De</span>
-                                    <span className="line-through">{formatPrice(selectedProduct.compare_at_price)}</span>
+                              <div className="flex flex-col gap-1.5">
+                                {selectedProduct.compare_at_price && selectedProduct.compare_at_price > (selectedProduct.price || 0) && (
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--public-text-dim)]">
+                                      <span className="text-[10px] uppercase opacity-70">Preço Sugerido (Mercado):</span>
+                                      <span className="line-through">{formatPrice(selectedProduct.compare_at_price)}</span>
+                                    </div>
+                                    {selectedProduct.price && (
+                                      <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 uppercase tracking-wider">
+                                        Margem Estimada: +{Math.round(((selectedProduct.compare_at_price - selectedProduct.price) / selectedProduct.price) * 100)}%
+                                      </span>
+                                    )}
                                   </div>
                                 )}
-                                <div className="flex items-center gap-2">
-                                  {selectedProduct.compare_at_price && <span className="text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
-                                  <p className="text-2xl font-extrabold text-emerald-400">
+                                <div className="flex items-baseline gap-2 flex-wrap">
+                                  <p className="text-3xl font-extrabold text-emerald-400">
                                     {formatPrice(selectedProduct.price) || "Consulte"}
                                   </p>
+                                  {selectedProduct.compare_at_price && selectedProduct.price && selectedProduct.compare_at_price > selectedProduct.price && (
+                                    <span className="text-xs font-bold text-emerald-500/90">
+                                      (Economia de {formatPrice(selectedProduct.compare_at_price - selectedProduct.price)} por unidade)
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>

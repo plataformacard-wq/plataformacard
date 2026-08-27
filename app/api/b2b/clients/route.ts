@@ -31,18 +31,57 @@ export async function GET(req: NextRequest) {
         .select('sku, prices')
         .eq('organization_id', client.organization_id);
 
-      // Mapear tabela de preço atribuída
+      // Mapear tabela de preço atribuída com resolução inteligente
       const priceMap: Record<string, number> = {};
       prices?.forEach(p => {
-        const val = p.prices?.[client.assigned_price_key] || p.prices?.['bling'] || 0;
-        if (val) priceMap[p.sku] = val;
+        const pPrices = p.prices || {};
+        let val = pPrices[client.assigned_price_key];
+        
+        if (!val) {
+          if (client.assigned_price_key === 'valor_1' || client.assigned_price_key === 'tabela_x') {
+            val = pPrices['atacado'] || pPrices['valor_1'] || pPrices['tabela_x'] || pPrices['varejo'];
+          } else if (client.assigned_price_key === 'valor_2' || client.assigned_price_key === 'tabela_y') {
+            val = pPrices['valor_2'] || pPrices['tabela_y'] || pPrices['atacado'];
+          } else if (client.assigned_price_key === 'valor_3' || client.assigned_price_key === 'tabela_z') {
+            val = pPrices['valor_3'] || pPrices['tabela_z'];
+          } else if (client.assigned_price_key === 'valor_4') {
+            val = pPrices['valor_4'];
+          } else if (client.assigned_price_key === 'atacado') {
+            val = pPrices['atacado'] || pPrices['valor_1'] || pPrices['tabela_x'];
+          } else if (client.assigned_price_key === 'varejo') {
+            val = pPrices['varejo'] || pPrices['bling'];
+          }
+        }
+        
+        // Fallback para qualquer preço válido registrado
+        if (!val) {
+          const availableValues = Object.values(pPrices).filter(v => typeof v === 'number' && v > 0) as number[];
+          if (availableValues.length > 0) {
+            val = availableValues[0];
+          }
+        }
+
+        if (val && Number(val) > 0) {
+          priceMap[p.sku] = Number(val);
+        }
+      });
+
+      // Mapear preços de ancoragem (preço sugerido de varejo / mercado)
+      const anchorMap: Record<string, number> = {};
+      prices?.forEach(p => {
+        const pPrices = p.prices || {};
+        const anchor = pPrices['anchor_price'] || pPrices['varejo'] || pPrices['sugerido'] || pPrices['mercado'];
+        if (anchor && Number(anchor) > 0) {
+          anchorMap[p.sku] = Number(anchor);
+        }
       });
 
       return NextResponse.json({
         success: true,
         client,
         priceKey: client.assigned_price_key,
-        prices: priceMap
+        prices: priceMap,
+        anchorPrices: anchorMap
       });
     }
 
@@ -67,7 +106,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, clients: clients || [] });
+    const { data: sheetConfig } = await supabase
+      .from('b2b_sheets_config')
+      .select('custom_tables')
+      .eq('organization_id', orgId)
+      .maybeSingle();
+
+    return NextResponse.json({ 
+      success: true, 
+      clients: clients || [],
+      customTables: sheetConfig?.custom_tables || []
+    });
 
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

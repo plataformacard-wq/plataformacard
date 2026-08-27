@@ -50,9 +50,14 @@ CREATE TABLE IF NOT EXISTS public.b2b_orders (
     price_key_used TEXT NOT NULL,
     items JSONB NOT NULL DEFAULT '[]'::jsonb,
     total_amount NUMERIC(10,2) NOT NULL,
+    notes TEXT,
     status TEXT DEFAULT 'pending', -- 'pending', 'sent_to_bling', 'completed', 'cancelled'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
+
+-- Garantir coluna notes caso a tabela ja tenha sido criada
+ALTER TABLE public.b2b_orders ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.b2b_sheets_config ADD COLUMN IF NOT EXISTS custom_tables JSONB DEFAULT '[]'::jsonb;
 
 -- Indexes para alta performance de consulta
 CREATE INDEX IF NOT EXISTS idx_b2b_clients_org ON public.b2b_clients(organization_id);
@@ -66,8 +71,15 @@ ALTER TABLE public.b2b_sku_prices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.b2b_sheets_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.b2b_orders ENABLE ROW LEVEL SECURITY;
 
--- Políticas de RLS Permissivas para Serviço / Autenticação
+-- Políticas de RLS Permissivas para Serviço / Autenticação (Idempotentes)
+DROP POLICY IF EXISTS "b2b_clients_service_policy" ON public.b2b_clients;
 CREATE POLICY "b2b_clients_service_policy" ON public.b2b_clients FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "b2b_sku_prices_service_policy" ON public.b2b_sku_prices;
 CREATE POLICY "b2b_sku_prices_service_policy" ON public.b2b_sku_prices FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "b2b_sheets_config_service_policy" ON public.b2b_sheets_config;
 CREATE POLICY "b2b_sheets_config_service_policy" ON public.b2b_sheets_config FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "b2b_orders_service_policy" ON public.b2b_orders;
 CREATE POLICY "b2b_orders_service_policy" ON public.b2b_orders FOR ALL USING (true) WITH CHECK (true);

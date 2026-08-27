@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { BusinessHours, DaySchedule, TimeShift, DEFAULT_BUSINESS_HOURS, DAY_NAMES_PT } from "@/lib/utils/time";
-import { Copy } from "lucide-react";
+import { 
+  BusinessHours, 
+  DEFAULT_BUSINESS_HOURS, 
+  DAY_NAMES_PT, 
+  TimeShift 
+} from "@/lib/utils/time";
+import { Copy, Plus, Trash2, Calendar, Bell, Clock, Shield } from "lucide-react";
+import { StoreQuickStatusCard } from "@/components/dashboard/empresa/StoreQuickStatusCard";
 
 export default function EmpresaPage() {
   const supabase = createClient();
@@ -17,7 +23,6 @@ export default function EmpresaPage() {
   const [newCustomDate, setNewCustomDate] = useState("");
   const [businessModel, setBusinessModel] = useState<"B2B" | "B2C" | "CaaS">("B2B");
   const [centralizeLeads, setCentralizeLeads] = useState(false);
-  const [hasBlingConnection, setHasBlingConnection] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -36,19 +41,30 @@ export default function EmpresaPage() {
       if (profile) {
         setRole(profile.role);
         
-        const shadowOrgId = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("shadow_org_id="))
-          ?.split("=")[1];
+        const shadowOrgId = typeof document !== "undefined"
+          ? document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("shadow_org_id="))
+              ?.split("=")[1]
+          : undefined;
 
         const isSuperAdmin = profile.role === "main_admin";
-        const activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile.organization_id;
+        let activeOrgId = (isSuperAdmin && shadowOrgId) ? shadowOrgId : profile.organization_id;
+
+        if (!activeOrgId) {
+          const { data: firstOrg } = await supabase
+            .from("organizations")
+            .select("id")
+            .limit(1)
+            .maybeSingle();
+          if (firstOrg) activeOrgId = firstOrg.id;
+        }
 
         if (activeOrgId) {
           setOrgId(activeOrgId);
           const { data: org } = await supabase
             .from("organizations")
-            .select("business_hours, business_model, centralize_leads, bling_access_token")
+            .select("business_hours, business_model, centralize_leads")
             .eq("id", activeOrgId)
             .maybeSingle();
           
@@ -56,7 +72,6 @@ export default function EmpresaPage() {
             if (org.business_hours) setBusinessHours(org.business_hours as unknown as BusinessHours);
             if (org.business_model) setBusinessModel(org.business_model as "B2B" | "B2C" | "CaaS");
             if (org.centralize_leads !== undefined) setCentralizeLeads(!!org.centralize_leads);
-            if (org.bling_access_token) setHasBlingConnection(true);
           }
         }
       }
@@ -64,6 +79,32 @@ export default function EmpresaPage() {
     }
     loadData();
   }, [supabase]);
+
+  // Atualização rápida de status (Aberto / Fechado / Grade Automática) em tempo real
+  const handleUpdateOverride = async (newOverride: "open" | "closed" | null) => {
+    const updated: BusinessHours = {
+      ...businessHours,
+      manual_override: newOverride,
+    };
+    setBusinessHours(updated);
+    
+    let targetOrgId = orgId;
+    if (!targetOrgId) {
+      const { data: org } = await supabase.from("organizations").select("id").limit(1).maybeSingle();
+      if (org) targetOrgId = org.id;
+    }
+
+    if (targetOrgId) {
+      const { error } = await supabase
+        .from("organizations")
+        .update({ business_hours: updated as any })
+        .eq("id", targetOrgId);
+      if (error) {
+        console.error("Erro ao salvar override na organização:", error);
+        throw error;
+      }
+    }
+  };
 
   function handleDayToggle(day: keyof BusinessHours["schedule"]) {
     setBusinessHours(prev => ({
@@ -100,7 +141,7 @@ export default function EmpresaPage() {
 
   function handleAddShift(day: keyof BusinessHours["schedule"]) {
     setBusinessHours(prev => {
-      if (prev.schedule[day].shifts.length >= 2) return prev; // Limit to 2 shifts for UI simplicity
+      if (prev.schedule[day].shifts.length >= 2) return prev;
       return {
         ...prev,
         schedule: {
@@ -160,19 +201,6 @@ export default function EmpresaPage() {
     });
   }
 
-  function handleUpdateAlertAdvanceDays(days: number) {
-    setBusinessHours(prev => {
-      const current = prev.holiday_settings || { autoCloseOnNationalHolidays: false, customDates: [] };
-      return {
-        ...prev,
-        holiday_settings: {
-          ...current,
-          alertAdvanceDays: days
-        }
-      };
-    });
-  }
-
   function handleAddCustomHoliday() {
     if (!newCustomDate) return;
     setBusinessHours(prev => {
@@ -182,21 +210,21 @@ export default function EmpresaPage() {
         ...prev,
         holiday_settings: {
           ...current,
-          customDates: [...(current.customDates || []), newCustomDate].sort()
+          customDates: [...current.customDates, newCustomDate]
         }
       };
     });
     setNewCustomDate("");
   }
 
-  function handleRemoveCustomHoliday(dateToRemove: string) {
+  function handleRemoveCustomHoliday(dateStr: string) {
     setBusinessHours(prev => {
       const current = prev.holiday_settings || { autoCloseOnNationalHolidays: false, customDates: [] };
       return {
         ...prev,
         holiday_settings: {
           ...current,
-          customDates: current.customDates.filter(d => d !== dateToRemove)
+          customDates: current.customDates.filter(d => d !== dateStr)
         }
       };
     });
@@ -260,105 +288,97 @@ export default function EmpresaPage() {
   }
 
   if (loading) {
-    return <p style={{ color: "var(--dash-text-secondary)" }}>Carregando dados da empresa...</p>;
+    return (
+      <div className="p-8 text-center text-xs text-[var(--dash-text-secondary)]">
+        Carregando dados operacionais da empresa...
+      </div>
+    );
   }
 
-  const isB2CAdmin = role === "b2c_admin";
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-          Empresa
+    <div className="p-6 md:p-8 space-y-6 w-full">
+      
+      {/* 1. Header da Página */}
+      <div className="space-y-1 pb-1">
+        <h1 className="text-2xl font-bold text-[var(--dash-text-primary)] tracking-tight">
+          Horários de Atendimento & Operação
         </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-          Configure as informações básicas e operacionais da sua empresa.
+        <p className="text-xs sm:text-sm text-[var(--dash-text-secondary)]">
+          Controle o status em tempo real e a grade de funcionamento do seu catálogo.
         </p>
       </div>
 
+      {/* 2. Card de Controle Rápido de Status (Instant Switch 1-Clique) */}
+      <StoreQuickStatusCard
+        businessHours={businessHours}
+        organizationId={orgId}
+        onUpdateOverride={handleUpdateOverride}
+      />
 
-
-      <div
-        className="rounded-[27px] border p-6 shadow-sm"
-        style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-              Horários de Atendimento
-            </h2>
-            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              Defina os dias e os turnos em que a loja está aberta.
-            </p>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium mr-2" style={{ color: "var(--dash-text-primary)" }}>Modo de Emergência:</label>
-            <select
-              value={businessHours.manual_override || "null"}
-              onChange={(e) => setBusinessHours({ ...businessHours, manual_override: e.target.value === "null" ? null : e.target.value as any })}
-              className="dash-select rounded-lg border pl-3 py-1.5 text-sm outline-none cursor-pointer transition-all focus:border-emerald-500"
-              style={{
-                backgroundColor: "var(--dash-input-bg)",
-                borderColor: "var(--dash-input-border)",
-                color: "var(--dash-text-primary)",
-              }}
-            >
-              <option value="null">Seguir Horários Abaixo</option>
-              <option value="open">Forçar Aberto Sempre</option>
-              <option value="closed">Forçar Fechado (Férias)</option>
-            </select>
+      {/* 3. Card da Grade Semanal de Horários */}
+      <div className="p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 dark:border-white/5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <Clock className="w-5 h-5 text-cyan-500" />
+            <div>
+              <h2 className="text-base font-bold text-[var(--dash-text-primary)]">
+                Grade Semanal de Atendimento
+              </h2>
+              <p className="text-xs text-[var(--dash-text-secondary)]">
+                Utilizada quando o status estiver no modo "Grade Automática".
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-6">
+        {/* Linhas de Cada Dia da Semana */}
+        <div className="space-y-4">
           {(Object.keys(DAY_NAMES_PT) as Array<keyof typeof DAY_NAMES_PT>).map((day) => {
             const dayData = businessHours.schedule[day];
             return (
-              <div key={day} className="flex flex-col sm:flex-row sm:items-start gap-4 border-b pb-4 last:border-0 last:pb-0" style={{ borderColor: "var(--dash-border)" }}>
-                <div className="w-auto min-w-[12rem] shrink-0 pt-1 flex flex-wrap items-center gap-3">
+              <div 
+                key={day} 
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 rounded-xl border border-slate-200/60 dark:border-white/5 bg-[var(--dash-surface-secondary)] transition-all"
+              >
+                <div className="w-40 shrink-0 flex items-center gap-3">
                   <input
                     type="checkbox"
+                    id={`day-${day}`}
                     checked={dayData.isOpen}
                     onChange={() => handleDayToggle(day)}
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+                    className="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
                   />
-                  <span className="text-sm font-medium" style={{ color: dayData.isOpen ? "var(--dash-text-primary)" : "var(--dash-text-muted)" }}>
+                  <label 
+                    htmlFor={`day-${day}`}
+                    className={`text-xs font-semibold cursor-pointer ${
+                      dayData.isOpen ? "text-[var(--dash-text-primary)]" : "text-[var(--dash-text-muted)]"
+                    }`}
+                  >
                     {DAY_NAMES_PT[day]}
-                  </span>
+                  </label>
                 </div>
 
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 flex flex-wrap items-center gap-3">
                   {dayData.isOpen ? (
                     dayData.shifts.map((shift, index) => (
-                      <div key={index} className="flex flex-wrap items-center gap-3">
+                      <div key={index} className="flex items-center gap-2 flex-wrap">
                         <input
                           type="time"
                           value={shift.open}
                           onChange={(e) => handleShiftChange(day, index, "open", e.target.value)}
-                          className="rounded-lg border px-3 py-1.5 text-sm outline-none w-28"
-                          style={{
-                            backgroundColor: "var(--dash-input-bg)",
-                            borderColor: "var(--dash-input-border)",
-                            color: "var(--dash-text-primary)",
-                          }}
+                          className="rounded-lg border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] text-[var(--dash-text-primary)] px-2.5 py-1 text-xs outline-none w-24 font-mono focus:border-emerald-500/50"
                         />
-                        <span className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>até</span>
+                        <span className="text-xs text-[var(--dash-text-muted)]">até</span>
                         <input
                           type="time"
                           value={shift.close}
                           onChange={(e) => handleShiftChange(day, index, "close", e.target.value)}
-                          className="rounded-lg border px-3 py-1.5 text-sm outline-none w-28"
-                          style={{
-                            backgroundColor: "var(--dash-input-bg)",
-                            borderColor: "var(--dash-input-border)",
-                            color: "var(--dash-text-primary)",
-                          }}
+                          className="rounded-lg border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] text-[var(--dash-text-primary)] px-2.5 py-1 text-xs outline-none w-24 font-mono focus:border-emerald-500/50"
                         />
                         <button
                           type="button"
                           onClick={() => handleRemoveShift(day, index)}
-                          className="p-1.5 text-red-500 hover:bg-red-50 rounded"
+                          className="p-1 text-rose-400 hover:text-rose-500 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
                           title="Remover turno"
                         >
                           ✕
@@ -368,25 +388,26 @@ export default function EmpresaPage() {
                           <button
                             type="button"
                             onClick={handleCopyMondayToWeek}
-                            className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-                            title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
+                            className="ml-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-1 rounded-lg transition-colors cursor-pointer border border-cyan-500/20"
+                            title="Copiar horário de Segunda para Terça a Sexta"
                           >
-                            <Copy size={12} /> Copiar para a semana
+                            <Copy size={11} /> 
+                            <span>Copiar p/ semana</span>
                           </button>
                         )}
                       </div>
                     ))
                   ) : (
                     <div className="flex items-center gap-3">
-                      <span className="text-sm" style={{ color: "var(--dash-text-muted)" }}>Fechado</span>
+                      <span className="text-xs text-[var(--dash-text-muted)]">Fechado</span>
                       {day === 'monday' && (
                         <button
                           type="button"
                           onClick={handleCopyMondayToWeek}
-                          className="ml-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-                          title="Copiar horário de Segunda para toda a semana (Ter-Sex)"
+                          className="ml-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-1 rounded-lg transition-colors cursor-pointer border border-cyan-500/20"
                         >
-                          <Copy size={12} /> Copiar para a semana
+                          <Copy size={11} /> 
+                          <span>Copiar p/ semana</span>
                         </button>
                       )}
                     </div>
@@ -396,10 +417,9 @@ export default function EmpresaPage() {
                     <button
                       type="button"
                       onClick={() => handleAddShift(day)}
-                      className="text-xs font-medium px-2 py-1 rounded border transition-colors hover:bg-[rgba(255,255,255,0.05)]"
-                      style={{ color: "var(--dash-text-secondary)", borderColor: "var(--dash-border)" }}
+                      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-white/10 text-[var(--dash-text-secondary)] hover:text-[var(--dash-text-primary)] hover:border-emerald-500/30 transition-colors cursor-pointer"
                     >
-                      + Adicionar turno (ex: tarde)
+                      + Turno
                     </button>
                   )}
                 </div>
@@ -409,25 +429,31 @@ export default function EmpresaPage() {
         </div>
       </div>
 
-      <div className="rounded-[27px] p-8 border shadow-sm" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <div>
-            <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-              Feriados e Exceções
-            </h2>
-            <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-              Feche a loja automaticamente em feriados nacionais ou datas locais.
-            </p>
+      {/* 4. Card de Feriados e Exceções */}
+      <div className="p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] space-y-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 dark:border-white/5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <Calendar className="w-5 h-5 text-purple-400" />
+            <div>
+              <h2 className="text-base font-bold text-[var(--dash-text-primary)]">
+                Feriados e Recessos
+              </h2>
+              <p className="text-xs text-[var(--dash-text-secondary)]">
+                Feche a loja automaticamente em feriados nacionais ou datas pontuais.
+              </p>
+            </div>
           </div>
+
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>
+            <label className="text-xs font-semibold text-[var(--dash-text-primary)] cursor-pointer" htmlFor="toggle-holidays">
               Fechar em Feriados Nacionais
             </label>
             <button
+              id="toggle-holidays"
               type="button"
               onClick={handleToggleAutoCloseHolidays}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                businessHours.holiday_settings?.autoCloseOnNationalHolidays ? "bg-emerald-500" : "bg-gray-300"
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                businessHours.holiday_settings?.autoCloseOnNationalHolidays ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
               }`}
             >
               <span
@@ -440,161 +466,69 @@ export default function EmpresaPage() {
         </div>
 
         {businessHours.holiday_settings?.autoCloseOnNationalHolidays && (
-          <>
-            <div className="pt-4 border-t mt-4" style={{ borderColor: "var(--dash-border)" }}>
-              <h3 className="text-sm font-medium mb-3" style={{ color: "var(--dash-text-primary)" }}>
-                Adicionar Data Personalizada (Feriado local ou recesso)
-              </h3>
-              <div className="flex items-center gap-2 mb-4">
-                <input
-                  type="date"
-                  value={newCustomDate}
-                  onChange={(e) => setNewCustomDate(e.target.value)}
-                  className="rounded-lg border px-3 py-2 text-sm outline-none"
-                  style={{
-                    background: "var(--dash-input-bg)",
-                    borderColor: "var(--dash-input-border)",
-                    color: "var(--dash-text-primary)",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCustomHoliday}
-                  className="rounded-lg px-4 py-2 text-sm font-bold bg-purple-500 text-white transition-colors hover:bg-purple-600"
-                >
-                  Adicionar
-                </button>
-              </div>
-
-              {businessHours.holiday_settings?.customDates && businessHours.holiday_settings.customDates.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {businessHours.holiday_settings.customDates.map((dateStr) => {
-                    const [y, m, d] = dateStr.split('-');
-                    return (
-                      <div key={dateStr} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-[var(--dash-hover-bg)]" style={{ borderColor: "var(--dash-border)" }}>
-                        <span className="text-sm font-medium" style={{ color: "var(--dash-text-primary)" }}>{`${d}/${m}/${y}`}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCustomHoliday(dateStr)}
-                          className="text-red-500 hover:text-red-700 ml-1 rounded-full p-0.5"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+          <div className="space-y-3 pt-1">
+            <h3 className="text-xs font-bold text-[var(--dash-text-primary)]">
+              Adicionar Data Local / Feriado Municipal:
+            </h3>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={newCustomDate}
+                onChange={(e) => setNewCustomDate(e.target.value)}
+                className="rounded-xl border border-slate-200/80 dark:border-white/10 px-3 py-2 text-xs bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] outline-none focus:border-purple-500/50 font-mono"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomHoliday}
+                className="rounded-xl px-4 py-2 text-xs font-bold bg-purple-500 text-white transition-colors hover:bg-purple-600 cursor-pointer shadow-sm active:scale-95"
+              >
+                Adicionar Data
+              </button>
             </div>
-          </>
+
+            {businessHours.holiday_settings?.customDates && businessHours.holiday_settings.customDates.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {businessHours.holiday_settings.customDates.map((dateStr) => {
+                  const [y, m, d] = dateStr.split('-');
+                  return (
+                    <div 
+                      key={dateStr} 
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-xs font-medium text-[var(--dash-text-primary)] font-mono"
+                    >
+                      <span>{`${d}/${m}/${y}`}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCustomHoliday(dateStr)}
+                        className="text-rose-400 hover:text-rose-500 ml-1 cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      {businessHours.holiday_settings?.autoCloseOnNationalHolidays && (
-        <div className="rounded-[27px] p-8 border shadow-sm mt-6" style={{ background: "var(--dash-surface)", borderColor: "var(--dash-border)" }}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-            <div>
-              <h2 className="text-base font-semibold" style={{ color: "var(--dash-text-primary)" }}>
-                Mural de Avisos (Alertas)
-              </h2>
-              <p className="text-sm" style={{ color: "var(--dash-text-secondary)" }}>
-                {businessModel === "B2B" 
-                  ? "Crie até três alertas para comunicar ao seu time de vendas que os feriados estão chegando." 
-                  : "Crie até três alertas para se organizar no próximo feriado."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleAddAlert}
-              disabled={(businessHours.custom_alerts || []).length >= 3}
-              className="rounded-lg px-4 py-2 text-sm font-bold bg-blue-500 text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
-            >
-              + Novo Alerta
-            </button>
-          </div>
-
-          {businessHours.custom_alerts && businessHours.custom_alerts.length > 0 && (
-            <div className="space-y-4">
-              {businessHours.custom_alerts.map((alert) => (
-                <div key={alert.id} className="flex flex-col sm:flex-row gap-3 p-4 rounded-lg border" style={{ borderColor: "var(--dash-border)", background: "var(--dash-hover-bg)" }}>
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={alert.message}
-                      onChange={(e) => handleUpdateAlert(alert.id, "message", e.target.value)}
-                      placeholder="Digite a mensagem do alerta..."
-                      className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                      style={{
-                        background: "var(--dash-input-bg)",
-                        borderColor: "var(--dash-input-border)",
-                        color: "var(--dash-text-primary)",
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 whitespace-nowrap">Exibir</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max="60"
-                      value={alert.advanceDays ?? 7}
-                      onChange={(e) => handleUpdateAlert(alert.id, "advanceDays", Number(e.target.value))}
-                      className="w-16 rounded-lg border px-2 py-2 text-sm outline-none text-center"
-                      title="Dias de antecedência para exibir o alerta"
-                      style={{
-                        background: "var(--dash-input-bg)",
-                        borderColor: "var(--dash-input-border)",
-                        color: "var(--dash-text-primary)",
-                      }}
-                    />
-                    <span className="text-sm text-gray-500 whitespace-nowrap">dias antes</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={alert.color}
-                      onChange={(e) => handleUpdateAlert(alert.id, "color", e.target.value)}
-                      className="dash-select rounded-lg border pl-3 pr-10 py-2 text-sm outline-none"
-                      style={{
-                        background: "var(--dash-input-bg)",
-                        borderColor: "var(--dash-input-border)",
-                        color: "var(--dash-text-primary)",
-                      }}
-                    >
-                      <option value="blue">Azul (Informativo)</option>
-                      <option value="yellow">Amarelo (Atenção)</option>
-                      <option value="red">Vermelho (Urgente)</option>
-                      <option value="green">Verde (Sucesso)</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAlert(alert.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remover alerta"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* 5. Footer com Botão de Salvar Grade */}
+      <div className="flex items-center justify-between pt-2">
+        <div className="text-xs text-[var(--dash-text-muted)]">
+          {saveMessage && (
+            <span className={`font-semibold ${saveMessage.includes("Erro") ? "text-rose-500" : "text-emerald-500"}`}>
+              {saveMessage}
+            </span>
           )}
         </div>
-      )}
 
-      <div className="flex items-center justify-end gap-4 mt-6">
-        {saveMessage && (
-          <span className={`text-sm font-medium ${saveMessage.includes("Erro") ? "text-red-500" : "text-emerald-500"}`}>
-            {saveMessage}
-          </span>
-        )}
         <button
           onClick={handleSave}
           disabled={saving}
-          className="rounded-[27px] px-8 py-3 text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white"
+          className="rounded-xl px-6 py-2.5 text-xs font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
         >
-          {saving ? "Salvando..." : "Salvar Horários da Empresa"}
+          {saving ? "Salvando..." : "Salvar Grade Semanal"}
         </button>
-
       </div>
     </div>
   );

@@ -25,6 +25,8 @@
   --dash-header-border: rgba(226, 232, 240, 0.6);
   --dash-hover-bg: #f1f5f9;
   --dash-surface-secondary: #f9fafb;
+  --dash-surface-element: #f8fafc;
+  --dash-border-subtle: #e2e8f0;
   
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -66,6 +68,8 @@
   --dash-header-border: rgba(255, 255, 255, 0.08);
   --dash-hover-bg: rgba(255, 255, 255, 0.06);
   --dash-surface-secondary: rgba(255, 255, 255, 0.035);
+  --dash-surface-element: rgba(255, 255, 255, 0.035);
+  --dash-border-subtle: rgba(255, 255, 255, 0.08);
 
   /* Glassmorphism Dark */
   --glass-bg: rgba(255, 255, 255, 0.035);

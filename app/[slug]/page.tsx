@@ -15,6 +15,7 @@ import ConsultantsBridge from "@/components/public/ConsultantsBridge";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 // SEO Metadata Generation
@@ -274,6 +275,13 @@ export default async function Page(props: PageProps) {
     .eq("slug", slug)
     .maybeSingle();
 
+  const rawSearchParams = props.searchParams ? await props.searchParams : {};
+  const queryParams = new URLSearchParams();
+  Object.entries(rawSearchParams || {}).forEach(([key, val]) => {
+    if (typeof val === "string") queryParams.set(key, val);
+  });
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+
   if (!profile) {
     const { data: org } = await supabase
       .from("organizations")
@@ -282,7 +290,7 @@ export default async function Page(props: PageProps) {
       .maybeSingle();
 
     if (org) {
-      redirect(`/${slug}/catalogo`);
+      redirect(`/${slug}/catalogo${queryString}`);
     }
 
     notFound();

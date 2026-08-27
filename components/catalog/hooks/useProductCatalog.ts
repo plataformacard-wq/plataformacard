@@ -79,6 +79,14 @@ export function useProductCatalog(props: ProductCatalogClientProps) {
   }, [products]);
 
   const businessStatus = useMemo(() => {
+    // 1. Prioridade Master: Override Manual da Empresa (Forçar Aberto / Forçar Fechado)
+    if (businessHours?.manual_override === "open") {
+      return { isAvailableNow: true, statusMessage: "Aberto agora" };
+    }
+    if (businessHours?.manual_override === "closed") {
+      return { isAvailableNow: false, statusMessage: "Fechado temporariamente" };
+    }
+
     const hasCustomSchedule = customBusinessHours && 
                               customBusinessHours.schedule && 
                               Object.keys(customBusinessHours.schedule).length > 0;

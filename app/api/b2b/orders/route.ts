@@ -48,7 +48,10 @@ export async function POST(req: NextRequest) {
     });
 
     // 3. Salvar o pedido no banco de dados da PlataformaShop
-    const { data: order, error: orderErr } = await supabase
+    let order: any = null;
+    let orderErr: any = null;
+
+    const initialInsert = await supabase
       .from('b2b_orders')
       .insert({
         organization_id: organizationId,
@@ -61,6 +64,28 @@ export async function POST(req: NextRequest) {
       })
       .select()
       .single();
+
+    if (initialInsert.error && initialInsert.error.message?.includes('notes')) {
+      // Fallback sem a coluna notes caso a migração ainda esteja sendo propagada
+      const fallbackInsert = await supabase
+        .from('b2b_orders')
+        .insert({
+          organization_id: organizationId,
+          b2b_client_id: client.id,
+          price_key_used: client.assigned_price_key,
+          items: formattedItems,
+          total_amount: totalAmount,
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      order = fallbackInsert.data;
+      orderErr = fallbackInsert.error;
+    } else {
+      order = initialInsert.data;
+      orderErr = initialInsert.error;
+    }
 
     if (orderErr) {
       return NextResponse.json({ success: false, error: `Erro ao salvar pedido: ${orderErr.message}` }, { status: 500 });

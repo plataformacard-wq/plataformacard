@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Sparkles, CheckCircle2, Building2 } from "lucide-react";
+import { m as motion, AnimatePresence } from "framer-motion";
+import { X, Sparkles, CheckCircle2, Building2, Phone, FileText, Loader2, ArrowRight } from "lucide-react";
 
 interface B2bRegisterModalProps {
   isOpen: boolean;
@@ -9,7 +10,11 @@ interface B2bRegisterModalProps {
   slug: string;
 }
 
-export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({ isOpen, onClose, slug }) => {
+export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({
+  isOpen,
+  onClose,
+  slug,
+}) => {
   const [cnpj, setCnpj] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -32,8 +37,8 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({ isOpen, onCl
           cnpjCpf: cnpj,
           companyName,
           phoneWhatsapp: whatsapp,
-          isDirectInvite: false // Solicitação Inbound B2B
-        })
+          isDirectInvite: false,
+        }),
       });
 
       const data = await res.json();
@@ -49,107 +54,142 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({ isOpen, onCl
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
-      <div className="w-full max-w-md p-6 rounded-3xl border border-emerald-500/30 bg-[var(--dash-surface)] shadow-2xl relative space-y-5">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full text-[var(--dash-text-muted)] hover:bg-[var(--dash-surface-element)] transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const handleResetAndClose = () => {
+    setCnpj("");
+    setCompanyName("");
+    setWhatsapp("");
+    setIsSubmitted(false);
+    onClose();
+  };
 
-        {!isSubmitted ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xl">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="w-full max-w-md bg-[var(--public-card-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] rounded-[28px] shadow-2xl relative overflow-hidden"
+        >
+          {/* Header do Modal */}
+          <div className="p-5 sm:p-6 border-b border-[var(--public-card-border)] flex items-center justify-between gap-4 bg-[var(--public-bg)]/40">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <div className="p-3 rounded-2xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 shrink-0">
                 <Building2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">
-                  Quero ser Revendedor B2B
+                <h3 className="font-black text-base sm:text-lg text-[var(--public-text-main)] leading-tight">
+                  Quero ser Revendedor
                 </h3>
-                <p className="text-xs text-[var(--dash-text-muted)]">
-                  Maj Mobilidade • Preços e Condições de Atacado
+                <p className="text-xs text-[var(--public-text-dim)] mt-0.5 font-medium">
+                  Preços e Condições Comerciais de Atacado
                 </p>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                CNPJ da Empresa:
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2.5 focus:outline-none focus:border-emerald-500"
-                placeholder="00.000.000/0001-00"
-                value={cnpj}
-                onChange={(e) => setCnpj(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                Razão Social / Nome da Empresa:
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2.5 focus:outline-none focus:border-emerald-500"
-                placeholder="Sua Empresa LTDA"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--dash-text-secondary)]">
-                WhatsApp de Contato:
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full text-xs rounded-xl border border-[var(--dash-border-subtle)] bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] px-3 py-2.5 focus:outline-none focus:border-emerald-500"
-                placeholder="(00) 90000-0000"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-              />
-            </div>
-
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 text-xs font-bold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              onClick={handleResetAndClose}
+              className="p-2 rounded-full hover:bg-[var(--public-bg)] text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] transition-colors shrink-0 cursor-pointer"
+              title="Fechar"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>{loading ? "Enviando..." : "Solicitar Acesso B2B"}</span>
-            </button>
-          </form>
-        ) : (
-          <div className="text-center py-4 space-y-4">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 animate-bounce">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">
-                Solicitação Recebida com Sucesso!
-              </h3>
-              <p className="text-xs text-[var(--dash-text-secondary)] leading-relaxed px-2">
-                Nossos analistas da <strong>Maj Mobilidade</strong> estão preparando ofertas e condições especiais para o perfil da sua empresa. Você receberá um aviso no seu WhatsApp em instantes com o seu link de acesso liberado.
-              </p>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="w-full py-2.5 text-xs font-semibold rounded-xl bg-[var(--dash-surface-element)] text-[var(--dash-text-primary)] border border-[var(--dash-border-subtle)] hover:border-emerald-500/50"
-            >
-              Entendido e Fechar
+              <X className="w-5 h-5" />
             </button>
           </div>
-        )}
+
+          {!isSubmitted ? (
+            <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[var(--public-text-main)] flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>CNPJ da Empresa:</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors"
+                  placeholder="00.000.000/0001-00"
+                  value={cnpj}
+                  onChange={(e) => setCnpj(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[var(--public-text-main)] flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Razão Social / Nome Fantasia:</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors"
+                  placeholder="Sua Empresa LTDA"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[var(--public-text-main)] flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>WhatsApp do Responsável:</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors"
+                  placeholder="(00) 00000-0000"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-xs tracking-wide transition-all shadow-lg hover:shadow-emerald-500/25 active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Cadastrando Solicitação...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Solicitar Acesso Atacadista</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* Tela de Retenção e Confirmação */
+            <div className="p-8 text-center space-y-5">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-lg">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-[var(--public-text-main)]">
+                  Solicitação Recebida!
+                </h3>
+                <p className="text-xs text-[var(--public-text-dim)] leading-relaxed max-w-sm mx-auto">
+                  Nossos analistas comerciais estão preparando as condições e ofertas exclusivas para o perfil da sua empresa. Você receberá o link de acesso direto pelo WhatsApp.
+                </p>
+              </div>
+
+              <button
+                onClick={handleResetAndClose}
+                className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                Entendido
+              </button>
+            </div>
+          )}
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 };

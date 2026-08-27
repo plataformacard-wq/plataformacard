@@ -217,6 +217,15 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       navLinks.push({ href: "/dashboard/estoque", label: "Estoque", icon: Package });
       navLinks.push({ href: "/dashboard/crm", label: "CRM de Leads", icon: Kanban });
 
+      if (isB2B || isAllService || isActuallySuperAdmin) {
+        navLinks.push({ 
+          href: "/dashboard/b2b", 
+          label: "Portal B2B", 
+          icon: Building2,
+          badge: "ZEON"
+        });
+      }
+
       if (!isB2C && !isCaaS) {
         const maxUsers = PLAN_LIMITS[planId || ""]?.max_users;
         const isMultiUser = maxUsers === 0 || (maxUsers !== undefined && maxUsers > 1);

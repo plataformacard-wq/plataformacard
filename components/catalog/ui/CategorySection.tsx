@@ -223,40 +223,38 @@ const ProductCard = memo(({
         <div className="flex flex-col gap-3 mt-auto relative pt-2 z-10 w-full">
           {/* Preço (se habilitado) */}
           {(!hidePrices && product.is_in_stock !== false && (
+            (product.price !== null && Number(product.price) > 0) ||
+            (product.wholesale_price !== null && Number(product.wholesale_price) > 0) ||
             (product.has_retail !== false && product.price !== null) || 
             (product.has_wholesale && product.wholesale_price !== null)
           )) && (
-            <div className="flex flex-col items-start">
-              {isB2B && product.has_wholesale && product.wholesale_price !== null ? (
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">Atacado</span>
-                  <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
-                    {formatPrice(product.wholesale_price)}
-                  </p>
-                </div>
-              ) : product.has_retail !== false && product.price !== null ? (
-                <div className="flex flex-col gap-0.5">
-                  {product.compare_at_price && (
-                    <div className="text-[10px] sm:text-sm font-semibold text-[var(--public-text-dim)] flex items-center gap-1 sm:gap-1.5">
-                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-[var(--public-text-dim)]/70 font-bold">De</span>
+            <div className="flex flex-col items-start w-full">
+              <div className="flex flex-col gap-1 w-full">
+                {product.compare_at_price && product.compare_at_price > (product.price || 0) && (
+                  <div className="flex items-center justify-between gap-1 flex-wrap w-full">
+                    <div className="text-[10px] sm:text-xs font-semibold text-[var(--public-text-dim)] flex items-center gap-1">
+                      <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[var(--public-text-dim)]/70 font-bold">
+                        {isB2B ? "Sugerido (Mercado):" : "De:"}
+                      </span>
                       <span className="line-through">{formatPrice(product.compare_at_price)}</span>
                     </div>
-                  )}
-                  <div className="flex items-center gap-1 sm:gap-1.5">
-                    {product.compare_at_price && <span className="text-[8px] sm:text-[10px] uppercase text-emerald-500/80 font-black">Por</span>}
-                    <p className="text-base sm:text-xl font-extrabold text-[var(--primary-color)] leading-none" style={{ color: primaryColor }}>
-                      {formatPrice(product.price)}
-                    </p>
+
+                    {product.price && product.compare_at_price > product.price && (
+                      <span className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 whitespace-nowrap">
+                        -{Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)}% (Economize {formatPrice(product.compare_at_price - product.price)})
+                      </span>
+                    )}
                   </div>
-                </div>
-              ) : product.has_wholesale && product.wholesale_price !== null ? (
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-[#25D366] uppercase tracking-widest mb-0.5">A partir de</span>
-                  <p className="text-base sm:text-xl font-extrabold text-[#25D366] leading-none">
-                    {formatPrice(product.wholesale_price)}
+                )}
+                <div className="flex items-baseline gap-1 sm:gap-1.5">
+                  <span className="text-[8px] sm:text-[9px] font-black text-emerald-500 uppercase tracking-wider">
+                    {isB2B ? "Parceiro Atacado:" : product.compare_at_price ? "Por:" : "Preço:"}
+                  </span>
+                  <p className="text-base sm:text-xl font-extrabold text-[var(--primary-color)] leading-none" style={{ color: primaryColor }}>
+                    {formatPrice(product.price)}
                   </p>
                 </div>
-              ) : null}
+              </div>
             </div>
           )}
 

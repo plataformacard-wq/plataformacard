@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { m as motion, AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -15,6 +16,9 @@ import { useShoppingCart } from "./hooks/useShoppingCart";
 import { CartFloatingBar } from "./ui/CartFloatingBar";
 import { CartDrawerModal } from "./ui/CartDrawerModal";
 import { QuickVariationModal } from "./ui/QuickVariationModal";
+import { useB2bSession } from "./hooks/useB2bSession";
+import { B2bRegisterModal } from "./B2bRegisterModal";
+import { B2bFastOrderModal } from "./B2bFastOrderModal";
 
 export default function ProductCatalogClient(props: ProductCatalogClientProps) {
   const {
@@ -48,7 +52,33 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
     cartPaymentMethods
   } = props;
 
-  const catalog = useProductCatalog(props);
+  const b2b = useB2bSession(slug);
+
+  const effectiveProducts = useMemo(() => {
+    if (!b2b.b2bClient) {
+      return products;
+    }
+    return products.map((p) => {
+      const b2bPrice = p.sku ? b2b.b2bPrices[p.sku] : undefined;
+      const anchorPrice = p.sku ? b2b.anchorPrices[p.sku] : undefined;
+
+      const newPrice = b2bPrice !== undefined ? b2bPrice : p.price;
+      const newComparePrice = (anchorPrice !== undefined && anchorPrice > 0) 
+        ? anchorPrice 
+        : (p.compare_at_price && p.compare_at_price > (newPrice || 0) ? p.compare_at_price : undefined);
+
+      return {
+        ...p,
+        price: newPrice,
+        compare_at_price: newComparePrice,
+      };
+    });
+  }, [products, b2b.b2bClient, b2b.b2bPrices, b2b.anchorPrices]);
+
+  const catalog = useProductCatalog({
+    ...props,
+    products: effectiveProducts,
+  });
   const cart = useShoppingCart(
     whatsapp,
     catalogName,
@@ -97,6 +127,11 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
         catalogId={catalogId}
         organizationId={organizationId}
         acceptsMessagesWhenClosed={acceptsMessagesWhenClosed}
+        isB2B={isB2B}
+        b2bClient={b2b.b2bClient}
+        onOpenFastOrder={() => b2b.setIsFastOrderOpen(true)}
+        onOpenRegister={() => b2b.setIsRegisterOpen(true)}
+        onLogoutB2b={b2b.handleLogoutB2b}
       />
       
       <main className={`${isEmbed ? 'w-full px-8 sm:px-6 relative' : 'max-w-6xl mx-auto px-8 sm:px-6'} ${isEmbed ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'} z-10`}>
@@ -107,7 +142,7 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
           <CatalogBannerCarousel 
             banners={state.localBanners || []}
             highlightProducts={computed.highlightProducts} 
-            products={products}
+            products={effectiveProducts}
             primaryColor={primaryColor} 
             handleOpenProduct={actions.handleOpenProduct}
             bannerSpeedSeconds={bannerSpeedSeconds}
@@ -389,6 +424,30 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
 
       {!isEmbed && (
         <LgpdConsentBanner primaryColor={primaryColor} isEmbed={false} />
+      )}
+
+      {/* Modais B2B (Registro Inbound e Pedido Rápido em Lote) */}
+      {isB2B && (
+        <>
+          <B2bRegisterModal
+            isOpen={b2b.isRegisterOpen}
+            onClose={() => b2b.setIsRegisterOpen(false)}
+            slug={slug}
+          />
+
+          {b2b.b2bClient && (
+            <B2bFastOrderModal
+              isOpen={b2b.isFastOrderOpen}
+              onClose={() => b2b.setIsFastOrderOpen(false)}
+              products={effectiveProducts}
+              b2bPrices={b2b.b2bPrices}
+              clientToken={b2b.b2bToken || ""}
+              companyName={b2b.b2bClient.company_name}
+              slug={slug}
+              whatsappNumber={whatsapp}
+            />
+          )}
+        </>
       )}
     </div>
     </LazyMotion>

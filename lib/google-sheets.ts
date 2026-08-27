@@ -10,14 +10,29 @@ export interface SheetPriceRow {
   prices: Record<string, number>;
 }
 
+export function extractSheetId(input: string): string {
+  if (!input) return '';
+  const trimmed = input.trim();
+  const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return trimmed;
+}
+
 /**
  * Função para buscar e sincronizar a planilha do Google Sheets com o Supabase.
  * Suporta o formato exportado em CSV público ou via Google Sheets API.
  */
-export async function syncGoogleSheetsPrices(organizationId: string, sheetId: string, tabName: string = 'Precos'): Promise<{ success: boolean; totalSynced: number; message: string }> {
+export async function syncGoogleSheetsPrices(
+  organizationId: string, 
+  rawSheetInput: string, 
+  tabName: string = 'Precos'
+): Promise<{ success: boolean; totalSynced: number; customTables?: { key: string; label: string }[]; message: string }> {
   try {
+    const sheetId = extractSheetId(rawSheetInput);
     if (!sheetId) {
-      return { success: false, totalSynced: 0, message: 'ID da planilha não informado.' };
+      return { success: false, totalSynced: 0, message: 'Link ou ID da planilha não informado.' };
     }
 
     // URL de exportação direta do Google Sheets em CSV
@@ -39,43 +54,75 @@ export async function syncGoogleSheetsPrices(organizationId: string, sheetId: st
       return { success: false, totalSynced: 0, message: 'A planilha está vazia ou não possui cabeçalho válido.' };
     }
 
-    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const rawHeaders = rows[0].map(h => h.trim());
+    const lowerHeaders = rawHeaders.map(h => h.toLowerCase());
     
     // Encontrar índices de colunas chave
-    const skuIdx = headers.findIndex(h => h.includes('sku') || h.includes('codigo') || h.includes('código'));
-    if (skuIdx === -1) {
-      return { success: false, totalSynced: 0, message: 'Coluna "SKU" ou "Codigo" não encontrada no cabeçalho da planilha.' };
+    const skuIdx = lowerHeaders.findIndex(h => h.includes('sku') || h.includes('codigo') || h.includes('código') || h === 'id');
+    const produtoIdx = lowerHeaders.findIndex(h => h.includes('produto') || h.includes('nome') || h.includes('descri'));
+
+    if (skuIdx === -1 && produtoIdx === -1) {
+      return { success: false, totalSynced: 0, message: 'Coluna "SKU" ou "PRODUTO" não encontrada no cabeçalho da planilha.' };
     }
 
-    const priceColumns: { key: string; index: number }[] = [];
-    headers.forEach((header, index) => {
-      if (index === skuIdx) return;
-      if (header.includes('bling') || header.includes('base') || header.includes('varejo')) {
-        priceColumns.push({ key: 'bling', index });
-      } else if (header.includes('tabela x') || header.includes('tabela_x') || header === 'x') {
-        priceColumns.push({ key: 'tabela_x', index });
-      } else if (header.includes('tabela y') || header.includes('tabela_y') || header === 'y') {
-        priceColumns.push({ key: 'tabela_y', index });
-      } else if (header.includes('tabela z') || header.includes('tabela_z') || header === 'z' || header.includes('plus')) {
-        priceColumns.push({ key: 'tabela_z', index });
+    const effectiveSkuIdx = skuIdx !== -1 ? skuIdx : produtoIdx;
+
+    // Detectar dinamicamente todas as colunas de tabela de preço
+    const priceColumns: { key: string; label: string; aliases: string[]; index: number }[] = [];
+    const detectedCustomTables: { key: string; label: string }[] = [];
+
+    rawHeaders.forEach((rawLabel, index) => {
+      if (index === effectiveSkuIdx || index === produtoIdx || rawLabel.length === 0) return;
+      
+      const lower = rawLabel.toLowerCase();
+      let primaryKey = rawLabel.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+      const aliases: string[] = [];
+
+      if (lower.includes('sugerido') || lower.includes('mercado') || lower.includes('ancora') || lower.includes('âncora') || lower.includes('referencia') || lower.includes('referência') || lower.includes('pvp') || (lower.includes('varejo') && !lower.includes('atacado'))) {
+        primaryKey = 'anchor_price';
+        aliases.push('anchor_price', 'varejo', 'sugerido', 'mercado');
+      } else if (lower.includes('valor 1') || lower.includes('valor1') || lower.includes('tabela 1') || lower.includes('tabela_1') || lower.includes('tabela x') || lower.includes('tabela_x') || lower === 'x') {
+        primaryKey = 'valor_1';
+        aliases.push('tabela_x', 'valor_1');
+      } else if (lower.includes('valor 2') || lower.includes('valor2') || lower.includes('tabela 2') || lower.includes('tabela_2') || lower.includes('tabela y') || lower.includes('tabela_y') || lower === 'y') {
+        primaryKey = 'valor_2';
+        aliases.push('tabela_y', 'valor_2');
+      } else if (lower.includes('valor 3') || lower.includes('valor3') || lower.includes('tabela 3') || lower.includes('tabela_3') || lower.includes('tabela z') || lower.includes('tabela_z') || lower === 'z' || lower.includes('plus')) {
+        primaryKey = 'valor_3';
+        aliases.push('tabela_z', 'valor_3');
+      } else if (lower.includes('valor 4') || lower.includes('valor4') || lower.includes('tabela 4') || lower.includes('tabela_4')) {
+        primaryKey = 'valor_4';
+        aliases.push('valor_4');
+      } else if (lower.includes('bling') || lower.includes('base')) {
+        primaryKey = 'bling';
+        aliases.push('bling');
+      }
+
+      priceColumns.push({
+        key: primaryKey,
+        label: rawLabel,
+        aliases,
+        index,
+      });
+
+      // Apenas adiciona aos seletores de tabela se não for a coluna de ancoragem de mercado
+      if (primaryKey !== 'anchor_price') {
+        detectedCustomTables.push({
+          key: primaryKey,
+          label: rawLabel,
+        });
       }
     });
 
     if (priceColumns.length === 0) {
-      // Se não encontrou cabeçalhos com nomes específicos, usa as colunas numéricas encontradas
-      headers.forEach((header, index) => {
-        if (index !== skuIdx && header.length > 0) {
-          const cleanKey = header.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
-          priceColumns.push({ key: cleanKey, index });
-        }
-      });
+      return { success: false, totalSynced: 0, message: 'Nenhuma coluna de preço (ex: Varejo, Atacado, Valor 1) foi identificada na planilha.' };
     }
 
     const priceUpserts: { organization_id: string; sku: string; prices: Record<string, number>; updated_at: string }[] = [];
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const sku = row[skuIdx]?.trim();
+      const sku = row[effectiveSkuIdx]?.trim();
       if (!sku) continue;
 
       const pricesMap: Record<string, number> = {};
@@ -86,6 +133,9 @@ export async function syncGoogleSheetsPrices(organizationId: string, sheetId: st
           const cleanNum = parseFloat(rawVal.replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.'));
           if (!isNaN(cleanNum)) {
             pricesMap[col.key] = cleanNum;
+            col.aliases.forEach(alias => {
+              pricesMap[alias] = cleanNum;
+            });
           }
         }
       });
@@ -101,68 +151,99 @@ export async function syncGoogleSheetsPrices(organizationId: string, sheetId: st
     }
 
     if (priceUpserts.length === 0) {
-      return { success: false, totalSynced: 0, message: 'Nenhum SKU válido com preços foi identificado.' };
+      return { success: false, totalSynced: 0, message: 'Nenhum produto com preços válidos foi identificado.' };
     }
 
-    // Upsert no Supabase
-    const { error } = await supabase
+    // Upsert dos preços por SKU no Supabase
+    const { error: upsertErr } = await supabase
       .from('b2b_sku_prices')
       .upsert(priceUpserts, { onConflict: 'organization_id,sku' });
 
-    if (error) {
-      console.error('Erro ao salvar preços no Supabase:', error);
-      return { success: false, totalSynced: 0, message: `Erro ao salvar no banco: ${error.message}` };
+    if (upsertErr) {
+      console.error('Erro ao salvar preços no Supabase:', upsertErr);
+      return { success: false, totalSynced: 0, message: `Erro ao salvar no banco: ${upsertErr.message}` };
     }
 
-    // Atualizar registro de sincronização
-    await supabase
+    // Salvar configuração com as tabelas customizadas detectadas
+    const configPayload: any = {
+      organization_id: organizationId,
+      sheet_id: sheetId,
+      tab_name: tabName,
+      last_synced_at: new Date().toISOString(),
+      custom_tables: detectedCustomTables,
+    };
+
+    const { error: configErr } = await supabase
       .from('b2b_sheets_config')
-      .upsert({
-        organization_id: organizationId,
-        sheet_id: sheetId,
-        tab_name: tabName,
-        last_synced_at: new Date().toISOString()
-      }, { onConflict: 'organization_id' });
+      .upsert(configPayload, { onConflict: 'organization_id' });
+
+    if (configErr) {
+      // Se a coluna custom_tables ainda não existir, faz fallback sem custom_tables
+      await supabase
+        .from('b2b_sheets_config')
+        .upsert({
+          organization_id: organizationId,
+          sheet_id: sheetId,
+          tab_name: tabName,
+          last_synced_at: new Date().toISOString(),
+        }, { onConflict: 'organization_id' });
+    }
+
+    const tableNamesList = detectedCustomTables.map(t => t.label).join(', ');
 
     return { 
       success: true, 
       totalSynced: priceUpserts.length, 
-      message: `${priceUpserts.length} SKUs sincronizados com sucesso!` 
+      customTables: detectedCustomTables,
+      message: `Sucesso! ${priceUpserts.length} produtos sincronizados com as tabelas: ${tableNamesList}.` 
     };
 
-  } catch (err: any) {
-    console.error('Falha na sincronização do Google Sheets:', err);
-    return { success: false, totalSynced: 0, message: err?.message || 'Erro interno na sincronização.' };
+  } catch (error: any) {
+    console.error('Erro na sincronização Google Sheets:', error);
+    return { success: false, totalSynced: 0, message: `Erro inesperado: ${error.message}` };
   }
 }
 
 /**
- * Utilitário para parsear texto CSV simples lidando com aspas
+ * Parser de CSV simples e robusto para lidar com aspas e quebras
  */
 function parseCSV(text: string): string[][] {
-  const lines = text.split(/\r?\n/);
-  const result: string[][] = [];
+  const lines: string[][] = [];
+  let row: string[] = [];
+  let current = '';
+  let inQuotes = false;
 
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const row: string[] = [];
-    let insideQuotes = false;
-    let entry = '';
+  // Normalizar quebras de linha
+  const sanitized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        insideQuotes = !insideQuotes;
-      } else if (char === ',' && !insideQuotes) {
-        row.push(entry.replace(/^"|"$/g, '').trim());
-        entry = '';
+  for (let i = 0; i < sanitized.length; i++) {
+    const char = sanitized[i];
+    const nextChar = sanitized[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++; // pular aspa dupla escapada
       } else {
-        entry += char;
+        inQuotes = !inQuotes;
       }
+    } else if (char === ',' && !inQuotes) {
+      row.push(current);
+      current = '';
+    } else if (char === '\n' && !inQuotes) {
+      row.push(current);
+      lines.push(row);
+      row = [];
+      current = '';
+    } else {
+      current += char;
     }
-    row.push(entry.replace(/^"|"$/g, '').trim());
-    result.push(row);
   }
 
-  return result;
+  if (current || row.length > 0) {
+    row.push(current);
+    lines.push(row);
+  }
+
+  return lines.filter(r => r.some(cell => cell.trim().length > 0));
 }

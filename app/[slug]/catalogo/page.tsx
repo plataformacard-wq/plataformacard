@@ -531,6 +531,49 @@ export default async function Page(props: PageProps) {
     products.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   }
 
+  // Se houver preços de planilha sincronizados no Supabase (b2b_sku_prices), injeta nos produtos
+  if (targetOrgId) {
+    const { data: sheetPrices } = await supabase
+      .from("b2b_sku_prices")
+      .select("sku, prices")
+      .eq("organization_id", targetOrgId);
+
+    if (sheetPrices && sheetPrices.length > 0) {
+      const priceMap: Record<string, { retail: number; wholesale: number; anchor: number }> = {};
+      sheetPrices.forEach((sp: any) => {
+        const p = sp.prices || {};
+        const retail = Number(p.varejo || p.bling || p.valor_1 || 0);
+        const wholesale = Number(p.atacado || p.valor_2 || p.valor_1 || 0);
+        const anchor = Number(p.anchor_price || p.varejo || p.sugerido || p.mercado || 0);
+
+        priceMap[sp.sku] = {
+          retail: retail > 0 ? retail : wholesale,
+          wholesale: wholesale > 0 ? wholesale : retail,
+          anchor: anchor > 0 ? anchor : (retail > wholesale ? retail : 0)
+        };
+      });
+
+      products = products.map((prod) => {
+        if (prod.sku && priceMap[prod.sku]) {
+          const sp = priceMap[prod.sku];
+          const finalPrice = (prod.price && Number(prod.price) > 0) ? prod.price : (sp.wholesale > 0 ? sp.wholesale : sp.retail);
+          const finalAnchor = (prod.compare_at_price && Number(prod.compare_at_price) > 0) ? prod.compare_at_price : (sp.anchor > finalPrice ? sp.anchor : null);
+          const finalWholesale = (prod.wholesale_price && Number(prod.wholesale_price) > 0) ? prod.wholesale_price : (sp.wholesale > 0 ? sp.wholesale : null);
+
+          return {
+            ...prod,
+            price: finalPrice,
+            compare_at_price: finalAnchor,
+            wholesale_price: finalWholesale,
+            has_retail: true,
+            has_wholesale: sp.wholesale > 0
+          };
+        }
+        return prod;
+      });
+    }
+  }
+
   // Ordenar produtos esgotados para o final se a flag estiver ativa
   if (finalOutOfStockAtEnd) {
     products.sort((a, b) => {
