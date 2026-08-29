@@ -22,8 +22,10 @@ interface B2bSheetsConfigCardProps {
 export const B2bSheetsConfigCard: React.FC<B2bSheetsConfigCardProps> = ({ organizationId, onSyncSuccess }) => {
   const [sheetUrl, setSheetUrl] = useState("");
   const [tabName, setTabName] = useState("Precos");
+  const [defaultAnchorPercent, setDefaultAnchorPercent] = useState<number>(30);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [savingDefaultAnchor, setSavingDefaultAnchor] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
 
@@ -43,6 +45,9 @@ export const B2bSheetsConfigCard: React.FC<B2bSheetsConfigCardProps> = ({ organi
             setSheetUrl("");
           }
           setTabName(data.config.tab_name || "Precos");
+          if (data.config.default_anchor_percent !== null && data.config.default_anchor_percent !== undefined) {
+            setDefaultAnchorPercent(Number(data.config.default_anchor_percent));
+          }
           setLastSyncedAt(data.config.last_synced_at || null);
           if (data.config.custom_tables && data.config.custom_tables.length > 0) {
             onSyncSuccess?.(data.config.custom_tables);
@@ -51,6 +56,25 @@ export const B2bSheetsConfigCard: React.FC<B2bSheetsConfigCardProps> = ({ organi
       })
       .catch((err) => console.error("Erro ao carregar config Sheets:", err));
   }, [organizationId]);
+
+  const handleSaveDefaultAnchor = async (newVal: number) => {
+    setDefaultAnchorPercent(newVal);
+    setSavingDefaultAnchor(true);
+    try {
+      await fetch("/api/b2b/sync-sheets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId,
+          defaultAnchorPercent: newVal
+        })
+      });
+    } catch (e) {
+      console.error("Erro ao salvar percentual de ancoragem padrão:", e);
+    } finally {
+      setSavingDefaultAnchor(false);
+    }
+  };
 
   const handleDownloadTemplate = () => {
     const url = `/api/b2b/template-sheet?organizationId=${organizationId}`;
@@ -140,7 +164,7 @@ export const B2bSheetsConfigCard: React.FC<B2bSheetsConfigCardProps> = ({ organi
         </div>
 
         {/* Formulário de Configuração */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
           <div className="md:col-span-2 space-y-1.5">
             <label className="text-xs font-semibold text-[var(--dash-text-primary)] flex items-center gap-1.5">
               <Link2 className="w-3.5 h-3.5 text-cyan-500" />
@@ -170,7 +194,29 @@ export const B2bSheetsConfigCard: React.FC<B2bSheetsConfigCardProps> = ({ organi
               onChange={(e) => setTabName(e.target.value)}
             />
             <span className="text-[11px] text-[var(--dash-text-muted)] block">
-              Nome da aba na planilha (ex: <code>Precos</code>)
+              Aba na planilha (ex: <code>Precos</code>)
+            </span>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-[var(--dash-text-primary)] flex items-center justify-between">
+              <span>% Ancoragem Padrão:</span>
+              {savingDefaultAnchor && <span className="text-[10px] text-emerald-500 font-normal animate-pulse">Salvando...</span>}
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                max="500"
+                step="1"
+                className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] pl-3.5 pr-7 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all font-mono font-bold"
+                value={defaultAnchorPercent}
+                onChange={(e) => handleSaveDefaultAnchor(Number(e.target.value))}
+              />
+              <span className="absolute right-3 top-2.5 text-xs text-[var(--dash-text-muted)] font-mono font-semibold">%</span>
+            </div>
+            <span className="text-[11px] text-[var(--dash-text-muted)] block">
+              Preço sugerido padrão para novos clientes
             </span>
           </div>
         </div>
@@ -180,10 +226,13 @@ export const B2bSheetsConfigCard: React.FC<B2bSheetsConfigCardProps> = ({ organi
           <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
           <div className="text-xs text-[var(--dash-text-secondary)] space-y-0.5">
             <span className="font-semibold text-[var(--dash-text-primary)] block">
-              Estrutura oficial das colunas da planilha:
+              Estrutura Simplificada da Planilha:
             </span>
             <p className="font-mono text-[11px] text-cyan-600 dark:text-cyan-400">
-              PRODUTO | SKU (ID) | PREÇO SUGERIDO (VAREJO) | VALOR 1 | VALOR 2 | VALOR 3 | VALOR 4
+              PRODUTO | SKU (ID) | ATACADO | ATACADO PLUS | VALOR 4
+            </p>
+            <p className="text-[11px] text-[var(--dash-text-muted)]">
+              A ancoragem de mercado (preço sugerido riscado) é gerada automaticamente pelo Dashboard para cada lojista.
             </p>
           </div>
         </div>

@@ -66,13 +66,26 @@ export async function GET(req: NextRequest) {
         }
       });
 
-      // Mapear preços de ancoragem (preço sugerido de varejo / mercado)
+      // Buscar configurações da organização para obter percentual de ancoragem padrão
+      const { data: sheetConfig } = await supabase
+        .from('b2b_sheets_config')
+        .select('custom_tables, default_anchor_percent')
+        .eq('organization_id', client.organization_id)
+        .maybeSingle();
+
+      const defaultMarkup = sheetConfig?.default_anchor_percent !== null && sheetConfig?.default_anchor_percent !== undefined 
+        ? Number(sheetConfig.default_anchor_percent) 
+        : 30;
+
+      const effectiveMarkup = (client.anchor_percent !== null && client.anchor_percent !== undefined)
+        ? Number(client.anchor_percent)
+        : defaultMarkup;
+
+      // Mapear preços de ancoragem dinamicamente via Markup % sobre o preço B2B do cliente
       const anchorMap: Record<string, number> = {};
-      prices?.forEach(p => {
-        const pPrices = p.prices || {};
-        const anchor = pPrices['anchor_price'] || pPrices['varejo'] || pPrices['sugerido'] || pPrices['mercado'];
-        if (anchor && Number(anchor) > 0) {
-          anchorMap[p.sku] = Number(anchor);
+      Object.entries(priceMap).forEach(([sku, b2bPrice]) => {
+        if (b2bPrice && b2bPrice > 0) {
+          anchorMap[sku] = Number((b2bPrice * (1 + effectiveMarkup / 100)).toFixed(2));
         }
       });
 
@@ -80,6 +93,8 @@ export async function GET(req: NextRequest) {
         success: true,
         client,
         priceKey: client.assigned_price_key,
+        anchorPercent: effectiveMarkup,
+        isCustomAnchor: client.anchor_percent !== null,
         prices: priceMap,
         anchorPrices: anchorMap
       });
@@ -108,14 +123,15 @@ export async function GET(req: NextRequest) {
 
     const { data: sheetConfig } = await supabase
       .from('b2b_sheets_config')
-      .select('custom_tables')
+      .select('custom_tables, default_anchor_percent')
       .eq('organization_id', orgId)
       .maybeSingle();
 
     return NextResponse.json({ 
       success: true, 
       clients: clients || [],
-      customTables: sheetConfig?.custom_tables || []
+      customTables: sheetConfig?.custom_tables || [],
+      defaultAnchorPercent: sheetConfig?.default_anchor_percent !== null && sheetConfig?.default_anchor_percent !== undefined ? Number(sheetConfig.default_anchor_percent) : 30
     });
 
   } catch (error: any) {
@@ -127,7 +143,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { organizationId, slug, cnpjCpf, companyName, tradeName, phoneWhatsapp, assignedPriceKey, isDirectInvite } = body;
+    const { organizationId, slug, cnpjCpf, companyName, tradeName, phoneWhatsapp, assignedPriceKey, anchorPercent, isDirectInvite } = body;
 
     let orgId = organizationId;
     if (!orgId && slug) {
@@ -142,6 +158,9 @@ export async function POST(req: NextRequest) {
     const cleanCnpj = cnpjCpf.replace(/\D/g, '');
     const status = isDirectInvite ? 'approved' : 'pending_approval';
     const priceKey = assignedPriceKey || 'tabela_x';
+    const parsedAnchorPercent = (anchorPercent !== undefined && anchorPercent !== null && anchorPercent !== '') 
+      ? Number(anchorPercent) 
+      : null;
 
     const { data: existing } = await supabase
       .from('b2b_clients')
@@ -151,7 +170,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existing) {
-      // Se já existe e foi solicitação inbound, atualiza para pendente se necessário
       return NextResponse.json({ 
         success: true, 
         client: existing, 
@@ -169,6 +187,7 @@ export async function POST(req: NextRequest) {
         trade_name: tradeName || companyName,
         phone_whatsapp: phoneWhatsapp,
         assigned_price_key: priceKey,
+        anchor_percent: parsedAnchorPercent,
         status,
         approved_at: isDirectInvite ? new Date().toISOString() : null
       })
@@ -186,11 +205,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT: Atualizar status do cliente B2B ou mudar a tabela de preço atribuída
+// PUT: Atualizar status do cliente B2B, tabela de preço ou % de ancoragem
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, status, assignedPriceKey, notes } = body;
+    const { id, status, assignedPriceKey, anchorPercent, notes } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'ID do cliente B2B não informado.' }, { status: 400 });
@@ -202,6 +221,9 @@ export async function PUT(req: NextRequest) {
       if (status === 'approved') updatePayload.approved_at = new Date().toISOString();
     }
     if (assignedPriceKey) updatePayload.assigned_price_key = assignedPriceKey;
+    if (anchorPercent !== undefined) {
+      updatePayload.anchor_percent = (anchorPercent === null || anchorPercent === '') ? null : Number(anchorPercent);
+    }
     if (notes !== undefined) updatePayload.notes = notes;
 
     const { data: client, error } = await supabase

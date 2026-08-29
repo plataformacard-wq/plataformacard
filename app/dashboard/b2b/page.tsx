@@ -23,6 +23,7 @@ export default function B2bDashboardPage() {
   const supabase = createClient();
   const [clients, setClients] = useState<B2bClient[]>([]);
   const [customTables, setCustomTables] = useState<{ key: string; label: string }[]>([]);
+  const [defaultAnchorPercent, setDefaultAnchorPercent] = useState<number>(30);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"clients" | "pending" | "sheets">("clients");
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,6 +86,9 @@ export default function B2bDashboardPage() {
         }
         if (data.customTables && data.customTables.length > 0) {
           setCustomTables(data.customTables);
+        }
+        if (data.defaultAnchorPercent !== undefined) {
+          setDefaultAnchorPercent(data.defaultAnchorPercent);
         }
       }
     } catch (err) {
@@ -366,6 +370,7 @@ export default function B2bDashboardPage() {
               clients={filteredApprovedClients} 
               slug={slug} 
               customTables={customTables}
+              defaultAnchorPercent={defaultAnchorPercent}
               onUpdateClient={handleUpdateClient} 
             />
           )}

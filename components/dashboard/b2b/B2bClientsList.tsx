@@ -19,6 +19,7 @@ export interface B2bClient {
   phone_whatsapp: string;
   access_token: string;
   assigned_price_key: string;
+  anchor_percent?: number | null;
   status: "pending_approval" | "approved" | "rejected";
   notes?: string;
   created_at: string;
@@ -29,6 +30,7 @@ interface B2bClientsListProps {
   clients: B2bClient[];
   slug: string;
   customTables?: { key: string; label: string }[];
+  defaultAnchorPercent?: number;
   onUpdateClient: (id: string, updates: Partial<B2bClient>) => Promise<void>;
 }
 
@@ -36,10 +38,13 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
   clients,
   slug,
   customTables = [],
+  defaultAnchorPercent = 30,
   onUpdateClient,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [editingAnchorId, setEditingAnchorId] = useState<string | null>(null);
+  const [anchorInputVal, setAnchorInputVal] = useState<string>("");
 
   const getClientUrl = (token: string) => {
     if (typeof window !== "undefined") {
@@ -65,6 +70,14 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
   const handlePriceKeyChange = async (id: string, newKey: string) => {
     setLoadingId(id);
     await onUpdateClient(id, { assigned_price_key: newKey });
+    setLoadingId(null);
+  };
+
+  const handleSaveAnchorPercent = async (id: string) => {
+    setLoadingId(id);
+    const val = anchorInputVal.trim();
+    await onUpdateClient(id, { anchor_percent: val !== "" ? Number(val) : null });
+    setEditingAnchorId(null);
     setLoadingId(null);
   };
 
@@ -165,6 +178,55 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
                   )}
                   <option value="bling">Preço Base (Bling / Catálogo)</option>
                 </select>
+              </div>
+
+              {/* Badge / Edição de % Ancoragem */}
+              <div className="flex items-center gap-1.5">
+                <label className="text-[11px] font-semibold text-[var(--dash-text-muted)] uppercase tracking-wider hidden sm:inline">
+                  Âncora:
+                </label>
+                {editingAnchorId === client.id ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      max="500"
+                      autoFocus
+                      className="w-16 text-xs font-mono font-bold rounded-lg border border-emerald-500 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-2 py-1 focus:outline-none"
+                      value={anchorInputVal}
+                      placeholder={String(defaultAnchorPercent)}
+                      onChange={(e) => setAnchorInputVal(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveAnchorPercent(client.id);
+                        if (e.key === "Escape") setEditingAnchorId(null);
+                      }}
+                    />
+                    <button
+                      onClick={() => handleSaveAnchorPercent(client.id)}
+                      className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 cursor-pointer"
+                      title="Salvar % Ancoragem"
+                    >
+                      <Check size={11} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEditingAnchorId(client.id);
+                      setAnchorInputVal(client.anchor_percent !== null && client.anchor_percent !== undefined ? String(client.anchor_percent) : "");
+                    }}
+                    disabled={isUpdating}
+                    className="px-2.5 py-1 text-xs font-mono font-bold rounded-lg border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] hover:border-emerald-500/40 text-[var(--dash-text-primary)] transition-all cursor-pointer flex items-center gap-1"
+                    title="Clique para personalizar a porcentagem de ancoragem"
+                  >
+                    <span className="text-emerald-500">
+                      +{client.anchor_percent !== null && client.anchor_percent !== undefined ? client.anchor_percent : defaultAnchorPercent}%
+                    </span>
+                    <span className="text-[10px] text-[var(--dash-text-muted)] font-sans font-normal">
+                      {client.anchor_percent !== null && client.anchor_percent !== undefined ? "(custom)" : "(padrão)"}
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* Botão Copiar Link */}

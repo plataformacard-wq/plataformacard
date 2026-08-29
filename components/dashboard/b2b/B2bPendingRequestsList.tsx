@@ -19,6 +19,7 @@ export const B2bPendingRequestsList: React.FC<B2bPendingRequestsListProps> = ({
   onUpdateClient,
 }) => {
   const [selectedKeys, setSelectedKeys] = useState<Record<string, string>>({});
+  const [selectedAnchorPercents, setSelectedAnchorPercents] = useState<Record<string, string>>({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const getClientUrl = (token: string) => {
@@ -31,10 +32,12 @@ export const B2bPendingRequestsList: React.FC<B2bPendingRequestsListProps> = ({
   const handleApprove = async (client: B2bClient) => {
     setLoadingId(client.id);
     const assignedKey = selectedKeys[client.id] || client.assigned_price_key || (customTables[0]?.key || "valor_1");
+    const customAnchor = selectedAnchorPercents[client.id];
 
     await onUpdateClient(client.id, {
       status: "approved",
       assigned_price_key: assignedKey,
+      anchor_percent: customAnchor !== undefined && customAnchor.trim() !== "" ? Number(customAnchor) : undefined,
     });
 
     const url = getClientUrl(client.access_token);
@@ -157,6 +160,26 @@ export const B2bPendingRequestsList: React.FC<B2bPendingRequestsListProps> = ({
                     )}
                     <option value="bling">Preço Base (Bling / Catálogo)</option>
                   </select>
+                </div>
+
+                {/* Input de % Ancoragem */}
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[11px] font-semibold text-[var(--dash-text-muted)] uppercase tracking-wider hidden sm:inline">
+                    % Âncora:
+                  </label>
+                  <div className="relative w-20">
+                    <input
+                      type="number"
+                      min="0"
+                      max="500"
+                      disabled={isProcessing}
+                      placeholder="30%"
+                      className="w-full text-xs font-mono font-semibold rounded-lg border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] pl-2.5 pr-5 py-1.5 focus:outline-none focus:border-emerald-500/50 disabled:opacity-50"
+                      value={selectedAnchorPercents[client.id] !== undefined ? selectedAnchorPercents[client.id] : (client.anchor_percent !== null && client.anchor_percent !== undefined ? String(client.anchor_percent) : "")}
+                      onChange={(e) => setSelectedAnchorPercents((prev) => ({ ...prev, [client.id]: e.target.value }))}
+                    />
+                    <span className="absolute right-2 top-1.5 text-[10px] text-[var(--dash-text-muted)] font-mono">%</span>
+                  </div>
                 </div>
 
                 {/* Botão Recusar */}

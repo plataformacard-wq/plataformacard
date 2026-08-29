@@ -26,6 +26,7 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
   const [tradeName, setTradeName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [assignedPriceKey, setAssignedPriceKey] = useState("valor_1");
+  const [anchorPercent, setAnchorPercent] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -49,6 +50,7 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
           tradeName: tradeName || undefined,
           phoneWhatsapp: whatsapp,
           assignedPriceKey,
+          anchorPercent: anchorPercent.trim() !== "" ? Number(anchorPercent) : undefined,
           isDirectInvite: true,
         }),
       });
@@ -96,6 +98,7 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
     setTradeName("");
     setWhatsapp("");
     setAssignedPriceKey("valor_1");
+    setAnchorPercent("");
     setCreatedToken(null);
     setCopied(false);
     onClose();
@@ -213,6 +216,28 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
                   )}
                   <option value="bling">Preço Base (Bling / Catálogo)</option>
                 </select>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                    % de Ancoragem / Markup Sugerido:
+                  </label>
+                  <span className="text-[10px] text-[var(--dash-text-muted)]">Opcional (padrão da loja: 30%)</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="500"
+                    className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all font-mono"
+                    placeholder="Ex: 30 (Gera +30% de preço sugerido riscado)"
+                    value={anchorPercent}
+                    onChange={(e) => setAnchorPercent(e.target.value)}
+                  />
+                  <span className="absolute right-3.5 top-2.5 text-xs text-[var(--dash-text-muted)] font-mono font-semibold">%</span>
+                </div>
               </div>
 
               <div className="pt-2 flex justify-end gap-2.5 border-t border-slate-200/60 dark:border-white/5">

@@ -9,10 +9,12 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { organizationId, sheetId, tabName } = body;
+    const organizationId = body.organizationId;
+    const sheetId = body.sheetId || body.sheetUrl;
+    const tabName = body.tabName;
 
     if (!organizationId || !sheetId) {
-      return NextResponse.json({ success: false, error: 'organizationId e sheetId são obrigatórios.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'organizationId e sheetId (ou sheetUrl) são obrigatórios.' }, { status: 400 });
     }
 
     const result = await syncGoogleSheetsPrices(organizationId, sheetId, tabName || 'Precos');
@@ -43,6 +45,55 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, config: data || null });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { organizationId, defaultAnchorPercent } = body;
+
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'organizationId é obrigatório.' }, { status: 400 });
+    }
+
+    const payload: any = {
+      organization_id: organizationId,
+    };
+
+    if (defaultAnchorPercent !== undefined) {
+      payload.default_anchor_percent = Number(defaultAnchorPercent);
+    }
+
+    const { data: existing } = await supabase
+      .from('b2b_sheets_config')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .maybeSingle();
+
+    let saveRes;
+    if (existing) {
+      saveRes = await supabase
+        .from('b2b_sheets_config')
+        .update(payload)
+        .eq('id', existing.id)
+        .select()
+        .single();
+    } else {
+      saveRes = await supabase
+        .from('b2b_sheets_config')
+        .insert(payload)
+        .select()
+        .single();
+    }
+
+    if (saveRes.error) {
+      return NextResponse.json({ success: false, error: saveRes.error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, config: saveRes.data });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
