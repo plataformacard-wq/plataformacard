@@ -1,30 +1,19 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
 import {
   X,
   ShoppingBag,
   Send,
-  CheckCircle2,
   Search,
   Loader2,
   FileText,
-  MessageCircle,
-  CheckCheck,
-  Building2,
-  ExternalLink,
 } from "lucide-react";
 import { formatPrice } from "./utils";
-
-interface CatalogProductItem {
-  id: string;
-  name: string;
-  sku?: string | null;
-  price?: number | null;
-  compare_at_price?: number | null;
-  image_url?: string | null;
-}
+import { useB2bFastOrder, CatalogProductItem } from "./hooks/useB2bFastOrder";
+import { B2bFastOrderProductRow } from "./b2b/B2bFastOrderProductRow";
+import { B2bFastOrderSuccessView } from "./b2b/B2bFastOrderSuccessView";
 
 interface B2bFastOrderModalProps {
   isOpen: boolean;
@@ -44,155 +33,37 @@ export const B2bFastOrderModal: React.FC<B2bFastOrderModalProps> = ({
   b2bPrices,
   clientToken,
   companyName,
-  slug,
   whatsappNumber,
 }) => {
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [notes, setNotes] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState<{
-    orderId: string;
-    blingOrderId?: string | null;
-    totalAmount: number;
-    savedItems: any[];
-    savedNotes: string;
-  } | null>(null);
-
-  const handleQuantityChange = (productId: string, val: number) => {
-    setQuantities((prev) => ({ ...prev, [productId]: Math.max(0, val) }));
-  };
-
-  const selectedItems = useMemo(() => {
-    return products
-      .filter((p) => (quantities[p.id] || 0) > 0)
-      .map((p) => {
-        const price = b2bPrices[p.sku || ""] ?? p.price ?? 0;
-        const qty = quantities[p.id];
-        return {
-          id: p.id,
-          sku: p.sku || p.id,
-          name: p.name,
-          price,
-          quantity: qty,
-          subtotal: qty * price,
-        };
-      });
-  }, [products, quantities, b2bPrices]);
-
-  const totalQuantity = useMemo(() => {
-    return Object.values(quantities).reduce((sum, q) => sum + q, 0);
-  }, [quantities]);
-
-  const totalAmount = useMemo(() => {
-    return selectedItems.reduce((acc, item) => acc + item.subtotal, 0);
-  }, [selectedItems]);
-
-  const totalMarketAmount = useMemo(() => {
-    return products.reduce((acc, p) => {
-      const qty = quantities[p.id] || 0;
-      const anchor = p.compare_at_price && p.compare_at_price > (p.price || 0) ? p.compare_at_price : (p.price || 0);
-      return acc + (anchor * qty);
-    }, 0);
-  }, [products, quantities]);
-
-  const totalEconomy = useMemo(() => {
-    return Math.max(0, totalMarketAmount - totalAmount);
-  }, [totalMarketAmount, totalAmount]);
-
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
-    const q = searchQuery.toLowerCase().trim();
-    return products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.sku && p.sku.toLowerCase().includes(q))
-    );
-  }, [products, searchQuery]);
-
-  // Mensagem formatada do WhatsApp Mockup
-  const whatsappFormattedText = useMemo(() => {
-    const itemsToFormat = orderSuccess ? orderSuccess.savedItems : selectedItems;
-    const currentNotes = orderSuccess ? orderSuccess.savedNotes : notes;
-    const total = orderSuccess ? orderSuccess.totalAmount : totalAmount;
-
-    let msg = `🏢 *NOVO PEDIDO ATACADO B2B*\n`;
-    msg += `*Empresa:* ${companyName}\n`;
-    if (orderSuccess?.orderId) {
-      msg += `*ID do Pedido:* ${orderSuccess.orderId}\n`;
-    }
-    msg += `------------------------------------\n`;
-
-    itemsToFormat.forEach((item, idx) => {
-      msg += `${idx + 1}. *${item.quantity}x* ${item.name} (${item.sku || "N/A"})\n`;
-      msg += `   └ Valor: ${formatPrice(item.price)} un. | Subtotal: ${formatPrice(item.subtotal)}\n`;
-    });
-
-    msg += `------------------------------------\n`;
-    msg += `📦 *Total de Itens:* ${itemsToFormat.reduce((acc, it) => acc + it.quantity, 0)} unidades\n`;
-    msg += `💰 *Valor Total do Pedido:* ${formatPrice(total)}\n`;
-
-    if (currentNotes.trim()) {
-      msg += `📝 *Observações / Faturamento:* ${currentNotes.trim()}\n`;
-    }
-
-    return msg;
-  }, [companyName, orderSuccess, selectedItems, notes, totalAmount]);
-
-  const handleSubmitOrder = async () => {
-    if (selectedItems.length === 0) {
-      alert("Selecione a quantidade de pelo menos um produto para continuar.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/b2b/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: clientToken,
-          items: selectedItems,
-          notes,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setOrderSuccess({
-          orderId: data.orderId,
-          blingOrderId: data.blingOrderId,
-          totalAmount: data.totalAmount,
-          savedItems: [...selectedItems],
-          savedNotes: notes,
-        });
-      } else {
-        alert(data.error || "Erro ao processar pedido B2B.");
-      }
-    } catch (err) {
-      alert("Erro de conexão ao enviar pedido B2B.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendToWhatsApp = () => {
-    if (!whatsappNumber) {
-      alert("Número do WhatsApp da empresa não cadastrado.");
-      return;
-    }
-    const cleanNumber = whatsappNumber.replace(/\D/g, "");
-    const url = `https://wa.me/55${cleanNumber}?text=${encodeURIComponent(whatsappFormattedText)}`;
-    window.open(url, "_blank");
-  };
-
-  const handleResetAndClose = () => {
-    setQuantities({});
-    setNotes("");
-    setOrderSuccess(null);
-    onClose();
-  };
+  const {
+    quantities,
+    notes,
+    setNotes,
+    searchQuery,
+    setSearchQuery,
+    loading,
+    showNotes,
+    setShowNotes,
+    orderSuccess,
+    handleQuantityChange,
+    selectedItems,
+    totalQuantity,
+    totalAmount,
+    totalMarketAmount,
+    totalEconomy,
+    filteredProducts,
+    whatsappFormattedText,
+    handleSubmitOrder,
+    handleSendToWhatsApp,
+    handleResetAndClose,
+  } = useB2bFastOrder({
+    products,
+    b2bPrices,
+    clientToken,
+    companyName,
+    whatsappNumber,
+    onClose,
+  });
 
   if (!isOpen) return null;
 
@@ -252,7 +123,7 @@ export const B2bFastOrderModal: React.FC<B2bFastOrderModalProps> = ({
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--public-text-dim)] hover:text-[var(--public-text-main)]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] cursor-pointer"
                     >
                       Limpar
                     </button>
@@ -270,78 +141,15 @@ export const B2bFastOrderModal: React.FC<B2bFastOrderModalProps> = ({
                   filteredProducts.map((p) => {
                     const finalPrice = b2bPrices[p.sku || ""] ?? p.price ?? 0;
                     const qty = quantities[p.id] || 0;
-                    const isSelected = qty > 0;
 
                     return (
-                      <div
+                      <B2bFastOrderProductRow
                         key={p.id}
-                        className={`p-3 sm:p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                          isSelected
-                            ? "bg-emerald-500/5 border-emerald-500/40 shadow-sm"
-                            : "bg-[var(--public-bg)]/60 border-[var(--public-card-border)] hover:border-emerald-500/20"
-                        }`}
-                      >
-                        {/* Imagem + Infos */}
-                        <div className="flex items-center gap-3 min-w-0">
-                          {p.image_url ? (
-                            <img
-                              src={p.image_url}
-                              alt={p.name}
-                              className="w-12 h-12 object-cover rounded-xl border border-[var(--public-card-border)] shrink-0 bg-[var(--public-card-bg)]"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-xl bg-[var(--public-card-bg)] border border-[var(--public-card-border)] flex items-center justify-center text-[10px] font-mono text-[var(--public-text-dim)] shrink-0">
-                              SKU
-                            </div>
-                          )}
-
-                          <div className="min-w-0">
-                            <h4 className="font-bold text-xs sm:text-sm text-[var(--public-text-main)] truncate">
-                              {p.name}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                              {p.sku && (
-                                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[var(--public-bg)] text-[var(--public-text-dim)] border border-[var(--public-card-border)]">
-                                  {p.sku}
-                                </span>
-                              )}
-                              <span className="text-xs font-black text-emerald-500">
-                                {formatPrice(finalPrice)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Contador de Quantidade Moderno */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            onClick={() => handleQuantityChange(p.id, qty - 1)}
-                            disabled={qty === 0}
-                            className="w-8 h-8 rounded-xl border border-[var(--public-card-border)] bg-[var(--public-card-bg)] text-[var(--public-text-main)] font-black text-sm hover:bg-[var(--public-bg)] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer shadow-sm"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min="0"
-                            className="w-12 h-8 text-center text-xs font-black rounded-xl border border-[var(--public-card-border)] bg-[var(--public-bg)] text-[var(--public-text-main)] focus:outline-none focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            value={qty === 0 ? "" : qty}
-                            placeholder="0"
-                            onChange={(e) =>
-                              handleQuantityChange(
-                                p.id,
-                                parseInt(e.target.value || "0", 10)
-                              )
-                            }
-                          />
-                          <button
-                            onClick={() => handleQuantityChange(p.id, qty + 1)}
-                            className="w-8 h-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white font-black text-sm active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-sm"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
+                        product={p}
+                        quantity={qty}
+                        finalPrice={finalPrice}
+                        onQuantityChange={handleQuantityChange}
+                      />
                     );
                   })
                 )}
@@ -363,7 +171,7 @@ export const B2bFastOrderModal: React.FC<B2bFastOrderModalProps> = ({
                       <span className="font-semibold text-[var(--public-text-dim)]">Observações do Pedido:</span>
                       <button
                         onClick={() => setShowNotes(false)}
-                        className="text-xs text-[var(--public-text-dim)] hover:text-[var(--public-text-main)]"
+                        className="text-xs text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] cursor-pointer"
                       >
                         Ocultar
                       </button>
@@ -431,70 +239,14 @@ export const B2bFastOrderModal: React.FC<B2bFastOrderModalProps> = ({
               </div>
             </>
           ) : (
-            /* Tela de Sucesso Híbrida: ERP + Mockup WhatsApp */
-            <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1 flex flex-col items-center">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center shadow-lg shrink-0">
-                <CheckCircle2 className="w-7 h-7" />
-              </div>
-
-              <div className="text-center space-y-1.5 max-w-md">
-                <h3 className="text-xl sm:text-2xl font-black text-[var(--public-text-main)]">
-                  Pedido B2B Concluído com Sucesso!
-                </h3>
-                <p className="text-xs sm:text-sm text-[var(--public-text-dim)] leading-relaxed">
-                  Seu pedido de{" "}
-                  <strong className="text-emerald-500 font-extrabold">
-                    {formatPrice(orderSuccess.totalAmount)}
-                  </strong>{" "}
-                  foi registrado no sistema e integrado com a central de pedidos.
-                </p>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[var(--public-bg)] border border-[var(--public-card-border)] text-xs font-mono text-[var(--public-text-dim)] mt-2">
-                  <span>ID:</span>
-                  <strong className="text-[var(--public-text-main)]">{orderSuccess.orderId}</strong>
-                </div>
-              </div>
-
-              {/* Mockup Visual de Mensagem do WhatsApp */}
-              <div className="w-full max-w-md bg-[#efeae2] dark:bg-[#0b141a] p-4 rounded-2xl border border-[var(--public-card-border)] shadow-inner space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-bold px-1">
-                  <span className="flex items-center gap-1.5">
-                    <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Comprovante WhatsApp (Pré-visualização)</span>
-                  </span>
-                  <span>Agora</span>
-                </div>
-
-                <div className="bg-white dark:bg-[#202c33] p-3.5 rounded-2xl rounded-tr-sm shadow-sm text-xs font-sans space-y-2 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
-                  <pre className="whitespace-pre-wrap font-sans text-[11px] leading-relaxed select-text">
-                    {whatsappFormattedText}
-                  </pre>
-                  <div className="flex items-center justify-end gap-1 text-[10px] text-slate-400">
-                    <span>Enviado</span>
-                    <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Ações de Finalização */}
-              <div className="w-full max-w-md space-y-2.5 pt-2">
-                {whatsappNumber && (
-                  <button
-                    onClick={handleSendToWhatsApp}
-                    className="w-full py-3.5 px-6 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs sm:text-sm tracking-wide transition-all shadow-lg hover:shadow-emerald-500/25 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Enviar Comprovante no WhatsApp Comercial</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={handleResetAndClose}
-                  className="w-full py-3 px-6 rounded-xl border border-[var(--public-card-border)] bg-[var(--public-card-bg)] text-[var(--public-text-dim)] hover:text-[var(--public-text-main)] font-bold text-xs transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  Voltar ao Catálogo
-                </button>
-              </div>
-            </div>
+            /* Tela de Sucesso Híbrida */
+            <B2bFastOrderSuccessView
+              orderSuccess={orderSuccess}
+              whatsappFormattedText={whatsappFormattedText}
+              whatsappNumber={whatsappNumber}
+              onSendToWhatsApp={handleSendToWhatsApp}
+              onResetAndClose={handleResetAndClose}
+            />
           )}
         </motion.div>
       </div>

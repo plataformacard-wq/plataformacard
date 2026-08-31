@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, UserPlus, CheckCircle2, Copy, Send } from "lucide-react";
+import { X, UserPlus, CheckCircle2, Copy, Send, Loader2, Search, Check, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { validateCnpj, formatCnpj, fetchCnpjData } from "@/lib/utils/cnpj";
 
 interface B2bNewClientModalProps {
   isOpen: boolean;
@@ -28,10 +29,68 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
   const [assignedPriceKey, setAssignedPriceKey] = useState("valor_1");
   const [anchorPercent, setAnchorPercent] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [cnpjLoading, setCnpjLoading] = useState(false);
+  const [cnpjStatus, setCnpjStatus] = useState<{
+    valid: boolean;
+    active: boolean;
+    message: string;
+    cityState?: string;
+  } | null>(null);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleCnpjChange = async (val: string) => {
+    const formatted = formatCnpj(val);
+    setCnpj(formatted);
+    const clean = val.replace(/\D/g, "");
+
+    if (clean.length === 14) {
+      if (!validateCnpj(clean)) {
+        setCnpjStatus({
+          valid: false,
+          active: false,
+          message: "CNPJ inválido (dígitos verificadores incorretos).",
+        });
+        return;
+      }
+
+      // Consultar BrasilAPI
+      setCnpjLoading(true);
+      setCnpjStatus(null);
+      const res = await fetchCnpjData(clean);
+      setCnpjLoading(false);
+
+      if (res.success && res.data) {
+        setCompanyName(res.data.razaoSocial || "");
+        if (res.data.nomeFantasia && res.data.nomeFantasia !== res.data.razaoSocial) {
+          setTradeName(res.data.nomeFantasia);
+        }
+        if (res.data.telefone && !whatsapp) {
+          setWhatsapp(res.data.telefone);
+        }
+
+        const cityState = res.data.cidade && res.data.uf ? `${res.data.cidade}/${res.data.uf}` : undefined;
+        setCnpjStatus({
+          valid: true,
+          active: res.data.isAtiva,
+          message: res.data.isAtiva
+            ? "CNPJ Válido e Ativo na Receita Federal"
+            : `Situação Cadastral: ${res.data.situacaoCadastral}`,
+          cityState,
+        });
+      } else {
+        setCnpjStatus({
+          valid: true,
+          active: true,
+          message: "CNPJ válido (preencha a Razão Social manualmente).",
+        });
+      }
+    } else {
+      setCnpjStatus(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,9 +130,9 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
 
   const getClientUrl = (token: string) => {
     if (typeof window !== "undefined") {
-      return `${window.location.origin}/${slug}?b2b=${token}`;
+      return `${window.location.origin}/${slug}/catalogo?b2b_token=${token}`;
     }
-    return `https://www.plataformashop.com.br/${slug}?b2b=${token}`;
+    return `https://www.plataformashop.com.br/${slug}/catalogo?b2b_token=${token}`;
   };
 
   const handleCopyLink = () => {
@@ -87,7 +146,7 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
   const handleWhatsAppSend = () => {
     if (!createdToken) return;
     const url = getClientUrl(createdToken);
-    const msg = `Olá *${tradeName || companyName}*! 👋\n\nSeu acesso exclusivo ao catálogo B2B da *Maj Mobilidade* foi cadastrado e liberado!\n\nAcesse no link abaixo:\n${url}`;
+    const msg = `Olá *${tradeName || companyName}*! 👋\n\nSeu acesso exclusivo ao catálogo B2B da *Maj Mobilidade* foi cadastrado e liberado!\n\nAcesse no link seguro:\n${url}`;
     const cleanPhone = whatsapp.replace(/\D/g, "");
     window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -99,6 +158,7 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
     setWhatsapp("");
     setAssignedPriceKey("valor_1");
     setAnchorPercent("");
+    setCnpjStatus(null);
     setCreatedToken(null);
     setCopied(false);
     onClose();
@@ -137,17 +197,47 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
           {!createdToken ? (
             <form onSubmit={handleSubmit} className="space-y-3.5">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
-                  CNPJ / CPF do Lojista:
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all font-mono"
-                  placeholder="Ex: 12.345.678/0001-90"
-                  value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[var(--dash-text-primary)]">
+                    CNPJ / CPF do Lojista:
+                  </label>
+                  {cnpjLoading && (
+                    <span className="text-[10px] text-emerald-500 flex items-center gap-1 font-medium">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Consultando Receita...</span>
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    maxLength={18}
+                    className="w-full text-xs rounded-xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-primary)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-all font-mono"
+                    placeholder="Ex: 00.000.000/0001-00"
+                    value={cnpj}
+                    onChange={(e) => handleCnpjChange(e.target.value)}
+                  />
+                  {cnpjStatus?.valid && (
+                    <div className="absolute right-3 top-2.5">
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Badge de Status da Receita Federal */}
+                {cnpjStatus && (
+                  <div
+                    className={`p-2 rounded-lg text-[11px] font-medium flex items-center gap-1.5 ${
+                      cnpjStatus.active
+                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                    }`}
+                  >
+                    {cnpjStatus.active ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                    <span>{cnpjStatus.message} {cnpjStatus.cityState ? `• ${cnpjStatus.cityState}` : ""}</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -250,7 +340,7 @@ export const B2bNewClientModal: React.FC<B2bNewClientModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (cnpjStatus !== null && !cnpjStatus.valid)}
                   className="px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? "Cadastrando..." : "Cadastrar & Gerar Link"}

@@ -19,6 +19,7 @@ import { QuickVariationModal } from "./ui/QuickVariationModal";
 import { useB2bSession } from "./hooks/useB2bSession";
 import { B2bRegisterModal } from "./B2bRegisterModal";
 import { B2bFastOrderModal } from "./B2bFastOrderModal";
+import { B2bDeviceVerificationModal } from "./b2b/B2bDeviceVerificationModal";
 
 export default function ProductCatalogClient(props: ProductCatalogClientProps) {
   const {
@@ -447,6 +448,16 @@ export default function ProductCatalogClient(props: ProductCatalogClientProps) {
               whatsappNumber={whatsapp}
             />
           )}
+
+          <B2bDeviceVerificationModal
+            isOpen={b2b.isVerificationOpen}
+            onClose={b2b.handleCloseVerification}
+            companyName={b2b.b2bClient?.company_name || "Sua Empresa"}
+            maskedPhone={b2b.maskedPhone}
+            token={b2b.b2bToken || ""}
+            deviceId={b2b.deviceId}
+            onVerified={b2b.handleVerifiedDevice}
+          />
         </>
       )}
     </div>

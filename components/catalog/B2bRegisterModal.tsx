@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, CheckCircle2, Building2, Phone, FileText, Loader2, ArrowRight } from "lucide-react";
+import { X, Sparkles, CheckCircle2, Building2, Phone, FileText, Loader2, Check, AlertCircle } from "lucide-react";
+import { validateCnpj, formatCnpj, fetchCnpjData } from "@/lib/utils/cnpj";
 
 interface B2bRegisterModalProps {
   isOpen: boolean;
@@ -19,9 +20,63 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({
   const [companyName, setCompanyName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cnpjLoading, setCnpjLoading] = useState(false);
+  const [cnpjStatus, setCnpjStatus] = useState<{
+    valid: boolean;
+    active: boolean;
+    message: string;
+    cityState?: string;
+  } | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleCnpjChange = async (val: string) => {
+    const formatted = formatCnpj(val);
+    setCnpj(formatted);
+    const clean = val.replace(/\D/g, "");
+
+    if (clean.length === 14) {
+      if (!validateCnpj(clean)) {
+        setCnpjStatus({
+          valid: false,
+          active: false,
+          message: "CNPJ inválido (dígitos verificadores incorretos).",
+        });
+        return;
+      }
+
+      setCnpjLoading(true);
+      setCnpjStatus(null);
+      const res = await fetchCnpjData(clean);
+      setCnpjLoading(false);
+
+      if (res.success && res.data) {
+        setCompanyName(res.data.nomeFantasia || res.data.razaoSocial || "");
+        if (res.data.telefone && !whatsapp) {
+          setWhatsapp(res.data.telefone);
+        }
+
+        const cityState = res.data.cidade && res.data.uf ? `${res.data.cidade}/${res.data.uf}` : undefined;
+        setCnpjStatus({
+          valid: true,
+          active: res.data.isAtiva,
+          message: res.data.isAtiva
+            ? "Empresa Ativa na Receita Federal"
+            : `Situação Cadastral: ${res.data.situacaoCadastral}`,
+          cityState,
+        });
+      } else {
+        setCnpjStatus({
+          valid: true,
+          active: true,
+          message: "CNPJ Válido",
+        });
+      }
+    } else {
+      setCnpjStatus(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +113,7 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({
     setCnpj("");
     setCompanyName("");
     setWhatsapp("");
+    setCnpjStatus(null);
     setIsSubmitted(false);
     onClose();
   };
@@ -100,18 +156,48 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({
           {!isSubmitted ? (
             <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[var(--public-text-main)] flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>CNPJ da Empresa:</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors"
-                  placeholder="00.000.000/0001-00"
-                  value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[var(--public-text-main)] flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>CNPJ da Empresa:</span>
+                  </label>
+                  {cnpjLoading && (
+                    <span className="text-[10px] text-emerald-500 flex items-center gap-1 font-medium">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Buscando dados...</span>
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    maxLength={18}
+                    className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                    placeholder="00.000.000/0001-00"
+                    value={cnpj}
+                    onChange={(e) => handleCnpjChange(e.target.value)}
+                  />
+                  {cnpjStatus?.valid && (
+                    <div className="absolute right-3 top-2.5">
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Badge de Status da Receita Federal */}
+                {cnpjStatus && (
+                  <div
+                    className={`p-2 rounded-lg text-[11px] font-medium flex items-center gap-1.5 ${
+                      cnpjStatus.active
+                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                    }`}
+                  >
+                    {cnpjStatus.active ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                    <span>{cnpjStatus.message} {cnpjStatus.cityState ? `• ${cnpjStatus.cityState}` : ""}</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -137,7 +223,7 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({
                 <input
                   type="tel"
                   required
-                  className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full text-xs rounded-xl bg-[var(--public-bg)] border border-[var(--public-card-border)] text-[var(--public-text-main)] px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
                   placeholder="(00) 00000-0000"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
@@ -147,7 +233,7 @@ export const B2bRegisterModal: React.FC<B2bRegisterModalProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (cnpjStatus !== null && !cnpjStatus.valid)}
                   className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-xs tracking-wide transition-all shadow-lg hover:shadow-emerald-500/25 active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {loading ? (

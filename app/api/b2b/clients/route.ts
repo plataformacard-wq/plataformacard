@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get('token');
+    const deviceId = searchParams.get('deviceId');
     const organizationId = searchParams.get('organizationId');
     const slug = searchParams.get('slug');
 
@@ -23,6 +24,34 @@ export async function GET(req: NextRequest) {
 
       if (error || !client) {
         return NextResponse.json({ success: false, error: 'Acesso B2B inválido ou não encontrado.' }, { status: 404 });
+      }
+
+      // Se o cliente estiver pausado ou rejeitado
+      if (client.status === 'paused' || client.status === 'rejected') {
+        return NextResponse.json({ success: false, error: 'Acesso B2B temporariamente desativado pela loja.' }, { status: 403 });
+      }
+
+      // Checar se o dispositivo necessita de validação OTP
+      const trustedDevices: string[] = Array.isArray(client.trusted_device_ids) ? client.trusted_device_ids : [];
+      const requiresVerification = client.require_device_verification !== false && (!deviceId || !trustedDevices.includes(deviceId));
+
+      const cleanPhone = (client.phone_whatsapp || '').replace(/\D/g, '');
+      const maskedPhone = cleanPhone.length >= 10
+        ? `(${cleanPhone.slice(0, 2)}) 9****-${cleanPhone.slice(-4)}`
+        : 'WhatsApp cadastrado';
+
+      if (requiresVerification) {
+        return NextResponse.json({
+          success: true,
+          requiresVerification: true,
+          client: {
+            id: client.id,
+            company_name: client.company_name,
+            trade_name: client.trade_name,
+            access_token: client.access_token,
+          },
+          maskedPhone
+        });
       }
 
       // Buscar preços aplicáveis da organização
@@ -91,6 +120,7 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
+        requiresVerification: false,
         client,
         priceKey: client.assigned_price_key,
         anchorPercent: effectiveMarkup,
@@ -189,6 +219,8 @@ export async function POST(req: NextRequest) {
         assigned_price_key: priceKey,
         anchor_percent: parsedAnchorPercent,
         status,
+        trusted_device_ids: [],
+        require_device_verification: true,
         approved_at: isDirectInvite ? new Date().toISOString() : null
       })
       .select()
@@ -205,11 +237,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT: Atualizar status do cliente B2B, tabela de preço ou % de ancoragem
+// PUT: Atualizar status do cliente B2B, tabela de preço, % de ancoragem ou revogar dispositivos
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, status, assignedPriceKey, anchorPercent, notes } = body;
+    const { id, status, assignedPriceKey, anchorPercent, notes, revokeTrustedDevices, requireDeviceVerification } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'ID do cliente B2B não informado.' }, { status: 400 });
@@ -225,6 +257,14 @@ export async function PUT(req: NextRequest) {
       updatePayload.anchor_percent = (anchorPercent === null || anchorPercent === '') ? null : Number(anchorPercent);
     }
     if (notes !== undefined) updatePayload.notes = notes;
+    if (revokeTrustedDevices === true) {
+      updatePayload.trusted_device_ids = [];
+      updatePayload.current_otp_code = null;
+      updatePayload.current_otp_expires_at = null;
+    }
+    if (requireDeviceVerification !== undefined) {
+      updatePayload.require_device_verification = Boolean(requireDeviceVerification);
+    }
 
     const { data: client, error } = await supabase
       .from('b2b_clients')

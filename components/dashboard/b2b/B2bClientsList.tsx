@@ -7,7 +7,9 @@ import {
   ShieldCheck, 
   Send, 
   Building2, 
-  Phone
+  Phone,
+  Laptop,
+  RotateCcw
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -24,6 +26,8 @@ export interface B2bClient {
   notes?: string;
   created_at: string;
   organization_id?: string;
+  trusted_device_ids?: string[];
+  require_device_verification?: boolean;
 }
 
 interface B2bClientsListProps {
@@ -31,7 +35,7 @@ interface B2bClientsListProps {
   slug: string;
   customTables?: { key: string; label: string }[];
   defaultAnchorPercent?: number;
-  onUpdateClient: (id: string, updates: Partial<B2bClient>) => Promise<void>;
+  onUpdateClient: (id: string, updates: any) => Promise<void>;
 }
 
 export const B2bClientsList: React.FC<B2bClientsListProps> = ({
@@ -48,9 +52,9 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
 
   const getClientUrl = (token: string) => {
     if (typeof window !== "undefined") {
-      return `${window.location.origin}/${slug}?b2b=${token}`;
+      return `${window.location.origin}/${slug}/catalogo?b2b_token=${token}`;
     }
-    return `https://www.plataformashop.com.br/${slug}?b2b=${token}`;
+    return `https://www.plataformashop.com.br/${slug}/catalogo?b2b_token=${token}`;
   };
 
   const handleCopyLink = (token: string, id: string) => {
@@ -62,22 +66,31 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
 
   const handleSendWhatsApp = (client: B2bClient) => {
     const url = getClientUrl(client.access_token);
-    const message = `Olá *${client.trade_name || client.company_name}*! 👋\n\nSeu acesso exclusivo ao catálogo B2B da *Maj Mobilidade* foi liberado com suas condições e tabela especial!\n\nAcesse no link em 1 clique:\n${url}`;
+    const message = `Olá *${client.trade_name || client.company_name}*! 👋\n\nSeu acesso exclusivo ao catálogo B2B da *Maj Mobilidade* foi liberado com suas condições e tabela especial!\n\nAcesse no link seguro:\n${url}`;
     const cleanPhone = client.phone_whatsapp.replace(/\D/g, "");
     window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   const handlePriceKeyChange = async (id: string, newKey: string) => {
     setLoadingId(id);
-    await onUpdateClient(id, { assigned_price_key: newKey });
+    await onUpdateClient(id, { assignedPriceKey: newKey });
     setLoadingId(null);
   };
 
   const handleSaveAnchorPercent = async (id: string) => {
     setLoadingId(id);
     const val = anchorInputVal.trim();
-    await onUpdateClient(id, { anchor_percent: val !== "" ? Number(val) : null });
+    await onUpdateClient(id, { anchorPercent: val !== "" ? Number(val) : null });
     setEditingAnchorId(null);
+    setLoadingId(null);
+  };
+
+  const handleRevokeDevices = async (client: B2bClient) => {
+    if (!confirm(`Deseja revogar todos os dispositivos autorizados de ${client.company_name}? No próximo acesso, será solicitado novo código de verificação via WhatsApp.`)) {
+      return;
+    }
+    setLoadingId(client.id);
+    await onUpdateClient(client.id, { revokeTrustedDevices: true });
     setLoadingId(null);
   };
 
@@ -104,6 +117,7 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
       {clients.map((client, idx) => {
         const isCopied = copiedId === client.id;
         const isUpdating = loadingId === client.id;
+        const deviceCount = Array.isArray(client.trusted_device_ids) ? client.trusted_device_ids.length : 0;
 
         return (
           <motion.div
@@ -131,6 +145,15 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
                   )}
                   <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-wider shrink-0">
                     Homologado
+                  </span>
+
+                  {/* Badge de Dispositivos Confiáveis */}
+                  <span 
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-md bg-slate-100 dark:bg-white/5 text-[var(--dash-text-secondary)] border border-slate-200/60 dark:border-white/10 shrink-0"
+                    title={`${deviceCount} aparelho(s) salvo(s) na lista de confiança`}
+                  >
+                    <Laptop size={10} className="text-emerald-500" />
+                    <span>{deviceCount} {deviceCount === 1 ? "aparelho" : "aparelhos"}</span>
                   </span>
                 </div>
 
@@ -237,7 +260,7 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
                     ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
                     : "border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-secondary)] hover:text-[var(--dash-text-primary)] hover:border-emerald-500/30"
                 }`}
-                title="Copiar link com token em 1-clique"
+                title="Copiar link seguro com token"
               >
                 {isCopied ? (
                   <>
@@ -247,7 +270,7 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
                 ) : (
                   <>
                     <Copy size={12} />
-                    <span>Link 1-Clique</span>
+                    <span>Link Seguro</span>
                   </>
                 )}
               </button>
@@ -261,6 +284,18 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
                 <Send size={12} />
                 <span>WhatsApp</span>
               </button>
+
+              {/* Botão Revogar Dispositivos (Se houver dispositivos registrados) */}
+              {deviceCount > 0 && (
+                <button
+                  onClick={() => handleRevokeDevices(client)}
+                  disabled={isUpdating}
+                  className="p-1.5 rounded-lg border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface-secondary)] text-[var(--dash-text-muted)] hover:text-amber-500 hover:border-amber-500/30 transition-all cursor-pointer"
+                  title="Revogar todos os dispositivos autorizados deste cliente"
+                >
+                  <RotateCcw size={12} />
+                </button>
+              )}
             </div>
           </motion.div>
         );
