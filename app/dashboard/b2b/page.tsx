@@ -17,6 +17,8 @@ import { B2bClientsList, B2bClient } from "@/components/dashboard/b2b/B2bClients
 import { B2bPendingRequestsList } from "@/components/dashboard/b2b/B2bPendingRequestsList";
 import { B2bSheetsConfigCard } from "@/components/dashboard/b2b/B2bSheetsConfigCard";
 import { B2bNewClientModal } from "@/components/dashboard/b2b/B2bNewClientModal";
+import { B2bUpgradeGateCard } from "@/components/dashboard/b2b/B2bUpgradeGateCard";
+import { isFeatureAllowed } from "@/lib/plans/feature-matrix";
 import { createClient } from "@/lib/supabase/client";
 
 export default function B2bDashboardPage() {
@@ -28,6 +30,7 @@ export default function B2bDashboardPage() {
   const [activeTab, setActiveTab] = useState<"clients" | "pending" | "sheets">("clients");
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [isPlanLocked, setIsPlanLocked] = useState(false);
   const [organizationId, setOrganizationId] = useState<string>("");
   const [orgName, setOrgName] = useState<string>("Maj Mobilidade");
   const [slug, setSlug] = useState<string>("majmobilidade");
@@ -61,9 +64,16 @@ export default function B2bDashboardPage() {
           setOrganizationId(currentOrgId);
           const { data: org } = await supabase
             .from("organizations")
-            .select("slug, name")
+            .select("slug, name, plan_id")
             .eq("id", currentOrgId)
             .maybeSingle();
+
+          const hasAccess = isSuperAdmin || isFeatureAllowed(org?.plan_id, "b2b_portal");
+          if (!hasAccess) {
+            setIsPlanLocked(true);
+            setLoading(false);
+            return;
+          }
 
           if (org?.slug) {
             activeSlug = org.slug;
@@ -148,6 +158,10 @@ export default function B2bDashboardPage() {
     }
     return "Tabelas de Atacado";
   }, [customTables]);
+
+  if (!loading && isPlanLocked) {
+    return <B2bUpgradeGateCard />;
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-6 w-full">

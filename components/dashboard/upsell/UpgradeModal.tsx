@@ -77,6 +77,18 @@ const FEATURE_DETAILS: Record<
       "Histórico de alterações em lote e reversão simplificada",
     ],
   },
+  b2b_portal: {
+    title: "Portal B2B & Vendas no Atacado",
+    desc: "Crie tabelas de preços exclusivas por cliente via Google Sheets, links protegidos por WhatsApp OTP e pedidos rápidos em lote.",
+    targetPlan: "sales_team",
+    benefits: [
+      "Tabelas de preços personalizadas sincronizadas via Google Sheets",
+      "Links de acesso exclusivos com token e WhatsApp OTP (6 dígitos)",
+      "Validação automática de CNPJ na Receita Federal (BrasilAPI)",
+      "Sistema de ancoragem dinâmica de margens e cálculo de economia",
+      "Pedido rápido em lote (Fast Order) com comprovante instantâneo no WhatsApp",
+    ],
+  },
 };
 
 export default function UpgradeModal({ isOpen, onClose, feature, targetPlan }: UpgradeModalProps) {

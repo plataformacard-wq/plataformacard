@@ -4,7 +4,8 @@ export type FeatureKey =
   | "custom_domain"
   | "sales_team"
   | "bulk_pricing"
-  | "caas_master";
+  | "caas_master"
+  | "b2b_portal";
 
 export type PlanSlug = "starter" | "pro" | "sales_team" | "all_service";
 
@@ -65,7 +66,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     monthlyPrice: 299.90,
     annualPrice: 199.90,
     annualDiscountValue: 100.00,
-    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "bulk_pricing"],
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "bulk_pricing", "b2b_portal"],
     maxProducts: 5000,
     maxUsers: 10,
     checkoutUrls: {
@@ -81,7 +82,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     monthlyPrice: 499.90,
     annualPrice: 349.90,
     annualDiscountValue: 150.00,
-    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "bulk_pricing", "caas_master"],
+    allowedFeatures: ["ai_seo", "bling_sync", "custom_domain", "sales_team", "bulk_pricing", "caas_master", "b2b_portal"],
     maxProducts: 99999,
     maxUsers: 99,
     checkoutUrls: {

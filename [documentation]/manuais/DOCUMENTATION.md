@@ -183,8 +183,15 @@ Ambos possuem o mesmo formato de catálogo vitrine, o mesmo controle de recesso 
   - Substituição de botões estáticos por Sliders de Status (Visível/Estoque).
   - Auditoria completa de cores (Pre-Git Scan) removendo hexadecimais fixos e classes `zinc` residuais.
 
+## 9. Módulo B2B & Enquadramento Estratégico de Planos (SaaS)
+- **Documento Estratégico Oficial:** [ESTUDO_ENQUADRAMENTO_PORTAL_B2B.md](file:///c:/Users/Start/PlataformaShop/[documentation]/estrategia/ESTUDO_ENQUADRAMENTO_PORTAL_B2B.md)
+- **Flagship Feature:** O Portal Atacadista B2B (tabelas de preços via Google Sheets, ancoragem de markup, validação de CNPJ BrasilAPI e segurança WhatsApp OTP) é posicionado como a funcionalidade de alto valor dos planos corporativos:
+  - **Plano PRO (R$ 149,90/mês):** Degustação Freemium de até 3 clientes homologados.
+  - **Plano Sales Team (R$ 299,90/mês):** B2B Pleno para até 100 clientes homologados + Google Sheets Sync + WhatsApp OTP.
+  - **Plano Franqueador (R$ 499,90/mês):** B2B Enterprise Ilimitado + CaaS Embed B2B.
+
 ---
-*Última atualização: 2026-06-19*
+*Última atualização: 2026-08-31*
 
 > [!IMPORTANT]
 > Para acompanhar o progresso técnico e tarefas em aberto, consulte o arquivo [PENDENCIAS.md](file:///Users/macstudio-maj/Documents/PlataformaShop/PENDENCIAS.md).

@@ -217,12 +217,14 @@ export function Sidebar({ role, businessModel, planId, isOpen, onClose, isCollap
       navLinks.push({ href: "/dashboard/estoque", label: "Estoque", icon: Package });
       navLinks.push({ href: "/dashboard/crm", label: "CRM de Leads", icon: Kanban });
 
-      if (isB2B || isAllService || isActuallySuperAdmin) {
+      const hasB2bAllowed = isActuallySuperAdmin || isFeatureAllowed(planId, "b2b_portal");
+      if (isB2B || isAllService || isActuallySuperAdmin || !hasB2bAllowed) {
         navLinks.push({ 
           href: "/dashboard/b2b", 
           label: "Portal B2B", 
           icon: Building2,
-          badge: "ZEON"
+          requiredFeature: hasB2bAllowed ? undefined : "b2b_portal",
+          badge: hasB2bAllowed ? "ZEON" : "SALES TEAM"
         });
       }
 

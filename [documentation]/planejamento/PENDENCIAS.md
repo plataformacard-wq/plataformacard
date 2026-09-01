@@ -51,13 +51,12 @@ graph TD
 
 ### 🔹 Fase 5: Conversão e Expansão Comercial (Pronto para o Mercado)
 *Lógica: Atrair clientes para o SaaS e viabilizar a cobrança de planos.*
-- [ ] **Landing Page de Captura:** Criar página oficial para conversão de novos clientes do SaaS.
+- [ ] **Assets Visuais & Mockups Oficiais da Landing Page (LP):** Upload dos mockups 3D e logos oficiais no CMS da Landing Page.
 - [x] **Sistemas de Pagamento:** Arquitetura de checkout Kiwify + Sandbox e webhooks atômicos implementada.
 - [x] **Domínios Próprios:** Arquitetura de `custom_domain` automatizada via API da Vercel.
+- [x] **Portal B2B & Vendas no Atacado (Plano Zeon):** Módulo B2B completo com sincronização Google Sheets, ancoragem dinâmica de margens, links mágicos com URL Sanitizer, verificação de dispositivos via WhatsApp OTP (6 dígitos) e validação oficial de CNPJ via BrasilAPI.
+- [x] **Enquadramento Estratégico de Planos & Gatilhos de Upgrade:** Portal B2B posicionado como funcionalidade exclusiva dos planos Sales Team (R$ 299,90) e Franqueador (R$ 499,90), com travas de menu na Sidebar e bloqueio de rotas com modal de Upgrade automático.
 - [ ] **Assistente de Inteligência do Lojista (Chat RAG - Agendado Pós-Lançamento):** Arquitetura RAG isolada por `organization_id`, cotas mensais por plano (PRO/Enterprise) e especificações técnicas documentadas em [`[documentation]/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md). Implementação agendada para a Fase 2 (Pós-Go-Live).
-- [ ] **Análise Estratégica - Gestão de Acessos B2B:** Criação e validação do sistema de acesso de vendedores ao dashboard com as limitações configuradas pelo Gestor B2B.
-- [ ] **Análise Estratégica - Planos e Funções:** Definição e criação de Planos e Funções (Roles) do SaaS.
-- [ ] **Pesquisa de Mercado:** Estudo de precificação e análise de concorrência.
 
 ### 🔹 Fase 6: Débito Técnico e Monitoramento Secundário
 *Lógica: Manutenção de longo prazo e qualidade estrutural de código.*
