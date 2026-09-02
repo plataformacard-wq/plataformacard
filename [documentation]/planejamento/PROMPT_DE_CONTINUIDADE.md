@@ -35,6 +35,10 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
   - 3 pilares de copywriting psicológico: Facilidade de fala/memorização, economia de R$ 150/ano em registros e prontidão para chip NFC/Bio.
   - Integração no fluxo de conversão: simuladores no Hero e no bloco direcionam com link pré-reservado para `/cadastro?slug=...`.
   - Badge visual de link reservado exibido no topo do formulário de criação de conta.
+- [x] **Estudo de Viabilidade: Planos Gratuitos (Freemium vs. Free Trial):**
+  - Análise estratégica, financeira (Unit Economics de R$ 0,03 a R$ 0,05/mês por usuário) e arquitetura Product-Led Growth (PLG).
+  - Mapeamento das travas necessárias (limite de 20 produtos, bloqueio total de IA/Bling e inclusão de badge viral no rodapé do catálogo).
+  - Documentação completa registrada em `[documentation]/estrategia/ESTUDO_VIABILIDADE_PLANO_GRATUITO.md`.
 
 ---
 

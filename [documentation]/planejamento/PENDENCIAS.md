@@ -56,6 +56,7 @@ graph TD
 - [x] **Domínios Próprios:** Arquitetura de `custom_domain` automatizada via API da Vercel.
 - [x] **Portal B2B & Vendas no Atacado (Plano Zeon):** Módulo B2B completo com sincronização Google Sheets, ancoragem dinâmica de margens, links mágicos com URL Sanitizer, verificação de dispositivos via WhatsApp OTP (6 dígitos) e validação oficial de CNPJ via BrasilAPI.
 - [x] **Enquadramento Estratégico de Planos & Gatilhos de Upgrade:** Portal B2B posicionado como funcionalidade exclusiva dos planos Sales Team (R$ 299,90) e Franqueador (R$ 499,90), com travas de menu na Sidebar e bloqueio de rotas com modal de Upgrade automático.
+- [x] **Estudo de Viabilidade de Planos Gratuitos (Freemium vs. Free Trial):** Estudo aprofundado concluído avaliando viabilidade de banco/storage (Supabase), riscos de canibalização e mecânica viral de PLG via badge de rodapé. Arquivado em `[documentation]/estrategia/ESTUDO_VIABILIDADE_PLANO_GRATUITO.md`.
 - [ ] **Assistente de Inteligência do Lojista (Chat RAG - Agendado Pós-Lançamento):** Arquitetura RAG isolada por `organization_id`, cotas mensais por plano (PRO/Enterprise) e especificações técnicas documentadas em [`[documentation]/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md`](file:///c:/Users/Start/PlataformaShop/%5Bdocumentation%5D/planejamento/ESPECIFICACAO_CHAT_IA_RAG.md). Implementação agendada para a Fase 2 (Pós-Go-Live).
 
 ### 🔹 Fase 6: Débito Técnico e Monitoramento Secundário
