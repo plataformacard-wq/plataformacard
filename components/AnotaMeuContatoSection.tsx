@@ -130,42 +130,131 @@ export function AnotaMeuContatoSection() {
               </div>
             </div>
 
-            {/* Coluna Direita: Mockup Visual do Compartilhamento WhatsApp */}
+            {/* Coluna Direita: Mockup Hiper-Realista do WhatsApp */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className="w-full max-w-sm rounded-2xl bg-zinc-950 border border-white/10 p-5 shadow-2xl relative overflow-hidden">
-                {/* Header Mockup Chat */}
-                <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#2CCB68] to-[#06B6D4] flex items-center justify-center text-white font-black text-xs">
-                    PS
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white leading-tight">Seu Cliente no WhatsApp</h4>
-                    <span className="text-[10px] text-emerald-400 font-medium">Online agora</span>
-                  </div>
-                </div>
-
-                {/* Balão de Conversa Mockup */}
-                <div className="mt-4 space-y-3">
-                  <div className="bg-[#1f2c34] text-zinc-200 p-3 rounded-2xl rounded-tl-sm text-xs leading-relaxed max-w-[85%]">
-                    Boa tarde! Onde vejo o catálogo e os dados de vocês?
-                  </div>
-
-                  <div className="ml-auto bg-[#005c4b] text-white p-3.5 rounded-2xl rounded-tr-sm text-xs shadow-md max-w-[90%]">
-                    <p className="mb-2">Olá! Acesse tudo pelo nosso link direto:</p>
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2 text-[#2CCB68] font-mono font-bold text-[11px] break-all">
-                      <Globe size={14} className="shrink-0" />
-                      <span>{fullDomainUrl}</span>
+              <div className="w-full max-w-[340px] sm:max-w-[360px] rounded-[32px] bg-[#0b141a] border-4 border-[#222e35] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden relative font-sans">
+                
+                {/* Barra de Status do Celular */}
+                <div className="bg-[#202c33] px-5 pt-2.5 pb-1 flex justify-between items-center text-[11px] text-zinc-300 font-semibold border-b border-black/20 select-none">
+                  <span>14:30</span>
+                  <div className="flex items-center gap-1.5 text-zinc-300">
+                    <span className="text-[10px]">4G</span>
+                    <div className="w-4 h-2.5 border border-zinc-300 rounded-[2px] p-[1px] flex items-center">
+                      <div className="h-full w-3 bg-[#25d366] rounded-[1px]" />
                     </div>
                   </div>
                 </div>
 
-                {/* Tag de Facilidade */}
-                <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[10px] text-zinc-400 font-medium">
-                  <span className="flex items-center gap-1">
-                    <Smartphone size={12} className="text-emerald-400" /> Abre instantaneamente no celular
-                  </span>
-                  <span className="text-[#2CCB68] font-bold">100% Responsivo</span>
+                {/* Topo do WhatsApp Oficial */}
+                <div className="bg-[#202c33] px-3 py-2.5 flex items-center justify-between text-white border-b border-[#222e35]">
+                  <div className="flex items-center gap-2">
+                    {/* Botão Voltar */}
+                    <svg className="w-5 h-5 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                    </svg>
+
+                    {/* Avatar do Contato */}
+                    <div className="relative">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#128C7E] to-[#25D366] flex items-center justify-center text-white font-black text-xs shadow-inner">
+                        PS
+                      </div>
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#25D366] border-2 border-[#202c33] rounded-full" />
+                    </div>
+
+                    {/* Nome do Contato */}
+                    <div className="flex flex-col leading-tight">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-semibold text-zinc-100">Cliente Interessado</span>
+                        <svg className="w-3 h-3 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      </div>
+                      <span className="text-[10px] text-[#25D366] font-medium">online</span>
+                    </div>
+                  </div>
+
+                  {/* Ícones de Ação (Chamada, Câmera, Menu) */}
+                  <div className="flex items-center gap-3 text-zinc-400">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.27.36-.67.25-1.02A11.36 11.36 0 018.57 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-.99-1.12z"/></svg>
+                    <span className="text-xs font-bold">⋮</span>
+                  </div>
                 </div>
+
+                {/* Corpo do Chat com Textura de Fundo do WhatsApp */}
+                <div 
+                  className="p-3.5 space-y-3 min-h-[260px] relative"
+                  style={{
+                    backgroundColor: "#0b141a",
+                    backgroundImage: `radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 1px, transparent 1px)`,
+                    backgroundSize: "20px 20px"
+                  }}
+                >
+                  {/* Badge de Data Centralizada */}
+                  <div className="flex justify-center mb-2">
+                    <span className="px-3 py-1 rounded-lg bg-[#182229] text-[10px] text-zinc-400 font-medium shadow-sm">
+                      HOJE
+                    </span>
+                  </div>
+
+                  {/* Mensagem Recebida (Cliente) */}
+                  <div className="flex flex-col items-start">
+                    <div className="relative bg-[#202c33] text-zinc-200 px-3.5 py-2 rounded-2xl rounded-tl-none text-xs leading-relaxed max-w-[85%] shadow-md border-l-2 border-emerald-500/40">
+                      <p className="text-[12.5px] leading-snug">Boa tarde! Onde vejo o catálogo completo e os dados de vocês?</p>
+                      <div className="flex justify-end items-center gap-1 mt-1 text-[9px] text-zinc-400">
+                        <span>14:31</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mensagem Enviada com Link (Empresa) */}
+                  <div className="flex flex-col items-end">
+                    <div className="relative bg-[#005c4b] text-white p-2.5 rounded-2xl rounded-tr-none text-xs shadow-lg max-w-[92%] border-r-2 border-[#25D366]">
+                      <p className="text-[12.5px] mb-2 font-normal leading-snug">
+                        Olá! Acesse tudo agora pelo nosso link direto:
+                      </p>
+
+                      {/* Card de Preview Rico do Link (Estilo WhatsApp) */}
+                      <div className="rounded-xl overflow-hidden bg-[#025143] border border-white/10 shadow-inner">
+                        <div className="bg-[#014136] px-3 py-2 flex items-center gap-2 border-b border-white/5">
+                          <div className="w-5 h-5 rounded-md bg-[#25D366]/20 text-[#25D366] flex items-center justify-center shrink-0">
+                            <Globe size={13} />
+                          </div>
+                          <span className="text-[11px] font-bold text-white truncate">
+                            Catálogo & Contato Oficial
+                          </span>
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-[11px] text-emerald-100/90 font-mono font-bold leading-tight break-all">
+                            https://{fullDomainUrl}
+                          </p>
+                          <span className="text-[9.5px] text-emerald-300/70 block mt-1">
+                            Abre instantaneamente no navegador
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Horário e Check Azul Duplo */}
+                      <div className="flex justify-end items-center gap-1 mt-1 text-[9.5px] text-emerald-200/80 font-medium">
+                        <span>14:32</span>
+                        {/* Double Blue Check */}
+                        <svg className="w-3.5 h-3.5 text-[#53bdeb]" viewBox="0 0 16 15" fill="none">
+                          <path d="M15.01 3.316l-7.79 7.79-3.23-3.23.71-.71 2.52 2.52 7.08-7.08.71.71zm-4.56 0l-5.66 5.66-1.81-1.81.71-.71 1.1 1.1 4.95-4.95.71.71zm-7.47 4.95l-.71-.71-1.81 1.81 3.23 3.23.71-.71-2.52-2.52 1.1-1.1z" fill="currentColor"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Barra Inferior de Envio do WhatsApp */}
+                <div className="bg-[#202c33] px-3 py-2 flex items-center gap-2 border-t border-[#222e35]">
+                  <div className="flex-1 bg-[#2a3942] rounded-full px-3.5 py-1.5 text-[11px] text-zinc-400 flex items-center justify-between">
+                    <span>Mensagem</span>
+                    <span className="text-zinc-500">📎</span>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-md">
+                    <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                  </div>
+                </div>
+
               </div>
             </div>
 
