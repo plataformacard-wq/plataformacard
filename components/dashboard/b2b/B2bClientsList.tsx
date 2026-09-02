@@ -149,7 +149,7 @@ export const B2bClientsList: React.FC<B2bClientsListProps> = ({
 
                   {/* Badge de Dispositivos Confiáveis */}
                   <span 
-                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-md bg-slate-100 dark:bg-white/5 text-[var(--dash-text-secondary)] border border-slate-200/60 dark:border-white/10 shrink-0"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-md bg-slate-100 dark:bg-[var(--dash-surface)]/5 text-[var(--dash-text-secondary)] border border-slate-200/60 dark:border-white/10 shrink-0"
                     title={`${deviceCount} aparelho(s) salvo(s) na lista de confiança`}
                   >
                     <Laptop size={10} className="text-emerald-500" />

@@ -25,18 +25,20 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
 
 ---
 
-## 2. Próxima Sessão: Configuração & Validação do Google OAuth (Supabase)
+- [x] **Configuração e Homologação do Google OAuth (Supabase):**
+  - Provedor Google ativado no Supabase Auth com Client ID e Client Secret.
+  - Redirect URIs configurados para desenvolvimento (`http://localhost:3000/**`), produção (`https://www.plataformashop.com.br/**`) e Vercel Previews (`https://*.vercel.app/**`).
+  - Callback OAuth otimizado em `app/auth/callback/route.ts` com sincronização atômica de `user_id`, `email` e dados de perfil.
+  - Fluxo "Continuar com o Google" testado e homologado com sucesso em `http://localhost:3000/entrar`.
 
-### 🎯 Objetivo:
-Habilitar e testar o login social com o Google ("Entrar com Google") no Supabase Auth para catálogo e dashboard.
+---
 
-### 📋 Checklist de Ação:
-1. **Google Cloud Console:**
-   - Obter o `Client ID` e o `Client Secret` do OAuth 2.0.
-   - Configurar o Redirect URI autorizado: `https://<supabase-project-id>.supabase.co/auth/v1/callback` e `http://localhost:3000/auth/callback`.
-2. **Painel Supabase:**
-   - Navegar até *Authentication* ➔ *Providers* ➔ *Google*.
-   - Ativar o provider e colar o Client ID e Client Secret.
-3. **Frontend & Redirecionamentos:**
-   - Validar `/app/entrar/page.tsx` e componentes de login social.
-   - Testar o fluxo completo de autenticação e criação de perfil na tabela `profiles`.
+## 2. Próximos Passos Sugeridos
+
+### 🎯 Próximo Foco:
+1. **Auditoria de Sessão e Desconexão (Sign Out):**
+   - Garantir que a saída do usuário limpe adequadamente cookies de sessão em todos os subdomínios e roteamentos.
+2. **Homologação em Staging/Produção (Vercel):**
+   - Confirmar o funcionamento do OAuth em ambiente real após o deploy da branch `main`.
+3. **Refinamento de Onboarding para Novos Usuários via Google:**
+   - Validar experiência para usuários recém-chegados sem perfil prévio via fluxo `/onboarding`.

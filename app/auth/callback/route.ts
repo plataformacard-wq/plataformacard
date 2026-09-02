@@ -60,7 +60,7 @@ export async function GET(request: Request) {
   // Busca perfil por id ou por user_id para garantir compatibilidade total
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, slug, organization_id, user_id, organizations(slug)")
+    .select("id, slug, organization_id, user_id, email, avatar_url, organizations(slug)")
     .or(`id.eq.${user.id},user_id.eq.${user.id}`)
     .maybeSingle();
 
@@ -69,15 +69,21 @@ export async function GET(request: Request) {
   }
 
   if (profile) {
-    // Se o user_id estivesse nulo na tabela profiles, atualiza para garantir integridade
-    if (!profile.user_id) {
+    // Sincroniza atômica de user_id, email e avatar se ainda não preenchidos
+    const updates: Record<string, any> = {};
+    if (!profile.user_id) updates.user_id = user.id;
+    if (!profile.email && user.email) updates.email = user.email;
+    const metaAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+    if (!profile.avatar_url && metaAvatar) updates.avatar_url = metaAvatar;
+
+    if (Object.keys(updates).length > 0) {
       await supabase
         .from("profiles")
-        .update({ user_id: user.id })
+        .update(updates)
         .eq("id", profile.id);
     }
 
-    const orgSlug = (profile.organizations as any)?.slug || "majmobilidade";
+    const orgSlug = (profile.organizations as any)?.slug || profile.slug || "majmobilidade";
     const destination = next.startsWith("/dashboard") ? `/${orgSlug}${next}` : next;
 
     console.log("Perfil encontrado. Redirecionando para:", destination);

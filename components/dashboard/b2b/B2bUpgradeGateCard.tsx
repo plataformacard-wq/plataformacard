@@ -16,7 +16,7 @@ export const B2bUpgradeGateCard: React.FC = () => {
         targetPlan="sales_team"
       />
 
-      <div className="p-8 sm:p-12 rounded-3xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] text-center space-y-6 max-w-3xl mx-auto shadow-2xl relative overflow-hidden my-6">
+      <div className="p-8 sm:p-12 rounded-3xl border border-slate-200/80 dark:border-white/10 bg-[var(--dash-surface)] text-center space-y-6 w-full shadow-2xl relative overflow-hidden my-6">
         {/* Glow de fundo */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
