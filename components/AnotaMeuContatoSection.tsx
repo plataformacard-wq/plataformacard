@@ -52,7 +52,18 @@ export function AnotaMeuContatoSection() {
             </span>
           </h2>
 
-          <p className="text-zinc-600 dark:text-zinc-400 text-lg md:text-xl max-w-2xl leading-relaxed">
+          {/* Sticker Grande de Destaque com o Domínio */}
+          <div className="my-3 inline-flex items-center gap-3 px-6 py-3 md:px-8 md:py-4 rounded-2xl bg-white dark:bg-[#121212] border-2 border-[#2CCB68]/30 shadow-[0_0_35px_rgba(44,203,104,0.18)] hover:shadow-[0_0_45px_rgba(44,203,104,0.3)] hover:scale-[1.02] transition-all">
+            <div className="p-2 rounded-xl bg-[#2CCB68]/15 text-[#2CCB68]">
+              <Globe className="w-5 h-5 md:w-7 md:h-7 animate-pulse" />
+            </div>
+            <div className="flex items-baseline gap-1 text-lg sm:text-2xl md:text-3xl font-black tracking-tight">
+              <span className="text-zinc-900 dark:text-white font-mono">www.anotameucontato.com.br/</span>
+              <span className="text-[#2CCB68] font-mono underline decoration-wavy decoration-[#06B6D4]/60 underline-offset-4">sua-empresa</span>
+            </div>
+          </div>
+
+          <p className="text-zinc-600 dark:text-zinc-400 text-lg md:text-xl max-w-2xl leading-relaxed mt-4">
             Um link direto, elegante e intuitivo que qualquer cliente grava de primeira — pronto para usar desde o primeiro minuto:
           </p>
         </div>
