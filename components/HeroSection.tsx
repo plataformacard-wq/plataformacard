@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { motion, AnimatePresence } from "framer-motion";
+
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 function SingleThemeCarousel({ images, interval, isDarkTheme }: { images: string[]; interval: number; isDarkTheme: boolean }) {
   const [index, setIndex] = useState(0);
@@ -66,24 +70,10 @@ function SingleThemeCarousel({ images, interval, isDarkTheme }: { images: string
 }
 
 export function HeroSection({ settings }: { settings?: any }) {
-  const router = useRouter();
-  const [slug, setSlug] = useState("");
-
   const headline = settings?.hero_headline || "O Fim dos Catálogos em PDF.<br/><span class='text-[#2CCB68]'>A Ferramenta Definitiva para o seu Time de Vendas.</span>";
   const subtitle = settings?.hero_subtitle || "Cartão de Visitas Digital NFC e um Catálogo Transacional Taxa Zero sempre sincronizado com o seu Bling. A máquina de vendas que as maiores empresas usam.";
   
   const interval = settings?.hero_carousel_interval || 4000;
-
-  function handleReserveLink(e: React.FormEvent) {
-    e.preventDefault();
-    const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
-    if (cleanSlug) {
-      localStorage.setItem("reserved_slug", cleanSlug);
-      router.push(`/cadastro?slug=${encodeURIComponent(cleanSlug)}`);
-    } else {
-      router.push("/cadastro");
-    }
-  }
 
   // Fallback Inteligente de Imagens para o Tema Escuro
   const darkImages: string[] = Array.isArray(settings?.hero_mockups_dark) && settings.hero_mockups_dark.length > 0
@@ -119,27 +109,23 @@ export function HeroSection({ settings }: { settings?: any }) {
             {subtitle}
           </p>
           
-          {/* Link Simulator */}
-          <form onSubmit={handleReserveLink} className="mt-6 flex flex-col sm:flex-row items-center gap-3 p-2 rounded-2xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 backdrop-blur-md max-w-xl shadow-lg dark:shadow-2xl focus-within:border-[#2CCB68] transition-colors">
-            <div className="flex items-center px-4 flex-1 w-full sm:w-auto overflow-hidden">
-              <span className="text-zinc-500 font-medium select-none text-xs sm:text-sm shrink-0">anotameucontato.com.br/</span>
-              <input 
-                type="text" 
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="sua-empresa" 
-                className="bg-transparent border-none outline-none text-zinc-900 dark:text-white font-medium w-full ml-1 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:ring-0 text-xs sm:text-sm"
-              />
-            </div>
-            <button 
-              type="submit" 
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-white font-semibold shadow-lg shadow-[#2CCB68]/20 hover:shadow-[#2CCB68]/40 hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer text-sm whitespace-nowrap"
+          {/* CTAs Principais */}
+          <div className="mt-4 flex flex-col sm:flex-row items-center gap-4">
+            <Link
+              href="/cadastro"
+              className={`w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-[#2CCB68] to-[#06B6D4] text-white font-bold text-base shadow-lg shadow-[#2CCB68]/25 hover:shadow-[#2CCB68]/40 hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer ${plusJakarta.className}`}
             >
-              Reservar Link
-            </button>
-          </form>
-          
-          <p className="text-xs text-zinc-500 mt-2 ml-2">Escolha seu plano e comece a vender em minutos.</p>
+              <span>Começar Gratuitamente</span>
+              <ArrowRight size={18} />
+            </Link>
+
+            <Link
+              href="#planos"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 rounded-xl border border-zinc-300 dark:border-white/10 bg-white/80 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-200 font-semibold text-base transition-all active:scale-[0.98]"
+            >
+              Conhecer Planos
+            </Link>
+          </div>
           
           {/* Trust Badges B2B */}
           <div className="mt-6 flex flex-wrap gap-4 items-center border-t border-white/10 pt-6">
