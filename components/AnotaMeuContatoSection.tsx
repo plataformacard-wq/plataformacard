@@ -46,14 +46,14 @@ export function AnotaMeuContatoSection() {
           </div>
 
           <h2 className={`text-3xl md:text-5xl lg:text-6xl font-extrabold text-zinc-900 dark:text-white tracking-tight max-w-4xl leading-[1.15] mb-6 ${plusJakarta.className}`}>
-            Um Domínio Memorável. <br className="hidden sm:inline" />
+            Na PlataformaShop seu negócio <br className="hidden sm:inline" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#2CCB68] to-[#06B6D4]">
-              Sem Burocracia, Sem Anuidade.
+              já tem endereço na internet.
             </span>
           </h2>
 
           <p className="text-zinc-600 dark:text-zinc-400 text-lg md:text-xl max-w-2xl leading-relaxed">
-            Não gaste tempo nem dinheiro contratando registros caros de internet. Todos os assinantes recebem um endereço que qualquer cliente memoriza no primeiro segundo:
+            Um link direto, elegante e intuitivo que qualquer cliente grava de primeira — pronto para usar desde o primeiro minuto:
           </p>
         </div>
 
@@ -169,10 +169,10 @@ export function AnotaMeuContatoSection() {
               <Zap size={24} />
             </div>
             <h3 className={`text-xl font-bold text-zinc-900 dark:text-white mb-2 ${plusJakarta.className}`}>
-              Psicologia da Facilidade
+              Fácil de Lembrar e Soletrar
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Você não precisa soletrar letras complicadas. Basta falar para o cliente: <strong className="text-zinc-900 dark:text-white">"Anota meu contato ponto com ponto br barra sua empresa"</strong>. Todo mundo grava no primeiro segundo.
+              Diga ao cliente numa ligação ou balcão: <strong className="text-zinc-900 dark:text-white">"Anota meu contato ponto com ponto br barra sua empresa"</strong>. Simples, natural e impossível de esquecer.
             </p>
           </div>
 
@@ -181,10 +181,10 @@ export function AnotaMeuContatoSection() {
               <ShieldCheck size={24} />
             </div>
             <h3 className={`text-xl font-bold text-zinc-900 dark:text-white mb-2 ${plusJakarta.className}`}>
-              Economia Real de R$ 150/ano
+              Acesso Direto Sem Obstáculos
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Sem taxas anuais de Registro.br, sem renovação de certificados SSL caros e sem dores de cabeça configurando servidores DNS. Já entregamos o domínio pronto e blindado.
+              Sem intermediários ou páginas lentas. Seu catálogo já nasce com certificado SSL blindado, carregamento instantâneo e pronto para receber visitas.
             </p>
           </div>
 
@@ -196,7 +196,7 @@ export function AnotaMeuContatoSection() {
               Perfeito para Cartão NFC & Bio
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Ideal para gravar diretamente na memória do seu Cartão Físico NFC ou colocar no link da bio do Instagram. Seu cliente aproxima o smartphone ou clica e o catálogo abre na hora.
+              Grave no chip do seu Cartão Físico NFC ou adicione na biografia do Instagram. O cliente aproxima o smartphone ou clica no link e o seu catálogo abre imediatamente.
             </p>
           </div>
 
