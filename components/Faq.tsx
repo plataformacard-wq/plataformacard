@@ -26,6 +26,10 @@ const FAQ_ITEMS = [
   {
     question: "Como funciona a integração com NFC?",
     answer: "Ao adquirir nossos cartões ou tags NFC físicos, basta encostá-los no celular de um cliente em uma reunião presencial. O celular abrirá automaticamente a sua vitrine digital da PlataformaShop na tela dele, causando um impacto altamente profissional."
+  },
+  {
+    question: "Posso usar meu próprio endereço na internet em vez do fornecido pela plataforma?",
+    answer: "Sim, com certeza! Além do endereço simplificado e memorável fornecido nativamente pela PlataformaShop (anotameucontato.com.br/sua-empresa), você tem total liberdade para conectar o seu próprio domínio (como www.suaempresa.com.br ou catalogo.suaempresa.com.br). O apontamento é simples, conta com certificado de segurança SSL automático e é ativado direto no painel da sua empresa."
   }
 ];
 
