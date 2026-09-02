@@ -44,10 +44,15 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
 
 ## 2. Próximos Passos Sugeridos
 
-### 🎯 Próximo Foco:
-1. **Auditoria de Sessão e Desconexão (Sign Out):**
+### 🎯 Próximo Foco Imediato:
+1. **Auditoria Visual & Responsiva do Mockup Físico de Celular (WhatsApp):**
+   - Inspecionar a renderização do chassi do smartphone (`components/AnotaMeuContatoSection.tsx`) em telas mobile (`< 380px`), tablets e desktops.
+   - Ajustar fidelidade de tipografia, sombras e proporções em relação ao design de referência do WhatsApp oficial.
+   - Garantir que a quebra de linha de URLs longas no balão não quebre a estrutura do chat.
+   - Auditar contraste e legibilidade nos modos Claro e Escuro da Landing Page.
+2. **Auditoria de Sessão e Desconexão (Sign Out):**
    - Garantir que a saída do usuário limpe adequadamente cookies de sessão em todos os subdomínios e roteamentos.
-2. **Homologação em Staging/Produção (Vercel):**
+3. **Homologação em Staging/Produção (Vercel):**
    - Confirmar o funcionamento do OAuth em ambiente real após o deploy da branch `main`.
-3. **Refinamento de Onboarding para Novos Usuários via Google:**
+4. **Refinamento de Onboarding para Novos Usuários via Google:**
    - Validar experiência para usuários recém-chegados sem perfil prévio via fluxo `/onboarding`.
