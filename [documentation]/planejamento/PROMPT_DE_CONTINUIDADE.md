@@ -30,6 +30,11 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
   - Redirect URIs configurados para desenvolvimento (`http://localhost:3000/**`), produção (`https://www.plataformashop.com.br/**`) e Vercel Previews (`https://*.vercel.app/**`).
   - Callback OAuth otimizado em `app/auth/callback/route.ts` com sincronização atômica de `user_id`, `email` e dados de perfil.
   - Fluxo "Continuar com o Google" testado e homologado com sucesso em `http://localhost:3000/entrar`.
+- [x] **Destaque Exclusivo do Domínio "anotameucontato.com.br" na Landing Page:**
+  - Componente dedicado `components/AnotaMeuContatoSection.tsx` implementado com simulador interativo em tempo real, visualização de compartilhamento WhatsApp e cópia de link.
+  - 3 pilares de copywriting psicológico: Facilidade de fala/memorização, economia de R$ 150/ano em registros e prontidão para chip NFC/Bio.
+  - Integração no fluxo de conversão: simuladores no Hero e no bloco direcionam com link pré-reservado para `/cadastro?slug=...`.
+  - Badge visual de link reservado exibido no topo do formulário de criação de conta.
 
 ---
 

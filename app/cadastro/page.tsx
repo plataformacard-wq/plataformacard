@@ -27,10 +27,12 @@ function CadastroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [reservedSlug, setReservedSlug] = useState<string | null>(null);
+
   useEffect(() => {
     const refOrgId = searchParams?.get("ref");
     const refCatalogId = searchParams?.get("catalog");
-    const reservedSlugParam = searchParams?.get("slug");
+    const reservedSlugParam = searchParams?.get("slug") || (typeof window !== "undefined" ? localStorage.getItem("reserved_slug") : null);
 
     if (refOrgId && refCatalogId) {
       localStorage.setItem("franchise_ref_org", refOrgId);
@@ -38,6 +40,7 @@ function CadastroContent() {
     }
     if (reservedSlugParam) {
       localStorage.setItem("reserved_slug", reservedSlugParam);
+      setReservedSlug(reservedSlugParam);
     }
   }, [searchParams]);
 
@@ -338,6 +341,13 @@ function CadastroContent() {
           <p className="text-sm text-zinc-400">
             Cadastre-se para acessar o seu painel.
           </p>
+
+          {reservedSlug && (
+            <div className="mt-4 w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#2CCB68]/10 border border-[#2CCB68]/20 text-[#2CCB68] text-xs font-semibold">
+              <span className="w-2 h-2 rounded-full bg-[#2CCB68] animate-pulse shrink-0" />
+              <span>Link reservado: <strong>anotameucontato.com.br/{reservedSlug}</strong></span>
+            </div>
+          )}
         </div>
 
         {loadingGoogle ? (

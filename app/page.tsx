@@ -4,6 +4,7 @@ import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { CompanyLogos } from "@/components/CompanyLogos";
+import { AnotaMeuContatoSection } from "@/components/AnotaMeuContatoSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { Testimonials } from "@/components/Testimonials";
@@ -163,6 +164,9 @@ export default async function HomePage() {
 
         {/* Social Proof Logos */}
         <CompanyLogos partners={partners || []} />
+
+        {/* Exclusividade: Domínio anotameucontato.com.br */}
+        <AnotaMeuContatoSection />
 
         {/* Agitation / Dores */}
         <section id="dores" className="py-20 bg-transparent">

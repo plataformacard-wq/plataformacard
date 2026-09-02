@@ -79,10 +79,9 @@ export function HeroSection({ settings }: { settings?: any }) {
     const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
     if (cleanSlug) {
       localStorage.setItem("reserved_slug", cleanSlug);
-    }
-    const section = document.getElementById("planos");
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
+      router.push(`/cadastro?slug=${encodeURIComponent(cleanSlug)}`);
+    } else {
+      router.push("/cadastro");
     }
   }
 
