@@ -127,8 +127,8 @@ const [chartTypes, setChartTypes] = useState<Record<string, "area" | "bar" | "do
 
 ## 7. Protocolos de Desenvolvimento & Qualidade
 
-### A. Protocolo VPGP (Verify, Push, Github, Push):
-1. **Validar (Build):** Executar `npx tsc --noEmit` localmente para garantir 0 erros de tipagem.
+### A. Protocolo Deploy (Build, Commit & Push):
+1. **Validar (Build):** Executar `npm run build` ou `npx tsc --noEmit` localmente para garantir 0 erros de tipagem.
 2. **Commit:** Staging (`git add .`) e commit explicativo (`git commit -m "..."`).
 3. **Push:** Enviar alterações para a branch remota (`git push`).
 

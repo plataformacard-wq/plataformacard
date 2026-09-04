@@ -265,25 +265,25 @@ export default async function HomePage() {
                   <h3 className={`text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white ${plusJakarta.className}`}>{feat.title}</h3>
                   <p className="text-zinc-600 dark:text-zinc-400 text-base md:text-lg leading-relaxed">{feat.desc}</p>
                 </div>
-                <div className="flex-1 w-full max-w-lg lg:max-w-xl rounded-3xl overflow-hidden shadow-2xl border border-zinc-200/80 dark:border-white/10 relative group aspect-[2400/1792] bg-zinc-100 dark:bg-black/40">
+                <div className="flex-1 w-full max-w-lg lg:max-w-xl rounded-3xl overflow-hidden shadow-xl border border-zinc-200/60 dark:border-white/10 relative group aspect-[2400/1792] bg-zinc-100 dark:bg-[#121212]/80 flex items-center justify-center">
                   {feat.imageLight && feat.imageDark ? (
                     <>
                       <img 
                         src={feat.imageLight} 
                         alt={`${feat.title} - Modo Claro`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 block dark:hidden"
+                        className="w-full h-full object-cover rounded-3xl group-hover:scale-105 transition-transform duration-500 block dark:hidden"
                       />
                       <img 
                         src={feat.imageDark} 
                         alt={`${feat.title} - Modo Escuro`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 hidden dark:block"
+                        className="w-full h-full object-cover rounded-3xl group-hover:scale-105 transition-transform duration-500 hidden dark:block"
                       />
                     </>
                   ) : feat.image ? (
                     <img 
                       src={feat.image} 
                       alt={feat.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover rounded-3xl group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-zinc-100 dark:bg-white/5">

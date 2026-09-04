@@ -39,5 +39,5 @@ Todas as pendências listadas neste documento são classificadas como **BLOQUEAD
 
 ---
 
-## 🔐 Protocolo VPGP & Homologação
+## 🔐 Protocolo Deploy & Homologação
 Nenhuma versão final de produção será publicada até que todos os 9 itens bloqueadores sejam atualizados no banco de dados Supabase e o teste TypeScript `npx tsc --noEmit` passe com 0 erros.

@@ -21,6 +21,6 @@ Se for estritamente necessário alterar lógicas nesses arquivos, isso deve ser 
 
 ## 4. Passos para Execução Segura
 1. Realizar uma varredura (ex: `npm run build` ou lint) antes da refatoração.
-2. Executar o Protocolo VPGP (Varredura Pré Git Push) criando um ponto de restauração.
+2. Executar o Protocolo Deploy criando um ponto de restauração.
 3. Extrair os trechos adotando a Trava Absoluta.
 4. Testar o componente refatorado antes de avançar para a próxima etapa.

@@ -1,4 +1,4 @@
-# Protocolo de Varredura Pré-Git Push (VPGP)
+# Protocolo Deploy (Varredura Pré-Git Push)
 
 Este protocolo DEVE ser executado integralmente antes de realizar qualquer `git push` no repositório para evitar quebras de build em ambiente de produção (Vercel/Netlify) e falhas no banco.
 

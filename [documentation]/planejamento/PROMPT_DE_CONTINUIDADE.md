@@ -18,7 +18,7 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
   - Trava na Sidebar com badge `SALES TEAM` e acionamento automático do `UpgradeModal.tsx`.
   - Bloqueio de rota direta em `/dashboard/b2b` com o componente `B2bUpgradeGateCard.tsx`.
   - Estudo de mercado completo documentado em `[documentation]/estrategia/ESTUDO_ENQUADRAMENTO_PORTAL_B2B.md`.
-- [x] **Compilação e Protocolo VPGP:**
+- [x] **Compilação e Protocolo Deploy:**
   - `npx tsc --noEmit` com **0 erros de tipagem**.
   - `npm run build` com **todas as 60 rotas** estáticas e dinâmicas geradas com sucesso.
   - Commit e Push sincronizados na branch `origin/main`.
@@ -42,17 +42,22 @@ Este documento é a **Fonte Única de Verdade (SSOT)** para encerramento e retom
 
 ---
 
+- [x] **Auditoria Visual, Responsiva & Dinâmica (Claro/Escuro) do Mockup WhatsApp:**
+  - Mockup hiper-realista estilo smartphone com Dynamic Island e botões de hardware proporcionais em `components/AnotaMeuContatoSection.tsx`.
+  - Interface do WhatsApp com transição fluida e reativa entre os temas **Claro Oficial** (`#EFEAE2`, `#008069`, `#DCF8C6`, `#FFFFFF`) e **Dark Theme Oficial** (`#0B141A`, `#202C33`, `#005C4B`, `#E9EDEF`, `#53BDEB`).
+  - Sincronização em tempo real com o botão seletor de tema (`ThemeToggle`) da Landing Page via `MutationObserver` e evento `ps_theme_changed`.
+  - Caudas angulares dos balões (chat tails), card de preview oficial, double check azul WhatsApp e blindagem contra telas < 380px e slugs longos.
+  - Compilação validada com 0 erros TypeScript (`npx tsc --noEmit`) e 60 rotas no `npm run build`.
+
+---
+
 ## 2. Próximos Passos Sugeridos
 
 ### 🎯 Próximo Foco Imediato:
-1. **Auditoria Visual & Responsiva do Mockup Físico de Celular (WhatsApp):**
-   - Inspecionar a renderização do chassi do smartphone (`components/AnotaMeuContatoSection.tsx`) em telas mobile (`< 380px`), tablets e desktops.
-   - Ajustar fidelidade de tipografia, sombras e proporções em relação ao design de referência do WhatsApp oficial.
-   - Garantir que a quebra de linha de URLs longas no balão não quebre a estrutura do chat.
-   - Auditar contraste e legibilidade nos modos Claro e Escuro da Landing Page.
-2. **Auditoria de Sessão e Desconexão (Sign Out):**
+1. **Auditoria de Sessão e Desconexão (Sign Out):**
    - Garantir que a saída do usuário limpe adequadamente cookies de sessão em todos os subdomínios e roteamentos.
-3. **Homologação em Staging/Produção (Vercel):**
+2. **Homologação em Staging/Produção (Vercel):**
    - Confirmar o funcionamento do OAuth em ambiente real após o deploy da branch `main`.
-4. **Refinamento de Onboarding para Novos Usuários via Google:**
+3. **Refinamento de Onboarding para Novos Usuários via Google:**
    - Validar experiência para usuários recém-chegados sem perfil prévio via fluxo `/onboarding`.
+

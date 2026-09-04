@@ -8,8 +8,8 @@ Ao criar ou modificar elementos HTML `<select>` estilizados com Tailwind CSS, **
 - **Exemplo Incorreto:** `className="rounded-lg border px-3 py-1.5"`
 - **Exemplo Correto:** `className="dash-select rounded-lg border pl-3 py-1.5"`
 
-## Protocolo VPGP (Verify, Push, Github, Push)
-Sempre que o usuário requisitar a execução do "Protocolo VPGP" para salvar as alterações, certifique-se OBRIGATORIAMENTE de compilar o projeto antes de fazer o commit/push, a fim de evitar que erros estritos do TypeScript cheguem até a Vercel. Siga os passos:
+## Protocolo Deploy (Build, Commit & Push)
+Sempre que o usuário requisitar a execução do comando **"deploy"** ou **"Protocolo Deploy"** para salvar as alterações, certifique-se OBRIGATORIAMENTE de compilar o projeto antes de fazer o commit/push, a fim de evitar que erros estritos do TypeScript cheguem até a Vercel. Siga os passos:
 1. **Validar (Build):** Execute `npm run build` ou `npx tsc --noEmit` localmente.
 2. **Corrigir:** Se a compilação acusar algum erro de tipagem (`Type error`), corrija o código imediatamente e rode o build novamente até passar sem falhas.
 3. **Commit:** Após o sucesso, faça o staging (`git add .`) e o commit (`git commit -m "..."`).

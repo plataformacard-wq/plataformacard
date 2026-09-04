@@ -1,4 +1,4 @@
-# Protocolo de Varredura Pré-Git Push (VPGP)
+# Protocolo Deploy (Varredura Pré-Git Push)
 
 Este protocolo DEVE ser executado integralmente antes de qualquer `git push` para garantir a estabilidade do deploy no Vercel e a coesão visual da plataforma.
 
